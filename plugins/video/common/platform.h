@@ -36,7 +36,9 @@
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__ 1
 
+#ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS 1
+#endif
 
 #if defined (_MSC_VER)
   #define _CRT_NONSTDC_NO_DEPRECATE 1

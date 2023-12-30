@@ -411,7 +411,7 @@ static bool MyToCustomised(PluginCodec_OptionMap & original, PluginCodec_OptionM
 
   // Calculate SDP parameters from the adjusted profile/level
   char sdpProfLevel[3*8*2+1];
-  sprintf(sdpProfLevel, "%02x%02x%02x",
+  snprintf(sdpProfLevel, sizeof(sdpProfLevel), "%02x%02x%02x",
           ProfileInfo[profileIndex].m_H264,
           original.GetUnsigned(ConstraintFlagsName) | LevelInfo[levelIndex].m_constraints,
           LevelInfo[levelIndex].m_H264);

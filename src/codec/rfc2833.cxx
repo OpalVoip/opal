@@ -26,7 +26,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "rfc2833.h"
 #endif
 

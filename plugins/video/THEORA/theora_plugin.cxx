@@ -496,7 +496,7 @@ theoraErrorMessage(int code)
 static char * num2str(int num)
 {
   char buf[20];
-  sprintf(buf, "%i", num);
+  snprintf(buf, sizeof(buf), "%i", num);
   return strdup(buf);
 }
 

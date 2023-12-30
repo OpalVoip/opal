@@ -28,7 +28,7 @@
 #include <ptlib.h>
 #include <opal_config.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sipim.h"
 #endif
 

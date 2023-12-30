@@ -912,8 +912,9 @@ bool OpalMixerEndPoint::GetConferenceStates(OpalConferenceStates & states, const
 
 PBoolean OpalMixerEndPoint::GarbageCollection()
 {
-  // Use bitwise | not boolean || so both get executed
-  return OpalMixerNodeManager::GarbageCollection() | OpalEndPoint::GarbageCollection();
+  // Assure both are executed every time
+  bool done = OpalMixerNodeManager::GarbageCollection();
+  return  OpalEndPoint::GarbageCollection() && done;
 }
 
 

@@ -31,7 +31,7 @@
 
 #if OPAL_IAX2
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "iax2medstrm.h"
 #endif
 

@@ -26,7 +26,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h224.h"
 #pragma implementation "h224handler.h"
 #endif

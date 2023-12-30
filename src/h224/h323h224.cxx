@@ -25,7 +25,7 @@
 
 #include <opal_config.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h323h224.h"
 #endif
 

@@ -30,7 +30,7 @@
 
 #if OPAL_SIP
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sipcon.h"
 #endif
 
