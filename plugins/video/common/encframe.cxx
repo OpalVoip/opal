@@ -60,11 +60,13 @@ bool OpalPluginFrame::SetSize(size_t newSize)
   // Some encoders are a bit rude and overwrite the end of the buffer, usually caused
   // by some SIMD processor instructions that operate on 16 byte chunks and not being
   // aligned to that. So add a bit, just in case.
-  if ((m_buffer = (uint8_t *)realloc(m_buffer, newSize+16)) == NULL) {
+  uint8_t * newBuf = (uint8_t *)realloc(m_buffer, newSize+16);
+  if (newBuf == NULL) {
     PTRACE(1, "FFMPEG", "Could not (re)allocate " << newSize << " bytes of memory.");
     return false;
   }
 
+  m_buffer = newBuf;
   m_maxSize = newSize;
   return true;
 }
