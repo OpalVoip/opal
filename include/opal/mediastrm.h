@@ -479,14 +479,16 @@ class OpalMediaStream : public PSafeObject
     bool             m_isSource;
     atomic<bool>     m_isOpen;
     PINDEX           m_defaultDataSize;
-    unsigned         m_timestamp;
+    RTP_Timestamp    m_timestamp;
     bool             m_marker;
+    bool             m_ssrcChanged;
 
     OpalMediaPatchPtr m_mediaPatch;
 
     RTP_DataFrame::PayloadTypes m_payloadType;
     unsigned                    m_frameTime;
     PINDEX                      m_frameSize;
+    unsigned                    m_timeUnits;
 
     typedef OpalMediaPatchPtr PatchPtr; // For backward compatibility
 
@@ -666,12 +668,16 @@ class OpalRawMediaStream : public OpalMediaStream
 
   protected:
     virtual void InternalClose() override;
+    virtual bool InternalWriteChannel(const BYTE * data, PINDEX length, PINDEX & written);
 
     PChannel * m_channel;
     bool       m_autoDelete;
     PDECLARE_MUTEX(m_channelMutex);
 
-    PBYTEArray m_silence;
+    bool             m_trustTimestamps;
+    RTP_Timestamp    m_expectedTimestamp;
+    PINDEX           m_lastDataSize;
+    PBYTEArray       m_silence;
 
     OpalSilenceDetector::CalculateDB m_dbCalculator;
     PDECLARE_MUTEX(m_dbCalculatorMutex);

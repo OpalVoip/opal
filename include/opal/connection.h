@@ -83,6 +83,7 @@ class PURL;
 #define OPAL_OPT_CALLED_DISPLAY_NAME  "Called-Display-Name"   ///< String option to set outgoing display name
 #define OPAL_OPT_REDIRECTING_PARTY    "Redirecting-Party"     ///< String option to set redirecting/refferred-by party
 #define OPAL_OPT_PRESENTATION_BLOCK   "Presentation-Block"    ///< String option to block outgoing calling number presentation
+#define OPAL_OPT_ALERTING_TYPE        "Alerting-Type"         ///< String option to set the alerting type string for call
 #define OPAL_OPT_INTERFACE            "Interface"             ///< String option to set the interface used for outgoing call
 #define OPAL_OPT_USER_INPUT_MODE      "User-Input-Mode"       ///< String option to set User Input indication mode:
                                                               ///< "RFC2833", "String", "Tone", "Q.931" or "InBand"
@@ -90,13 +91,13 @@ class PURL;
 #define OPAL_OPT_ENABLE_INBAND_DTMF   "EnableInbandDTMF"      ///< String option to enable in band DTMF detection/send
 #define OPAL_OPT_DETECT_INBAND_DTMF   "DetectInBandDTMF"      ///< String option to enable in band DTMF detection
 #define OPAL_OPT_SEND_INBAND_DTMF     "SendInBandDTMF"        ///< String option to enable in band DTMF send as fall back for other UI modes
-#define OPAL_OPT_DTMF_MULT            "dtmfmult"
-#define OPAL_OPT_DTMF_DIV             "dtmfdiv"
-#define OPAL_OPT_DISABLE_JITTER       "Disable-Jitter"        ///< String option to disable jitter buffer if "true"
+#define OPAL_OPT_DTMF_MULT            "dtmfmult"              ///< String option for DTMF detector scaling (multiplier)
+#define OPAL_OPT_DTMF_DIV             "dtmfdiv"               ///< String option for DTMF detector scaling (divisor)
 #define OPAL_OPT_MAX_JITTER           "Max-Jitter"            ///< String option to set maximum jitter in milliseconds
 #define OPAL_OPT_MIN_JITTER           "Min-Jitter"            ///< String option to set minimum jitter in milliseconds
+#define OPAL_OPT_DISABLE_JITTER       "Disable-Jitter"        ///< String option to disable jitter buffer, default "false"
+#define OPAL_OPT_TRUST_TIMESTAMPS     "Trust-Timestamps"      ///< String option to trust RTP timestamps when JB disabled, default "true"
 #define OPAL_OPT_RECORD_AUDIO         "Record-Audio"          ///< String option to start recording to a file for call
-#define OPAL_OPT_ALERTING_TYPE        "Alerting-Type"         ///< String option to set the alerting type string for call
 #define OPAL_OPT_REMOVE_CODEC         "Remove-Codec"          ///< String option to remove codecs for this call
 
 /**OpalConnection::StringOption key to an enum indicating that silence
