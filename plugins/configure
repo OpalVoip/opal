@@ -11523,7 +11523,7 @@ printf %s "checking for LIBAVCODEC usability... " >&6; }
 int
 main (void)
 {
-avcodec_register_all()
+avcodec_version()
   ;
   return 0;
 }
@@ -11591,7 +11591,7 @@ printf %s "checking for FFMPEG libavcodec library usability... " >&6; }
 int
 main (void)
 {
-avcodec_register_all()
+avcodec_version()
   ;
   return 0;
 }
@@ -12316,7 +12316,7 @@ fi
 printf %s "checking Cisco Open H.264 shared library... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include "$PLUGIN_SRC_DIR/video/openh264/svc/codec_api.h"
+#include "$PLUGIN_SRC_DIR/video/openh264/inc_2.3.1/wels/codec_api.h"
 int
 main (void)
 {

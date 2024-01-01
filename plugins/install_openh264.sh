@@ -84,7 +84,7 @@ if [ \! -d $LIBDIR ]; then
 fi
 
 cd $LIBDIR
-if [ -e "$LIBFILE" ] && !$FORCE; then
+if [ -e "$LIBFILE" ] && ! $FORCE; then
     echo Already installed.
 else
     echo Installing $LIBBASE to $LIBDIR.

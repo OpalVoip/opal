@@ -212,7 +212,7 @@ MY_MODULE_OPTION(
          [],
          [-lavcodec],
          [#include <libavcodec/avcodec.h>],
-         [avcodec_register_all()],
+         [avcodec_version()],
          [
             HAVE_LIBAVCODEC=yes
             LIBAVCODEC_LIBS="$LIBAVCODEC_LIBS $LIBAVUTIL_LIBS $LIBSWRESAMPLE_LIBS"
@@ -311,7 +311,7 @@ MY_LINK_IFELSE(
    [Cisco Open H.264 shared library],
    [],
    [-lopenh264 -lpthread],
-   [#include "$PLUGIN_SRC_DIR/video/openh264/svc/codec_api.h"],
+   [#include "$PLUGIN_SRC_DIR/video/openh264/inc_2.3.1/wels/codec_api.h"],
    [
       ISVCEncoder * encoder;
       WelsCreateSVCEncoder(&encoder);

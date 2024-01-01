@@ -116,7 +116,7 @@ void CodecTest::Main()
     OpalPluginCodecManager & codecMgr = OpalPluginCodecManager::GetInstance();
     PPluginModuleManager::PluginListType pluginList = codecMgr.GetPluginList();
 
-    cout << "Plugin codecs:" << endl;
+    cout << "Plugin codecs:\n";
     for (PPluginModuleManager::PluginListType::iterator it = pluginList.begin(); it != pluginList.end(); ++it) {
       PDynaLink & plugin = it->second;
 
@@ -134,14 +134,20 @@ void CodecTest::Main()
         }
       }
 
-      cout << "   " << plugin.GetName(true) << endl;
+      cout << "   " << plugin.GetName(true) << '\n';
       if (codecNames.GetSize() == 0) 
-        cout << "      No codecs defined" << endl;
+        cout << "      No codecs defined" << '\n';
       else
-        cout << "      " << setfill(',') << codecNames << setfill(' ') << endl;
-      
+        cout << "      " << setfill(',') << codecNames << setfill(' ') << '\n';
     }
-    cout << "\n\n";
+
+    cout << "\nMedia formats:" << endl;
+    OpalMediaFormatList all = OpalMediaFormat::GetAllRegisteredMediaFormats();
+    for (OpalMediaFormatList::iterator it = all.begin(); it != all.end(); ++it) {
+      if (it->IsTransportable())
+        cout << "\n   " << *it;
+    }
+    cout << endl;
     return;
   }
 
@@ -1062,11 +1068,9 @@ void TranscoderThread::Main()
     //  re-format encoded frames
     //
     unsigned long encodedPayloadSize = 0;
-    unsigned long encodedPacketCount = 0;
     unsigned frameCount = 0;
     for (RTP_DataFrameList::iterator it = encFrames.begin(); it != encFrames.end(); ++it, ++frameCount) {
       it->SetSequenceNumber(++sequenceNumber);
-      ++encodedPacketCount;
       encodedPayloadSize += it->GetPayloadSize();
       switch (m_markerHandling) {
         case SuppressMarkers:
@@ -1282,7 +1286,8 @@ void TranscoderThread::Main()
   cout << "bytes\n"
        << totalEncodedPacketCount << " packets (max "
        << largestPacket << " bytes)\n"
-       << totalInputFrameCount << " frames over " << duration << " seconds at "
+       << totalInputFrameCount << " (" << totalOutputFrameCount << ") frames over "
+       << duration << " seconds at "
        << (totalInputFrameCount*1000.0/duration.GetMilliSeconds()) << " fps\n";
 
   if (m_dropPercent > 0)
