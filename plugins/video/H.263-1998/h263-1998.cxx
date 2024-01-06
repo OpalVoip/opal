@@ -424,19 +424,23 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
 
     bool SetOption(const char * option, const char * value)
     {
-#ifdef CODEC_FLAG_H263P_UMV
       // Annex D: Unrestructed Motion Vectors
       // Level 2+ 
       // works with eyeBeam, signaled via  non-standard "D"
       if (strcasecmp(option, H263_ANNEX_D) == 0)
+#ifdef CODEC_FLAG_H263P_UMV
         return SetOptionBit(m_context->flags, CODEC_FLAG_H263P_UMV, value);
+#else
+        return SetOptionsInt("umv", value, m_optionsSame);
 #endif
 
-#ifdef CODEC_FLAG_OBMC
       // Annex F: Advanced Prediction Mode
       // does not work with eyeBeam
       if (strcasecmp(option, H263_ANNEX_F) == 0)
+#ifdef CODEC_FLAG_OBMC
         return SetOptionBit(m_context->flags, CODEC_FLAG_OBMC, value);
+#else
+        return SetOptionsInt("obmc", value, m_optionsSame);
 #endif
 
 #ifdef CODEC_FLAG_AC_PRED
@@ -454,18 +458,22 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
         return SetOptionBit(m_context->flags, CODEC_FLAG_LOOP_FILTER, value);
 #endif
 
-#ifdef CODEC_FLAG_H263P_SLICE_STRUCT
       // Annex K: Slice Structure
       // does not work with eyeBeam
       if (strcasecmp(option, H263_ANNEX_K) == 0)
+#ifdef CODEC_FLAG_H263P_SLICE_STRUCT
         return SetOptionBit(m_context->flags, CODEC_FLAG_H263P_SLICE_STRUCT, value);
+#else
+        return SetOptionsInt("structured_slices", value, m_optionsSame);
 #endif
 
-#ifdef CODEC_FLAG_H263P_AIV
       // Annex S: Alternative INTER VLC mode
       // does not work with eyeBeam
       if (strcasecmp(option, H263_ANNEX_S) == 0)
+#ifdef CODEC_FLAG_H263P_AIV
         return SetOptionBit(m_context->flags, CODEC_FLAG_H263P_AIV, value);
+#else
+        return SetOptionsInt("aiv", value, m_optionsSame);
 #endif
 
       if (strcasecmp(option, PLUGINCODEC_MEDIA_PACKETIZATION) == 0 ||
@@ -500,6 +508,7 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
       SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
       PTRACE(4, m_prefix, "Packetization is " << m_fullFrame->GetName());
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
       #define CODEC_TRACER_FLAG(tracer, flag) \
         PTRACE(4, m_prefix, #flag " is " << ((m_context->flags & flag) ? "enabled" : "disabled"));
 #ifdef CODEC_FLAG_H263P_UMV
@@ -519,6 +528,8 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
 #endif
 #ifdef CODEC_FLAG_H263P_AIV
       CODEC_TRACER_FLAG(tracer, CODEC_FLAG_H263P_AIV);
+#endif
+
 #endif
 
       return OpenCodec();

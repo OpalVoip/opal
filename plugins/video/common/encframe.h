@@ -64,7 +64,6 @@ class OpalPluginFrame
 
     virtual void RTPCallBack(void * data, int size, int mbCount);
 
-  protected:
     virtual bool Append(const uint8_t * data, size_t len);
 };
 

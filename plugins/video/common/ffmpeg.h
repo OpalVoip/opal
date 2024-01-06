@@ -49,6 +49,7 @@
 
 extern "C" {
   #include "libavcodec/avcodec.h"
+  #include "libavutil/dict.h"
   #include "libavutil/mem.h"
 };
 
@@ -97,6 +98,7 @@ class FFMPEGCodec
     const char     * m_prefix;
     const AVCodec  * m_codec;
     AVCodecContext * m_context;
+    AVDictionary   * m_options;
     AVFrame        * m_picture;
     AVPacket         m_packet;
     void           * m_alignedYUV[3];
@@ -121,6 +123,7 @@ class FFMPEGCodec
       unsigned tsto,
       unsigned keyFramePeriod
     );
+    bool SetOptionsInt(const char * name, const char * value, bool & optionsSame);
 
     virtual bool OpenCodec();
     virtual void CloseCodec();
