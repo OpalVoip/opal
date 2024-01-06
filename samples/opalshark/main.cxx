@@ -79,6 +79,7 @@ DEF_FIELD(MainFrameHeight);
 
 static const wxChar OptionsGroup[] = wxT("/Options");
 DEF_FIELD(AudioDevice);
+DEF_FIELD(AudioTiming);
 DEF_FIELD(VideoTiming);
 DEF_FIELD(LastExportFile);
 static const wxChar MappingsGroup[] = wxT("/PayloadMappings");
@@ -292,6 +293,7 @@ bool MyManager::Initialise(bool startMinimised)
 
   config->SetPath(OptionsGroup);
   config->Read(AudioDeviceKey, &m_options.m_AudioDevice);
+  config->Read(AudioTimingKey, &m_options.m_AudioTiming);
   config->Read(VideoTimingKey, &m_options.m_VideoTiming);
   m_lastExportFile = config->Read(LastExportFileKey, wxT("*.avi"));
 
@@ -404,6 +406,16 @@ void MyManager::OnMenuOptions(wxCommandEvent &)
 }
 
 
+MyOptions::MyOptions()
+  : m_AudioDevice("Default")
+  , m_AudioTiming(1)
+  , m_VideoTiming(0)
+{
+  m_mappings[RTP_DataFrame::PCMU] = OPAL_G711_ULAW_64K;
+  m_mappings[RTP_DataFrame::PCMA] = OPAL_G711_ALAW_64K;
+}
+
+
 BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
 END_EVENT_TABLE()
 
@@ -427,6 +439,7 @@ OptionsDialog::OptionsDialog(MyManager *manager, const MyOptions & options)
     combo->Append(str);
   }
 
+  FindWindowByName(AudioTimingKey)->SetValidator(wxGenericValidator(&m_options.m_AudioTiming));
   FindWindowByName(VideoTimingKey)->SetValidator(wxGenericValidator(&m_options.m_VideoTiming));
 
   FindWindowByNameAs(m_mappings, this, wxT("Mappings"));
@@ -472,6 +485,7 @@ bool OptionsDialog::TransferDataFromWindow()
   wxConfigBase * config = wxConfig::Get();
   config->SetPath(OptionsGroup);
   config->Write(AudioDeviceKey, m_options.m_AudioDevice);
+  config->Write(AudioTimingKey, m_options.m_AudioTiming);
   config->Write(VideoTimingKey, m_options.m_VideoTiming);
 
   m_options.m_mappings.clear();
@@ -819,6 +833,14 @@ void MyPlayer::OnStep(wxCommandEvent &)
 }
 
 
+void MyPlayer::AddStream(const OpalPCAPFile::DiscoveredRTPInfo & selectedInfo)
+{
+  MediaStream * stream = new MediaStream(m_streamTabs, *this, selectedInfo);
+  m_streamTabs->AddPage(stream, wxString() << "SSRC=" << selectedInfo.m_ssrc);
+  m_streamsBySSRC[selectedInfo.m_ssrc] = stream;
+}
+
+
 void MyPlayer::OnAnalyse(wxCommandEvent &)
 {
   m_streamsBySSRC.clear();
@@ -828,13 +850,8 @@ void MyPlayer::OnAnalyse(wxCommandEvent &)
   if (!pcapFile.Open(m_pcapFilePath, PFile::ReadOnly))
     return;
 
-  for (std::set<unsigned>::iterator selectedRow = m_selectedRows.begin(); selectedRow != m_selectedRows.end(); ++selectedRow) {
-    OpalPCAPFile::DiscoveredRTPInfo & selectedInfo = m_discoveredRTP[*selectedRow];
-
-    MediaStream * stream = new MediaStream(*this, selectedInfo);
-    m_streamTabs->AddPage(stream, wxString() << selectedInfo.m_ssrc);
-    m_streamsBySSRC[selectedInfo.m_ssrc] = stream;
-  }
+  for (std::set<unsigned>::iterator selectedRow = m_selectedRows.begin(); selectedRow != m_selectedRows.end(); ++selectedRow)
+    AddStream(m_discoveredRTP[*selectedRow]);
 
   off_t fileLength = pcapFile.GetLength();
   wxProgressDialog progress(OpalSharkString,
@@ -873,12 +890,9 @@ void MyPlayer::StartPlaying(Controls ctrl)
 
   m_playThreadCtrl = ctrl;
   for (std::set<unsigned>::iterator selectedRow = m_selectedRows.begin(); selectedRow != m_selectedRows.end(); ++selectedRow) {
-    OpalPCAPFile::DiscoveredRTPInfo & selectedInfo = m_discoveredRTP[*selectedRow];
-    if (m_streamsBySSRC.find(selectedInfo.m_ssrc) == m_streamsBySSRC.end()) {
-      MediaStream * stream = new MediaStream(*this, selectedInfo);
-      m_streamTabs->AddPage(stream, wxString() << selectedInfo.m_ssrc);
-      m_streamsBySSRC[selectedInfo.m_ssrc] = stream;
-    }
+    const OpalPCAPFile::DiscoveredRTPInfo & selectedInfo = m_discoveredRTP[*selectedRow];
+    if (m_streamsBySSRC.find(selectedInfo.m_ssrc) == m_streamsBySSRC.end())
+      AddStream(selectedInfo);
   }
 
   for (StreamBySSRC::iterator stream = m_streamsBySSRC.begin(); stream != m_streamsBySSRC.end(); ++stream)
@@ -888,8 +902,8 @@ void MyPlayer::StartPlaying(Controls ctrl)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-MediaStream::MediaStream(MyPlayer & player, const OpalPCAPFile::DiscoveredRTPInfo & filterInfo)
-  : wxListCtrl(player.m_streamTabs, -1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT)
+MediaStream::MediaStream(wxWindow * parent, MyPlayer & player, const OpalPCAPFile::DiscoveredRTPInfo & filterInfo)
+  : wxListCtrl(parent, -1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT)
   , m_player(player)
   , m_clockRate(filterInfo.m_mediaFormat.GetClockRate())
   , m_firstPacket(true)
@@ -980,7 +994,7 @@ void MediaStream::Analyse(unsigned packetNumber,
   }
 
   if (m_audioFormat.IsValid()) {
-    if (!decoded.IsEmpty()) {
+    if (decoded.GetPayloadSize() > 0) {
       if (!notes.empty())
         notes << ", ";
       notes << "dBov="
@@ -1070,19 +1084,79 @@ void MediaStream::OnAnalysisUpdate(wxString info, bool async)
 }
 
 
+class DecodeAudioContext : public OpalPCAPFile::DecodeContext
+{
+  const MyPlayer        & m_player;
+  RTP_Timestamp           m_expectedTimestamp;
+  unsigned                m_timeUnits;
+  PBYTEArray              m_silence;
+  bool                    m_trustTimestamps;
+  PAutoPtr<PSoundChannel> m_soundChannel;
+
+public:
+  DecodeAudioContext(const MyPlayer & player)
+    : m_player(player)
+    , m_expectedTimestamp(0)
+    , m_timeUnits(0)
+    , m_trustTimestamps(m_player.GetOptions().m_AudioTiming != 0)
+  { }
+
+  bool WriteDecodedAudio(const RTP_DataFrame & decodedAudio)
+  {
+    if (m_soundChannel.get() == NULL) {
+      OpalMediaFormat format = m_transcoder->GetOutputFormat();
+      m_soundChannel.reset(new PSoundChannel(m_player.GetOptions().m_AudioDevice,
+                                             PSoundChannel::Player,
+                                             format.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1),
+                                             format.GetClockRate()));
+      m_soundChannel->SetBuffers(decodedAudio.GetPayloadSize(), 8);
+      m_timeUnits = format.GetTimeUnits();
+    }
+
+    RTP_Timestamp timestamp = decodedAudio.GetTimestamp();
+    // Don't insert silence and reset expected timestamp if ...
+    if (!m_trustTimestamps || // We don't trust the timestamps
+        m_expectedTimestamp == 0 || // Not received anything yet
+        timestamp < m_expectedTimestamp || // Timestamp went backwards
+        (timestamp - m_expectedTimestamp) > 600000U*m_timeUnits) // More than 10 minutes
+      m_expectedTimestamp = timestamp;
+    else {
+      // If current timestamp later than expected, need to pad with silence.
+      while (timestamp > m_expectedTimestamp) {
+        const PINDEX silence = std::min((timestamp - m_expectedTimestamp)*2, 1000U*m_timeUnits);
+        PTRACE(6, "Writing silence: " << silence << " bytes");
+        if (!m_soundChannel->Write(m_silence.GetPointer(silence), silence))
+          return false;
+        m_expectedTimestamp += m_soundChannel->GetLastWriteCount()/2;
+        while (m_player.GetControl() == MyPlayer::CtlPause) {
+          PThread::Sleep(200);
+        }
+        if (m_player.GetControl() != MyPlayer::CtlRunning)
+          return false;
+      }
+    }
+
+    if (!m_soundChannel->Write(decodedAudio.GetPayloadPtr(), decodedAudio.GetPayloadSize()))
+      return false;
+
+    m_expectedTimestamp += m_soundChannel->GetLastWriteCount()/2;
+    return true;
+  }
+};
+
+
 void MediaStream::PlayAudio()
 {
   PTRACE(3, "Started audio player thread.");
 
   OpalPCAPFile pcapFile;
-  if (pcapFile.Open(m_player.m_pcapFilePath, PFile::ReadOnly)) {
+  if (pcapFile.Open(m_player.GetPcapFilepath(), PFile::ReadOnly)) {
     pcapFile.SetFilters(m_filterInfo);
 
     unsigned packetNumber = 0;
-    PSoundChannel * soundChannel = NULL;
-    OpalPCAPFile::DecodeContext decodeContext;
-    while (m_player.m_playThreadCtrl != MyPlayer::CtlStop && !pcapFile.IsEndOfFile()) {
-      while (m_player.m_playThreadCtrl == MyPlayer::CtlPause) {
+    DecodeAudioContext decodeContext(m_player);
+    while (m_player.GetControl() != MyPlayer::CtlStop && !pcapFile.IsEndOfFile()) {
+      while (m_player.GetControl() == MyPlayer::CtlPause) {
         PThread::Sleep(200);
       }
 
@@ -1098,20 +1172,9 @@ void MediaStream::PlayAudio()
 
       Analyse(packetNumber, encodedRTP, decodedAudio, pcapFile.GetPacketTime());
 
-      if (soundChannel == NULL) {
-        OpalMediaFormat format = decodeContext.m_transcoder->GetOutputFormat();
-        soundChannel = new PSoundChannel(m_player.m_manager.GetOptions().m_AudioDevice,
-                                         PSoundChannel::Player,
-                                         format.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1),
-                                         format.GetClockRate());
-        soundChannel->SetBuffers(decodedAudio.GetPayloadSize(), 8);
-      }
-
-      if (!soundChannel->Write(decodedAudio.GetPayloadPtr(), decodedAudio.GetPayloadSize()))
+      if (!decodeContext.WriteDecodedAudio(decodedAudio))
         break;
     }
-
-    delete soundChannel;
   }
 
   m_running = false;
@@ -1125,7 +1188,7 @@ void MediaStream::PlayVideo()
   PTRACE(3, "Started video player thread.");
 
   OpalPCAPFile pcapFile;
-  if (pcapFile.Open(m_player.m_pcapFilePath, PFile::ReadOnly)) {
+  if (pcapFile.Open(m_player.GetPcapFilepath(), PFile::ReadOnly)) {
     pcapFile.SetFilters(m_filterInfo);
 
     PVideoOutputDevice::OpenArgs args;
@@ -1140,8 +1203,8 @@ void MediaStream::PlayVideo()
     RTP_Timestamp startTimestamp = 0;
 
     OpalPCAPFile::DecodeContext decodeContext;
-    while (m_player.m_playThreadCtrl != MyPlayer::CtlStop && !pcapFile.IsEndOfFile()) {
-      while (m_player.m_playThreadCtrl == MyPlayer::CtlPause) {
+    while (m_player.GetControl() != MyPlayer::CtlStop && !pcapFile.IsEndOfFile()) {
+      while (m_player.GetControl() == MyPlayer::CtlPause) {
         PThread::Sleep(200);
         realStartTime.SetCurrentTime();
         fileStartTime.SetTimestamp(0);
@@ -1170,7 +1233,7 @@ void MediaStream::PlayVideo()
       PTRACE(4, "Decoded " << setw(1) << decodedVideoFrame);
 
       PTimeInterval delay;
-      if (m_player.m_manager.GetOptions().m_VideoTiming == 0) {
+      if (m_player.GetOptions().m_VideoTiming == 0) {
         if (fileStartTime.IsValid())
           delay = pcapFile.GetPacketTime() - fileStartTime - realStartTime.GetElapsed();
         else
@@ -1196,11 +1259,7 @@ void MediaStream::PlayVideo()
       frameData.height = header->height;
       frameData.pixels = OPAL_VIDEO_FRAME_DATA_PTR(header);
       videoOutput->SetFrameData(frameData);
-
-      if (packetNumber >= m_player.m_pausePacket || m_player.m_playThreadCtrl == MyPlayer::CtlStep) {
-        m_player.m_playThreadCtrl = MyPlayer::CtlPause;
-        m_player.CallAfter(&MyPlayer::OnPaused);
-      }
+      m_player.PauseOnNext(packetNumber);
     }
 
     videoOutput->Close();
@@ -1311,6 +1370,21 @@ void MyPlayer::OnExportComplete()
 {
   PTRACE(4, "Export completed");
   m_progressDialog.reset();
+}
+
+
+const MyOptions & MyPlayer::GetOptions() const
+{
+  return m_manager.GetOptions();
+}
+
+
+void MyPlayer::PauseOnNext(unsigned packetNumber)
+{
+  if (packetNumber >= m_pausePacket || m_playThreadCtrl == MyPlayer::CtlStep) {
+    m_playThreadCtrl = CtlPause;
+    CallAfter(&MyPlayer::OnPaused);
+  }
 }
 
 
