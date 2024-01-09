@@ -258,20 +258,23 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
 
   m_audioMixer = new AudioMixer(*this,
                                 m_options.m_stereo,
-                                8000, // Really need to make this more flexible ....
+                                m_options.m_audioSampleRate,
                                 m_options.m_pushThreads);
   PTRACE_CONTEXT_ID_TO(*m_audioMixer);
 
   if (m_options.m_audioFormat.IsEmpty()) {
     PMediaFile::TrackInfo info;
-    if (!m_file->GetDefaultTrackInfo(PMediaFile::Audio(), info)) {
-      PTRACE(2, "Cannot get default audio track format for " << fn);
-      return false;
-    }
-    m_options.m_audioFormat = info.m_format;
+    if (m_file->GetDefaultTrackInfo(PMediaFile::Audio(), info))
+      m_options.m_audioFormat = info.m_format;
   }
 
 #if OPAL_VIDEO
+  if (m_options.m_videoFormat.IsEmpty()) {
+    PMediaFile::TrackInfo info;
+    if (m_file->GetDefaultTrackInfo(PMediaFile::Video(), info))
+      m_options.m_videoFormat = info.m_format;
+  }
+
   OpalVideoMixer::Styles style;
   switch (m_options.m_videoMixing) {
     default :
@@ -302,22 +305,38 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
                                 m_options.m_videoRate,
                                 m_options.m_pushThreads);
   PTRACE_CONTEXT_ID_TO(*m_videoMixer);
+#endif // OPAL_VIDEO
 
-  if (m_options.m_videoFormat.IsEmpty()) {
-    PMediaFile::TrackInfo info;
-    if (!m_file->GetDefaultTrackInfo(PMediaFile::Video(), info)) {
-      PTRACE(2, "Cannot get default video track format for " << fn);
-      return false;
-    }
-    m_options.m_videoFormat = info.m_format;
+  PMediaFile::TracksInfo tracks;
+  m_file->GetTracks(tracks);
+  for (size_t i = 0; i < tracks.size(); ++i) {
+    if (tracks[i].m_type == OpalMediaType::Audio())
+      m_audioTrack = i;
+#if OPAL_VIDEO
+    else if (tracks[i].m_type == OpalMediaType::Video())
+      m_videoTrack = i;
+#endif //OPAL_VIDEO
   }
 
-  PTRACE(4, (m_options.m_stereo ? "Stereo" : "Mono") << '-' << m_options.m_audioFormat
-         << '/' << m_options.m_videoFormat << " mixers opened for file \"" << fn << '"');
-#else
-  PTRACE(4, (m_options.m_stereo ? "Stereo" : "Mono") << '-' << m_options.m_audioFormat
-         << " mixer opened for file \"" << fn << '"');
-#endif // OPAL_VIDEO
+#if PTRACING
+  const unsigned LogLevel = 3;
+  if (PTrace::CanTrace(LogLevel)) {
+    ostream & log = PTRACE_BEGIN(LogLevel, this);
+    if (m_options.m_audioFormat.empty())
+      log << "No-audio";
+    else
+      log << (m_options.m_stereo ? "Stereo" : "Mono") << '-' << m_options.m_audioFormat;
+  #if OPAL_VIDEO
+    log << '/';
+    if (m_options.m_videoFormat.empty())
+      log << "No-video";
+    else
+      log << m_options.m_videoFormat;
+  #endif //OPAL_VIDEO
+    log << " opened for file \"" << fn << '"' << PTrace::End;
+  }
+#endif // PTRACING
+
   return true;
 }
 
@@ -344,7 +363,7 @@ bool OpalMediaFileRecordManager::Close()
   PSmartPtr<PMediaFile> file = m_file;
   m_file = NULL;
 
-  if (!file.IsNULL() && !PFile::Rename(m_tempFile, m_finalFile, true)) {
+  if (!file.IsNULL() && file->Close() && !PFile::Move(m_tempFile, m_finalFile, true)) {
     PTRACE(2, "Could not rename \"" << m_tempFile << "\" to \"" << m_finalFile << '"');
   }
 
@@ -367,13 +386,13 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
   PString outputFormat;
   OpalBaseMixer * mixer;
 
-  if (mediaType == OpalMediaType::Audio()) {
+  if (mediaType == OpalMediaType::Audio() && !m_options.m_audioFormat.empty()) {
     trackId = m_audioTrack;
     outputFormat = m_options.m_audioFormat;
     mixer = m_audioMixer;
   }
 #if OPAL_VIDEO
-  else if (mediaType == OpalMediaType::Video()) {
+  else if (mediaType == OpalMediaType::Video() && !m_options.m_videoFormat.empty()) {
     trackId = m_videoTrack;
     outputFormat = m_options.m_videoFormat;
     mixer = m_videoMixer;
@@ -392,16 +411,14 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     return false;
   }
 
-  if (trackId < m_file->GetTrackCount()) {
-    PTRACE(3, "Added stream " << strmId << " to existing " << mediaType << " track number " << trackId);
-    return mixer->AddStream(strmId);
-  }
-
   PMediaFile::TracksInfo tracks;
   m_file->GetTracks(tracks);
 
-  trackId = tracks.size();
-  tracks.push_back(PMediaFile::TrackInfo(mediaType, outputFormat));
+  if (trackId >= tracks.size()) {
+    trackId = tracks.size();
+    tracks.push_back(PMediaFile::TrackInfo(mediaType, outputFormat));
+  }
+
   PMediaFile::TrackInfo & track = tracks[trackId];
 
 #if OPAL_VIDEO
@@ -430,7 +447,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     track.m_size = track.m_channels * sizeof(short);
 
     if (!m_file->SetTracks(tracks)) {
-      PTRACE(2, "Could not set track for audio");
+      PTRACE(2, "Could not set tracks for audio");
       return false;
     }
 
@@ -447,7 +464,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     }
   }
 
-  PTRACE(3, "Created media file track for " << mediaType << ":"
+  PTRACE(3, "Set media file track for " << mediaType << ":"
             " stream-format=" << format << ","
             " file-format=\"" << outputFormat << "\","
             " id=" << strmId << ","

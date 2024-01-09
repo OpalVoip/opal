@@ -1334,9 +1334,23 @@ void MyPlayer::StartExport(const PFilePath & mediaFile)
   }
 
   unsigned audioCount = 0;
+  unsigned videoCount = 0;
   for (std::set<unsigned>::iterator selectedRow = m_selectedRows.begin(); selectedRow != m_selectedRows.end(); ++selectedRow) {
-    if (m_discoveredRTP[*selectedRow].m_mediaFormat.GetMediaType() == OpalMediaType::Audio())
+    OpalMediaType mediaType = m_discoveredRTP[*selectedRow].m_mediaFormat.GetMediaType();
+    if (mediaType == OpalMediaType::Audio())
       ++audioCount;
+    else if (mediaType == OpalMediaType::Video())
+      ++videoCount;
+  }
+
+  if (audioCount > 2) {
+    wxMessageBox("Cannot record more than 2 audio tracks", OpalSharkErrorString, wxICON_EXCLAMATION | wxOK);
+    return;
+  }
+
+  if (videoCount > 2) {
+    wxMessageBox("Cannot record more than 2 video tracks", OpalSharkErrorString, wxICON_EXCLAMATION | wxOK);
+    return;
   }
 
   OpalRecordManager::Options options;
