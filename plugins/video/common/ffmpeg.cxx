@@ -425,7 +425,7 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
   m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
 #else
-  av_dict_set_int(&m_options, "mb_info", maxRTPSize, 0);
+  av_dict_set_int(&m_options, "mb_info", m_fullFrame->GetMaxPayloadSize(), 0);
 #endif
 
   m_context->qmax = tsto;
@@ -515,7 +515,7 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   m_picture->pict_type = forceIFrame ? AV_PICTURE_TYPE_I : AV_PICTURE_TYPE_NONE;
   m_picture->key_frame = 0;
 
-  if (!EncodeVideoFrame(flags))
+  if (!EncodeVideoFrame())
     return false;
 
   if (m_picture->key_frame || m_fullFrame->IsIntraFrame())
@@ -525,7 +525,7 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
 }
 
 
-bool FFMPEGCodec::EncodeVideoFrame(unsigned & flags)
+bool FFMPEGCodec::EncodeVideoFrame()
 {
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
   uint8_t * frame = m_fullFrame->GetBuffer();
@@ -550,7 +550,7 @@ bool FFMPEGCodec::EncodeVideoFrame(unsigned & flags)
 
     ++m_consecutiveFails;
     PTRACE(3, m_prefix, "Encoder failed, continuing after reset.");
-    return EncodeVideoFrame(frame, length, flags);
+    return EncodeVideoFrame();
   }
 
   m_consecutiveFails = 0;
@@ -583,13 +583,13 @@ bool FFMPEGCodec::EncodeVideoFrame(unsigned & flags)
     size_t mbSize;
     const uint8_t * mbInfo = av_packet_get_side_data(&m_packet, AV_PKT_DATA_H263_MB_INFO, &mbSize);
     if (mbInfo) {
-      PTRACE(5, m_prefix, "MB Info: " << mbSize);
+      PTRACE(5, m_prefix, "MB Info: " << mbSize << '/' << mbSize/12);
       unsigned lastBitOffset = 0;
       while (mbSize > 0) {
         unsigned bitOffset = *(uint32_t*)mbInfo;
         unsigned mbAddress = *(uint16_t*)(mbInfo+6);
-        PTRACE(5, m_prefix, "RTP info: bitOffset=" << bitOffset << ", mbAddress=" << mbAddress);
         m_fullFrame->RTPCallBack(NULL, (bitOffset - lastBitOffset)/8, mbAddress);
+        lastBitOffset = bitOffset;
         mbInfo += 12;
         mbSize -= 12;
       }

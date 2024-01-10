@@ -131,7 +131,7 @@ class FFMPEGCodec
     virtual bool EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP & out, unsigned & flags);
     virtual bool DecodeVideoPacket(const PluginCodec_RTP & in, unsigned & flags);
 
-    virtual bool EncodeVideoFrame(unsigned & flags);
+    virtual bool EncodeVideoFrame();
     virtual bool DecodeVideoFrame(const uint8_t * frame, size_t length, unsigned & flags);
 
     OpalPluginFrame * GetEncodedFrame() const { return m_fullFrame; }

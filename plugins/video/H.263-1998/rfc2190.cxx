@@ -151,7 +151,7 @@ void RFC2190Packetizer::SetMaxPayloadSize(size_t size)
 
 bool RFC2190Packetizer::Reset(size_t len)
 {
-  if (len > m_maxSize)
+  if (!OpalPluginFrame::Reset(len))
     return false;
 
   // make sure data is at least long enough to contain PSC, TR & minimum PTYPE, PQUANT and CPM
@@ -266,7 +266,7 @@ PTRACE(5, "RFC2190", "size=" << len
   fragPtr = m_buffer;
 
   PTRACE(5, "RFC2190", "Total fragments: " << fragments.size());
-  return OpalPluginFrame::Reset(len);
+  return true;
 }
 
 
