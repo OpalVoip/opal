@@ -81,6 +81,8 @@ static const wxChar OptionsGroup[] = wxT("/Options");
 DEF_FIELD(AudioDevice);
 DEF_FIELD(AudioTiming);
 DEF_FIELD(VideoTiming);
+DEF_FIELD(LogLevel);
+DEF_FIELD(LogFile);
 DEF_FIELD(LastExportFile);
 static const wxChar MappingsGroup[] = wxT("/PayloadMappings");
 
@@ -96,6 +98,8 @@ DEF_XRCID(Analyse);
 
 
 #define PTraceModule() "OpalShark"
+
+const unsigned TraceOptions = PTrace::DateAndTime | PTrace::Thread | PTrace::FileAndLine | PTrace::ContextIdentifier;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,9 +199,9 @@ bool OpalSharkApp::OnInit()
   if (cmdLine.Found("trace-level", &level)) {
     wxString file;
     if (cmdLine.Found("trace-output", &file))
-      PTrace::Initialise(level, file.c_str());
+      PTrace::Initialise(level, file.c_str(), TraceOptions);
     else
-      PTrace::Initialise(level);
+      PTrace::Initialise(level, NULL,  TraceOptions);
   }
 #endif
 
@@ -292,10 +296,17 @@ bool MyManager::Initialise(bool startMinimised)
   Connect(wxEVT_SIZE, wxSizeEventHandler(MyManager::OnSize));
 
   config->SetPath(OptionsGroup);
-  config->Read(AudioDeviceKey, &m_options.m_AudioDevice);
-  config->Read(AudioTimingKey, &m_options.m_AudioTiming);
-  config->Read(VideoTimingKey, &m_options.m_VideoTiming);
+  #define READ_CONFIG(var) config->Read(var##Key, &m_options.m_##var);
+  READ_CONFIG(AudioDevice);
+  READ_CONFIG(AudioTiming);
+  READ_CONFIG(LogLevel);
+  READ_CONFIG(LogFile);
   m_lastExportFile = config->Read(LastExportFileKey, wxT("*.avi"));
+
+#if PTRACING
+  if (m_options.m_LogLevel > 0)
+    PTrace::Initialise(m_options.m_LogLevel, m_options.m_LogFile.c_str(), TraceOptions);
+#endif // PTRACING
 
   config->SetPath(MappingsGroup);
   PwxString entryName;
@@ -410,6 +421,7 @@ MyOptions::MyOptions()
   : m_AudioDevice("Default")
   , m_AudioTiming(1)
   , m_VideoTiming(0)
+  , m_LogLevel(0)
 {
   m_mappings[RTP_DataFrame::PCMU] = OPAL_G711_ULAW_64K;
   m_mappings[RTP_DataFrame::PCMA] = OPAL_G711_ALAW_64K;
@@ -439,8 +451,11 @@ OptionsDialog::OptionsDialog(MyManager *manager, const MyOptions & options)
     combo->Append(str);
   }
 
-  FindWindowByName(AudioTimingKey)->SetValidator(wxGenericValidator(&m_options.m_AudioTiming));
-  FindWindowByName(VideoTimingKey)->SetValidator(wxGenericValidator(&m_options.m_VideoTiming));
+  #define SET_VALIDATOR(var) FindWindowByName(var##Key)->SetValidator(wxGenericValidator(&m_options.m_##var))
+  SET_VALIDATOR(AudioTiming);
+  SET_VALIDATOR(VideoTiming);
+  SET_VALIDATOR(LogLevel);
+  SET_VALIDATOR(LogFile);
 
   FindWindowByNameAs(m_mappings, this, wxT("Mappings"));
   m_mappings->CreateGrid(m_options.m_mappings.size()+1, 2);
@@ -484,9 +499,17 @@ bool OptionsDialog::TransferDataFromWindow()
 
   wxConfigBase * config = wxConfig::Get();
   config->SetPath(OptionsGroup);
-  config->Write(AudioDeviceKey, m_options.m_AudioDevice);
-  config->Write(AudioTimingKey, m_options.m_AudioTiming);
-  config->Write(VideoTimingKey, m_options.m_VideoTiming);
+  #define WRITE_CONFIG(var) config->Write(var##Key, m_options.m_##var);
+  WRITE_CONFIG(AudioDevice);
+  WRITE_CONFIG(AudioTiming);
+  WRITE_CONFIG(VideoTiming);
+  WRITE_CONFIG(LogLevel);
+  WRITE_CONFIG(LogFile);
+
+#if PTRACING
+  if (m_options.m_LogLevel != (int)PTrace::GetLevel())
+    PTrace::Initialise(m_options.m_LogLevel, m_options.m_LogFile.c_str(), TraceOptions);
+#endif // PTRACING
 
   m_options.m_mappings.clear();
   config->DeleteGroup(MappingsGroup);

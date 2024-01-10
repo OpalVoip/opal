@@ -59,6 +59,8 @@ struct MyOptions
   int       m_AudioTiming;
   int       m_VideoTiming;
   OpalPCAPFile::PayloadMap m_mappings;
+  int       m_LogLevel;
+  PwxString m_LogFile;
 
   MyOptions();
 };
