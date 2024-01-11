@@ -968,7 +968,7 @@ bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length
     return false;
   }
 
-  written += m_channel->GetLastWriteCount();
+  written = m_channel->GetLastWriteCount();
   m_expectedTimestamp += written/PCM16Size;
 
   m_dbCalculatorMutex.Wait();
