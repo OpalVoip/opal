@@ -363,7 +363,7 @@ void RFC2190Packetizer::RTPCallBack(void * data, int size, int mbCount)
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
     frag.mbNum  = m_currentMB;
-    m_currentMB += mb;
+    m_currentMB += mbCount;
 #else
     frag.mbNum = mbCount;
 #endif
