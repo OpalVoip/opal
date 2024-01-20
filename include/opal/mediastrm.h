@@ -669,12 +669,14 @@ class OpalRawMediaStream : public OpalMediaStream
   protected:
     virtual void InternalClose() override;
     virtual bool InternalWriteChannel(const BYTE * data, PINDEX length, PINDEX & written);
+    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init);
 
     PChannel * m_channel;
     bool       m_autoDelete;
     PDECLARE_MUTEX(m_channelMutex);
 
     bool             m_trustTimestamps;
+    bool             m_jitterBufferEnabled;
     RTP_Timestamp    m_expectedTimestamp;
     PINDEX           m_lastDataSize;
     PBYTEArray       m_silence;
@@ -801,6 +803,8 @@ class OpalAudioMediaStream : public OpalRawMediaStream
   //@}
 
   protected:
+    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
+
     PINDEX   m_soundChannelBuffers;
     unsigned m_soundChannelBufferTime;
 };
