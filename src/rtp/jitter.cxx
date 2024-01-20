@@ -599,7 +599,11 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
       m_consecutiveOverflows = 0;
     else {
       ANALYSE(In, timestamp, "Overflow");
-      PTRACE_J(4, "Buffer overflow : ts=" << timestamp << ", delta=" << delta << ", size=" << m_frames.size());
+      PTRACE_J(4, "Buffer overflow : "
+                  "SSRC=" << RTP_TRACE_SRC(newSyncSource) << ","
+                  "ts = " << timestamp << ","
+                  " delta = " << delta << ","
+                  " size = " << m_frames.size());
       if (++m_consecutiveOverflows > (m_packetTime == 0 ? AverageFrameTimePackets : MaxConsecutiveOverflows)) {
         PTRACE_J(2, "Consecutive overflow packets, resynching");
         InternalReset();
