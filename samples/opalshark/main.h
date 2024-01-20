@@ -171,6 +171,7 @@ class MyPlayer : public wxMDIChildFrame
     void Export(OpalPCAPFile * pcapFile, OpalRecordManager * recorder);
     void OnExportComplete();
 
+    MyManager & GetManager() const { return m_manager; }
     const PFilePath & GetPcapFilepath() const { return m_pcapFilePath; }
     const MyOptions & GetOptions() const;
     Controls GetControl() const { return m_playThreadCtrl; }
