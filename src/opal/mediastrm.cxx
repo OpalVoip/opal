@@ -822,7 +822,7 @@ OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
   , m_channel(chan)
   , m_autoDelete(autoDelete)
   , m_trustTimestamps(conn.GetStringOptions().GetBoolean(OPAL_OPT_TRUST_TIMESTAMPS, true))
-  , m_jitterBufferEnabled(true)
+  , m_externalSilence(true)
   , m_expectedTimestamp(0)
   , m_lastDataSize(10*PCM16Size*m_timeUnits) // At least 10ms
 {
@@ -941,7 +941,7 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
 
   // Don't insert silence and reset expected timestamp if ...
   if (!m_trustTimestamps || // We don't trust the timestamps
-       m_jitterBufferEnabled || // We are using JB which supplies the silence packets
+       m_externalSilence || // We are using JB which supplies the silence packets
        m_ssrcChanged || // SyncSource has changed
        m_expectedTimestamp == 0 || // Not received anything yet
        m_timestamp < m_expectedTimestamp || // Timestamp went backwards
@@ -982,7 +982,7 @@ bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length
 
 bool OpalRawMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init & init)
 {
-  m_jitterBufferEnabled = init.m_minJitterDelay > 0 && init.m_maxJitterDelay > 0;
+  m_externalSilence = init.m_minJitterDelay > 0 && init.m_maxJitterDelay > 0;
   return OpalMediaStream::InternalSetJitterBuffer(init);
 }
 
@@ -1037,7 +1037,7 @@ OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, file, autoDel)
   , OpalMediaStreamPacing(mediaFormat)
 {
-  m_jitterBufferEnabled = false;
+  m_externalSilence = false;
 }
 
 
@@ -1163,7 +1163,7 @@ PBoolean OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
     return false;
 
   PSoundChannel * soundChannel = dynamic_cast<PSoundChannel *>(m_channel);
-  if (m_jitterBufferEnabled || IsSource())
+  if (m_externalSilence || IsSource())
     return soundChannel->SetBuffers(frameSize, bufferCount);
 
   // If JB is disabled, then we are in "flow through" mode and need to
@@ -1175,7 +1175,7 @@ PBoolean OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 bool OpalAudioMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init & init)
 {
   bool result = OpalRawMediaStream::InternalSetJitterBuffer(init);
-  if (m_jitterBufferEnabled || IsSource())
+  if (m_externalSilence || IsSource())
     return result;
 
   // If JB is disabled, then we are in "flow through" mode and need to
@@ -1183,7 +1183,7 @@ bool OpalAudioMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init 
   PSoundChannel * soundChannel = dynamic_cast<PSoundChannel *>(m_channel);
   PINDEX frameSize, bufferCount;
   if (soundChannel->GetBuffers(frameSize, bufferCount))
-    soundChannel->SetBuffers(1, frameSize*bufferCount);
+    m_externalSilence = !soundChannel->SetBuffers(1, frameSize*bufferCount);
   return result;
 }
 

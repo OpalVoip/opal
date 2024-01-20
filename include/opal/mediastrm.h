@@ -676,7 +676,7 @@ class OpalRawMediaStream : public OpalMediaStream
     PDECLARE_MUTEX(m_channelMutex);
 
     bool             m_trustTimestamps;
-    bool             m_jitterBufferEnabled;
+    bool             m_externalSilence;
     RTP_Timestamp    m_expectedTimestamp;
     PINDEX           m_lastDataSize;
     PBYTEArray       m_silence;
