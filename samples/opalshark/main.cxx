@@ -1168,7 +1168,9 @@ void MediaStream::PlayAudio()
       if (!mediaStream->WritePacket(decodedAudio))
         break;
     }
-    call->Clear();
+    PSyncPoint wait;
+    call->Clear(OpalConnection::EndedByLocalUser, &wait);
+    wait.Wait();
   }
 
   m_running = false;
