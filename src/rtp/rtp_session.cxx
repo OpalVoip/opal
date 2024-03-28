@@ -1011,7 +1011,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     else {
       PTRACE(2, &m_session, *this << "abnormal change of sequence numbers, adjusting from " << m_lastSequenceNumber << " to " << sequenceNumber);
       SetLastSequenceNumber(sequenceNumber);
-      frame.SetDiscontinuity(sequenceDelta);  // Assume we've lost some packets
+      frame.SetDiscontinuity(1);  // Assume we've lost at least one packet
     }
 
 #if OPAL_RTCP_XR
