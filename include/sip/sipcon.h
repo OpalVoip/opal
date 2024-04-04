@@ -57,9 +57,16 @@ class OpalSIPIMContext;
 #define OPAL_OPT_REFER_SUB       "Refer-Sub"
 
 /**OpalConnection::StringOption key to a boolean indicating whether to not 
-use RFC4488 ("Refer-Sub" header) at all, in the REFER request. Default false.
-*/
+   use RFC4488 ("Refer-Sub" header) at all, in the REFER request. Default false.
+ */
 #define OPAL_OPT_NO_REFER_SUB    "No-Refer-Sub"
+
+/**OpalConnection::StringOption key to an integer indicating the maximum time
+   in seconds to await the completion of a REFER with NOTIFY operation. Note
+   that the smaller of the subscription "expires" field, indicated in RFC3515,
+   and this value will be used. Default is 120.
+ */
+#define OPAL_OPT_MAX_REFER_TIME    "Max-Refer-Time"
 
 /**OpalConnection::StringOption key to an integer indicating the the mode
    for the reliable provisional response system. See PRACKMode for more

@@ -595,8 +595,21 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
 
 void SIPConnection::OnReferFailSafe()
 {
-  PTRACE(2, "Fail safe ending of call after REFER.");
-  Release(EndedByCallForwarded);
+  if (m_referOfRemoteState == eNoRemoteRefer) {
+    PTRACE(2, "Fail safe ending of call after REFER without NOTIFY.");
+    Release(EndedByCallForwarded);
+    return;
+  }
+
+  m_referOfRemoteState = eNoRemoteRefer;
+
+  PTRACE(3, "Failed transfer of " << *this);
+  PStringToString info;
+  info.SetAt("result", "error");
+  info.SetAt("party", "B");
+  info.SetAt("Refer-To", m_sentReferTo);
+  info.SetAt("state", "terminated;reason=x-no-final-notify");
+  OnTransferNotify(info, this);
 }
 
 
@@ -2673,15 +2686,21 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
   else {
     m_referOfRemoteState = eNoRemoteRefer;
     if (code < 300)
-    info.SetAt("result", "success");
+      info.SetAt("result", "success");
     else {
       info.SetAt("result", "failed");
       info.SetAt("reason", GetCallEndReasonFromResponse(static_cast<SIP_PDU::StatusCodes>(code)).AsInteger());
     }
   }
 
-  if (OnTransferNotify(info, this))
+  if (OnTransferNotify(info, this)) {
+    if (state != "terminated") {
+      PTimeInterval expires(info("expires"));
+      if (expires > 0)
+        m_referFailSafeTimer = std::min(expires, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120)));
+    }
     return;
+  }
 
   // Release the connection
   if (IsReleased())
@@ -3076,8 +3095,8 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
         // Used RFC4488 to indicate we are NOT doing NOTIFYs, release now
         PTRACE(3, "Transfer accepted, without NOTIFY.");
         m_referOfRemoteState = eNoRemoteRefer;
-        m_referFailSafeTimer = m_sipEndpoint.GetInviteTimeout();
       }
+      m_referFailSafeTimer = m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120));
       // Do next case
 
     default :
