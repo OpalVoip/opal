@@ -298,6 +298,9 @@
     <ClCompile Include="spandsp\src\alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="spandsp\src\godard.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spandsp\src\spandsp\private\ademco_contactid.h">
@@ -750,9 +753,6 @@
     <ClInclude Include="compat_headers\math_fixed_tables.h">
       <Filter>Header Files\Compatibility</Filter>
     </ClInclude>
-    <ClInclude Include="compat_headers\tgmath.h">
-      <Filter>Header Files\Compatibility</Filter>
-    </ClInclude>
     <ClInclude Include="compat_headers\unistd.h">
       <Filter>Header Files\Compatibility</Filter>
     </ClInclude>
@@ -793,6 +793,12 @@
       <Filter>Header Files\Compatibility</Filter>
     </ClInclude>
     <ClInclude Include="compat_headers\t43_gray_code_tables.h">
+      <Filter>Header Files\Compatibility</Filter>
+    </ClInclude>
+    <ClInclude Include="compat_headers\v17_v32bis_rx_godard.h">
+      <Filter>Header Files\Compatibility</Filter>
+    </ClInclude>
+    <ClInclude Include="compat_headers\v29rx_godard.h">
       <Filter>Header Files\Compatibility</Filter>
     </ClInclude>
   </ItemGroup>
