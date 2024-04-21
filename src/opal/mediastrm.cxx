@@ -824,7 +824,7 @@ OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
   , m_trustTimestamps(conn.GetStringOptions().GetBoolean(OPAL_OPT_TRUST_TIMESTAMPS, true))
   , m_externalSilence(true)
   , m_expectedTimestamp(0)
-  , m_lastDataSize(10*PCM16Size*m_timeUnits) // At least 10ms
+, m_lastDataSize(10*PCM16Size*m_timeUnits) // At least 10ms
 {
 }
 
@@ -836,6 +836,14 @@ OpalRawMediaStream::~OpalRawMediaStream()
   if (m_autoDelete)
     delete m_channel;
   m_channel = NULL;
+}
+
+
+PBoolean OpalRawMediaStream::Open()
+{
+  // Allow for opening silence without any packets by thnking one was written on open
+  m_writeTime.SetCurrentTime();
+  return OpalMediaStream::Open();
 }
 
 
@@ -939,6 +947,10 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     return InternalWriteChannel(m_silence.GetPointer(m_lastDataSize), m_lastDataSize, written);
   }
 
+  // Calculate the real time since last write (received packet) in timestamp units
+  RTP_Timestamp realDelta = (RTP_Timestamp)(m_writeTime.GetElapsed().GetMilliSeconds()/m_timeUnits);
+  m_writeTime.SetCurrentTime();
+
   // Don't insert silence and reset expected timestamp if ...
   if (!m_trustTimestamps || // We don't trust the timestamps
        m_externalSilence || // We are using JB which supplies the silence packets
@@ -946,8 +958,21 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        m_expectedTimestamp == 0 || // Not received anything yet
        m_timestamp < m_expectedTimestamp || // Timestamp went backwards
       (m_timestamp - m_expectedTimestamp) > 600000U*m_timeUnits) // More than 10 minutes
-    m_expectedTimestamp = m_timestamp;
+  {
+    // If first packet, allow for leading silence since we opened
+    m_expectedTimestamp = m_expectedTimestamp != 0 ? m_timestamp : (m_timestamp - realDelta);
+  }
   else {
+    /* If the indicated delta timestamp is significantly less than the elapsed
+       real time then it is suspect, and we should delay the real time amount.
+       This can be if the remote is not setting timestamps correctly, or if it
+       fails to change the SSRC on switching media servers.
+       The heristic used is if indicated delay is under 120ms but actual is 
+       over 500ms, then we don't truct the indicated timstamp */
+    RTP_Timestamp delta = m_timestamp - m_expectedTimestamp;
+    if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits)
+      m_expectedTimestamp -= realDelta;
+
     // If current timestamp later than expected, need to pad with silence.
     while (m_timestamp > m_expectedTimestamp) {
       const PINDEX silence = std::min((m_timestamp - m_expectedTimestamp)*PCM16Size, 1000U*m_timeUnits);

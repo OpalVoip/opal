@@ -631,6 +631,12 @@ class OpalRawMediaStream : public OpalMediaStream
   public:
   /**@name Overrides of OpalMediaStream class */
   //@{
+    /**Open the media stream using the media format.
+
+       The default behaviour simply sets the isOpen variable to true.
+      */
+    virtual PBoolean Open();
+
     /**Read raw media data from the source media stream.
        The default behaviour reads from the PChannel object.
       */
@@ -677,6 +683,7 @@ class OpalRawMediaStream : public OpalMediaStream
 
     bool             m_trustTimestamps;
     bool             m_externalSilence;
+    PTime            m_writeTime;
     RTP_Timestamp    m_expectedTimestamp;
     PINDEX           m_lastDataSize;
     PBYTEArray       m_silence;
