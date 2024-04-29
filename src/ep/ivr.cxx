@@ -205,14 +205,8 @@ void OpalIVRConnection::OnApplyStringOptions()
 {
   OpalLocalConnection::OnApplyStringOptions();
 
-  PStringOptions ttsOptions;
-  for (StringOptions::iterator it = m_stringOptions.begin(); it != m_stringOptions.end(); ++it) {
-    if (it->first.NumCompare("TTS-") == EqualTo)
-      ttsOptions.SetAt(it->first, it->second);
-  }
-
-  m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()), ttsOptions);
-  m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()));
+  m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()), m_stringOptions);
+  m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()), m_stringOptions);
   m_vxmlSession.SetRecordDirectory(m_stringOptions.GetString(OPAL_OPT_IVR_RECORDING_DIR, m_ivrEndPoint.GetRecordDirectory()));
   m_vxmlSession.SetProxies(m_stringOptions);
 #if OPAL_PTLIB_SSL
@@ -269,9 +263,35 @@ void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 bool OpalIVRConnection::OnTransferNotify(const PStringToString & info,
                                          const OpalConnection * transferringConnection)
 {
-  PString result = info["result"];
-  if (result != "progress" && info["party"] == "B")
-    m_vxmlSession.SetTransferComplete(result == "success");
+  if (info["party"] == "B") {
+    PCaselessString result = info["result"];
+    if (result == "success")
+      m_vxmlSession.SetTransferStatus(PVXMLSession::TransferSuccessful);
+    else if (result == "error" || result == "unknown")
+      m_vxmlSession.SetTransferStatus(PVXMLSession::TransferUnknown);
+    else if (result == "failed") {
+      CallEndReason reason(info["reason"].AsInteger());
+      switch (reason) {
+        case EndedByRemoteBusy:
+        case EndedByRefusal:
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferBusy);
+          break;
+        case EndedByRemoteCongestion:
+        case EndedByLocalCongestion:
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferCongestion);
+          break;
+        case EndedByNoAnswer :
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferNoAnswer);
+          break;
+        default :
+          if (transferringConnection && reason.code != 0)
+            m_vxmlSession.SetTransferStatus(PVXMLSession::TransferFailed,
+                                            PSTRSTRM(transferringConnection->GetPrefixName() << '.' << reason.code));
+          else
+            m_vxmlSession.SetTransferStatus(PVXMLSession::TransferUnknown);
+      }
+    }
+  }
 
   return OpalConnection::OnTransferNotify(info, transferringConnection);
 }
@@ -279,6 +299,13 @@ bool OpalIVRConnection::OnTransferNotify(const PStringToString & info,
 
 bool OpalIVRConnection::TransferConnection(const PString & remoteParty)
 {
+  if (IsReleased())
+    return false;
+
+  PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+
   SetVXML(remoteParty);
   return StartVXML();
 }

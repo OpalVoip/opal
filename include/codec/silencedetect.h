@@ -260,7 +260,7 @@ class OpalPCM16SilenceDetector : public OpalSilenceDetector
     virtual int GetAudioLevelDB(
       const BYTE * buffer,  ///<  RTP payload being detected
       PINDEX size           ///<  Size of payload buffer
-    );
+    ) override;
     //@}
 
   protected:

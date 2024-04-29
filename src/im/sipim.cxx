@@ -28,7 +28,7 @@
 #include <ptlib.h>
 #include <opal_config.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sipim.h"
 #endif
 
@@ -96,19 +96,19 @@ class OpalSIPIMSDPMediaDescription : public SDPMediaDescription
       return new OpalSIPIMSDPMediaDescription(OpalTransportAddress());
     }
 
-    virtual PString GetSDPPortList() const;
+    virtual PString GetSDPPortList() const override;
 
-    virtual void CreateSDPMediaFormats(const PStringArray &);
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual void AddMediaFormat(const OpalMediaFormat & mediaFormat);
+    virtual void CreateSDPMediaFormats(const PStringArray &) override;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual void AddMediaFormat(const OpalMediaFormat & mediaFormat) override;
 
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     // CreateSDPMediaFormat is used for processing format lists. MSRP always contains only "*"
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
 
     // FindFormat is used only for rtpmap and fmtp, neither of which are used for MSRP
-    virtual SDPMediaFormat * FindFormat(PString &) const { return NULL; }
+    virtual SDPMediaFormat * FindFormat(PString &) const override { return NULL; }
 
   protected:
     class Format : public SDPMediaFormat

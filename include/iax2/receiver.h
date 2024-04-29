@@ -69,13 +69,13 @@ class IAX2Receiver : public PThread
   /**@name general worker methods*/
   //@{
   /*The method which the receiver thread invokes*/
-  virtual void Main();
+  virtual void Main() override;
 
   /**Close down this thread in a civilised fashion, by sending an empty packet
      to the PUDPSocket of this protocol. The Receiver will receive this
      packet, and check the close down flag, and so realise it is time to close
      down. */
-  virtual void Terminate();
+  virtual void Terminate() override;
   
   /**Sit in here, waiting for data on the socket*/
   PBoolean ReadNetworkSocket();

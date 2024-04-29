@@ -70,7 +70,7 @@ class IAX2Remote : public PObject
   PINDEX SourceCallNumber() { return sourceCallNumber; }
  
   /**Pretty print this remote structure (address & port) to the designated stream*/
-  virtual void PrintOn(ostream & strm) const; 
+  virtual void PrintOn(ostream & strm) const override; 
   
   /**Define which is used to indicate the call number is undefined */
   enum {
@@ -170,11 +170,11 @@ class IAX2FrameIdValue : public PObject
   PINDEX GetPlainSequence() const;
 
   /**Pretty print this data to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
 
   /**Declare this method so that all comparisons (as used in sorted
      lists) work. correctly*/
-  virtual Comparison Compare(const PObject & obj) const;
+  virtual Comparison Compare(const PObject & obj) const override;
 
  protected:
 
@@ -207,7 +207,7 @@ class IAX2PacketIdList : public PSortedList
   void AppendNewFrame(IAX2FullFrame &src);
   
   /**Pretty print this listto the designated stream*/
-  virtual void PrintOn(ostream & strm) const;	
+  virtual void PrintOn(ostream & strm) const override;	
   
  protected:
   /**Remove all the contiguous oldest values, which is used for

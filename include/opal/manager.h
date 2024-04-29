@@ -506,8 +506,8 @@ class OpalManager : public PObject, public OpalCertificateInfo
         RouteEntry(const PString & partyA, const PString & partyB, const PString & dest);
         RouteEntry(const PString & spec);
 
-        PObject * Clone() const { return new RouteEntry(*this); }
-        void PrintOn(ostream & strm) const;
+        PObject * Clone() const override { return new RouteEntry(*this); }
+        virtual void PrintOn(ostream & strm) const override;
 
         bool IsValid() const;
         bool IsMatch(const PString & search) const;

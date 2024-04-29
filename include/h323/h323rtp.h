@@ -84,7 +84,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
        Return session for channel. This returns the session ID of the
        H323RTPSession member variable.
      */
-    virtual unsigned GetSessionID() const;
+    virtual unsigned GetSessionID() const override;
 
     /**Set the session number of the channel.
        During OLC negotations teh master may change the session number being
@@ -94,7 +94,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
       */
     virtual bool SetSessionID(
       unsigned sessionID   ///< New session ID
-    );
+    ) override;
 
     /**Get the media transport address for the connection.
        This is primarily used to determine if media bypass is possible for the
@@ -105,7 +105,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
     virtual PBoolean GetMediaTransportAddress(
       OpalTransportAddress & data,        ///<  Data channel address
       OpalTransportAddress & control      ///<  Control channel address
-    ) const;
+    ) const override;
   //@}
 
   /**@name Overrides from class H323_RealTimeChannel */
@@ -114,20 +114,20 @@ class H323_RTPChannel : public H323_RealTimeChannel
      */
     virtual PBoolean OnSendingPDU(
       H245_H2250LogicalChannelParameters & param  ///<  Open PDU to send.
-    ) const;
+    ) const override;
 
     /**Alternate RTP port information for Same NAT
       */
     virtual PBoolean OnSendingAltPDU(
       H245_ArrayOf_GenericInformation & alternate  ///< Alternate RTP ports
-    ) const;
+    ) const override;
 
     /**This is called when request to create a channel is received from a
        remote machine and is about to be acknowledged.
      */
     virtual void OnSendOpenAck(
       H245_H2250LogicalChannelAckParameters & param ///<  Acknowledgement PDU
-    ) const;
+    ) const override;
 
     /**This is called after a request to create a channel occurs from the
        local machine via the H245LogicalChannelDict::Open() function, and
@@ -138,7 +138,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
     virtual PBoolean OnReceivedPDU(
       const H245_H2250LogicalChannelParameters & param, ///<  Acknowledgement PDU
       unsigned & errorCode                              ///<  Error on failure
-    );
+    ) override;
 
     /**This is called after a request to create a channel occurs from the
        local machine via the H245LogicalChannelDict::Open() function, and
@@ -148,7 +148,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
      */
     virtual PBoolean OnReceivedAckPDU(
       const H245_H2250LogicalChannelAckParameters & param ///<  Acknowledgement PDU
-    );
+    ) override;
   //@}
 
   /**@name Operations */

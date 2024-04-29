@@ -70,11 +70,11 @@ class H323_T38Capability : public H323DataCapability
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -85,11 +85,11 @@ class H323_T38Capability : public H323DataCapability
        This returns the e_t38fax enum value from the protocol ASN
        H245_DataApplicationCapability_application class.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
 
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 
   /**@name Operations */
@@ -102,7 +102,7 @@ class H323_T38Capability : public H323DataCapability
       unsigned sessionID,             ///<  Session ID for RTP channel
       const H245_H2250LogicalChannelParameters * param
                                       ///<  Parameters for channel
-    ) const;
+    ) const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -117,7 +117,7 @@ class H323_T38Capability : public H323DataCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataApplicationCapability & pdu
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -129,7 +129,7 @@ class H323_T38Capability : public H323DataCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing PDU is being constructed
        for the control channel. It allows the capability to set the PDU fields
@@ -151,7 +151,7 @@ class H323_T38Capability : public H323DataCapability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_DataApplicationCapability & pdu  ///<  PDU to set information on
-    );
+    ) override;
   //@}
 
     TransportMode GetTransportMode() const { return mode; }
@@ -182,14 +182,14 @@ class H323_T38NonStandardCapability : public H323NonStandardDataCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
   //@{
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 
   /**@name Operations */
@@ -202,7 +202,7 @@ class H323_T38NonStandardCapability : public H323NonStandardDataCapability
       unsigned sessionID,             ///<  Session ID for RTP channel
       const H245_H2250LogicalChannelParameters * param
                                       ///<  Parameters for channel
-    ) const;
+    ) const override;
   //@}
 };
 

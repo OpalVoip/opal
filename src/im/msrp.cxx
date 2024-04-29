@@ -25,7 +25,7 @@
  *
  */
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "msrp.h"
 #endif
 
@@ -150,19 +150,19 @@ class SDPMSRPMediaDescription : public SDPMediaDescription
     SDPMSRPMediaDescription(const OpalTransportAddress & address);
     SDPMSRPMediaDescription(const OpalTransportAddress & address, const PString & url);
 
-    virtual void CreateSDPMediaFormats(const PStringArray &);
-    virtual void OutputAttributes(ostream & strm) const;
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual void ProcessMediaOptions(SDPMediaFormat & sdpFormat, const OpalMediaFormat & mediaFormat);
-    virtual void AddMediaFormat(const OpalMediaFormat & mediaFormat);
+    virtual void CreateSDPMediaFormats(const PStringArray &) override;
+    virtual void OutputAttributes(ostream & strm) const override;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual void ProcessMediaOptions(SDPMediaFormat & sdpFormat, const OpalMediaFormat & mediaFormat) override;
+    virtual void AddMediaFormat(const OpalMediaFormat & mediaFormat) override;
 
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     // CreateSDPMediaFormat is used for processing format lists. MSRP always contains only "*"
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
 
     // FindFormat is used only for rtpmap and fmtp, neither of which are used for MSRP
-    virtual SDPMediaFormat * FindFormat(PString &) const { return NULL; }
+    virtual SDPMediaFormat * FindFormat(PString &) const override { return NULL; }
 
   protected:
     class Format : public SDPMediaFormat

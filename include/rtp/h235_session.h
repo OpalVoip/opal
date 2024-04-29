@@ -64,17 +64,17 @@ struct H2356_KeyInfo : public OpalMediaCryptoKeyInfo {
   public:
     H2356_KeyInfo(const H2356_CryptoSuite & cryptoSuite);
 
-    virtual PObject * Clone() const;
-    virtual Comparison Compare(const PObject & other) const;
+    virtual PObject * Clone() const override;
+    virtual Comparison Compare(const PObject & other) const override;
 
-    virtual bool IsValid() const;
-    virtual void Randomise();
-    virtual bool FromString(const PString & str);
-    virtual PString ToString() const;
-    virtual bool SetCipherKey(const PBYTEArray & key);
-    virtual bool SetAuthSalt(const PBYTEArray & key);
-    virtual PBYTEArray GetCipherKey() const;
-    virtual PBYTEArray GetAuthSalt() const;
+    virtual bool IsValid() const override;
+    virtual void Randomise() override;
+    virtual bool FromString(const PString & str) override;
+    virtual PString ToString() const override;
+    virtual bool SetCipherKey(const PBYTEArray & key) override;
+    virtual bool SetAuthSalt(const PBYTEArray & key) override;
+    virtual PBYTEArray GetCipherKey() const override;
+    virtual PBYTEArray GetAuthSalt() const override;
     virtual PINDEX GetAuthSaltBits() const { return 0; }
 
     const H2356_CryptoSuite & GetCryptoSuite() const { return m_cryptoSuite; }
@@ -92,14 +92,14 @@ class H2356_CryptoSuite : public OpalMediaCryptoSuite
     H2356_CryptoSuite() { }
 
   public:
-    virtual H235SecurityCapability * CreateCapability(const H323Capability & mediaCapability) const;
-    virtual bool Supports(const PCaselessString & proto) const;
-    virtual bool ChangeSessionType(PCaselessString & mediaSession, KeyExchangeModes modes) const;
+    virtual H235SecurityCapability * CreateCapability(const H323Capability & mediaCapability) const override;
+    virtual bool Supports(const PCaselessString & proto) const override;
+    virtual bool ChangeSessionType(PCaselessString & mediaSession, KeyExchangeModes modes) const override;
 
-    virtual OpalMediaCryptoKeyInfo * CreateKeyInfo() const;
+    virtual OpalMediaCryptoKeyInfo * CreateKeyInfo() const override;
 
-    virtual PINDEX GetCipherKeyBits() const = 0;
-    virtual PINDEX GetAuthSaltBits() const { return 0; }
+    virtual PINDEX GetCipherKeyBits() const override = 0;
+    virtual PINDEX GetAuthSaltBits() const override { return 0; }
 };
 
 /** This class implements AES using OpenSSL
@@ -113,15 +113,15 @@ class H2356_Session : public OpalRTPSession
     H2356_Session(const Init & init);
     ~H2356_Session();
 
-    virtual const PCaselessString & GetSessionType() const;
-    virtual bool Close();
-    virtual OpalMediaCryptoKeyList & GetOfferedCryptoKeys();
-    virtual bool ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx);
-    virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const;
+    virtual const PCaselessString & GetSessionType() const override;
+    virtual bool Close() override;
+    virtual OpalMediaCryptoKeyList & GetOfferedCryptoKeys() override;
+    virtual bool ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx) override;
+    virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const override;
 
-    virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now);
-    virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now);
-    virtual bool IsEncrypted() const { return true; }
+    virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now) override;
+    virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now) override;
+    virtual bool IsEncrypted() const override { return true; }
 
   protected:
     struct Context {

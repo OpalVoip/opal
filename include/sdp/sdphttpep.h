@@ -108,18 +108,18 @@ class OpalSDPHTTPEndPoint : public OpalSDPEndPoint
        may also have a ":port" after it if that transport type does not use
        the value from GetDefaultSignalPort().
       */
-    virtual PString GetDefaultTransport() const;
+    virtual PString GetDefaultTransport() const override;
 
     /**Get the default signal port for this endpoint.
      */
-    virtual WORD GetDefaultSignalPort() const;
+    virtual WORD GetDefaultSignalPort() const override;
 
     /**Handle new incoming connection from listener.
       */
     virtual void NewIncomingConnection(
       OpalListener & listener,            ///<  Listner that created transport
       const OpalTransportPtr & transport  ///<  Transport connection came in on
-    );
+    ) override;
 
     /**Set up a connection to a remote party.
        This is called from the OpalManager::MakeConnection() function once
@@ -156,7 +156,7 @@ class OpalSDPHTTPEndPoint : public OpalSDPEndPoint
       void * userData,                         ///<  Arbitrary data to pass to connection
       unsigned int options,                    ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  ///<  complex string options
-    );
+    ) override;
   //@}
 
   /**@name Customisation call backs */
@@ -203,11 +203,11 @@ class OpalSDPHTTPResource : public PHTTPResource
 
     virtual PBoolean OnGETData(
       PHTTPRequest & request                      ///< request state information
-    );
+    ) override;
     virtual PBoolean OnPOSTData(
       PHTTPRequest & request,        ///< request information
       const PStringToString & data   ///< Variables in the POST data.
-    );
+    ) override;
 
   protected:
     OpalSDPHTTPEndPoint & m_endpoint;
@@ -247,7 +247,7 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
        The default behaviour calls OnIncomingConnection() and OpalCall::OnSetUp()
        if it is first conenction in the call.
       */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /**Indicate to remote endpoint we are connected.
 
@@ -259,7 +259,7 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
        In other words, this method is used to handle incoming calls,
        and is an indication that we have accepted the incoming call.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -278,13 +278,13 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /// Get the media local interface to initialise the RTP session.
-    virtual PString GetMediaInterface();
+    virtual PString GetMediaInterface() override;
 
     /// Get the remote media address to initialise the RTP session on making offer.
-    virtual OpalTransportAddress GetRemoteMediaAddress();
+    virtual OpalTransportAddress GetRemoteMediaAddress() override;
   //@}
 
   /**@name Actions */

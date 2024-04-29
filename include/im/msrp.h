@@ -270,16 +270,16 @@ class OpalMSRPMediaSession : public OpalMediaSession
     OpalMSRPMediaSession(const Init & init);
     ~OpalMSRPMediaSession();
 
-    virtual PObject * Clone() const { return new OpalMSRPMediaSession(*this); }
+    virtual PObject * Clone() const override { return new OpalMSRPMediaSession(*this); }
 
-    virtual const PCaselessString & GetSessionType() const { return TCP_MSRP(); }
-    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool Close();
-    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const;
-    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const;
-    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true);
+    virtual const PCaselessString & GetSessionType() const override { return TCP_MSRP(); }
+    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool Close() override;
+    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const override;
+    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const override;
+    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true) override;
 #if OPAL_SDP
-    virtual SDPMediaDescription * CreateSDPMediaDescription();
+    virtual SDPMediaDescription * CreateSDPMediaDescription() override;
 #endif
 
     PURL GetLocalURL() const { return m_localUrl; }
@@ -300,7 +300,7 @@ class OpalMSRPMediaSession : public OpalMediaSession
       const OpalMediaFormat & mediaFormat, 
       unsigned sessionID, 
       PBoolean isSource
-    );
+    ) override;
 
     OpalMSRPManager & GetManager() { return m_manager; }
 

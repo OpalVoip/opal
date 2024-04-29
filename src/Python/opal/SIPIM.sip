@@ -53,7 +53,7 @@ class OpalSIPIMMediaSession : OpalMediaSession
 
     virtual void Close();
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     virtual bool IsActive() const;
 

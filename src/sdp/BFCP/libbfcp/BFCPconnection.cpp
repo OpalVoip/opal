@@ -1312,7 +1312,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 		    break;
 		    
 		default:
-		    sprintf(msg, "unsupported transport protocol %d", GetTransport() );
+		    snprintf(msg, sizeof(msg), "unsupported transport protocol %d", GetTransport() );
 		    throw BFCPException("BFCPConnection",__LINE__, "Transport protocol", msg);
 		    break;
 	}
@@ -1330,7 +1330,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 #endif
 			{
 				CloseSocket(fd);
-				sprintf(msg, "failed to set REUSEADDR on socket [%d]. errno=%d", (int)fd, errno );
+				snprintf(msg, sizeof(msg), "failed to set REUSEADDR on socket [%d]. errno=%d", (int)fd, errno );
 				throw BFCPException("BFCPConnection",__LINE__, "Transport protocol", msg);
 			}
 
@@ -1339,7 +1339,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 			if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *)&yes, sizeof(int)) < 0)
 			{
 				CloseSocket(fd);
-				sprintf(msg, "failed to set SO_LINGER on socket [%d]. errno=%d", (int)fd, errno );
+				snprintf(msg, sizeof(msg), "failed to set SO_LINGER on socket [%d]. errno=%d", (int)fd, errno );
 				throw BFCPException("BFCPConnection",__LINE__, "Transport protocol", msg);
 			}
 #endif
@@ -1369,7 +1369,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
             setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &cfg.keepidle, sizeof cfg.keepidle);
 #endif
             setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &cfg.keepintvl, sizeof cfg.keepintvl);
-            sprintf(msg, "Keep alive idle_time=%d, keepcnt=%d and keepintvl=%d", cfg.keepidle, cfg.keepcnt, cfg.keepintvl);
+            snprintf(msg, sizeof(msg), "Keep alive idle_time=%d, keepcnt=%d and keepintvl=%d", cfg.keepidle, cfg.keepcnt, cfg.keepintvl);
 #else
 			setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&yes, sizeof(int));
 #endif
@@ -1381,7 +1381,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 			if( bind(fd, addr, m_addrlen) < 0)
 			{
 			    CloseSocket(fd);
-			    sprintf(msg, "failed to bind() socket [%d] to %s : %d - error: %s", (int)fd, GetLocalAddr(),
+			    snprintf(msg, sizeof(msg), "failed to bind() socket [%d] to %s : %d - error: %s", (int)fd, GetLocalAddr(),
 				    GetLocalPort(), GetErrorText().c_str() );
 			    throw BFCPException("Client2ServerInfo",__LINE__, "Transport protocol", msg);
 			}
@@ -1394,7 +1394,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 #endif
 			{
 				CloseSocket(fd);
-				sprintf(msg, "failed to set socket [%d] in non blocking mode errno=%d", (int)fd,   errno );
+				snprintf(msg, sizeof(msg), "failed to set socket [%d] in non blocking mode errno=%d", (int)fd,   errno );
 				throw BFCPException("BFCPConnection",__LINE__, "Transport protocol", msg);
 			}			
 		}
@@ -1402,7 +1402,7 @@ BFCP_SOCKET BFCPConnection::Client2ServerInfo::CreateSocket()
 	}
 	else
 	{
-		sprintf(msg, "failed to create socket family=%d transport=%d. errno=%d",
+		snprintf(msg, sizeof(msg), "failed to create socket family=%d transport=%d. errno=%d",
 			addr->sa_family, m_bfcp_transport, errno );
 		throw BFCPException("BFCPConnection",__LINE__, "Transport protocol", msg);
         }

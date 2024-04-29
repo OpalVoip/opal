@@ -99,7 +99,7 @@ class IAX2WaitingForAck : public PObject
   PString GetResponseAsString() const;
   
   /**Pretty print this response to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Initialise this to no response, and never to match */
   void ZeroValues();
@@ -151,7 +151,7 @@ class IAX2Processor : public PThread
   
   /**A method to cause some of the values in this class to be formatted
      into a printable stream */
-  virtual void PrintOn(ostream & strm) const = 0;
+  virtual void PrintOn(ostream & strm) const override = 0;
   
   /**Access the endpoint class that launched this processor */
   IAX2EndPoint & GetEndPoint() { return endpoint; };
@@ -179,7 +179,7 @@ class IAX2Processor : public PThread
   /**The worker method of this thread. In here, all incoming frames (for this call)
      are handled.
   */
-  void Main();
+  virtual void Main() override;
   
   /**Test to see if it is a status query type IAX2 frame (eg lagrq) and handle it. If the frame
      is a status query, and it is handled, return true */
@@ -190,7 +190,7 @@ class IAX2Processor : public PThread
   void SetSpecialPackets(PBoolean newValue) { specialPackets = newValue; }
   
   /**Cause this thread to die immediately */
-  void Terminate();
+  void Terminate() override;
   
   /**Cause this thread to come to life, and process events that are
    * pending at IAX2Connection. This method does not start this

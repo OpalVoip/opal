@@ -31,7 +31,7 @@ class MCS_ChannelId : public PASN_Integer
 
     MCS_ChannelId & operator=(int v);
     MCS_ChannelId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -49,7 +49,7 @@ class MCS_StaticChannelId : public PASN_Integer
 
     MCS_StaticChannelId & operator=(int v);
     MCS_StaticChannelId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -67,7 +67,7 @@ class MCS_DynamicChannelId : public PASN_Integer
 
     MCS_DynamicChannelId & operator=(int v);
     MCS_DynamicChannelId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -85,7 +85,7 @@ class MCS_UserId : public MCS_DynamicChannelId
 
     MCS_UserId & operator=(int v);
     MCS_UserId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -103,7 +103,7 @@ class MCS_PrivateChannelId : public MCS_DynamicChannelId
 
     MCS_PrivateChannelId & operator=(int v);
     MCS_PrivateChannelId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -121,7 +121,7 @@ class MCS_AssignedChannelId : public MCS_DynamicChannelId
 
     MCS_AssignedChannelId & operator=(int v);
     MCS_AssignedChannelId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -139,7 +139,7 @@ class MCS_TokenId : public PASN_Integer
 
     MCS_TokenId & operator=(int v);
     MCS_TokenId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -167,7 +167,7 @@ class MCS_TokenStatus : public PASN_Enumeration
     };
 
     MCS_TokenStatus & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -191,7 +191,7 @@ class MCS_DataPriority : public PASN_Enumeration
     };
 
     MCS_DataPriority & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -207,7 +207,7 @@ class MCS_Segmentation : public PASN_BitString
   public:
     MCS_Segmentation(unsigned tag = UniversalBitString, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -232,14 +232,14 @@ class MCS_DomainParameters : public PASN_Sequence
     PASN_Integer m_maxMCSPDUsize;
     PASN_Integer m_protocolVersion;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -263,14 +263,14 @@ class MCS_Connect_Initial : public PASN_Sequence
     MCS_DomainParameters m_maximumParameters;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -289,14 +289,14 @@ class MCS_Connect_Additional : public PASN_Sequence
     PASN_Integer m_calledConnectId;
     MCS_DataPriority m_dataPriority;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -314,14 +314,14 @@ class MCS_PDin : public PASN_Sequence
 
     PASN_Integer m_heightLimit;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -340,14 +340,14 @@ class MCS_EDrq : public PASN_Sequence
     PASN_Integer m_subHeight;
     PASN_Integer m_subInterval;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -400,8 +400,8 @@ class MCS_ChannelAttributes : public PASN_Choice
     operator const MCS_ChannelAttributes_assigned &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -462,8 +462,8 @@ class MCS_TokenAttributes : public PASN_Choice
     operator const MCS_TokenAttributes_given &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -480,13 +480,13 @@ class MCS_AUrq : public PASN_Sequence
     MCS_AUrq(unsigned tag = 10, TagClass tagClass = ApplicationTagClass);
 
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -505,14 +505,14 @@ class MCS_CJrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_ChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -530,14 +530,14 @@ class MCS_CCrq : public PASN_Sequence
 
     MCS_UserId m_initiator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -556,14 +556,14 @@ class MCS_CDrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_PrivateChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -581,14 +581,14 @@ class MCS_CDin : public PASN_Sequence
 
     MCS_PrivateChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -610,14 +610,14 @@ class MCS_SDrq : public PASN_Sequence
     MCS_Segmentation m_segmentation;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -639,14 +639,14 @@ class MCS_SDin : public PASN_Sequence
     MCS_Segmentation m_segmentation;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -668,14 +668,14 @@ class MCS_USrq : public PASN_Sequence
     MCS_Segmentation m_segmentation;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -697,14 +697,14 @@ class MCS_USin : public PASN_Sequence
     MCS_Segmentation m_segmentation;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -723,14 +723,14 @@ class MCS_TGrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -749,14 +749,14 @@ class MCS_TIrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -776,14 +776,14 @@ class MCS_TVrq : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_UserId m_recipient;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -803,14 +803,14 @@ class MCS_TVin : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_UserId m_recipient;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -829,14 +829,14 @@ class MCS_TPrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -855,14 +855,14 @@ class MCS_TPin : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -881,14 +881,14 @@ class MCS_TRrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -907,14 +907,14 @@ class MCS_TTrq : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -934,14 +934,14 @@ class MCS_TTcf : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_TokenStatus m_tokenStatus;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -966,7 +966,7 @@ class MCS_Reason : public PASN_Enumeration
     };
 
     MCS_Reason & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1002,7 +1002,7 @@ class MCS_Result : public PASN_Enumeration
     };
 
     MCS_Result & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1036,7 +1036,7 @@ class MCS_Diagnostic : public PASN_Enumeration
     };
 
     MCS_Diagnostic & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1089,8 +1089,8 @@ class MCS_ConnectMCSPDU : public PASN_Choice
     operator const MCS_Connect_Result &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1455,8 +1455,8 @@ class MCS_DomainMCSPDU : public PASN_Choice
     operator const MCS_TTcf &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1474,14 +1474,14 @@ class MCS_ChannelAttributes_static : public PASN_Sequence
 
     MCS_StaticChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1500,14 +1500,14 @@ class MCS_ChannelAttributes_userId : public PASN_Sequence
     PASN_Boolean m_joined;
     MCS_UserId m_userId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1525,14 +1525,14 @@ class MCS_ChannelAttributes_assigned : public PASN_Sequence
 
     MCS_AssignedChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1550,9 +1550,9 @@ class MCS_ArrayOf_ChannelAttributes : public PASN_Array
   public:
     MCS_ArrayOf_ChannelAttributes(unsigned tag = UniversalSet, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     MCS_ChannelAttributes & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1570,9 +1570,9 @@ class MCS_ArrayOf_ChannelId : public PASN_Array
   public:
     MCS_ArrayOf_ChannelId(unsigned tag = UniversalSet, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     MCS_ChannelId & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1590,9 +1590,9 @@ class MCS_ArrayOf_UserId : public PASN_Array
   public:
     MCS_ArrayOf_UserId(unsigned tag = UniversalSet, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     MCS_UserId & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1611,14 +1611,14 @@ class MCS_TokenAttributes_grabbed : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_UserId m_grabber;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1637,14 +1637,14 @@ class MCS_TokenAttributes_inhibited : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_ArrayOf_UserId m_inhibitors;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1664,14 +1664,14 @@ class MCS_TokenAttributes_giving : public PASN_Sequence
     MCS_UserId m_grabber;
     MCS_UserId m_recipient;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1690,14 +1690,14 @@ class MCS_TokenAttributes_ungivable : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_UserId m_grabber;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1716,14 +1716,14 @@ class MCS_TokenAttributes_given : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_UserId m_recipient;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1741,9 +1741,9 @@ class MCS_ArrayOf_TokenAttributes : public PASN_Array
   public:
     MCS_ArrayOf_TokenAttributes(unsigned tag = UniversalSet, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     MCS_TokenAttributes & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1761,9 +1761,9 @@ class MCS_ArrayOf_TokenId : public PASN_Array
   public:
     MCS_ArrayOf_TokenId(unsigned tag = UniversalSet, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     MCS_TokenId & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1784,14 +1784,14 @@ class MCS_Connect_Response : public PASN_Sequence
     MCS_DomainParameters m_domainParameters;
     PASN_OctetString m_userData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1809,14 +1809,14 @@ class MCS_Connect_Result : public PASN_Sequence
 
     MCS_Result m_result;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1835,14 +1835,14 @@ class MCS_MCrq : public PASN_Sequence
     MCS_ArrayOf_ChannelAttributes m_mergeChannels;
     MCS_ArrayOf_ChannelId m_purgeChannelIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1861,14 +1861,14 @@ class MCS_MCcf : public PASN_Sequence
     MCS_ArrayOf_ChannelAttributes m_mergeChannels;
     MCS_ArrayOf_ChannelId m_purgeChannelIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1887,14 +1887,14 @@ class MCS_PCin : public PASN_Sequence
     MCS_ArrayOf_UserId m_detachUserIds;
     MCS_ArrayOf_ChannelId m_purgeChannelIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1913,14 +1913,14 @@ class MCS_MTrq : public PASN_Sequence
     MCS_ArrayOf_TokenAttributes m_mergeTokens;
     MCS_ArrayOf_TokenId m_purgeTokenIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1939,14 +1939,14 @@ class MCS_MTcf : public PASN_Sequence
     MCS_ArrayOf_TokenAttributes m_mergeTokens;
     MCS_ArrayOf_TokenId m_purgeTokenIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1964,14 +1964,14 @@ class MCS_PTin : public PASN_Sequence
 
     MCS_ArrayOf_TokenId m_purgeTokenIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1989,14 +1989,14 @@ class MCS_DPum : public PASN_Sequence
 
     MCS_Reason m_reason;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2015,14 +2015,14 @@ class MCS_RJum : public PASN_Sequence
     MCS_Diagnostic m_diagnostic;
     PASN_OctetString m_initialOctets;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2045,14 +2045,14 @@ class MCS_AUcf : public PASN_Sequence
     MCS_Result m_result;
     MCS_UserId m_initiator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2071,14 +2071,14 @@ class MCS_DUrq : public PASN_Sequence
     MCS_Reason m_reason;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2097,14 +2097,14 @@ class MCS_DUin : public PASN_Sequence
     MCS_Reason m_reason;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2129,14 +2129,14 @@ class MCS_CJcf : public PASN_Sequence
     MCS_ChannelId m_requested;
     MCS_ChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2154,14 +2154,14 @@ class MCS_CLrq : public PASN_Sequence
 
     MCS_ArrayOf_ChannelId m_channelIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2185,14 +2185,14 @@ class MCS_CCcf : public PASN_Sequence
     MCS_UserId m_initiator;
     MCS_PrivateChannelId m_channelId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2212,14 +2212,14 @@ class MCS_CArq : public PASN_Sequence
     MCS_PrivateChannelId m_channelId;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2239,14 +2239,14 @@ class MCS_CAin : public PASN_Sequence
     MCS_PrivateChannelId m_channelId;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2266,14 +2266,14 @@ class MCS_CErq : public PASN_Sequence
     MCS_PrivateChannelId m_channelId;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2292,14 +2292,14 @@ class MCS_CEin : public PASN_Sequence
     MCS_PrivateChannelId m_channelId;
     MCS_ArrayOf_UserId m_userIds;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2320,14 +2320,14 @@ class MCS_TGcf : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_TokenStatus m_tokenStatus;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2348,14 +2348,14 @@ class MCS_TIcf : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_TokenStatus m_tokenStatus;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2375,14 +2375,14 @@ class MCS_TVrs : public PASN_Sequence
     MCS_UserId m_recipient;
     MCS_TokenId m_tokenId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2403,14 +2403,14 @@ class MCS_TVcf : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_TokenStatus m_tokenStatus;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2431,14 +2431,14 @@ class MCS_TRcf : public PASN_Sequence
     MCS_TokenId m_tokenId;
     MCS_TokenStatus m_tokenStatus;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2459,14 +2459,14 @@ class MCS_ChannelAttributes_private : public PASN_Sequence
     MCS_UserId m_manager;
     MCS_ArrayOf_UserId m_admitted;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

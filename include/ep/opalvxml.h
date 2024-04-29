@@ -54,9 +54,9 @@ class OpalVXMLSession : public PVXMLSession
   public:
     OpalVXMLSession(OpalIVRConnection & conn);
 
-    virtual void OnEndDialog();
-    virtual void OnEndSession();
-    virtual bool OnTransfer(const PString & destination, TransferType type);
+    virtual void OnEndDialog() override;
+    virtual void OnEndSession() override;
+    virtual TransferStatus OnTransfer(const PString & destination, TransferType type) override;
 
   protected:
     OpalIVRConnection & m_connection;

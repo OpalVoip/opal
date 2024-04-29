@@ -121,7 +121,7 @@ class OpalLocalEndPoint : public OpalEndPoint
        The default behaviour returns the most basic media formats, PCM audio
        and YUV420P video.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Set up a connection to a remote party.
        This is called from the OpalManager::MakeConnection() function once
@@ -158,7 +158,7 @@ class OpalLocalEndPoint : public OpalEndPoint
       void * userData = NULL,    ///<  Arbitrary data to pass to connection
       unsigned int options = 0,  ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  = NULL ///< Options to pass to connection
-    );
+    ) override;
   //@}
 
   /**@name Customisation call backs */
@@ -532,7 +532,7 @@ class OpalLocalConnection : public OpalConnection
        descendant classes to implement it. This will only affect code that implements new
        descendants of OpalConnection - code that uses existing descendants will be unaffected
      */
-    virtual PBoolean OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions);
+    virtual PBoolean OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions) override;
 
     /**Get indication of connection being to a "network".
        This indicates the if the connection may be regarded as a "network"
@@ -542,10 +542,10 @@ class OpalLocalConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual PBoolean IsNetworkConnection() const { return false; }
+    virtual PBoolean IsNetworkConnection() const override { return false; }
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Start an outgoing connection.
        This function will initiate the connection to the remote entity, for
@@ -556,7 +556,7 @@ class OpalLocalConnection : public OpalConnection
        of the conenction, including calling OnOutgoing() or OnIncoming() as
        appropriate.
       */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -571,7 +571,7 @@ class OpalLocalConnection : public OpalConnection
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia            ///<  Open media with alerting
-    );
+    ) override;
 
     /**Indicate to remote endpoint we are connected.
 
@@ -583,7 +583,7 @@ class OpalLocalConnection : public OpalConnection
        In other words, this method is used to handle incoming calls,
        and is an indication that we have accepted the incoming call.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
@@ -601,7 +601,7 @@ class OpalLocalConnection : public OpalConnection
      */
     virtual bool HoldRemote(
       bool placeOnHold  ///< Flag for setting on or off hold
-    );
+    ) override;
 
     /**Open a new media stream.
        This will create a media stream of an appropriate subclass as required
@@ -621,7 +621,7 @@ class OpalLocalConnection : public OpalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                    ///<  Is a source stream
-    );
+    ) override;
 
     /**Call back for closed a media stream.
 
@@ -629,7 +629,7 @@ class OpalLocalConnection : public OpalConnection
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends an arbitrary string as a user indication. If DTMF tones in
@@ -640,7 +640,7 @@ class OpalLocalConnection : public OpalConnection
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
   //@}
 
   /**@name New operations */
@@ -886,7 +886,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
       */
     virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
@@ -895,7 +895,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
       */
     virtual PBoolean WritePacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
@@ -904,7 +904,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
-    );
+    ) override;
 
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
@@ -913,12 +913,12 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
     This is called on the source/sink stream and is passed the sink/source
@@ -931,11 +931,11 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
     */
     virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
-    ) const;
+    ) const override;
     //@}
 
   protected:
-    virtual void InternalClose() { }
+    virtual void InternalClose() override { }
 
     OpalLocalConnection            & m_connection;
     OpalLocalEndPoint::Synchronicity m_synchronicity;

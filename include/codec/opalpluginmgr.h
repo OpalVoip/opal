@@ -123,9 +123,9 @@ class OpalPluginCodecManager : public PPluginModuleManager
                              PluginCodec_GetAPIVersionFunction getApiVerFn,
                              PluginCodec_GetCodecFunction getCodecFn);
 
-    void OnLoadPlugin(PDynaLink & dll, P_INT_PTR code);
+    void OnLoadPlugin(PDynaLink & dll, P_INT_PTR code) override;
 
-    virtual void OnStartup();
+    virtual void OnStartup() override;
 
 #if OPAL_H323
     H323Capability * CreateCapability(
@@ -255,10 +255,10 @@ class OpalPluginAudioFormatInternal : public OpalAudioFormatInternal, public Opa
       unsigned timeUnits,
       time_t timeStamp
     );
-    virtual PObject * Clone() const;
-    virtual bool IsValidForProtocol(const PString & protocol) const;
-    virtual bool ToNormalisedOptions();
-    virtual bool ToCustomisedOptions();
+    virtual PObject * Clone() const override;
+    virtual bool IsValidForProtocol(const PString & protocol) const override;
+    virtual bool ToNormalisedOptions() override;
+    virtual bool ToCustomisedOptions() override;
 };
 
 
@@ -267,16 +267,16 @@ class OpalPluginFramedAudioTranscoder : public OpalFramedTranscoder, public Opal
   PCLASSINFO(OpalPluginFramedAudioTranscoder, OpalFramedTranscoder);
   public:
     OpalPluginFramedAudioTranscoder(const OpalTranscoderKey & key, const PluginCodec_Definition * codecDefn, bool isEncoder);
-    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    PBoolean ExecuteCommand(const OpalMediaCommand & command);
-    void GetStatistics(OpalMediaStatistics & statistics) const;
-    PBoolean ConvertFrame(const BYTE * input, PINDEX & consumed, BYTE * output, PINDEX & created);
-    virtual PBoolean ConvertSilentFrame(BYTE * buffer, PINDEX & created);
-    virtual bool AcceptComfortNoise() const { return comfortNoise; }
+    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output) override;
+    PBoolean ExecuteCommand(const OpalMediaCommand & command) override;
+    void GetStatistics(OpalMediaStatistics & statistics) const override;
+    PBoolean ConvertFrame(const BYTE * input, PINDEX & consumed, BYTE * output, PINDEX & created) override;
+    virtual PBoolean ConvertSilentFrame(BYTE * buffer, PINDEX & created) override;
+    virtual bool AcceptComfortNoise() const override { return comfortNoise; }
   protected:
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
                            const OpalMediaFormat & destFormat,
-                           const BYTE * instance, unsigned instanceLen);
+                           const BYTE * instance, unsigned instanceLen) override;
     bool comfortNoise;
 };
 
@@ -286,14 +286,14 @@ class OpalPluginStreamedAudioTranscoder : public OpalStreamedTranscoder, public 
   PCLASSINFO(OpalPluginStreamedAudioTranscoder, OpalStreamedTranscoder);
   public:
     OpalPluginStreamedAudioTranscoder(const OpalTranscoderKey & key, const PluginCodec_Definition * codec, bool isEncoder);
-    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    PBoolean ExecuteCommand(const OpalMediaCommand & command);
-    virtual bool AcceptComfortNoise() const { return comfortNoise; }
-    virtual int ConvertOne(int from) const;
+    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output) override;
+    PBoolean ExecuteCommand(const OpalMediaCommand & command) override;
+    virtual bool AcceptComfortNoise() const override { return comfortNoise; }
+    virtual int ConvertOne(int from) const override;
   protected:
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
                            const OpalMediaFormat & destFormat,
-                           const BYTE * instance, unsigned instanceLen);
+                           const BYTE * instance, unsigned instanceLen) override;
     bool comfortNoise;
 };
 
@@ -311,10 +311,10 @@ class OpalPluginVideoFormatInternal : public OpalVideoFormatInternal, public Opa
       const char * rtpEncodingName, /// rtp encoding name
       time_t timeStamp              /// timestamp (for versioning)
     );
-    virtual PObject * Clone() const;
-    virtual bool IsValidForProtocol(const PString & protocol) const;
-    virtual bool ToNormalisedOptions();
-    virtual bool ToCustomisedOptions();
+    virtual PObject * Clone() const override;
+    virtual bool IsValidForProtocol(const PString & protocol) const override;
+    virtual bool ToNormalisedOptions() override;
+    virtual bool ToCustomisedOptions() override;
 };
 
 
@@ -326,17 +326,17 @@ class OpalPluginVideoTranscoder : public OpalVideoTranscoder, public OpalPluginT
     ~OpalPluginVideoTranscoder();
 
 #if OPAL_STATISTICS
-    virtual void GetStatistics(OpalMediaStatistics & statistics) const;
+    virtual void GetStatistics(OpalMediaStatistics & statistics) const override;
 #endif
 
-    PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
-    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    PBoolean ExecuteCommand(const OpalMediaCommand & command);
+    PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList) override;
+    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output) override;
+    PBoolean ExecuteCommand(const OpalMediaCommand & command) override;
 
   protected:
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
                            const OpalMediaFormat & destFormat,
-                           const BYTE * instance, unsigned instanceLen);
+                           const BYTE * instance, unsigned instanceLen) override;
     bool EncodeFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
     bool DecodeFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
     bool DecodeFrame(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
@@ -382,8 +382,8 @@ class OpalPluginFaxFormatInternal : public OpalMediaFormatInternal, public OpalP
       unsigned /*timeUnits*/,           /// RTP units for frameTime (if applicable)
       time_t timeStamp              /// timestamp (for versioning)
     );
-    virtual PObject * Clone() const;
-    virtual bool IsValidForProtocol(const PString & protocol) const;
+    virtual PObject * Clone() const override;
+    virtual bool IsValidForProtocol(const PString & protocol) const override;
 };
 
 #endif // OPAL_FAX
@@ -525,11 +525,11 @@ class H323AudioPluginCapability : public H323AudioCapability,
                               const OpalMediaFormat & mediaFormat,
                               unsigned pluginSubType);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
 
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
 
   protected:
     unsigned pluginSubType;
@@ -548,9 +548,9 @@ class H323PluginG7231Capability : public H323AudioPluginCapability
     H323PluginG7231Capability(const PluginCodec_Definition * codecDefn,
                               const OpalMediaFormat & mediaFormat);
 
-    virtual PObject * Clone() const;
-    virtual PBoolean OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const;
-    virtual PBoolean OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize);
+    virtual PObject * Clone() const override;
+    virtual PBoolean OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const override;
+    virtual PBoolean OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize) override;
 };
 
 
@@ -573,9 +573,9 @@ class H323CodecPluginNonStandardAudioCapability : public H323NonStandardAudioCap
                                               const OpalMediaFormat & mediaFormat,
                                               const unsigned char * data, unsigned dataLen);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -592,8 +592,8 @@ class H323CodecPluginGenericAudioCapability : public H323GenericAudioCapability,
                                           const OpalMediaFormat & mediaFormat,
                                           const PluginCodec_H323GenericCodecData * data);
 
-    virtual PObject * Clone() const;
-    virtual PString GetFormatName() const;
+    virtual PObject * Clone() const override;
+    virtual PString GetFormatName() const override;
 };
 
 
@@ -618,9 +618,9 @@ class H323CodecPluginNonStandardVideoCapability : public H323NonStandardVideoCap
                                               const OpalMediaFormat & mediaFormat,
                                               const unsigned char * data, unsigned dataLen);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -637,9 +637,9 @@ class H323CodecPluginGenericVideoCapability : public H323GenericVideoCapability,
                                           const OpalMediaFormat & mediaFormat,
                                           const PluginCodec_H323GenericCodecData * data);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -653,24 +653,24 @@ class H323H261Capability : public H323VideoCapability
   public:
     H323H261Capability();
 
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
-    virtual unsigned GetSubType() const;
+    virtual PString GetFormatName() const override;
+    virtual unsigned GetSubType() const override;
 
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu  /// PDU to set information on
-    ) const;
+    ) const override;
 
     virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu
-    ) const;
+    ) const override;
 
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu  /// PDU to get information from
-    );
+    ) override;
 };
 
 
@@ -681,7 +681,7 @@ class H323H261PluginCapability : public H323H261Capability,
   public:
     H323H261PluginCapability(const PluginCodec_Definition * codecDefn, const OpalMediaFormat & mediaFormat);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -695,28 +695,28 @@ class H323H263Capability : public H323VideoCapability
   public:
     H323H263Capability(const PString & variant);
 
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual PString GetFormatName() const;
-    virtual unsigned GetSubType() const;
+    virtual PString GetFormatName() const override;
+    virtual unsigned GetSubType() const override;
 
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu  /// PDU to set information on
-    ) const;
+    ) const override;
 
     virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu
-    ) const;
+    ) const override;
 
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu  /// PDU to get information from
-    );
+    ) override;
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
 
   protected:
     PString m_variant;

@@ -72,27 +72,27 @@ class OpalRTPMediaStream : public OpalMediaStream
 
        The default behaviour simply sets the isOpen variable to true.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Returns true if the media stream is open.
       */
-    virtual bool IsOpen() const;
+    virtual bool IsOpen() const override;
 
     /**Returns true if the media stream is established.
     */
-    virtual bool IsEstablished() const;
+    virtual bool IsEstablished() const override;
 
     /**Start the media stream.
 
        The default behaviour calls Resume() on the associated OpalMediaPatch
        thread if it was suspended.
       */
-    virtual PBoolean Start();
+    virtual PBoolean Start() override;
 
     /**Callback that is called on the source stream once the media patch has started.
        The default behaviour calls OpalConnection::OnMediaPatchStart()
       */
-    virtual void OnStartMediaPatch();
+    virtual void OnStartMediaPatch() override;
 
     /** Bypass media patch.
         Send media directly to/from the media streams.
@@ -100,33 +100,33 @@ class OpalRTPMediaStream : public OpalMediaStream
     virtual bool SetMediaPassThrough(
       OpalMediaStream & otherStream,  ///< Stream to bypass media data to/from
       bool bypass                     ///< Turn bypass on or off
-    );
+    ) override;
 
     /**Read an RTP frame of data from the source media stream.
        The new behaviour simply calls OpalRTPSession::ReadData().
       */
     virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Write an RTP frame of data to the sink media stream.
        The new behaviour simply calls OpalRTPSession::WriteData().
       */
     virtual PBoolean WritePacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Set the data size in bytes that is expected to be used.
       */
     virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns false for RTP streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        The default behaviour dermines if the media will be flowing between two
@@ -135,13 +135,13 @@ class OpalRTPMediaStream : public OpalMediaStream
        indicating local handling then this function returns faklse to disable
        the patch thread.
       */
-    virtual PBoolean RequiresPatchThread() const;
+    virtual PBoolean RequiresPatchThread() const override;
 
     /**Set the patch thread that is using this stream.
       */
     virtual PBoolean SetPatch(
       OpalMediaPatch * patch  ///<  Media patch thread
-    );
+    ) override;
 
     /** Return current RTP session
       */
@@ -157,7 +157,7 @@ class OpalRTPMediaStream : public OpalMediaStream
     virtual void SetJitterBufferDelay(const OpalJitterBuffer::Init & info);
 
 #if OPAL_STATISTICS
-    virtual void GetStatistics(OpalMediaStatistics & statistics, bool fromPatch = false) const;
+    virtual void GetStatistics(OpalMediaStatistics & statistics, bool fromPatch = false) const override;
 #endif
   //@}
 
@@ -165,11 +165,11 @@ class OpalRTPMediaStream : public OpalMediaStream
       ostream & strm,
       const char * prefix = NULL,
       Details details = Details::All()
-    ) const;
+    ) const override;
 
-    virtual PString GetPatchThreadName() const;
+    virtual PString GetPatchThreadName() const override;
 
-    virtual bool SetSyncSource(RTP_SyncSourceId ssrc);
+    virtual bool SetSyncSource(RTP_SyncSourceId ssrc) override;
 
     PString GetSimulcastId() const { return m_simulcastId; }
     void SetSimulcastId(const PString & id) { m_simulcastId = id; }
@@ -192,11 +192,11 @@ class OpalRTPMediaStream : public OpalMediaStream
 #endif
 
 protected:
-    virtual void InternalClose();
-    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init);
-    virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat);
-    virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch);
-    virtual bool InternalExecuteCommand(const OpalMediaCommand & command);
+    virtual void InternalClose() override;
+    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
+    virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
+    virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch) override;
+    virtual bool InternalExecuteCommand(const OpalMediaCommand & command) override;
 
     OpalRTPSession    & m_rtpSession;
     bool                m_rewriteHeaders;

@@ -151,7 +151,7 @@ void RFC2190Packetizer::SetMaxPayloadSize(size_t size)
 
 bool RFC2190Packetizer::Reset(size_t len)
 {
-  if (len > m_maxSize)
+  if (!OpalPluginFrame::Reset(len))
     return false;
 
   // make sure data is at least long enough to contain PSC, TR & minimum PTYPE, PQUANT and CPM
@@ -227,23 +227,21 @@ bool RFC2190Packetizer::Reset(size_t len)
   if ((m_buffer[6] & 0x40) != 0) 
     return false;
 
-#if 0
-  cout << "TR=" << TR 
-       << ",size=" << frameSize 
-       << ",I=" << iFrame 
+PTRACE(5, "RFC2190", "size=" << len
+       << ",I=" << m_isIFrame
+       << ",TR=" << TR
        << ",D=" << annexD
        << ",E=" << annexE
        << ",F=" << annexF
        << ",G=" << annexG
-       << ",PQUANT=" << pQuant
-       << endl;
-
-#endif
+       << ",PQUANT=" << pQuant);
 
   // split fragments longer than the maximum
   FragmentListType::iterator r;
   for (r = fragments.begin(); r != fragments.end(); ++r) {
     while (r->length > m_maxPayloadSize) {
+      PTRACE(5, "RFC2190", "Splitting packet: len=" << r->length);
+
       size_t oldLen = r->length;
       size_t newLen = m_maxPayloadSize;
       if ((oldLen - newLen) < m_maxPayloadSize)
@@ -267,7 +265,8 @@ bool RFC2190Packetizer::Reset(size_t len)
   currFrag = fragments.begin();
   fragPtr = m_buffer;
 
-  return OpalPluginFrame::Reset(len);
+  PTRACE(5, "RFC2190", "Total fragments: " << fragments.size());
+  return true;
 }
 
 
@@ -346,6 +345,8 @@ bool RFC2190Packetizer::GetPacket(PluginCodec_RTP & outputFrame, unsigned int & 
 
 void RFC2190Packetizer::RTPCallBack(void * data, int size, int mbCount)
 {
+  PTRACE(5, "RFC2190", "Adding fragment: size=" << size << ", mb=" << mbCount);
+
   // sometimes, FFmpeg encodes the same frame multiple times
   // we need to detect this in order to avoid duplicating the encoded data
   if (data == m_buffer) {
@@ -356,12 +357,18 @@ void RFC2190Packetizer::RTPCallBack(void * data, int size, int mbCount)
 
   // add the fragment to the list
   fragment frag;
-  frag.length = size;
-  frag.mbNum  = m_currentMB;
-  fragments.push_back(frag);
 
-  m_currentMB += mbCount;
+  frag.length = size;
   m_currentBytes += size;
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+    frag.mbNum  = m_currentMB;
+    m_currentMB += mbCount;
+#else
+    frag.mbNum = mbCount;
+#endif
+
+  fragments.push_back(frag);
 }
 
 

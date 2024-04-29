@@ -126,16 +126,16 @@ class SIPConsoleEndPoint : public SIPEndPoint, public OpalRTPConsoleEndPoint
 public:
   SIPConsoleEndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute) override;
 
 #if P_CLI
   PDECLARE_NOTIFIER(PCLI::Arguments, SIPConsoleEndPoint, CmdProxy);
   PDECLARE_NOTIFIER(PCLI::Arguments, SIPConsoleEndPoint, CmdRegister);
-  virtual void AddCommands(PCLI & cli);
+  virtual void AddCommands(PCLI & cli) override;
 #endif // P_CLI
 
-  virtual void OnRegistrationStatus(const RegistrationStatus & status);
+  virtual void OnRegistrationStatus(const RegistrationStatus & status) override;
   bool DoRegistration(ostream & output,
                       bool verbose,
                       const PString & aor,
@@ -156,8 +156,8 @@ class OpalSDPHTTPConsoleEndPoint : public OpalSDPHTTPEndPoint, public OpalRTPCon
   PCLASSINFO(OpalSDPHTTPConsoleEndPoint, OpalSDPHTTPEndPoint)
 public:
   OpalSDPHTTPConsoleEndPoint(OpalManagerConsole & manager);
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute) override;
 };
 #endif // OPAL_SDP && OPAL_PTLIB_HTTP
 
@@ -168,18 +168,18 @@ class H323ConsoleEndPoint : public H323EndPoint, public OpalRTPConsoleEndPoint
   PCLASSINFO(H323ConsoleEndPoint, H323EndPoint)
 public:
   H323ConsoleEndPoint(OpalManagerConsole & manager);
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute) override;
 
 #if P_CLI
   PDECLARE_NOTIFIER(PCLI::Arguments, H323ConsoleEndPoint, CmdTerminalType);
   PDECLARE_NOTIFIER(PCLI::Arguments, H323ConsoleEndPoint, CmdAlias);
   PDECLARE_NOTIFIER(PCLI::Arguments, H323ConsoleEndPoint, CmdGatekeeper);
   PDECLARE_NOTIFIER(PCLI::Arguments, H323ConsoleEndPoint, CmdCompatibility);
-  virtual void AddCommands(PCLI & cli);
+  virtual void AddCommands(PCLI & cli) override;
 #endif // P_CLI
 
-  virtual void OnGatekeeperStatus(H323Gatekeeper & gk, H323Gatekeeper::RegistrationFailReasons status);
+  virtual void OnGatekeeperStatus(H323Gatekeeper & gk, H323Gatekeeper::RegistrationFailReasons status) override;
   bool UseGatekeeperFromArgs(const PArgList & args, const char * host, const char * ident, const char * pass, const char * inter);
 };
 #endif // OPAL_H323
@@ -192,13 +192,13 @@ class OpalConsoleSkinnyEndPoint : public OpalSkinnyEndPoint, public OpalConsoleE
 public:
   OpalConsoleSkinnyEndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute) override;
 
 #if P_CLI
   PDECLARE_NOTIFIER(PCLI::Arguments, OpalConsoleSkinnyEndPoint, CmdRegister);
   PDECLARE_NOTIFIER(PCLI::Arguments, OpalConsoleSkinnyEndPoint, CmdStatus);
-  virtual void AddCommands(PCLI & cli);
+  virtual void AddCommands(PCLI & cli) override;
 #endif // P_CLI
 };
 #endif // OPAL_SKINNY
@@ -229,12 +229,12 @@ class OpalConsoleLineEndPoint : public OpalLineEndPoint, public OpalConsoleEndPo
 public:
   OpalConsoleLineEndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute) override;
 
 #if P_CLI
   PDECLARE_NOTIFIER(PCLI::Arguments, OpalConsoleLineEndPoint, CmdCountry);
-  virtual void AddCommands(PCLI & cli);
+  virtual void AddCommands(PCLI & cli) override;
 #endif // P_CLI
 };
 #endif // OPAL_LID
@@ -264,8 +264,8 @@ class OpalConsolePCSSEndPoint : public OpalPCSSEndPoint, public OpalConsoleEndPo
 public:
   OpalConsolePCSSEndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString &);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool verbose, const PString &) override;
 
 #if P_CLI
   PDECLARE_NOTIFIER(PCLI::Arguments, OpalConsolePCSSEndPoint, CmdRingFileAndDevice);
@@ -304,16 +304,16 @@ public:
   PDECLARE_NOTIFIER(OpalH281Client, OpalConsolePCSSEndPoint, ExternalCameraControlNotification);
 #endif
 
-  virtual void AddCommands(PCLI & cli);
+  virtual void AddCommands(PCLI & cli) override;
 #endif // P_CLI
 
   void SetRingInfo(ostream & out, bool verbose, const PString & filename, const PString & device, const PString & driver);
 
   // Various call backs
-  virtual bool OnIncomingCall(OpalLocalConnection & connection);
-  virtual void OnConnected(OpalConnection & connection);
-  virtual void OnReleased(OpalConnection & connection);
-  virtual void ShutDown();
+  virtual bool OnIncomingCall(OpalLocalConnection & connection) override;
+  virtual void OnConnected(OpalConnection & connection) override;
+  virtual void OnReleased(OpalConnection & connection) override;
+  virtual void ShutDown() override;
 
   protected:
     PFilePath             m_ringFileName;
@@ -338,11 +338,11 @@ class OpalConsoleIVREndPoint : public OpalIVREndPoint, public OpalConsoleEndPoin
 public:
   OpalConsoleIVREndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool, const PString &);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool, const PString &) override;
 
 #if P_CLI
-  virtual void AddCommands(PCLI &);
+  virtual void AddCommands(PCLI &) override;
 #endif // P_CLI
 };
 #endif // OPAL_IVR
@@ -355,11 +355,11 @@ class OpalConsoleMixerEndPoint : public OpalMixerEndPoint, public OpalConsoleEnd
 public:
   OpalConsoleMixerEndPoint(OpalManagerConsole & manager);
 
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool, const PString &);
+  virtual void GetArgumentSpec(ostream & strm) const override;
+  virtual bool Initialise(PArgList & args, bool, const PString &) override;
 
 #if P_CLI
-  virtual void AddCommands(PCLI &);
+  virtual void AddCommands(PCLI &) override;
 #endif // P_CLI
 };
 #endif // OPAL_HAS_MIXER
@@ -394,15 +394,15 @@ class OpalManagerConsole : public OpalManager
     virtual void EndRun(bool interrupt = false);
     virtual void Broadcast(const PString & msg);
 
-    virtual bool OnLocalOutgoingCall(const OpalLocalConnection & connection);
-    virtual void OnEstablishedCall(OpalCall & call);
-    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold);
-    virtual bool OnChangedPresentationRole(OpalConnection & connection, const PString & newChairURI, bool request);
-    virtual void OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & patch);
-    virtual void OnClosedMediaStream(const OpalMediaStream & stream);
-    virtual void OnFailedMediaStream(OpalConnection & connection, bool fromRemote, const PString & reason);
-    virtual void OnUserInputString(OpalConnection & connection, const PString & value);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual bool OnLocalOutgoingCall(const OpalLocalConnection & connection) override;
+    virtual void OnEstablishedCall(OpalCall & call) override;
+    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold) override;
+    virtual bool OnChangedPresentationRole(OpalConnection & connection, const PString & newChairURI, bool request) override;
+    virtual void OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & patch) override;
+    virtual void OnClosedMediaStream(const OpalMediaStream & stream) override;
+    virtual void OnFailedMediaStream(OpalConnection & connection, bool fromRemote, const PString & reason) override;
+    virtual void OnUserInputString(OpalConnection & connection, const PString & value) override;
+    virtual void OnClearedCall(OpalCall & call) override;
 
     class LockedStream : PWaitAndSignal
     {
@@ -523,15 +523,15 @@ class OpalManagerCLI : public OpalManagerConsole
     ~OpalManagerCLI();
 
     // Overrides from OpalManagerConsole
-    virtual PString GetArgumentSpec() const;
+    virtual PString GetArgumentSpec() const override;
     virtual bool Initialise(
       PArgList & args,
       bool verbose,
       const PString & defaultRoute = PString::Empty()
-    );
-    virtual void Run();
-    virtual void EndRun(bool interrupt = false);
-    virtual void Broadcast(const PString & msg);
+    ) override;
+    virtual void Run() override;
+    virtual void EndRun(bool interrupt = false) override;
+    virtual void Broadcast(const PString & msg) override;
 
   protected:
     PCLI * CreateCLIStandard();
@@ -637,7 +637,7 @@ class OpalConsoleProcess : public PProcess
       delete this->m_manager;
     }
 
-    virtual void Main()
+    virtual void Main() override
     {
       this->SetTerminationValue(1);
       this->m_manager = new Manager;
@@ -647,7 +647,7 @@ class OpalConsoleProcess : public PProcess
       }
     }
 
-    virtual bool OnInterrupt(bool)
+    virtual bool OnInterrupt(bool) override
     {
       if (this->m_manager == NULL)
         return false;

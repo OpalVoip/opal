@@ -177,6 +177,6 @@
     </audio>
 
     <!-- Seems obvious -->
-    <disconnect/>
+      <!-- <disconnect/> -->
   </form>
 </vxml>

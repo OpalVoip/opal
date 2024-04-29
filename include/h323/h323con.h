@@ -168,14 +168,14 @@ class H323Connection : public OpalRTPConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return true; }
+    virtual bool IsNetworkConnection() const override { return true; }
 
     /**Get this connections protocol prefix for URLs.
       */
-    virtual PString GetPrefixName() const;
+    virtual PString GetPrefixName() const override;
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Start an outgoing connection.
        This function will initiate the connection to the remote entity, for
@@ -183,7 +183,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour is to send SETUP packet.
       */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and it is in the Alerting phase, then
@@ -197,13 +197,13 @@ class H323Connection : public OpalRTPConnection
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia                ///<  Open media with alerting
-    );
+    ) override;
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour sends a CONNECT pdu.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /**Indicate to remote endpoint we are sending a progress.
 
@@ -218,7 +218,7 @@ class H323Connection : public OpalRTPConnection
 
         Default behaviour is to call H323EndPoint::OnConnectionEstablished
       */
-    virtual void OnEstablished();
+    virtual void OnEstablished() override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -237,17 +237,17 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour calls OnRelease() then calls the ancestor.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /** Get the remote transport address
       */
-    virtual OpalTransportAddress GetRemoteAddress() const { return GetTransport().GetRemoteAddress(); }
+    virtual OpalTransportAddress GetRemoteAddress() const override { return GetTransport().GetRemoteAddress(); }
 
     /**Get the destination address of an incoming connection.
        This will, for example, collect a phone number from a POTS line, or
        get the fields from the H.225 SETUP pdu in a H.323 connection.
       */
-    virtual PString GetDestinationAddress();
+    virtual PString GetDestinationAddress() override;
 
     /**Get alerting type information of an incoming call.
        The type of "distinctive ringing" for the call. The string is protocol
@@ -262,7 +262,7 @@ class H323Connection : public OpalRTPConnection
 
        Default behaviour returns an empty string.
       */
-    virtual PString GetAlertingType() const;
+    virtual PString GetAlertingType() const override;
 
     /**Set alerting type information for outgoing call.
        The type of "distinctive ringing" for the call. The string is protocol
@@ -277,7 +277,7 @@ class H323Connection : public OpalRTPConnection
 
        Default behaviour returns false.
       */
-    virtual bool SetAlertingType(const PString & info);
+    virtual bool SetAlertingType(const PString & info) override;
 
     /**Get supported features for an incoming call.
        A '\n' separated list of protocol dependent names about the supported
@@ -287,7 +287,7 @@ class H323Connection : public OpalRTPConnection
        For SIP this corresponds to the contents of the "Supported" header field
        of the INVITE.
       */
-    virtual PString GetSupportedFeatures() const;
+    virtual PString GetSupportedFeatures() const override;
 
     /** Get Q.931 Progress Indicator IE description from received PROGRESS or ALERTING pdus.
       */
@@ -304,27 +304,27 @@ class H323Connection : public OpalRTPConnection
        The default behaviour returns media data format names contained in
        the remote capability table.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Get media security methods in priority order.
        Returns an array of names for security methods,
        e.g. { "Clear", "AES_CM_128_HMAC_SHA1_80", "AES_CM_128_HMAC_SHA1_32" }.
       */
-    virtual PStringArray GetMediaCryptoSuites() const;
+    virtual PStringArray GetMediaCryptoSuites() const override;
 
     /**Get next available session ID for the media type.
       */
     virtual unsigned GetNextSessionID(
       const OpalMediaType & mediaType,   ///< Media type of stream being opened
       bool isSource                      ///< Stream is a source/sink
-    );
+    ) override;
 
 #if OPAL_T38_CAPABILITY
     /**Switch to/from T.38 fax mode.
       */
     virtual bool SwitchFaxMediaStreams(
       bool toT38  ///< Enable T.38 or return to audio mode
-    );
+    ) override;
 #endif
 
     /**Open source or sink media stream for session.
@@ -334,7 +334,7 @@ class H323Connection : public OpalRTPConnection
       unsigned sessionID,                  ///<  Session to start stream on
       bool isSource,                       ///< Stream is a source/sink
       RTP_SyncSourceId ssrc                ///<  Source within the session
-    );
+    ) override;
     
     /**Call back for closed a media stream.
 
@@ -342,7 +342,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
 
     /**Get transports for the media session on the connection.
        This is primarily used by the media bypass feature controlled by the
@@ -358,7 +358,7 @@ class H323Connection : public OpalRTPConnection
       unsigned sessionId,                    ///< Session identifier
       const OpalMediaType & mediaType,       ///< Media type for session to return information
       OpalTransportAddressArray & transports ///<  Information on media session
-    ) const;
+    ) const override;
 
 #if OPAL_H239
     /**Send request for ability to send presentation video.
@@ -374,13 +374,13 @@ class H323Connection : public OpalRTPConnection
       */
     virtual bool RequestPresentationRole(
       bool release   ///< Indicate we are acquiring or releasing the token
-    );
+    ) override;
 
     /**Indicate current presentation token ownership.
 
        Default behaviour returns m_h239TokenOwned.
       */
-    virtual bool HasPresentationRole() const;
+    virtual bool HasPresentationRole() const override;
 #endif // OPAL_H239
   //@}
 
@@ -631,7 +631,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual PBoolean ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
-    );
+    ) override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
@@ -641,7 +641,7 @@ class H323Connection : public OpalRTPConnection
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
@@ -659,7 +659,7 @@ class H323Connection : public OpalRTPConnection
      */
     virtual bool HoldRemote(
       bool placeOnHold  ///< Flag for setting on or off hold
-    );
+    ) override;
 
     /**Return true if the current connection is on hold.
        The \p fromRemote parameter indicates if we are testing if the remote
@@ -667,7 +667,7 @@ class H323Connection : public OpalRTPConnection
      */
     virtual bool IsOnHold(
       bool fromRemote  ///< Flag for if remote has us on hold, or we have them
-    ) const;
+    ) const override;
 
 #if OPAL_H450
 
@@ -842,7 +842,7 @@ class H323Connection : public OpalRTPConnection
     
     virtual AnswerCallResponse OnAnswerCall(
       const PString & callerName        ///<  Name of caller
-    );
+    ) override;
 
     /**Indicate the result of answering an incoming call.
        This should only be called if the OnAnswerCall() callback function has
@@ -856,7 +856,7 @@ class H323Connection : public OpalRTPConnection
       */
     void AnsweringCall(
       AnswerCallResponse response ///<  Answer response to incoming call
-    );
+    ) override;
 
     /**Send first PDU in signalling channel.
        This function does the signalling handshaking for establishing a
@@ -1642,7 +1642,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual OpalBandwidth GetBandwidthUsed(
       OpalBandwidth::Direction dir   ///< Bandwidth direction
-    ) const;
+    ) const override;
   //@}
 
   /**@name Indications */
@@ -1652,7 +1652,7 @@ class H323Connection : public OpalRTPConnection
        transmissions. It will be the value of GetSendUserInputMode() provided
        the remote endpoint is capable of that mode.
       */
-    virtual SendUserInputModes GetRealSendUserInputMode() const;
+    virtual SendUserInputModes GetRealSendUserInputMode() const override;
 
     /**Send a user input indication to the remote endpoint.
        This is for sending arbitrary strings as user indications.
@@ -1669,7 +1669,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends DTMF emulation user input. If something more sophisticated
@@ -1698,7 +1698,7 @@ class H323Connection : public OpalRTPConnection
     virtual PBoolean SendUserInputTone(
       char tone,             ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This is for sending arbitrary strings as user indications.
@@ -1768,7 +1768,7 @@ class H323Connection : public OpalRTPConnection
     virtual void DetermineRTPNAT(
       const OpalTransport & transport,          ///< Transport to get physical address of connection
       const OpalTransportAddress & signalAddr   ///< Remotes signaling address as indicated by protocol of connection
-    );
+    ) override;
 
   /**@name Request Mode Changes */
   //@{
@@ -1919,7 +1919,7 @@ class H323Connection : public OpalRTPConnection
 
     /**Set the local name/alias from information in the PDU.
       */
-    void SetLocalPartyName(const PString & name);
+    void SetLocalPartyName(const PString & name) override;
 
     /**Get the list of all alias names this connection is using.
       */
@@ -2102,7 +2102,7 @@ class H323Connection : public OpalRTPConnection
     virtual bool OnMediaCommand(
       OpalMediaStream & stream,         ///< Stream command executed on
       const OpalMediaCommand & command  ///< Media command being executed
-    );
+    ) override;
 
     /**Compatibility workarounds.
       */

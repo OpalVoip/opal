@@ -69,7 +69,7 @@ public:
   /**@name general worker methods*/
   //@{
   /*The method which gets everythig to happen */
-  virtual void Main();
+  virtual void Main() override;
    
   /**Set the endpoint variable */
   void Assign(IAX2EndPoint *ep);
@@ -79,7 +79,7 @@ public:
   void ProcessList() { activate.Signal(); }
 
   /**Cause this thread to die immediately */
-  void Terminate();
+  void Terminate() override;
 
   //@}
  protected:
@@ -119,11 +119,11 @@ class IAX2EndPoint : public OpalEndPoint
     /**Get the default transports for the endpoint type.
        Overrides the default behaviour to return udp and tcp.
       */
-    virtual PString GetDefaultTransport() const;
+    virtual PString GetDefaultTransport() const override;
 
     /**Get the default signal port for this endpoint.
      */
-    virtual WORD GetDefaultSignalPort() const;
+    virtual WORD GetDefaultSignalPort() const override;
 
 
   /**Set up a connection to a remote party.
@@ -161,7 +161,7 @@ class IAX2EndPoint : public OpalEndPoint
 			      void * userData = NULL,   ///<  Arbitrary data to pass to connection
 			      unsigned int options = 0, ///<  options to pass to connection
 			      OpalConnection::StringOptions * stringOptions = NULL
-			      );
+			      ) override;
   
   /**Create a connection for the IAX endpoint.
      The default implementation is to create a IAX2Connection.
@@ -266,7 +266,7 @@ class IAX2EndPoint : public OpalEndPoint
       */
     void OnEstablished(
        OpalConnection & con
-    );
+    ) override;
 
     /**Called whenever a connection instance is finished being used to
        manage a call. We trap this callback to remove the connection
@@ -275,7 +275,7 @@ class IAX2EndPoint : public OpalEndPoint
        method. */
     virtual void OnReleased(
       OpalConnection & connection   ///<  Connection that was established
-    );
+    ) override;
 
    /**Get the data formats this endpoint is capable of operating.  This
        provides a list of media data format names that may be used by an
@@ -286,7 +286,7 @@ class IAX2EndPoint : public OpalEndPoint
 
        The default behaviour is pure.
       */
-  virtual OpalMediaFormatList GetMediaFormats() const;
+  virtual OpalMediaFormatList GetMediaFormats() const override;
 
   /**Return the bitmask which specifies the possible codecs we support */
   PINDEX GetSupportedCodecs(OpalMediaFormatList & list);

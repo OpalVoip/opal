@@ -31,7 +31,7 @@
 
 #if OPAL_H235_6
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h235dh.h"
 #endif
 

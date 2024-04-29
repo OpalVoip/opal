@@ -164,8 +164,8 @@ class SDPMediaFormat : public PObject
       const OpalMediaFormat & mediaFormat
     );
 
-    virtual void PrintOn(ostream & str) const;
-    virtual PObject * Clone() const { return new SDPMediaFormat(*this); }
+    virtual void PrintOn(ostream & str) const override;
+    virtual PObject * Clone() const override { return new SDPMediaFormat(*this); }
 
     RTP_DataFrame::PayloadTypes GetPayloadType() const { return m_payloadType; }
 
@@ -336,10 +336,10 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     virtual bool IsSecure() const;
 #endif
 
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual void OutputAttributes(ostream & str) const;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual void OutputAttributes(ostream & str) const override;
 
-    virtual Direction GetDirection() const { return m_mediaAddress.IsEmpty() ? Inactive : m_direction; }
+    virtual Direction GetDirection() const override { return m_mediaAddress.IsEmpty() ? Inactive : m_direction; }
 
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
@@ -493,12 +493,12 @@ class SDPDummyMediaDescription : public SDPMediaDescription
     SDPDummyMediaDescription(const OpalTransportAddress & address, const PStringArray & tokens);
     SDPDummyMediaDescription(const SDPMediaDescription & mediaDescription);
 
-    virtual PString GetSDPMediaType() const;
-    virtual PCaselessString GetSDPTransportType() const;
-    virtual void SetSDPTransportType(const PString & type);
-    virtual PCaselessString GetSessionType() const;
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
-    virtual PString GetSDPPortList() const;
+    virtual PString GetSDPMediaType() const override;
+    virtual PCaselessString GetSDPTransportType() const override;
+    virtual void SetSDPTransportType(const PString & type) override;
+    virtual PCaselessString GetSessionType() const override;
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
+    virtual PString GetSDPPortList() const override;
 
   private:
     PStringArray m_tokens;
@@ -516,7 +516,7 @@ class SDPCryptoSuite : public PObject
     OpalMediaCryptoKeyInfo * GetKeyInfo() const;
 
     bool Decode(const PString & attrib);
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     struct KeyParam {
       KeyParam(const PString & keySalt)
@@ -554,24 +554,24 @@ class SDPRTPAVPMediaDescription : public SDPMediaDescription
     PCLASSINFO(SDPRTPAVPMediaDescription, SDPMediaDescription);
   public:
     SDPRTPAVPMediaDescription(const OpalTransportAddress & address, const OpalMediaType & mediaType);
-    virtual bool Decode(const PStringArray & tokens);
-    virtual PCaselessString GetSDPTransportType() const;
-    virtual void SetSDPTransportType(const PString & type);
-    virtual PCaselessString GetSessionType() const;
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
-    virtual PString GetSDPPortList() const;
-    virtual bool PreEncode();
-    virtual void OutputAttributes(ostream & str) const;
+    virtual bool Decode(const PStringArray & tokens) override;
+    virtual PCaselessString GetSDPTransportType() const override;
+    virtual void SetSDPTransportType(const PString & type) override;
+    virtual PCaselessString GetSessionType() const override;
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
+    virtual PString GetSDPPortList() const override;
+    virtual bool PreEncode() override;
+    virtual void OutputAttributes(ostream & str) const override;
 
 #if OPAL_SRTP
-    virtual void SetCryptoKeys(OpalMediaCryptoKeyList & cryptoKeys);
-    virtual OpalMediaCryptoKeyList GetCryptoKeys() const;
-    virtual bool IsSecure() const;
+    virtual void SetCryptoKeys(OpalMediaCryptoKeyList & cryptoKeys) override;
+    virtual OpalMediaCryptoKeyList GetCryptoKeys() const override;
+    virtual bool IsSecure() const override;
 #endif
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
-    virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
-    virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats) override;
+    virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc) override;
+    virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const override;
 
     // RFC5576
     typedef std::map<RTP_SyncSourceId, PStringOptions> SsrcInfo;
@@ -582,17 +582,17 @@ class SDPRTPAVPMediaDescription : public SDPMediaDescription
     {
       public:
         Format(SDPRTPAVPMediaDescription & parent) : SDPMediaFormat(parent) { }
-        virtual bool FromSDP(const PString & portString);
+        virtual bool FromSDP(const PString & portString) override;
 
-        virtual void PrintOn(ostream & str) const;
-        virtual bool PreEncode();
+        virtual void PrintOn(ostream & str) const override;
+        virtual bool PreEncode() override;
 
         void AddRTCP_FB(const PString & str);
         void SetRTCP_FB(const OpalMediaFormat::RTCPFeedback & v) { m_rtcp_fb = v; }
         OpalMediaFormat::RTCPFeedback GetRTCP_FB() const { return m_rtcp_fb; }
 
       protected:
-        virtual void SetMediaFormatOptions(OpalMediaFormat & mediaFormat) const;
+        virtual void SetMediaFormatOptions(OpalMediaFormat & mediaFormat) const override;
 
         OpalMediaFormat::RTCPFeedback m_rtcp_fb; // RFC4585
     };
@@ -619,9 +619,9 @@ class SDPAudioMediaDescription : public SDPRTPAVPMediaDescription
     PCLASSINFO(SDPAudioMediaDescription, SDPRTPAVPMediaDescription);
   public:
     SDPAudioMediaDescription(const OpalTransportAddress & address);
-    virtual void OutputAttributes(ostream & str) const;
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
+    virtual void OutputAttributes(ostream & str) const override;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats) override;
 
   protected:
     unsigned m_PTime;
@@ -643,15 +643,15 @@ class SDPVideoMediaDescription : public SDPRTPAVPMediaDescription
     PCLASSINFO(SDPVideoMediaDescription, SDPRTPAVPMediaDescription);
   public:
     SDPVideoMediaDescription(const OpalTransportAddress & address);
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
-    virtual bool PreEncode();
-    virtual void OutputAttributes(ostream & str) const;
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
-    virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
-    virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
-    virtual OpalVideoFormat::ContentRole GetContentRole() const { return m_contentRole; }
-    virtual void SetContentRole( OpalVideoFormat::ContentRole role ) { m_contentRole = role; }
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
+    virtual bool PreEncode() override;
+    virtual void OutputAttributes(ostream & str) const override;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats) override;
+    virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc) override;
+    virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const override;
+    virtual OpalVideoFormat::ContentRole GetContentRole() const override { return m_contentRole; }
+    virtual void SetContentRole( OpalVideoFormat::ContentRole role ) override { m_contentRole = role; }
 
   protected:
     class Format : public SDPRTPAVPMediaDescription::Format
@@ -659,13 +659,13 @@ class SDPVideoMediaDescription : public SDPRTPAVPMediaDescription
       public:
         Format(SDPVideoMediaDescription & parent);
 
-        virtual void PrintOn(ostream & str) const;
-        virtual PObject * Clone() const { return new Format(*this); }
+        virtual void PrintOn(ostream & str) const override;
+        virtual PObject * Clone() const override { return new Format(*this); }
 
         void ParseImageAttr(const PString & params);
 
       protected:
-        virtual void SetMediaFormatOptions(OpalMediaFormat & mediaFormat) const;
+        virtual void SetMediaFormatOptions(OpalMediaFormat & mediaFormat) const override;
 
         unsigned m_minRxWidth;
         unsigned m_minRxHeight;
@@ -695,8 +695,8 @@ class SDPApplicationMediaDescription : public SDPMediaDescription
   PCLASSINFO(SDPApplicationMediaDescription, SDPMediaDescription);
   public:
     SDPApplicationMediaDescription(const OpalTransportAddress & address);
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
-    virtual PString GetSDPMediaType() const;
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
+    virtual PString GetSDPMediaType() const override;
 
     static const PCaselessString & TypeName();
 
@@ -721,13 +721,13 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
       const OpalTransportAddress & address
     );
 
-    virtual void PrintOn(ostream & strm) const;
-    virtual void ReadFrom(istream & strm);
+    virtual void PrintOn(ostream & strm) const override;
+    virtual void ReadFrom(istream & strm) override;
 
     virtual PString Encode() const;
     virtual bool Decode(const PString & str, const OpalMediaFormatList & mediaFormats);
     virtual bool Decode(const PStringArray & lines, const OpalMediaFormatList & mediaFormats);
-    virtual void SetAttribute(const PString & attr, const PString & value);
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
 
     void SetSessionName(const PString & v);
     PString GetSessionName() const { return sessionName; }

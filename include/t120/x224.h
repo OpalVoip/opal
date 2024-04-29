@@ -59,7 +59,7 @@ class X224 : public PObject
     void BuildConnectConfirm();
     void BuildData(const PBYTEArray & data);
 
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
     PBoolean Decode(const PBYTEArray & rawData);
     PBoolean Encode(PBYTEArray & rawData) const;
 

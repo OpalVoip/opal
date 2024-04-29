@@ -21,7 +21,7 @@
  *
  * The Initial Developer of the Original Code is Equivalence Pty. Ltd.
  *
- * Contributor(s): Fürbass Franz <franz.fuerbass@infonova.at>
+ * Contributor(s): Fï¿½rbass Franz <franz.fuerbass@infonova.at>
  */
 
 #ifndef OPAL_H323_H235AUTH_H
@@ -60,7 +60,7 @@ class H235Authenticator : public PObject
 
     virtual void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
 
     virtual const char * GetName() const = 0;
 
@@ -216,31 +216,31 @@ class H235AuthSimpleMD5 : public H235Authenticator
   public:
     H235AuthSimpleMD5();
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 
-    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits);
+    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits) override;
 
     virtual ValidationResult ValidateCryptoToken(
       const H225_CryptoH323Token & cryptoToken,
       const PBYTEArray & rawPDU
-    );
+    ) override;
 
     virtual PBoolean IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
-    );
+    ) override;
 
     virtual PBoolean SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
-    );
+    ) override;
 
     virtual PBoolean IsSecuredPDU(
       unsigned rasPDU,
       PBoolean received
-    ) const;
+    ) const override;
 };
 
 PFACTORY_LOAD(H235AuthSimpleMD5);
@@ -258,30 +258,30 @@ class H235AuthCAT : public H235Authenticator
   public:
     H235AuthCAT();
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 
-    virtual H235_ClearToken * CreateClearToken();
+    virtual H235_ClearToken * CreateClearToken() override;
 
     virtual ValidationResult ValidateClearToken(
       const H235_ClearToken & clearToken
-    );
+    ) override;
 
     virtual PBoolean IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
-    );
+    ) override;
 
     virtual PBoolean SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
-    );
+    ) override;
 
     virtual PBoolean IsSecuredPDU(
       unsigned rasPDU,
       PBoolean received
-    ) const;
+    ) const override;
 };
 
 PFACTORY_LOAD(H235AuthCAT);
@@ -297,35 +297,35 @@ class H235AuthPwd_DES_ECB : public H235Authenticator
   public:
     H235AuthPwd_DES_ECB();
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 
-    virtual H235_ClearToken * CreateClearToken(unsigned rasPDU);
-    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits, unsigned rasPDU);
+    virtual H235_ClearToken * CreateClearToken(unsigned rasPDU) override;
+    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits, unsigned rasPDU) override;
 
     virtual ValidationResult ValidateClearToken(
       const H235_ClearToken & clearToken
-    );
+    ) override;
     virtual ValidationResult ValidateCryptoToken(
       const H225_CryptoH323Token & cryptoToken,
       const PBYTEArray & rawPDU
-    );
+    ) override;
 
     virtual PBoolean SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
-    );
+    ) override;
 
     virtual PBoolean IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
-    );
+    ) override;
 
     virtual PBoolean IsSecuredPDU(
       unsigned rasPDU,
       PBoolean received
-    ) const;
+    ) const override;
 
   protected:
     bool EncryptToken(PBYTEArray & encryptedToken);
@@ -344,32 +344,32 @@ class H235AuthProcedure1 : public H235Authenticator
   public:
     H235AuthProcedure1();
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 
-    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits);
+    virtual H225_CryptoH323Token * CreateCryptoToken(bool digits) override;
 
     virtual PBoolean Finalise(
       PBYTEArray & rawPDU
-    );
+    ) override;
 
     virtual ValidationResult ValidateCryptoToken(
       const H225_CryptoH323Token & cryptoToken,
       const PBYTEArray & rawPDU
-    );
+    ) override;
 
     virtual PBoolean IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
-    );
+    ) override;
 
     virtual PBoolean SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
-    );
+    ) override;
 
-    virtual PBoolean UseGkAndEpIdentifiers() const;
+    virtual PBoolean UseGkAndEpIdentifiers() const override;
 };
 
 PFACTORY_LOAD(H235AuthProcedure1);

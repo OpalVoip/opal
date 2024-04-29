@@ -83,7 +83,7 @@ class PIPSocket : PSocket /Abstract/
         // //@}
 
         /// Compare two adresses for absolute (in)equality.
-        Comparison Compare(const PObject & obj) const;
+        virtual Comparison Compare(const PObject & obj) const override;
 		
         // bool operator==(const PIPSocket::Address & addr) const;
         // bool operator!=(const PIPSocket::Address & addr) const;

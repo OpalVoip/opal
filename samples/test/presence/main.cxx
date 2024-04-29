@@ -39,9 +39,9 @@ class MyManager : public OpalManagerCLI
     MyManager();
     ~MyManager();
 
-    PString GetArgumentSpec() const;
-    void Usage(ostream & strm, const PArgList & args);
-    bool Initialise(PArgList & args, bool verbose);
+    PString GetArgumentSpec() const override;
+    void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
     void AddPresentityCmd(PArgList & args);
 
     PDECLARE_AuthorisationRequestNotifier(MyManager, AuthorisationRequest);
@@ -58,8 +58,7 @@ class MyManager : public OpalManagerCLI
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyAdd);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyRemove);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddySusbcribe);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdDelay);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdQuit);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConformanceTest);
 
     PString     m_presenceAgent;
     PString     m_xcapRoot;
@@ -107,7 +106,7 @@ void MyManager::Usage(ostream & strm, const PArgList & args)
 }
 
 
-bool MyManager::Initialise(PArgList & args, bool verbose)
+bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 {
   if (!OpalManagerCLI::Initialise(args, verbose))
     return false;
@@ -158,6 +157,9 @@ bool MyManager::Initialise(PArgList & args, bool verbose)
   m_cli->SetCommand("buddy subscribe", PCREATE_NOTIFIER(CmdBuddySusbcribe),
                     "Susbcribe to all URIs in the buddy list for presentity.",
                     "<presentity>");
+  m_cli->SetCommand("parse", PCREATE_NOTIFIER(CmdConformanceTest),
+                    "Perform conformance test on parsing sXML data.",
+                    "<file>");
 
   return true;
 }
@@ -367,18 +369,26 @@ void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyManager::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConformanceTest(PCLI::Arguments & args, P_INT_PTR)
 {
-  if (args.GetCount() < 1)
+  if (args.GetCount() < 1) {
     args.WriteUsage();
-  int delay = args[0].AsInteger();
-  PThread::Sleep(delay * 1000);
-}
+    return;
+  }
 
-
-void MyManager::CmdQuit(PCLI::Arguments & args, P_INT_PTR)
-{
-  args.GetContext().Stop();
+  PXML xml;
+  PString error;
+  list<SIPPresenceInfo> infoList;
+  if (xml.LoadAndValidate(PTextFile(args[0]).ReadString(P_MAX_INDEX),
+                          SIPPresenceInfo::GetValidation(),
+                          error,
+                          PXML::WithNS) &&
+      SIPPresenceInfo::ParseXML(xml, infoList)) {
+    for (list<SIPPresenceInfo>::const_iterator it = infoList.begin(); it != infoList.end(); ++it)
+      args.GetContext() << *it << endl;
+    return;
+  }
+  args.WriteError() << "Could not parse file." << endl;
 }
 
 

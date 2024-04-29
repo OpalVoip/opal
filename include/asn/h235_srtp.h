@@ -29,9 +29,9 @@ class H235_SRTP_SrtpCryptoCapability : public PASN_Array
   public:
     H235_SRTP_SrtpCryptoCapability(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_SRTP_SrtpCryptoInfo & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -49,9 +49,9 @@ class H235_SRTP_SrtpKeys : public PASN_Array
   public:
     H235_SRTP_SrtpKeys(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_SRTP_SrtpKeyParameters & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -75,14 +75,14 @@ class H235_SRTP_FecOrder : public PASN_Sequence
     PASN_Null m_fecBeforeSrtp;
     PASN_Null m_fecAfterSrtp;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -103,8 +103,8 @@ class H235_SRTP_SrtpKeyParameters_lifetime : public PASN_Choice
       e_specific
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -123,14 +123,14 @@ class H235_SRTP_SrtpKeyParameters_mki : public PASN_Sequence
     PASN_Integer m_length;
     PASN_OctetString m_value;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -148,9 +148,9 @@ class H235_SRTP_ArrayOf_GenericData : public PASN_Array
   public:
     H235_SRTP_ArrayOf_GenericData(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_GenericData & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -176,14 +176,14 @@ class H235_SRTP_SrtpKeyParameters : public PASN_Sequence
     H235_SRTP_SrtpKeyParameters_lifetime m_lifetime;
     H235_SRTP_SrtpKeyParameters_mki m_mki;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -217,14 +217,14 @@ class H235_SRTP_SrtpSessionParameters : public PASN_Sequence
     PASN_Integer m_windowSizeHint;
     H235_SRTP_ArrayOf_GenericData m_newParameter;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -250,14 +250,14 @@ class H235_SRTP_SrtpCryptoInfo : public PASN_Sequence
     H235_SRTP_SrtpSessionParameters m_sessionParams;
     PASN_Boolean m_allowMKI;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

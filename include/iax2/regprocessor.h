@@ -131,25 +131,25 @@ class IAX2RegProcessor : public IAX2Processor
   
   /**This callback is called when a packet fails to get an
      Acknowledgment */
-  void OnNoResponseTimeout();
+  void OnNoResponseTimeout() override;
   
   /**A method to cause some of the values in this class to be formatted
      into a printable stream */
-  void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Go through the three lists for incoming data (ethernet/sound/UI commands.  */
-  virtual void ProcessLists();
+  virtual void ProcessLists() override;
   
   /**Processes a full frame, and sends it off to the relevant processor. This RegistrationProcessor instance worries about those types 
    common to registration, so is concerned about cmdRegAuth, cmdRegAck etc.*/
-  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame);
+  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame) override;
   
   /**Handles a mini frame - so copes with media.*/
-  virtual void ProcessNetworkFrame(IAX2MiniFrame * src);
+  virtual void ProcessNetworkFrame(IAX2MiniFrame * src) override;
   
   /**Processes a protocol full frame, well, those components relating to
    * registration.*/
-  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src) override;
   
   /**Reset the call, ie: get a new call source number, 
      put the sequence numbers to 0 and reset the timer.
@@ -164,7 +164,7 @@ class IAX2RegProcessor : public IAX2Processor
 
   @return true if the frame is out of order, which deletes the supplied frame
   @return false, and does not destroy the supplied frame*/
-  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *)
+  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *) override
        { return false; };
 
   

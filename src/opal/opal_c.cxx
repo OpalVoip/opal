@@ -188,13 +188,13 @@ class OpalPCSSEndPoint_C : public OpalPCSSEndPoint, public OpalMediaDataCallback
   public:
     OpalPCSSEndPoint_C(OpalManager_C & manager);
 
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection &);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &);
+    virtual PBoolean OnShowIncoming(const OpalPCSSConnection &) override;
+    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &) override;
 
-    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &);
-    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame);
-    virtual bool OnReadMediaData(const OpalLocalConnection &, const OpalMediaStream &, void *, PINDEX, PINDEX &);
-    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &);
+    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &) override;
+    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame) override;
+    virtual bool OnReadMediaData(OpalLocalConnection &, OpalMediaStream &, void *, PINDEX,PINDEX &) override;
+    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &) override;
 
   protected:
     OpalManager_C & m_manager;
@@ -209,13 +209,13 @@ class OpalLocalEndPoint_C : public OpalLocalEndPoint, public OpalMediaDataCallba
   public:
     OpalLocalEndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection &);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection &) override;
 
-    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &);
-    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame);
-    virtual bool OnReadMediaData(const OpalLocalConnection &, const OpalMediaStream &, void *, PINDEX, PINDEX &);
-    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &);
+    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &) override;
+    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame) override;
+    virtual bool OnReadMediaData(OpalLocalConnection &, OpalMediaStream &, void *, PINDEX, PINDEX &) override;
+    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &) override;
 
   private:
     OpalManager_C & m_manager;
@@ -230,8 +230,8 @@ class OpalGstEndPoint_C : public GstEndPoint
   public:
     OpalGstEndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection & connection);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection & connection) override;
 
   private:
     OpalManager_C & m_manager;
@@ -248,9 +248,9 @@ class OpalIVREndPoint_C : public OpalIVREndPoint
   public:
     OpalIVREndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection & connection);
-    virtual void OnEndDialog(OpalIVRConnection & connection);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection & connection) override;
+    virtual void OnEndDialog(OpalIVRConnection & connection) override;
 
   private:
     OpalManager_C & m_manager;
@@ -268,27 +268,27 @@ class SIPEndPoint_C : public SIPEndPoint
 
     virtual void OnRegistrationStatus(
       const RegistrationStatus & status
-    );
+    ) override;
     virtual void OnSubscriptionStatus(
       const PString & eventPackage, ///< Event package subscribed to
       const SIPURL & uri,           ///< Target URI for the subscription.
       bool wasSubscribing,          ///< Indication the subscribing or unsubscribing
       bool reSubscribing,           ///< If subscribing then indication was refeshing subscription
       SIP_PDU::StatusCodes reason   ///< Status of subscription
-    );
+    ) override;
     virtual bool OnReINVITE(
       SIPConnection & connection,
       bool fromRemote,
       const PString & remoteSDP
-    );
+    ) override;
     virtual void OnDialogInfoReceived(
       const SIPDialogNotification & info  ///< Information on dialog state change
-    );
+    ) override;
     virtual bool OnReceivedInfoPackage(
       SIPConnection & connection,
       const PString & package,
       const PMultiPartList & content
-    );
+    ) override;
 
     void SetProtocolMessageIdentifiers(const PString & str);
     bool SendIndProtocolMessage(
@@ -319,21 +319,21 @@ class OpalManager_C : public OpalManager
     OpalMessage * GetMessage(unsigned timeout, const char * & error);
     OpalMessage * SendMessage(const OpalMessage * message);
 
-    virtual void OnEstablishedCall(OpalCall & call);
-    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold);
-    virtual bool OnTransferNotify(OpalConnection &, const PStringToString &);
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
-    virtual void OnClosedMediaStream(const OpalMediaStream & stream);
-    virtual void OnUserInputString(OpalConnection & connection, const PString & value);
-    virtual void OnUserInputTone(OpalConnection & connection, char tone, int duration);
-    virtual void OnMWIReceived(const PString & party, MessageWaitingType type, const PString & extraInfo);
-    virtual void OnProceeding(OpalConnection & conenction);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual void OnEstablishedCall(OpalCall & call) override;
+    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold) override;
+    virtual bool OnTransferNotify(OpalConnection &, const PStringToString &) override;
+    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream) override;
+    virtual void OnClosedMediaStream(const OpalMediaStream & stream) override;
+    virtual void OnUserInputString(OpalConnection & connection, const PString & value) override;
+    virtual void OnUserInputTone(OpalConnection & connection, char tone, int duration) override;
+    virtual void OnMWIReceived(const PString & party, MessageWaitingType type, const PString & extraInfo) override;
+    virtual void OnProceeding(OpalConnection & conenction) override;
+    virtual void OnClearedCall(OpalCall & call) override;
 
 #if OPAL_HAS_IM
-    virtual void OnMessageReceived(const OpalIM & message);
-    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo &);
-    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo &);
+    virtual void OnMessageReceived(const OpalIM & message) override;
+    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo &) override;
+    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo &) override;
 #endif
 
 #if OPAL_HAS_PRESENCE
@@ -478,6 +478,8 @@ OpalMessageBuffer::OpalMessageBuffer(OpalMessageType type)
   : m_size(sizeof(OpalMessage))
   , m_data((char *)malloc(m_size))
 {
+  if (m_data == NULL)
+    throw bad_alloc();
   memset(m_data, 0, m_size);
   (*this)->m_type = type;
 }
@@ -501,6 +503,8 @@ void OpalMessageBuffer::SetData(const char * * variable, const void * value, siz
   PAssert((char *)variable >= m_data && (char *)variable < m_data+m_size, PInvalidParameter);
 
   char * newData = (char *)realloc(m_data, m_size + length);
+  if (newData == NULL)
+    throw bad_alloc();
   if (PAssertNULL(newData) != m_data) {
     // Memory has moved, this invalidates pointer variables so recalculate them
     intptr_t delta = newData - m_data;
@@ -621,8 +625,8 @@ bool OpalLocalEndPoint_C::OnWriteMediaFrame(const OpalLocalConnection & connecti
 }
 
 
-bool OpalLocalEndPoint_C::OnReadMediaData(const OpalLocalConnection & connection,
-                                          const OpalMediaStream & mediaStream,
+bool OpalLocalEndPoint_C::OnReadMediaData(OpalLocalConnection & connection,
+                                          OpalMediaStream & mediaStream,
                                           void * data,
                                           PINDEX size,
                                           PINDEX & length)
@@ -794,8 +798,8 @@ bool OpalPCSSEndPoint_C::OnWriteMediaFrame(const OpalLocalConnection & connectio
 }
 
 
-bool OpalPCSSEndPoint_C::OnReadMediaData(const OpalLocalConnection & connection,
-                                         const OpalMediaStream & mediaStream,
+bool OpalPCSSEndPoint_C::OnReadMediaData(OpalLocalConnection & connection,
+                                         OpalMediaStream & mediaStream,
                                          void * data,
                                          PINDEX size,
                                          PINDEX & length)
@@ -873,7 +877,8 @@ void OpalIVREndPoint_C::OnEndDialog(OpalIVRConnection & connection)
   PTRACE(4, "OnEndDialog for " << connection);
 
   // Do not call ancestor and start a long pause, as do not want it to hang up
-  connection.TransferConnection("<vxml><form><break time=\"3600s\"/></form></vxml>");
+  if (!connection.TransferConnection("<vxml><form><break time=\"3600s\"/></form></vxml>"))
+    return;
 
   // Send message to app, which may (or may not) start a new IVR script
   OpalMessageBuffer message(OpalIndCompletedIVR);
@@ -1109,6 +1114,7 @@ static bool CheckProto(const PArgList & args, const char * proto, const char * d
 OpalManager_C::OpalManager_C(unsigned version, const PArgList & args)
   : m_apiVersion(version)
   , m_manualAlerting(false)
+  , m_messageAvailableCallback(NULL)
   , m_shuttingDown(false)
 {
   PString defProto, defUser;
@@ -1324,7 +1330,7 @@ OpalMessage * OpalManager_C::SendMessage(const OpalMessage * message)
 
   OpalMessageBuffer response(message->m_type);
 
-  HandlerFunc func = message->m_type < OpalMessageTypeCount ? m_handlers[message->m_type] : NULL;
+  HandlerFunc func = message->m_type >= 0 && message->m_type < OpalMessageTypeCount ? m_handlers[message->m_type] : NULL;
   if (func == (HandlerFunc)NULL)
     return NULL;
 
@@ -2623,11 +2629,11 @@ void OpalManager_C::HandleTransferCall(const OpalMessage & command, OpalMessageB
 
   PString search = command.m_param.m_callSetUp.m_partyA;
   if (search == "*") {
-	PString prefixB = GetPrefixFromPartyAddress(partyB);
-	if (prefixB.IsEmpty()) {
+    PString prefixB = GetPrefixFromPartyAddress(partyB);
+    if (prefixB.IsEmpty()) {
       response.SetError("Invalid transfer address provided, must have prefix.");
       return;
-	}
+    }
     OpalEndPoint * ep = FindEndPoint(prefixB);
     if (ep != NULL) {
       PTRACE(4, "Searching for local/network connection the same as " << *ep);
@@ -3228,6 +3234,9 @@ void OpalManager_C::HandleSendIM(const OpalMessage &, OpalMessageBuffer & respon
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static PCriticalSection g_handlesMutex;
+static std::set<OpalHandle> g_handles;;
+
 extern "C" {
 
   OpalHandle OPAL_EXPORT OpalInitialise(unsigned * version, const char * options)
@@ -3257,8 +3266,11 @@ extern "C" {
     }
 
     OpalHandle handle = new OpalHandleStruct(callerVersion, args);
-    if (!handle->m_manager->GetEndPoints().IsEmpty())
+    if (!handle->m_manager->GetEndPoints().IsEmpty()) {
+      PWaitAndSignal lock(g_handlesMutex);
+      g_handles.insert(handle);
       return handle;
+    }
 
     PTRACE(1, "No endpoints were available or selected using \"" << optionsString << '"');
     delete handle;
@@ -3268,6 +3280,11 @@ extern "C" {
 
   void OPAL_EXPORT OpalShutDown(OpalHandle handle)
   {
+    {
+      PWaitAndSignal lock(g_handlesMutex);
+      if (g_handles.erase(handle) == 0)
+        return;
+    }
     delete handle;
   }
 
@@ -3439,6 +3456,8 @@ OpalMessagePtr & OpalMessagePtr::SetType(OpalMessageType type)
   OpalFreeMessage(m_message);
 
   m_message = (OpalMessage *)malloc(sizeof(OpalMessage)); // Use malloc to be compatible with OpalFreeMessage
+  if (m_message == NULL)
+    throw bad_alloc();
   memset(m_message, 0, sizeof(OpalMessage));
   m_message->m_type = type;
   return *this;

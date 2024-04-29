@@ -115,7 +115,7 @@ class OpalSockEndPoint : public OpalLocalEndPoint
       void * userData = NULL,    ///<  Arbitrary data to pass to connection
       unsigned int options = 0,  ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  = NULL ///< Options to pass to connection
-    );
+    ) override;
 
 
     /**Create a connection for the PCSS endpoint.
@@ -126,7 +126,7 @@ class OpalSockEndPoint : public OpalLocalEndPoint
       void * userData,    ///<  Arbitrary data to pass to connection
       unsigned options,   ///< Option bit mask to pass to connection
       OpalConnection::StringOptions * stringOptions ///< Options to pass to connection
-    );
+    ) override;
   //@}
 };
 
@@ -167,7 +167,7 @@ class OpalSockConnection : public OpalLocalConnection
        The default behaviour returns the most basic media formats, PCM audio
        and YUV420P video.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -186,7 +186,7 @@ class OpalSockConnection : public OpalLocalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
@@ -196,7 +196,7 @@ class OpalSockConnection : public OpalLocalConnection
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
     /** Callback for media commands.
         Executes OnMediaCommand ont he other connection in call.
@@ -206,7 +206,7 @@ class OpalSockConnection : public OpalLocalConnection
     virtual bool OnMediaCommand(
       OpalMediaStream & stream,         ///< Stream command executed on
       const OpalMediaCommand & command  ///< Media command being executed
-    );
+    ) override;
   //@}
 
   /**@name Overrides from OpalLocalConnection */
@@ -217,7 +217,7 @@ class OpalSockConnection : public OpalLocalConnection
 
        @return false if the call is to be aborted with EndedByNoAccept.
       */
-    virtual bool OnOutgoing();
+    virtual bool OnOutgoing() override;
 
     /**Call back to indicate that there is an incoming call.
        Note this function should not block or it will impede the operation of
@@ -227,7 +227,7 @@ class OpalSockConnection : public OpalLocalConnection
 
        @return false if the call is to be aborted with status of EndedByLocalBusy.
       */
-    virtual bool OnIncoming();
+    virtual bool OnIncoming() override;
 
     /**Call back to get media data for transmission.
        If false is returned the media stream will be closed.
@@ -242,7 +242,7 @@ class OpalSockConnection : public OpalLocalConnection
       void * data,                   ///<  Data to send
       PINDEX size,                   ///<  Maximum size of data buffer
       PINDEX & length                ///<  Number of bytes placed in buffer
-    );
+    ) override;
 
     /**Call back to handle received media data.
        If false is returned the media stream will be closed.
@@ -266,7 +266,7 @@ class OpalSockConnection : public OpalLocalConnection
       const void * data,                      ///<  Data received
       PINDEX length,                          ///<  Amount of data available to write
       PINDEX & written                        ///<  Amount of data written
-    );
+    ) override;
   //@}
 
 

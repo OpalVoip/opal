@@ -125,7 +125,7 @@ class H323Transactor : public PObject
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name new operations */

@@ -107,7 +107,7 @@ class PTime
        @return
        pointer to new time.
      */
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
 	
 	/**Determine the relative rank of the specified times. This ranks the

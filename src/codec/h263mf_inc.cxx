@@ -133,7 +133,7 @@ static bool GetCustomMPI(const char * str,
 }
 
 
-static int MergeCustomResolution(const char * dest, const char * src, char * result)
+static int MergeCustomResolution(const char * dest, const char * src, char * result, size_t size)
 {
   size_t resultCount = 0;
   CustomResolutions resultRes;
@@ -170,7 +170,7 @@ static int MergeCustomResolution(const char * dest, const char * src, char * res
   else {
     size_t len = 0;
     for (size_t i = 0; i < resultCount; ++i)
-      len += sprintf(result+len, len == 0 ? "%u,%u,%u" : ";%u,%u,%u",
+      len += snprintf(result+len, size-len, len == 0 ? "%u,%u,%u" : ";%u,%u,%u",
                      resultRes[i].width, resultRes[i].height, resultRes[i].mpi);
   }
 

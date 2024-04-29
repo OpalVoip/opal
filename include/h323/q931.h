@@ -97,7 +97,7 @@ class Q931 : public PObject
     PBoolean Decode(const PBYTEArray & data);
     PBoolean Encode(PBYTEArray & data) const;
 
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
     PString GetMessageTypeName() const;
 
     static unsigned GenerateCallReference();

@@ -40,19 +40,19 @@ class MyManager : public OpalManagerCLI
   public:
     MyManager() : m_imEP(NULL) { }
 
-    virtual PString GetArgumentSpec() const;
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual bool Initialise(PArgList & args, bool verbose);
+    virtual PString GetArgumentSpec() const override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
 
   protected:
     OpalIMEndPoint * m_imEP;
 
     bool GetToFromURL(const PArgList & args, PURL & to, PURL & from);
 
-    virtual void OnConversation(const OpalIMContext::ConversationInfo & info);
-    virtual void OnMessageReceived(const OpalIM & message);
-    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo & info);
-    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo & info);
+    virtual void OnConversation(const OpalIMContext::ConversationInfo & info) override;
+    virtual void OnMessageReceived(const OpalIM & message) override;
+    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo & info) override;
+    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo & info) override;
 
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdSend);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdComp);

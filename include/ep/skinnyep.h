@@ -65,16 +65,16 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         destroying the object and can be handy to make sure some things are
         stopped before the vtable gets clobbered.
         */
-    virtual void ShutDown();
+    virtual void ShutDown() override;
 
     /** Get the default transports for the endpoint type.
         Overrides the default behaviour to return udp and tcp.
         */
-    virtual PString GetDefaultTransport() const;
+    virtual PString GetDefaultTransport() const override;
 
     /** Get the default signal port for this endpoint.
       */
-    virtual WORD GetDefaultSignalPort() const;
+    virtual WORD GetDefaultSignalPort() const override;
 
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
@@ -83,14 +83,14 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
        Note that a specific connection may not actually support all of the
        media formats returned here, but should return no more.
        */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /** Handle new incoming connection from listener.
       */
     virtual void NewIncomingConnection(
       OpalListener & listener,            ///<  Listner that created transport
       const OpalTransportPtr & transport  ///<  Transport connection came in on
-      );
+    ) override;
 
     /** Set up a connection to a remote party.
         This is called from the OpalManager::MakeConnection() function once
@@ -125,12 +125,12 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       void * userData,                         ///<  Arbitrary data to pass to connection
       unsigned int options,                    ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  ///<  complex string options
-      );
+    ) override;
 
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         */
-    virtual PBoolean GarbageCollection();
+    virtual PBoolean GarbageCollection() override;
     //@}
 
 
@@ -194,7 +194,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         PhoneDevice(OpalSkinnyEndPoint & ep, const PString & name, unsigned deviceType, const PIPAddressAndPort & binding);
         ~PhoneDevice() { Close(); }
 
-        virtual void PrintOn(ostream & strm) const;
+        virtual void PrintOn(ostream & strm) const override;
 
         bool Start(const PString & server);
         bool Stop();
@@ -260,6 +260,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
 
     // Note: all derived classes MUST NOT have composite members, e.g. PString
 #define OPAL_SKINNY_MSG2(cls, base, id, extraSpace, vars) \
+    P_PUSH_MSVC_WARNINGS(26495) \
     class cls : public base \
     { \
         PCLASSINFO(cls, base); \
@@ -269,6 +270,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         cls(const PBYTEArray & pdu) : base(ID, sizeof(*this), extraSpace) { Construct(pdu); } \
         vars \
     }; \
+    P_POP_MSVC_WARNINGS() \
     virtual bool OnReceiveMsg(PhoneDevice & client, const cls & msg)
 
 #define OPAL_SKINNY_MSG(cls, id, vars) OPAL_SKINNY_MSG2(cls, SkinnyMsg, id, 0, vars)
@@ -303,7 +305,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       BYTE     m_unknown2[4];
       char     m_macAddress[12];
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(RegisterAckMsg, 0x0081,
@@ -313,7 +315,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_secondaryKeepAlive;
       Proto    m_protocol;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(RegisterRejectMsg, 0x009d,
@@ -330,7 +332,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
     OPAL_SKINNY_MSG(PortMsg, 0x0002,
       PUInt16l m_port;
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(CapabilityRequestMsg, 0x009B,
@@ -343,10 +345,10 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         PUInt32l m_codec;
         PUInt32l m_maxFramesPerPacket;
         PUInt32l m_g7231BitRate; // 1=5.3 Kbps, 2=6.4 Kbps
-        char     m_unknown[4];
+        PUInt32l m_unknown;
       } m_capability[32];
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
       void SetCount(PINDEX count);
     );
 
@@ -374,7 +376,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       BYTE     m_unknown[12];
 
       __inline CallStates GetState() const { return (CallStates)(uint32_t)m_state; }
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     P_DECLARE_STREAMABLE_ENUM(CallType,
@@ -398,7 +400,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       virtual const char * GetCallingPartyNumber() const = 0;
       virtual const char * GetRedirectingPartyNumber() const = 0;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     };
 
     OPAL_SKINNY_MSG2(CallInfoMsg,  CallInfoCommon, 0x008f, 0,
@@ -423,14 +425,14 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_callSecurityStatus;
       PUInt32l m_partyPIRestrictionBits;
 
-      virtual const PUInt32l & GetLineInstance() const { return m_lineInstance; }
-      virtual const PUInt32l & GetCallIdentifier() const { return m_callIdentifier; }
-      virtual CallType GetType() const { return (CallType)(uint32_t)m_callType; }
-      virtual const char * GetCalledPartyName() const { return m_calledPartyName; }
-      virtual const char * GetCalledPartyNumber() const { return m_calledPartyNumber; }
-      virtual const char * GetCallingPartyName() const { return m_callingPartyName; }
-      virtual const char * GetCallingPartyNumber() const { return m_callingPartyNumber; }
-      virtual const char * GetRedirectingPartyNumber() const { return m_lastRedirectingPartyNumber; }
+      virtual const PUInt32l & GetLineInstance() const override { return m_lineInstance; }
+      virtual const PUInt32l & GetCallIdentifier() const override { return m_callIdentifier; }
+      virtual CallType GetType() const override { return (CallType)(uint32_t)m_callType; }
+      virtual const char * GetCalledPartyName() const override { return m_calledPartyName; }
+      virtual const char * GetCalledPartyNumber() const override { return m_calledPartyNumber; }
+      virtual const char * GetCallingPartyName() const override { return m_callingPartyName; }
+      virtual const char * GetCallingPartyNumber() const override { return m_callingPartyNumber; }
+      virtual const char * GetRedirectingPartyNumber() const override { return m_lastRedirectingPartyNumber; }
     );
 
     enum { CallInfo5MsgStringSpace = 200 };
@@ -445,14 +447,14 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_partyPIRestrictionBits;
       char     m_strings[CallInfo5MsgStringSpace+11]; // Allow space for strings
 
-      virtual const PUInt32l & GetLineInstance() const { return m_lineInstance; }
-      virtual const PUInt32l & GetCallIdentifier() const { return m_callIdentifier; }
-      virtual CallType GetType() const { return (CallType)(uint32_t)m_callType; }
-      virtual const char * GetCalledPartyName() const { return GetStringByIndex(9); }
-      virtual const char * GetCalledPartyNumber() const { return GetStringByIndex(1); }
-      virtual const char * GetCallingPartyName() const { return GetStringByIndex(8); }
-      virtual const char * GetCallingPartyNumber() const { return GetStringByIndex(0); }
-      virtual const char * GetRedirectingPartyNumber() const { return GetStringByIndex(3); }
+      virtual const PUInt32l & GetLineInstance() const override { return m_lineInstance; }
+      virtual const PUInt32l & GetCallIdentifier() const override { return m_callIdentifier; }
+      virtual CallType GetType() const override { return (CallType)(uint32_t)m_callType; }
+      virtual const char * GetCalledPartyName() const override { return GetStringByIndex(9); }
+      virtual const char * GetCalledPartyNumber() const override { return GetStringByIndex(1); }
+      virtual const char * GetCallingPartyName() const override { return GetStringByIndex(8); }
+      virtual const char * GetCallingPartyNumber() const override { return GetStringByIndex(0); }
+      virtual const char * GetRedirectingPartyNumber() const override { return GetStringByIndex(3); }
 
       protected:
         const char * GetStringByIndex(PINDEX idx) const;
@@ -473,21 +475,21 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
 
       __inline RingType GetType() const { return (RingType)(uint32_t)m_ringType; }
       __inline bool IsForever() const { return m_ringMode == 1; }
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(OffHookMsg, 0x0006,
       PUInt32l m_lineInstance;
       PUInt32l m_callIdentifier;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(OnHookMsg, 0x0007,
       PUInt32l m_lineInstance;
       PUInt32l m_callIdentifier;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     enum Tones
@@ -507,14 +509,14 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_callIdentifier;
 
       __inline Tones GetType() const { return (Tones)(uint32_t)m_tone; }
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(StopToneMsg, 0x0083,
       PUInt32l m_lineInstance;
       PUInt32l m_callIdentifier;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(KeyPadButtonMsg, 0x0003,
@@ -523,7 +525,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_lineInstance;
       PUInt32l m_callIdentifier;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     P_DECLARE_STREAMABLE_ENUM(SoftKeyEvents,
@@ -555,7 +557,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_callIdentifier;
 
       __inline SoftKeyEvents GetEvent() const { return (SoftKeyEvents)(uint32_t)m_event; }
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(OpenReceiveChannelMsg, 0x0105,
@@ -567,7 +569,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_g723Bitrate;
       BYTE     m_unknown[68];
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(OpenReceiveChannelAckMsg, 0x0022,
@@ -576,7 +578,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt16l m_port;
       BYTE     m_padding[2];
       PUInt32l m_passThruPartyId;
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(CloseReceiveChannelMsg, 0x0106,
@@ -584,7 +586,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_passThruPartyId;
       PUInt32l m_conferenceId2;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(StartMediaTransmissionMsg, 0x008a,
@@ -601,7 +603,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_g723Bitrate;
       BYTE     m_unknown[68];
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 
     OPAL_SKINNY_MSG(StopMediaTransmissionMsg, 0x008b,
@@ -609,7 +611,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
       PUInt32l m_passThruPartyId;
       PUInt32l m_conferenceId2;
 
-      virtual void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     );
 #pragma pack()
   //@}
@@ -675,13 +677,13 @@ class OpalSkinnyConnection : public OpalRTPConnection
         "remote". While pc, pots and ivr are not as the entity being connected
         to is intrinsically local.
     */
-    virtual bool IsNetworkConnection() const { return true; }
+    virtual bool IsNetworkConnection() const override { return true; }
 
     /** Start an outgoing connection.
         This function will initiate the connection to the remote entity, for
         example in H.323 it sends a SETUP, in SIP it sends an INVITE etc.
     */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /** Clean up the termination of the connection.
         This function can do any internal cleaning up and waiting on background
@@ -698,13 +700,13 @@ class OpalSkinnyConnection : public OpalRTPConnection
         An application will not typically call this function as it is used by
         the OpalManager during a release of the connection.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Get the data formats this connection is capable of operating.
        This provides a list of media data format names that a
        OpalMediaStream may be created in within this connection.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -717,11 +719,11 @@ class OpalSkinnyConnection : public OpalRTPConnection
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia                ///<  Open media with alerting
-    );
+    ) override;
 
     /**Indicate to remote endpoint we are connected.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /** Indicate whether a particular media type can auto-start.
         This is typically used for things like video or fax to contol if on
@@ -731,7 +733,7 @@ class OpalSkinnyConnection : public OpalRTPConnection
     */
     virtual OpalMediaType::AutoStartMode GetAutoStart(
       const OpalMediaType & mediaType  ///< media type to check
-    ) const;
+    ) const override;
 
     /** Get alerting type information of an incoming call.
         The type of "distinctive ringing" for the call. The string is protocol
@@ -744,7 +746,7 @@ class OpalSkinnyConnection : public OpalRTPConnection
         For H.323 this must be a string representation of an integer from 0 to 7
         which will be contained in the Q.931 SIGNAL (0x34) Information Element.
     */
-    virtual PString GetAlertingType() const;
+    virtual PString GetAlertingType() const override;
 
     /**Call back for closed a media stream.
 
@@ -752,11 +754,11 @@ class OpalSkinnyConnection : public OpalRTPConnection
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
 
     /** Get the remote transport address
       */
-    virtual OpalTransportAddress GetRemoteAddress() const;
+    virtual OpalTransportAddress GetRemoteAddress() const override;
     //@}
 
   /**@name Protocol handling routines */

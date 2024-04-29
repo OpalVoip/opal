@@ -117,7 +117,7 @@ class SafeString : public PObject
   PString Get() { PWaitAndSignal m(mutex); return internal; }
   
   /**print the internal string to the designated stream*/     
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Retrive the value of the internal variable as a string */
   operator PString();

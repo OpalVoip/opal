@@ -40,7 +40,7 @@ class H45010_H323CallOfferOperations : public PASN_Enumeration
     };
 
     H45010_H323CallOfferOperations & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -58,9 +58,9 @@ class H45010_ArrayOf_MixedExtension : public PASN_Array
   public:
     H45010_ArrayOf_MixedExtension(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H4504_MixedExtension & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -82,14 +82,14 @@ class H45010_CoReqOptArg : public PASN_Sequence
 
     H45010_ArrayOf_MixedExtension m_extension;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -111,14 +111,14 @@ class H45010_RUAlertOptArg : public PASN_Sequence
 
     H45010_ArrayOf_MixedExtension m_extension;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -140,14 +140,14 @@ class H45010_CfbOvrOptArg : public PASN_Sequence
 
     H45010_ArrayOf_MixedExtension m_extension;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

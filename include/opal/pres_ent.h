@@ -82,14 +82,16 @@ class OpalPresenceInfo : public PObject
       Unavailable         ///< User has a presence, but is cannot be contacted
     );
 
+    PURL       m_entity;       ///< The presentity whose state had changed, usually remote
     State      m_state;        ///< New state for presentity
     PStringSet m_activities;   ///< Activity (from RFC 4480)
     PString    m_note;         ///< Additional information about state change
     PTime      m_when;         ///< Time/date of state change
 
-    PURL       m_entity;       ///< The presentity whose state had changed, usually remote
     PURL       m_target;       ///< The presentity that is being informed about the state change
     PString    m_service;      ///< Device/system(s) for the presentity that is getting a state change.
+    PString    m_serviceClass; ///< Class name of device/system(s) for the presentity that is getting a state change.
+    PString    m_relationship; ///< Relationship of device/system(s) presentity that is getting a state change.
     PString    m_contact;      ///< Contact address for the service.
     PStringSet m_capabilities; ///< Capabilities of this service, e.g. "audio".
 
@@ -103,7 +105,8 @@ class OpalPresenceInfo : public PObject
     static State FromString(const PString & str);
     PString AsString() const;
 
-    Comparison Compare(const PObject & other) const;
+    virtual Comparison Compare(const PObject & other) const override;
+    virtual void PrintOn(ostream & strm) const override;
 };
 
 ostream & operator<<(ostream & strm, OpalPresenceInfo::State state);
@@ -574,7 +577,7 @@ class OpalPresentityWithCommandThread : public OpalPresentity
   //@{
     /**Close the presentity.
       */
-    virtual bool Close();
+    virtual bool Close() override;
 
     /** Lowlevel function to send a command to the presentity handler.
         All commands are asynchronous. They will usually initiate an action
@@ -589,7 +592,7 @@ class OpalPresentityWithCommandThread : public OpalPresentity
       */
     virtual bool SendCommand(
       OpalPresentityCommand * cmd   ///< Command to execute
-    );
+    ) override;
   //@}
 
   protected:

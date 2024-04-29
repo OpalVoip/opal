@@ -1830,9 +1830,9 @@ class OpalMessagePtr
   protected:
     OpalMessage * m_message;
 
-  private:
-    OpalMessagePtr(const OpalMessagePtr &) { }
-    void operator=(const OpalMessagePtr &) { }
+private:
+  OpalMessagePtr(const OpalMessagePtr &) : m_message(0) { }
+  void operator=(const OpalMessagePtr &) { }
 
   friend class OpalContext;
 };

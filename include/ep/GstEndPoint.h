@@ -98,7 +98,7 @@ class GstEndPoint : public OpalLocalEndPoint
        The default behaviour returns the most basic media formats, PCM audio
        and YUV420P video.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Create a connection for the PCSS endpoint.
        The default implementation is to create a OpalLocalConnection.
@@ -108,7 +108,7 @@ class GstEndPoint : public OpalLocalEndPoint
       void * userData,    ///<  Arbitrary data to pass to connection
       unsigned options,   ///< Option bit mask to pass to connection
       OpalConnection::StringOptions * stringOptions ///< Options to pass to connection
-    );
+    ) override;
   //@}
 
   /**@name Customisation call backs for building GStreamer pipeline */
@@ -294,7 +294,7 @@ class GstConnection : public OpalLocalConnection
       const OpalMediaFormat & mediaFormat,
       unsigned sessionID,
       PBoolean isSource
-    );
+    ) override;
 
     /**Set the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
@@ -302,7 +302,7 @@ class GstConnection : public OpalLocalConnection
     virtual PBoolean SetAudioVolume(
       PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
-    );
+    ) override;
 
     /**Get the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
@@ -310,21 +310,21 @@ class GstConnection : public OpalLocalConnection
     virtual PBoolean GetAudioVolume(
       PBoolean source,       ///< true for source (microphone), false for sink (speaker)
       unsigned & percentage  ///< Gain, 0=silent, 100=maximun
-    );
+    ) override;
 
     /**Set the mute state for the audio media channel.
       */
     virtual bool SetAudioMute(
       bool source,        ///< true for source (microphone), false for sink (speaker)
       bool mute           ///< Flag for muted audio
-    );
+    ) override;
 
     /**Get the mute state for the audio media channel.
       */
     virtual bool GetAudioMute(
       bool source,        ///< true for source (microphone), false for sink (speaker)
       bool & mute         ///< Flag for muted audio
-    );
+    ) override;
   //@}
 
   /**@name Customisation call backs for building GStreamer pipeline */
@@ -371,14 +371,14 @@ class GstMediaStream : public OpalMediaStream
        This calls GstConenction::BuildPipeline() and creates the GStreamer
        pipeline from the resultant desciption string.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Start the media stream.
 
        The default behaviour calls Resume() on the associated OpalMediaPatch
        thread if it was suspended.
       */
-    virtual PBoolean Start();
+    virtual PBoolean Start() override;
 
     /**Read an RTP frame of data from the source media stream.
        The default behaviour simply calls ReadData() on the data portion of the
@@ -387,7 +387,7 @@ class GstMediaStream : public OpalMediaStream
       */
     virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
@@ -396,7 +396,7 @@ class GstMediaStream : public OpalMediaStream
       */
     virtual PBoolean WritePacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Set the data size in bytes that is expected to be used. Some media
        streams can make use of this information to perform optimisations.
@@ -406,7 +406,7 @@ class GstMediaStream : public OpalMediaStream
     virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        If this returns true then the media stream will block of the amount of
@@ -414,7 +414,7 @@ class GstMediaStream : public OpalMediaStream
        is over a sound card, and 480 bytes of data are to be written it will
        take 30 milliseconds to complete.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -425,7 +425,7 @@ class GstMediaStream : public OpalMediaStream
       */
     virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
-    ) const;
+    ) const override;
 
     /**Indicate media transport is required.
        One of the two streams in the patch can indicate that media transport is
@@ -436,31 +436,31 @@ class GstMediaStream : public OpalMediaStream
       */
     virtual bool RequireMediaTransportThread(
       OpalMediaStream & stream  ///< Other stream in patch
-    ) const;
+    ) const override;
 
     /**Set the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool SetAudioVolume(
+    virtual PBoolean SetAudioVolume(
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
     );
 
     /**Get the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool GetAudioVolume(
+    virtual PBoolean GetAudioVolume(
       unsigned & percentage  ///< Gain, 0=silent, 100=maximun
     );
 
     /**Set the mute state for the audio media channel.
       */
-    virtual bool SetAudioMute(
+    virtual PBoolean SetAudioMute(
       bool mute           ///< Flag for muted audio
     );
 
     /**Get the mute state for the audio media channel.
       */
-    virtual bool GetAudioMute(
+    virtual PBoolean GetAudioMute(
       bool & mute         ///< Flag for muted audio
     );
   //@}
@@ -471,8 +471,8 @@ class GstMediaStream : public OpalMediaStream
        it is guaranteed to be called exactly once and avoids race conditions in
        the shut down sequence of a media stream.
       */
-    virtual void InternalClose();
-    virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch);
+    virtual void InternalClose() override;
+    virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch) override;
 
     bool StartPlaying(
       PGstElement::States & state

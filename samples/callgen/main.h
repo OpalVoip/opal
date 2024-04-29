@@ -55,7 +55,7 @@ class CallThread : public PThread
       const CallParams & params
     );
 
-    void Main();
+    virtual void Main() override;
     void Stop();
 
     PStringArray m_destinations;
@@ -76,9 +76,9 @@ class MyCall : public OpalCall
   public:
     MyCall(MyManager & manager, CallThread * caller);
 
-    virtual void OnNewConnection(OpalConnection & connection);
-    virtual void OnEstablishedCall();
-    virtual void OnCleared();
+    virtual void OnNewConnection(OpalConnection & connection) override;
+    virtual void OnEstablishedCall() override;
+    virtual void OnCleared() override;
 
     void OnOpenMediaStream(OpalMediaStream & stream);
 
@@ -99,8 +99,8 @@ class MyLocalEndPoint : public OpalLocalEndPoint
   PCLASSINFO(MyLocalEndPoint, OpalLocalEndPoint);
 public:
   MyLocalEndPoint(OpalManager & mgr);
-  virtual OpalLocalConnection * CreateConnection(OpalCall & call, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions);
-  OpalMediaFormatList GetMediaFormats() const;
+  virtual OpalLocalConnection * CreateConnection(OpalCall & call, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions) override;
+  OpalMediaFormatList GetMediaFormats() const override;
 
   bool Initialise(PArgList & args);
 
@@ -128,10 +128,10 @@ class MyLocalConnection : public OpalLocalConnection
 public:
   MyLocalConnection(OpalCall & call, MyLocalEndPoint & ep, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions);
   ~MyLocalConnection();
-  virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const;
-  virtual bool OnReadMediaData(const OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length);
-  virtual bool OnReadMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame);
-  virtual bool OnWriteMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame);
+  virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const override;
+  virtual bool OnReadMediaData(OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length) override;
+  virtual bool OnReadMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame) override;
+  virtual bool OnWriteMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame) override;
 
 protected:
   MyLocalEndPoint & m_endpoint;
@@ -156,14 +156,14 @@ class MyManager : public OpalManagerConsole
     MyManager();
     ~MyManager();
 
-    virtual PString GetArgumentSpec() const;
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
-    virtual void Run();
+    virtual PString GetArgumentSpec() const override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
+    virtual void Run() override;
 
-    virtual OpalCall * CreateCall(void * userData);
+    virtual OpalCall * CreateCall(void * userData) override;
 
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
+    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream) override;
 
     PINDEX GetActiveCalls() const { return m_activeCalls.GetSize(); }
 

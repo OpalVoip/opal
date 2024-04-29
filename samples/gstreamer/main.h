@@ -31,10 +31,10 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
-    virtual PString GetArgumentSpec() const;
-    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual void OnClearedCall(OpalCall & call); // Callback override
+    virtual PString GetArgumentSpec() const override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual void OnClearedCall(OpalCall & call) override; // Callback override
 };
 
 

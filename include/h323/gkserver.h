@@ -85,12 +85,12 @@ class H323GatekeeperRequest : public H323Transaction
     virtual H323TransactionPDU * CreateRIP(
       unsigned sequenceNumber,
       unsigned delay
-    ) const;
+    ) const override;
 
     virtual PBoolean WritePDU(
       H323TransactionPDU & pdu
-    );
-    virtual bool CheckCryptoTokens();
+    ) override;
+    virtual bool CheckCryptoTokens() override;
     bool CheckGatekeeperIdentifier();
     bool GetRegisteredEndPoint();
 
@@ -118,25 +118,25 @@ class H323GatekeeperGRQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual void PrepareConfirm();
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual void PrepareConfirm() override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_GatekeeperRequest & grq;
     H225_GatekeeperConfirm & gcf;
     H225_GatekeeperReject  & grj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -150,24 +150,24 @@ class H323GatekeeperRRQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_RegistrationRequest & rrq;
     H225_RegistrationConfirm & rcf;
     H225_RegistrationReject  & rrj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -181,24 +181,24 @@ class H323GatekeeperURQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_UnregistrationRequest & urq;
     H225_UnregistrationConfirm & ucf;
     H225_UnregistrationReject  & urj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -212,17 +212,17 @@ class H323GatekeeperARQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_AdmissionRequest & arq;
     H225_AdmissionConfirm & acf;
@@ -231,7 +231,7 @@ class H323GatekeeperARQ : public H323GatekeeperRequest
     PString alternateSecurityID;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -245,24 +245,24 @@ class H323GatekeeperDRQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_DisengageRequest & drq;
     H225_DisengageConfirm & dcf;
     H225_DisengageReject  & drj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -276,24 +276,24 @@ class H323GatekeeperBRQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_BandwidthRequest & brq;
     H225_BandwidthConfirm & bcf;
     H225_BandwidthReject  & brj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -307,24 +307,24 @@ class H323GatekeeperLRQ : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_LocationRequest & lrq;
     H225_LocationConfirm & lcf;
     H225_LocationReject  & lrj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -338,24 +338,24 @@ class H323GatekeeperIRR : public H323GatekeeperRequest
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
-    virtual PString GetGatekeeperIdentifier() const;
-    virtual unsigned GetGatekeeperRejectTag() const;
-    virtual PString GetEndpointIdentifier() const;
-    virtual unsigned GetRegisteredEndPointRejectTag() const;
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
-    virtual unsigned GetSecurityRejectTag() const;
+    virtual PString GetGatekeeperIdentifier() const override;
+    virtual unsigned GetGatekeeperRejectTag() const override;
+    virtual PString GetEndpointIdentifier() const override;
+    virtual unsigned GetRegisteredEndPointRejectTag() const override;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
+    virtual unsigned GetSecurityRejectTag() const override;
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H225_InfoRequestResponse & irr;
     H225_InfoRequestAck      & iack;
     H225_InfoRequestNak      & inak;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -392,13 +392,13 @@ class H323GatekeeperCall : public PSafeObject
       */
     Comparison Compare(
       const PObject & obj  ///<  Other object
-    ) const;
+    ) const override;
 
     /**Print the name of the gatekeeper.
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -602,13 +602,13 @@ class H323RegisteredEndPoint : public PSafeObject
       */
     Comparison Compare(
       const PObject & obj  ///<  Other object
-    ) const;
+    ) const override;
 
     /**Print the name of the gatekeeper.
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Call Operations */
@@ -961,7 +961,7 @@ class H323GatekeeperListener : public H225_RAS
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -1065,24 +1065,24 @@ class H323GatekeeperListener : public H225_RAS
 
   /**@name Low level protocol callbacks */
   //@{
-    virtual PBoolean OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &);
-    virtual PBoolean OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &);
-    virtual PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject &);
-    virtual PBoolean OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &);
-    virtual PBoolean OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &);
-    virtual PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &);
-    virtual PBoolean OnReceiveBandwidthReject(const H225_BandwidthReject &);
-    virtual PBoolean OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &);
-    virtual PBoolean OnReceiveDisengageConfirm(const H225_DisengageConfirm &);
-    virtual PBoolean OnReceiveDisengageReject(const H225_DisengageReject &);
-    virtual PBoolean OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &);
-    virtual PBoolean OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &);
-    virtual PBoolean OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm &);
+    virtual PBoolean OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &) override;
+    virtual PBoolean OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &) override;
+    virtual PBoolean OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &) override;
+    virtual PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &) override;
+    virtual PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject &) override;
+    virtual PBoolean OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &) override;
+    virtual PBoolean OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &) override;
+    virtual PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &) override;
+    virtual PBoolean OnReceiveBandwidthReject(const H225_BandwidthReject &) override;
+    virtual PBoolean OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &) override;
+    virtual PBoolean OnReceiveDisengageConfirm(const H225_DisengageConfirm &) override;
+    virtual PBoolean OnReceiveDisengageReject(const H225_DisengageReject &) override;
+    virtual PBoolean OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &) override;
+    virtual PBoolean OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &) override;
+    virtual PBoolean OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm  &) override;
 #if OPAL_H460
-    virtual PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
-    virtual void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const;
+    virtual PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const override;
+    virtual void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const override;
 #endif
   //@}
 
@@ -1124,7 +1124,7 @@ class H323GatekeeperServer : public H323TransactionServer
     ~H323GatekeeperServer();
   //@}
 
-    WORD GetDefaultUdpPort() { return H225_RAS::DefaultRasUdpPort; }
+    WORD GetDefaultUdpPort() override { return H225_RAS::DefaultRasUdpPort; }
 
   /**@name Protocol Handler Operations */
   //@{
@@ -1138,7 +1138,7 @@ class H323GatekeeperServer : public H323TransactionServer
       */
     virtual H323Transactor * CreateListener(
       H323Transport * transport  ///<  Transport for listener
-    );
+    ) override;
 
   //@}
 

@@ -57,12 +57,12 @@ class H460_FeatureStd23 : public H460_Feature
     H460_FeatureStd23();
 
     static const H460_FeatureID & ID();
-    virtual bool Initialise(H323EndPoint & ep, H323Connection * con);
+    virtual bool Initialise(H323EndPoint & ep, H323Connection * con) override;
 
     // H.225.0 Messages
-    virtual bool OnSendGatekeeperRequest(H460_FeatureDescriptor & pdu);
-    virtual bool OnSendRegistrationRequest(H460_FeatureDescriptor & pdu, bool lightweight);
-    virtual void OnReceiveRegistrationConfirm(const H460_FeatureDescriptor & pdu);
+    virtual bool OnSendGatekeeperRequest(H460_FeatureDescriptor & pdu) override;
+    virtual bool OnSendRegistrationRequest(H460_FeatureDescriptor & pdu, bool lightweight) override;
+    virtual void OnReceiveRegistrationConfirm(const H460_FeatureDescriptor & pdu) override;
 
   #ifdef H323_UPnP
     void InitialiseUPnP();

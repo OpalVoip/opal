@@ -59,9 +59,9 @@ class H501Transaction : public H323Transaction
     virtual H323TransactionPDU * CreateRIP(
       unsigned sequenceNumber,
       unsigned delay
-    ) const;
+    ) const override;
 
-    virtual H235Authenticator::ValidationResult ValidatePDU() const;
+    virtual H235Authenticator::ValidationResult ValidatePDU() const override;
 
     H501_MessageCommonInfo & requestCommon;
     H501_MessageCommonInfo & confirmCommon;
@@ -83,18 +83,18 @@ class H501ServiceRequest : public H501Transaction
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H501_ServiceRequest & srq;
     H501_ServiceConfirmation & scf;
     H501_ServiceRejection  & srj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -110,17 +110,17 @@ class H501DescriptorUpdate : public H501Transaction
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H501_DescriptorUpdate & du;
     H501_DescriptorUpdateAck & ack;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -136,18 +136,18 @@ class H501AccessRequest : public H501Transaction
     );
 
 #if PTRACING
-    virtual const char * GetName() const;
+    virtual const char * GetName() const override;
 #endif
     virtual void SetRejectReason(
       unsigned reasonCode
-    );
+    ) override;
 
     H501_AccessRequest & arq;
     H501_AccessConfirmation & acf;
     H501_AccessRejection  & arj;
 
   protected:
-    virtual Response OnHandlePDU();
+    virtual Response OnHandlePDU() override;
 };
 
 
@@ -161,7 +161,7 @@ class H323PeerElementDescriptor : public PSafeObject
       : descriptorID(_descriptorID), state(Dirty), creator(0)
     { }
 
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     enum Options {
       Protocol_H323            = 0x0001,
@@ -224,7 +224,7 @@ class H323PeerElementServiceRelationship : public PSafeObject
       : m_serviceID(_serviceID), m_ordinal(0)
       { }
 
-    Comparison Compare(const PObject & obj) const
+    Comparison Compare(const PObject & obj) const override
       { return m_serviceID.Compare(((H323PeerElementServiceRelationship&)obj).m_serviceID); }
 
     OpalGloballyUniqueID m_serviceID;
@@ -283,7 +283,7 @@ class H323PeerElement : public H323_AnnexG
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
     void SetLocalName(const PString & name);
@@ -422,7 +422,7 @@ class H323PeerElement : public H323_AnnexG
       low level request functions
       */
 
-    PBoolean MakeRequest(H323_AnnexG::Request & request);
+    PBoolean MakeRequest(H323_AnnexG::Request & request) override;
 
     virtual void OnAddServiceRelationship(const H323TransportAddress &) { }
     virtual void OnRemoveServiceRelationship(const H323TransportAddress &) { }
@@ -435,15 +435,15 @@ class H323PeerElement : public H323_AnnexG
     virtual H323Transaction::Response OnDescriptorUpdate(H501DescriptorUpdate & info);
     virtual H323Transaction::Response OnAccessRequest(H501AccessRequest & info);
 
-    PBoolean OnReceiveServiceRequest(const H501PDU & pdu, const H501_ServiceRequest & pduBody);
-    PBoolean OnReceiveServiceConfirmation(const H501PDU & pdu, const H501_ServiceConfirmation & pduBody);
+    PBoolean OnReceiveServiceRequest(const H501PDU & pdu, const H501_ServiceRequest & pduBody) override;
+    PBoolean OnReceiveServiceConfirmation(const H501PDU & pdu, const H501_ServiceConfirmation & pduBody) override;
 
-    PBoolean OnReceiveDescriptorUpdate(const H501PDU & pdu, const H501_DescriptorUpdate & pduBody);
-    PBoolean OnReceiveDescriptorUpdateACK(const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody);
+    PBoolean OnReceiveDescriptorUpdate(const H501PDU & pdu, const H501_DescriptorUpdate & pduBody) override;
+    PBoolean OnReceiveDescriptorUpdateACK(const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody) override;
 
-    PBoolean OnReceiveAccessRequest(const H501PDU & pdu, const H501_AccessRequest & pduBody);
-    PBoolean OnReceiveAccessConfirmation (const H501PDU & pdu, const H501_AccessConfirmation & pduBody);
-    PBoolean OnReceiveAccessRejection(const H501PDU & pdu,     const H501_AccessRejection & pduBody);
+    PBoolean OnReceiveAccessRequest(const H501PDU & pdu, const H501_AccessRequest & pduBody) override;
+    PBoolean OnReceiveAccessConfirmation (const H501PDU & pdu, const H501_AccessConfirmation & pduBody) override;
+    PBoolean OnReceiveAccessRejection(const H501PDU & pdu,     const H501_AccessRejection & pduBody) override;
 
     class AliasKey : public H225_AliasAddress
     {

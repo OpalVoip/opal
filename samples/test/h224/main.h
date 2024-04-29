@@ -66,7 +66,7 @@ class H224Test : public PProcess
     H224Test();
     ~H224Test();
 
-    virtual void Main();
+    virtual void Main() override;
 
   private:
     MyManager * m_manager;

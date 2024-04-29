@@ -218,7 +218,7 @@ class SIP_Presentity : public OpalPresentityWithCommandThread, public PValidated
     SIP_Presentity(const SIP_Presentity & other);
     ~SIP_Presentity();
 
-    virtual PObject * Clone() const { return new SIP_Presentity(*this); }
+    virtual PObject * Clone() const override { return new SIP_Presentity(*this); }
 
     enum SubProtocol {
       // Note order is important
@@ -239,18 +239,18 @@ class SIP_Presentity : public OpalPresentityWithCommandThread, public PValidated
     static const PCaselessString & XcapAuthFileKey();
     static const PCaselessString & XcapBuddyListKey();
 
-    virtual PStringArray GetAttributeNames() const;
-    virtual PStringArray GetAttributeTypes() const;
+    virtual PStringArray GetAttributeNames() const override;
+    virtual PStringArray GetAttributeTypes() const override;
 
-    virtual bool Open();
-    virtual bool Close();
-    virtual BuddyStatus GetBuddyListEx(BuddyList & buddies);
-    virtual BuddyStatus SetBuddyListEx(const BuddyList & buddies);
-    virtual BuddyStatus DeleteBuddyListEx();
-    virtual BuddyStatus GetBuddyEx(BuddyInfo & buddy);
-    virtual BuddyStatus SetBuddyEx(const BuddyInfo & buddy);
-    virtual BuddyStatus DeleteBuddyEx(const PURL & presentity);
-    virtual BuddyStatus SubscribeBuddyListEx(PINDEX & successful, bool subscribe = true);
+    virtual bool Open() override;
+    virtual bool Close() override;
+    virtual BuddyStatus GetBuddyListEx(BuddyList & buddies) override;
+    virtual BuddyStatus SetBuddyListEx(const BuddyList & buddies) override;
+    virtual BuddyStatus DeleteBuddyListEx() override;
+    virtual BuddyStatus GetBuddyEx(BuddyInfo & buddy) override;
+    virtual BuddyStatus SetBuddyEx(const BuddyInfo & buddy) override;
+    virtual BuddyStatus DeleteBuddyEx(const PURL & presentity) override;
+    virtual BuddyStatus SubscribeBuddyListEx(PINDEX & successful, bool subscribe = true) override;
 
     SIPEndPoint & GetEndpoint() { return *m_endpoint; }
 

@@ -163,7 +163,7 @@ class H323SignalPDU : public H225_H323_UserInformation
       */
     void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
 
     /**Read PDU from the specified transport.
       */
@@ -405,20 +405,20 @@ class H323RasPDU : public H225_RasMessage, public H323TransactionPDU
     );
 
     // overrides from PObject
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     // overrides from H323TransactionPDU
-    virtual PASN_Object & GetPDU();
-    virtual PASN_Choice & GetChoice();
-    virtual const PASN_Object & GetPDU() const;
-    virtual const PASN_Choice & GetChoice() const;
-    virtual unsigned GetSequenceNumber() const;
-    virtual unsigned GetRequestInProgressDelay() const;
+    virtual PASN_Object & GetPDU() override;
+    virtual PASN_Choice & GetChoice() override;
+    virtual const PASN_Object & GetPDU() const override;
+    virtual const PASN_Choice & GetChoice() const override;
+    virtual unsigned GetSequenceNumber() const override;
+    virtual unsigned GetRequestInProgressDelay() const override;
 #if PTRACING
-    virtual const char * GetProtocolName() const;
+    virtual const char * GetProtocolName() const override;
 #endif
-    virtual H323TransactionPDU * ClonePDU() const;
-    virtual void DeletePDU();
+    virtual H323TransactionPDU * ClonePDU() const override;
+    virtual void DeletePDU() override;
 
     PDECLARE_WriteConnectCallback(H323RasPDU, WriteGRQ);
 

@@ -27,7 +27,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "rfc4175.h"
 #endif
 
@@ -58,13 +58,13 @@ class RFC4175VideoFormatInternal : public OpalVideoFormatInternal
       unsigned int bandwidth
     );
 
-    virtual PObject * Clone() const
+    virtual PObject * Clone() const override
     {
       PWaitAndSignal m(m_mutex);
       return new RFC4175VideoFormatInternal(*this);
     }
 
-    virtual bool ToNormalisedOptions()
+    virtual bool ToNormalisedOptions() override
     { 
       int v;
       if ((v = GetOptionInteger(OpalVideoFormat::FrameWidthOption(), -1)) > 0) {

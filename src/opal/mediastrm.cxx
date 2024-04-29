@@ -27,7 +27,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "mediastrm.h"
 #endif
 
@@ -66,12 +66,14 @@ OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & 
   , m_paused(false)
   , m_isSource(isSourceStream)
   , m_isOpen(false)
-  , m_defaultDataSize(m_mediaFormat.GetFrameSize()*m_mediaFormat.GetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption(), 1))
+  , m_defaultDataSize(m_mediaFormat.GetFrameSize() * m_mediaFormat.GetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption(), 1))
   , m_timestamp(0)
   , m_marker(true)
+  , m_ssrcChanged(true)
   , m_payloadType(m_mediaFormat.GetPayloadType())
   , m_frameTime(m_mediaFormat.GetFrameTime())
   , m_frameSize(m_mediaFormat.GetFrameSize())
+  , m_timeUnits(m_mediaFormat.GetTimeUnits())
 {
   PTRACE_CONTEXT_ID_FROM(conn);
   PTRACE_CONTEXT_ID_TO(m_identifier);
@@ -190,6 +192,7 @@ bool OpalMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & newMedia
   m_payloadType = m_mediaFormat.GetPayloadType();
   m_frameTime = m_mediaFormat.GetFrameTime();
   m_frameSize = m_mediaFormat.GetFrameSize();
+  m_timeUnits = m_mediaFormat.GetTimeUnits();
   return true;
 }
 
@@ -341,7 +344,7 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
     return false;
 
   m_timestamp = packet.GetTimestamp();
-  SetSyncSource(packet.GetSyncSource());
+  m_ssrcChanged = SetSyncSource(packet.GetSyncSource());
 
   PINDEX written;
   for (unsigned i = 0; i < packet.GetDiscontinuity(); ++i) {
@@ -469,7 +472,7 @@ bool OpalMediaStream::EnableJitterBuffer(bool enab)
     return false;
 
   OpalJitterBuffer::Init init(m_connection.GetJitterParameters(),
-                              m_mediaFormat.GetTimeUnits(),
+                              m_timeUnits,
                               m_connection.GetEndPoint().GetManager().GetMaxRtpPacketSize());
   if (!enab)
     init.m_minJitterDelay = init.m_maxJitterDelay = 0;
@@ -587,8 +590,8 @@ void OpalMediaStream::GetStatistics(OpalMediaStatistics & statistics, bool fromP
 #endif // OPAL_STATISTICS
 
 
-void OpalMediaStream::OnStartMediaPatch() 
-{ 
+void OpalMediaStream::OnStartMediaPatch()
+{
   // We make referenced copy of pointer so can't be deleted out from under us
   OpalMediaPatchPtr mediaPatch = m_mediaPatch;
 
@@ -598,7 +601,7 @@ void OpalMediaStream::OnStartMediaPatch()
 
 
 void OpalMediaStream::OnStopMediaPatch(OpalMediaPatch & patch)
-{ 
+{
   m_connection.OnStopMediaPatch(patch);
 }
 
@@ -642,13 +645,13 @@ void OpalMediaStream::PrintDetail(ostream & strm, const char * prefix, Details d
        << ", " << m_mediaFormat;
 
   if ((details & DetailAudio) && !IsSource() && m_mediaFormat.GetMediaType() == OpalMediaType::Audio())
-    strm << ", " << m_mediaFormat.GetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption())*m_mediaFormat.GetFrameTime() / m_mediaFormat.GetTimeUnits() << "ms";
+    strm << ", " << m_mediaFormat.GetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption())*m_frameTime/m_timeUnits << "ms";
 
 #if OPAL_VIDEO
   OpalVideoFormat::ContentRole contentRole = m_mediaFormat.GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
   if (contentRole != OpalVideoFormat::eNoRole) {
     PString roleStr = OpalVideoFormat::ContentRoleToString(contentRole);
-    roleStr.Delete(0,1);
+    roleStr.Delete(0, 1);
     strm << ", " << roleStr << " video";
   }
 #endif
@@ -808,6 +811,8 @@ bool OpalNullMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & newM
 
 ///////////////////////////////////////////////////////////////////////////////
 
+const unsigned PCM16Size = 2;
+
 OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
@@ -816,7 +821,10 @@ OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , m_channel(chan)
   , m_autoDelete(autoDelete)
-  , m_silence(10*sizeof(short)*mediaFormat.GetTimeUnits()) // At least 10ms
+  , m_trustTimestamps(conn.GetStringOptions().GetBoolean(OPAL_OPT_TRUST_TIMESTAMPS, true))
+  , m_externalSilence(true)
+  , m_expectedTimestamp(0)
+, m_lastDataSize(10*PCM16Size*m_timeUnits) // At least 10ms
 {
 }
 
@@ -828,6 +836,14 @@ OpalRawMediaStream::~OpalRawMediaStream()
   if (m_autoDelete)
     delete m_channel;
   m_channel = NULL;
+}
+
+
+PBoolean OpalRawMediaStream::Open()
+{
+  // Allow for opening silence without any packets by thnking one was written on open
+  m_writeTime.SetCurrentTime();
+  return OpalMediaStream::Open();
 }
 
 
@@ -882,7 +898,7 @@ PBoolean OpalRawMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & lengt
     m_dbCalculator.Accumulate(buffer, lastReadCount);
     m_dbCalculatorMutex.Signal();
 
-    m_timestamp += lastReadCount / sizeof(short);
+    m_timestamp += lastReadCount / PCM16Size;
     buffer += lastReadCount;
     length += lastReadCount;
     size -= lastReadCount;
@@ -905,7 +921,7 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     PTRACE(1, "Tried to write to source media stream");
     return false;
   }
-  
+
   PWaitAndSignal mutex(m_channelMutex);
 
   if (!IsOpen() || m_channel == NULL) {
@@ -913,10 +929,12 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     return false;
   }
 
-  /* We make the assumption that the remote is sending the same sized packets
+  /* If we trust the RTP timestamps, then we generate silence on the delta
+     between the timestamp last time and the incoming packet. If we don't,
+     we make the assumption that the remote is sending the same sized packets
      all the time and does not suddenly switch from 30ms to 20ms, even though
      this is technically legal. We have never yet seen it, and even if it did
-     it doesn't hurt the silence insertion algorithm very much.
+     it _usually_ doesn't hurt the silence insertion algorithm very much.
 
      So, silence buffer is set to be the largest chunk of audio the remote has
      ever sent to us. Then when they stop sending, (we get length==0) we just
@@ -924,14 +942,53 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
      starts up again.
      */
 
-  if (buffer != NULL && length != 0)
-    m_silence.SetMinSize(length);
-  else {
-    length = m_silence.GetSize();
-    buffer = m_silence;
-    PTRACE(6, "Playing silence " << length << " bytes");
+  if (buffer == NULL || length == 0) {
+    PTRACE(6, "Writing silence: " << m_lastDataSize << " bytes");
+    return InternalWriteChannel(m_silence.GetPointer(m_lastDataSize), m_lastDataSize, written);
   }
 
+  // Calculate the real time since last write (received packet) in timestamp units
+  RTP_Timestamp realDelta = (RTP_Timestamp)(m_writeTime.GetElapsed().GetMilliSeconds()/m_timeUnits);
+  m_writeTime.SetCurrentTime();
+
+  // Don't insert silence and reset expected timestamp if ...
+  if (!m_trustTimestamps || // We don't trust the timestamps
+       m_externalSilence || // We are using JB which supplies the silence packets
+       m_ssrcChanged || // SyncSource has changed
+       m_expectedTimestamp == 0 || // Not received anything yet
+       m_timestamp < m_expectedTimestamp || // Timestamp went backwards
+      (m_timestamp - m_expectedTimestamp) > 600000U*m_timeUnits) // More than 10 minutes
+  {
+    // If first packet, allow for leading silence since we opened
+    m_expectedTimestamp = m_expectedTimestamp != 0 ? m_timestamp : (m_timestamp - realDelta);
+  }
+  else {
+    /* If the indicated delta timestamp is significantly less than the elapsed
+       real time then it is suspect, and we should delay the real time amount.
+       This can be if the remote is not setting timestamps correctly, or if it
+       fails to change the SSRC on switching media servers.
+       The heristic used is if indicated delay is under 120ms but actual is 
+       over 500ms, then we don't truct the indicated timstamp */
+    RTP_Timestamp delta = m_timestamp - m_expectedTimestamp;
+    if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits)
+      m_expectedTimestamp -= realDelta;
+
+    // If current timestamp later than expected, need to pad with silence.
+    while (m_timestamp > m_expectedTimestamp) {
+      const PINDEX silence = std::min((m_timestamp - m_expectedTimestamp)*PCM16Size, 1000U*m_timeUnits);
+      PTRACE(6, "Writing silence: " << silence << " bytes");
+      if (!InternalWriteChannel(m_silence.GetPointer(silence), silence, written))
+        return false;
+    }
+  }
+
+  m_lastDataSize = length;
+  return InternalWriteChannel(buffer, length, written);
+}
+
+
+bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length, PINDEX & written)
+{
   if (!m_channel->Write(buffer, length)) {
     PTRACE_IF(2, m_channel->GetErrorCode(PChannel::LastWriteError) != PChannel::NotOpen,
               "Channel write error: " << m_channel->GetErrorText(PChannel::LastWriteError));
@@ -939,10 +996,19 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
   }
 
   written = m_channel->GetLastWriteCount();
+  m_expectedTimestamp += written/PCM16Size;
+
   m_dbCalculatorMutex.Wait();
   m_dbCalculator.Accumulate(buffer, written);
   m_dbCalculatorMutex.Signal();
   return true;
+}
+
+
+bool OpalRawMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init & init)
+{
+  m_externalSilence = init.m_minJitterDelay > 0 && init.m_maxJitterDelay > 0;
+  return OpalMediaStream::InternalSetJitterBuffer(init);
 }
 
 
@@ -996,6 +1062,7 @@ OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, file, autoDel)
   , OpalMediaStreamPacing(mediaFormat)
 {
+  m_externalSilence = false;
 }
 
 
@@ -1088,18 +1155,18 @@ PBoolean OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
       universally done by everyone out there. */
   const unsigned MinBufferTimeMilliseconds = 10;
 
-  unsigned timePerMS = m_mediaFormat.GetTimeUnits();
+  unsigned timePerMS = m_timeUnits;
   unsigned channels = m_mediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1);
-  PINDEX frameSize = frameTime*channels*sizeof(short);
+  PINDEX frameSize = frameTime*channels*PCM16Size;
   unsigned frameMilliseconds = (frameTime+timePerMS-1)/timePerMS;
 
   if (frameMilliseconds == 0) {
-    frameSize = MinBufferTimeMilliseconds*timePerMS*channels*sizeof(short);
+    frameSize = MinBufferTimeMilliseconds*timePerMS*channels*PCM16Size;
     frameMilliseconds = MinBufferTimeMilliseconds;
   }
   else if (frameMilliseconds < MinBufferTimeMilliseconds) {
     PINDEX minFrameCount = (MinBufferTimeMilliseconds+frameMilliseconds-1)/frameMilliseconds;
-    frameSize = minFrameCount*frameTime*channels*sizeof(short);
+    frameSize = minFrameCount*frameTime*channels*PCM16Size;
     frameMilliseconds = (minFrameCount*frameTime+timePerMS-1)/timePerMS;
   }
 
@@ -1117,8 +1184,32 @@ PBoolean OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
             "clock=" << m_mediaFormat.GetClockRate() << ", "
             "buffers=" << bufferCount << 'x' << frameSize);
 
-  return OpalMediaStream::SetDataSize(adjustedSize, frameTime) &&
-         ((PSoundChannel *)m_channel)->SetBuffers(frameSize, bufferCount);
+  if (!OpalMediaStream::SetDataSize(adjustedSize, frameTime))
+    return false;
+
+  PSoundChannel * soundChannel = dynamic_cast<PSoundChannel *>(m_channel);
+  if (m_externalSilence || IsSource())
+    return soundChannel->SetBuffers(frameSize, bufferCount);
+
+  // If JB is disabled, then we are in "flow through" mode and need to
+  // disable any real time packing in audio device emulation.
+  return soundChannel->SetBuffers(1, frameSize*bufferCount);
+}
+
+
+bool OpalAudioMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init & init)
+{
+  bool result = OpalRawMediaStream::InternalSetJitterBuffer(init);
+  if (m_externalSilence || IsSource())
+    return result;
+
+  // If JB is disabled, then we are in "flow through" mode and need to
+  // disable any real time pacing in audio device emulation.
+  PSoundChannel * soundChannel = dynamic_cast<PSoundChannel *>(m_channel);
+  PINDEX frameSize, bufferCount;
+  if (soundChannel->GetBuffers(frameSize, bufferCount))
+    m_externalSilence = !soundChannel->SetBuffers(1, frameSize*bufferCount);
+  return result;
 }
 
 
@@ -1135,7 +1226,7 @@ PBoolean OpalAudioMediaStream::IsSynchronous() const
 #if OPAL_VIDEO
 
 OpalVideoMediaStream::OpalVideoMediaStream(OpalConnection & conn,
-                                          const OpalMediaFormat & mediaFormat,
+                                           const OpalMediaFormat & mediaFormat,
                                            unsigned sessionID,
                                            PVideoInputDevice * in,
                                            PVideoOutputDevice * out,
@@ -1332,6 +1423,9 @@ PBoolean OpalVideoMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & lengt
     return false;
   }
 
+  if (PAssertNULL(data) == NULL)
+    return false;
+
   PWaitAndSignal mutex(m_devicesMutex);
 
   if (m_inputDevice == NULL) {
@@ -1346,7 +1440,8 @@ PBoolean OpalVideoMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & lengt
 
   unsigned width, height;
   m_inputDevice->GetFrameSize(width, height);
-  OpalVideoTranscoder::FrameHeader * frame = (OpalVideoTranscoder::FrameHeader *)PAssertNULL(data);
+  OpalVideoTranscoder::FrameHeader * frame = (OpalVideoTranscoder::FrameHeader *)data;
+
   frame->x = frame->y = 0;
   frame->width = width;
   frame->height = height;
@@ -1434,7 +1529,7 @@ PBoolean OpalVideoMediaStream::WriteData(const BYTE * data, PINDEX length, PINDE
   frameData.height = frame->height;
   frameData.pixels = OpalVideoFrameDataPtr(frame);
   frameData.partialFrame = !m_marker;
-  frameData.sampleTime.SetMicroSeconds(m_timestamp * 1000LL / m_mediaFormat.GetTimeUnits());
+  frameData.sampleTime.SetMicroSeconds(m_timestamp * 1000LL / m_timeUnits);
   if (!m_outputDevice->SetFrameData(frameData))
     return false;
 
@@ -1467,7 +1562,7 @@ void OpalVideoMediaStream::ApplyWatermark(unsigned frameWidth, unsigned frameHei
   unsigned waterWidth, waterHeight;
   m_watermarkDevice->GetFrameSize(waterWidth, waterHeight);
 
-  unsigned w,h;
+  unsigned w, h;
   if (waterWidth > waterHeight) {
     w = std::min(waterWidth, frameWidth);
     h = std::min(waterHeight, frameHeight/4)&~1; // No more than a quarter of height, and even
@@ -1486,14 +1581,15 @@ void OpalVideoMediaStream::ApplyWatermark(unsigned frameWidth, unsigned frameHei
 ///////////////////////////////////////////////////////////////////////////////
 
 OpalUDPMediaStream::OpalUDPMediaStream(OpalConnection & conn,
-                                      const OpalMediaFormat & mediaFormat,
+                                       const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
                                        PBoolean isSource,
                                        OpalTransportUDP & transport)
-  : OpalMediaStream(conn, mediaFormat, sessionID, isSource),
-    udpTransport(transport)
+  : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
+  , udpTransport(transport)
 {
 }
+
 
 OpalUDPMediaStream::~OpalUDPMediaStream()
 {
@@ -1513,8 +1609,7 @@ PBoolean OpalUDPMediaStream::ReadPacket(RTP_DataFrame & packet)
 
   PBYTEArray rawData;
   if (!udpTransport.ReadPDU(rawData)) {
-    PTRACE(2, "Read on UDP transport failed: "
-       << udpTransport.GetErrorText() << " transport: " << udpTransport);
+    PTRACE(2, "Read on UDP transport failed: " << udpTransport.GetErrorText() << " transport: " << udpTransport);
     return false;
   }
 
@@ -1534,8 +1629,7 @@ PBoolean OpalUDPMediaStream::WritePacket(RTP_DataFrame & Packet)
 
   if (Packet.GetPayloadSize() > 0) {
     if (!udpTransport.Write(Packet.GetPayloadPtr(), Packet.GetPayloadSize())) {
-      PTRACE(2, "Write on UDP transport failed: "
-         << udpTransport.GetErrorText() << " transport: " << udpTransport);
+      PTRACE(2, "Write on UDP transport failed: " << udpTransport.GetErrorText() << " transport: " << udpTransport);
       return false;
     }
   }

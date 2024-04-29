@@ -101,7 +101,7 @@ class OpalEndPoint : public PObject, public OpalCertificateInfo
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Listeners management */
@@ -170,7 +170,7 @@ class OpalEndPoint : public PObject, public OpalCertificateInfo
     virtual bool ApplySSLCredentials(
       PSSLContext & context,    ///< Context to which t set certificates
       bool create               ///< Create self signed cert/key if required
-    ) const;
+    ) const override;
 #endif
 
     /**Find a listener given the transport address.

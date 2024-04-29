@@ -49,7 +49,7 @@ class H4505_CallParkPickupOperations : public PASN_Enumeration
     };
 
     H4505_CallParkPickupOperations & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -67,7 +67,7 @@ class H4505_ParkedToPosition : public PASN_Integer
 
     H4505_ParkedToPosition & operator=(int v);
     H4505_ParkedToPosition & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -91,7 +91,7 @@ class H4505_ParkCondition : public PASN_Enumeration
     };
 
     H4505_ParkCondition & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -113,7 +113,7 @@ class H4505_CallType : public PASN_Enumeration
     };
 
     H4505_CallType & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -136,7 +136,7 @@ class H4505_CallPickupErrors : public PASN_Enumeration
     };
 
     H4505_CallPickupErrors & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -154,9 +154,9 @@ class H4505_ArrayOf_MixedExtension : public PASN_Array
   public:
     H4505_ArrayOf_MixedExtension(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H4504_MixedExtension & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -183,14 +183,14 @@ class H4505_CpRequestArg : public PASN_Sequence
     H4505_ParkedToPosition m_parkedToPosition;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -216,14 +216,14 @@ class H4505_CpRequestRes : public PASN_Sequence
     H4505_ParkCondition m_parkCondition;
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -250,14 +250,14 @@ class H4505_CpSetupArg : public PASN_Sequence
     H4505_ParkedToPosition m_parkedToPosition;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -283,14 +283,14 @@ class H4505_CpSetupRes : public PASN_Sequence
     H4505_ParkCondition m_parkCondition;
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -319,14 +319,14 @@ class H4505_GroupIndicationOnArg : public PASN_Sequence
     H4505_ParkedToPosition m_parkPosition;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -348,14 +348,14 @@ class H4505_GroupIndicationOnRes : public PASN_Sequence
 
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -379,14 +379,14 @@ class H4505_GroupIndicationOffArg : public PASN_Sequence
     H4501_EndpointAddress m_groupMemberUserNr;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -408,14 +408,14 @@ class H4505_GroupIndicationOffRes : public PASN_Sequence
 
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -445,14 +445,14 @@ class H4505_PickrequArg : public PASN_Sequence
     H4505_ParkedToPosition m_parkPosition;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -475,14 +475,14 @@ class H4505_PickrequRes : public PASN_Sequence
     H225_CallIdentifier m_callPickupId;
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -506,14 +506,14 @@ class H4505_PickupArg : public PASN_Sequence
     H4501_EndpointAddress m_picking_upNumber;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -535,14 +535,14 @@ class H4505_PickupRes : public PASN_Sequence
 
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -567,14 +567,14 @@ class H4505_PickExeArg : public PASN_Sequence
     H4501_EndpointAddress m_partyToRetrieve;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -596,14 +596,14 @@ class H4505_PickExeRes : public PASN_Sequence
 
     H4505_ArrayOf_MixedExtension m_extensionRes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -627,14 +627,14 @@ class H4505_CpNotifyArg : public PASN_Sequence
     H4501_EndpointAddress m_parkingNumber;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -658,14 +658,14 @@ class H4505_CpickupNotifyArg : public PASN_Sequence
     H4501_EndpointAddress m_picking_upNumber;
     H4505_ArrayOf_MixedExtension m_extensionArg;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

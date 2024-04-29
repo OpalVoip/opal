@@ -26,7 +26,7 @@
  *
  */
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "lidpluginmgr.h"
 #endif
 

@@ -66,7 +66,7 @@ class JesterProcess : public PProcess
   public:
     JesterProcess();
 
-    void Main();
+    virtual void Main() override;
 
   protected:
     void NonRealTimeSimulation();

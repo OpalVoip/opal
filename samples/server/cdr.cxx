@@ -364,7 +364,7 @@ void MyCall::OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & pat
 }
 
 
-void MyCall::OnStopMediaPatch(OpalMediaPatch & patch)
+void MyCall::OnStopMediaPatch(OpalConnection &, OpalMediaPatch & patch)
 {
   OpalMediaStream & stream = patch.GetSource();
 

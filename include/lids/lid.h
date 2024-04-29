@@ -870,7 +870,7 @@ class OpalLineInterfaceDevice : public PObject
 
     virtual void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
 
     /**Create a new device from the registration string
       */
@@ -942,7 +942,7 @@ class OpalLine : public PObject
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Basic operations */

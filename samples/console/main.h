@@ -36,20 +36,20 @@ class MyManager : public OpalManagerCLI
   public:
     MyManager();
 
-    virtual PString GetArgumentSpec() const;
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual bool Initialise(PArgList & args, bool verbose);
+    virtual PString GetArgumentSpec() const override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
 
   protected:
-    virtual bool OnLocalIncomingCall(OpalLocalConnection & connection);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual bool OnLocalIncomingCall(OpalLocalConnection & connection) override;
+    virtual void OnClearedCall(OpalCall & call) override;
     bool SetAutoAnswer(ostream & output, bool verbose, const PArgList & args, const char * option);
     PDECLARE_NOTIFIER(PTimer, MyManager, AutoAnswer);
 
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdAutoAnswer);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdAnswer);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdSpeedDial);
-    virtual void AdjustCmdCallArguments(PString & from, PString & to);
+    virtual void AdjustCmdCallArguments(PString & from, PString & to) override;
 
     enum AutoAnswerMode
     {

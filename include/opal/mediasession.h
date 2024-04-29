@@ -100,7 +100,7 @@ struct OpalCandidateStatistics : PNatCandidate, OpalCandidateStatisticsInfo
   OpalCandidateStatistics(const PNatCandidate & candidate) : PNatCandidate(candidate) { }
   OpalCandidateStatistics(const OpalCandidateStatistics & other) : PNatCandidate(other), OpalCandidateStatisticsInfo(other) { }
 
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
 };
 #endif // OPAL_ICE
 
@@ -231,7 +231,7 @@ class OpalMediaStatistics : public PObject
        to the data being assigned from. */
     OpalMediaStatistics & operator=(const OpalMediaStatistics & other);
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
     void ToJSON(PJSON::Object & json) const;
 
     // To following fields are not copied by
@@ -340,7 +340,7 @@ class OpalMediaCryptoSuite : public PObject
   public:
     static const PCaselessString & ClearText();
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     virtual const PCaselessString & GetFactoryName() const = 0;
     virtual bool Supports(const PCaselessString & proto) const = 0;
@@ -413,7 +413,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     OpalMediaTransport(const PString & name);
     ~OpalMediaTransport();
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     /// Return name of the transport.
     const PString & GetName() const { return m_name; }
@@ -580,7 +580,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
 
   protected:
     virtual void InternalClose();
-    virtual bool GarbageCollection(); // Override from PSafeObject
+    virtual bool GarbageCollection() override; // Override from PSafeObject
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
     virtual PTimeInterval GetTimeout(SubChannels /*subchannel*/) const { return m_mediaTimeout; }
 
@@ -676,14 +676,14 @@ class OpalUDPMediaTransport : public OpalMediaTransport
   public:
     OpalUDPMediaTransport(const PString & name);
 
-    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, SubChannels subchannel = e_Media);
-    virtual bool Write(const void * data, PINDEX length, SubChannels = e_Media, const PIPSocketAddressAndPort * = NULL, int * = NULL);
+    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, SubChannels subchannel = e_Media) override;
+    virtual bool Write(const void * data, PINDEX length, SubChannels = e_Media, const PIPSocketAddressAndPort * = NULL, int * = NULL) override;
 
     PUDPSocket * GetSubChannelAsSocket(SubChannels subchannel = e_Media) const;
 
   protected:
-    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
+    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data) override;
     virtual bool InternalSetRemoteAddress(const PIPSocket::AddressAndPort & ap, SubChannels subchannel, RemoteAddressSources source);
     virtual bool InternalOpenPinHole(PUDPSocket & socket);
 
@@ -728,7 +728,7 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
   public:
     ~OpalMediaSession();
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     /** Get the session type string (for factory).
       */
@@ -996,18 +996,18 @@ class OpalDummySession : public OpalMediaSession
 #endif
     OpalDummySession(const Init & init, const OpalTransportAddressArray & transports);
     static const PCaselessString & SessionType();
-    virtual const PCaselessString & GetSessionType() const;
-    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool IsOpen() const;
-    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const;
-    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const;
-    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true);
-    virtual void AttachTransport(const OpalMediaTransportPtr &);
-    virtual OpalMediaTransportPtr DetachTransport();
+    virtual const PCaselessString & GetSessionType() const override;
+    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool IsOpen() const override;
+    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const override;
+    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const override;
+    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true) override;
+    virtual void AttachTransport(const OpalMediaTransportPtr &) override;
+    virtual OpalMediaTransportPtr DetachTransport() override;
 #if OPAL_SDP
-    virtual SDPMediaDescription * CreateSDPMediaDescription();
+    virtual SDPMediaDescription * CreateSDPMediaDescription() override;
 #endif
-    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
+    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource) override;
 
   private:
 #if OPAL_SDP

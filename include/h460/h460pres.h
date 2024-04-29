@@ -110,8 +110,8 @@ class H460P_PresenceMessage : public PASN_Choice
     operator const H460P_PresenceAlert &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -143,8 +143,8 @@ class H460P_PresenceInstruction : public PASN_Choice
     operator const H225_AliasAddress &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -162,14 +162,14 @@ class H460P_PresenceIdentifier : public PASN_Sequence
 
     PASN_OctetString m_guid;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -196,8 +196,8 @@ class H460P_PresenceState : public PASN_Choice
       e_generic
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -215,9 +215,9 @@ class H460P_ArrayOf_PresenceNotification : public PASN_Array
   public:
     H460P_ArrayOf_PresenceNotification(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H460P_PresenceNotification & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -235,9 +235,9 @@ class H460P_ArrayOf_PresenceInstruction : public PASN_Array
   public:
     H460P_ArrayOf_PresenceInstruction(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H460P_PresenceInstruction & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -255,9 +255,9 @@ class H460P_ArrayOf_PresenceSubscription : public PASN_Array
   public:
     H460P_ArrayOf_PresenceSubscription(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H460P_PresenceSubscription & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -275,9 +275,9 @@ class H460P_ArrayOf_ClearToken : public PASN_Array
   public:
     H460P_ArrayOf_ClearToken(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_ClearToken & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -295,9 +295,9 @@ class H460P_ArrayOf_CryptoH323Token : public PASN_Array
   public:
     H460P_ArrayOf_CryptoH323Token(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_CryptoH323Token & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -315,9 +315,9 @@ class H460P_ArrayOf_PresenceIdentifier : public PASN_Array
   public:
     H460P_ArrayOf_PresenceIdentifier(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H460P_PresenceIdentifier & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -335,9 +335,9 @@ class H460P_ArrayOf_AliasAddress : public PASN_Array
   public:
     H460P_ArrayOf_AliasAddress(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AliasAddress & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -355,9 +355,9 @@ class H460P_ArrayOf_GenericData : public PASN_Array
   public:
     H460P_ArrayOf_GenericData(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_GenericData & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -380,14 +380,14 @@ class H460P_PresenceStatus : public PASN_Sequence
     H460P_ArrayOf_PresenceNotification m_notification;
     H460P_ArrayOf_PresenceInstruction m_instruction;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -405,14 +405,14 @@ class H460P_PresenceInstruct : public PASN_Sequence
 
     H460P_ArrayOf_PresenceInstruction m_instruction;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -430,14 +430,14 @@ class H460P_PresenceAuthorize : public PASN_Sequence
 
     H460P_ArrayOf_PresenceSubscription m_subscription;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -455,14 +455,14 @@ class H460P_PresenceNotify : public PASN_Sequence
 
     H460P_ArrayOf_PresenceNotification m_notification;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -487,14 +487,14 @@ class H460P_PresenceRequest : public PASN_Sequence
     H460P_ArrayOf_ClearToken m_tokens;
     H460P_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -519,14 +519,14 @@ class H460P_PresenceResponse : public PASN_Sequence
     H460P_ArrayOf_ClearToken m_tokens;
     H460P_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -544,14 +544,14 @@ class H460P_PresenceAlive : public PASN_Sequence
 
     H460P_ArrayOf_PresenceIdentifier m_identifier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -569,14 +569,14 @@ class H460P_PresenceRemove : public PASN_Sequence
 
     H460P_ArrayOf_PresenceIdentifier m_identifier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -594,14 +594,14 @@ class H460P_PresenceAlert : public PASN_Sequence
 
     H460P_ArrayOf_PresenceNotification m_notification;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -633,14 +633,14 @@ class H460P_PresenceSubscription : public PASN_Sequence
     H460P_PresenceIdentifier m_identifier;
     H460P_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -667,14 +667,14 @@ class H460P_Presentity : public PASN_Sequence
     PASN_OctetString m_geolocation;
     H460P_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -699,14 +699,14 @@ class H460P_PresenceNotification : public PASN_Sequence
     H225_AliasAddress m_aliasAddress;
     H460P_ArrayOf_PresenceIdentifier m_subscribers;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

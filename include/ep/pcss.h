@@ -103,7 +103,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
       void * userData = NULL,    ///<  Arbitrary data to pass to connection
       unsigned options = 0,                    ///< Option bit map to be passed to connection
       OpalConnection::StringOptions * stringOptions = NULL ///< Options to be passed to connection
-    );
+    ) override;
   //@}
 
   /**@name Overrides from OpalLocalEndPoint */
@@ -115,7 +115,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
       */
     virtual bool OnOutgoingCall(
       const OpalLocalConnection & connection ///<  Connection having event
-    );
+    ) override;
 
     /**Call back to indicate that there is an incoming call.
        Note this function should not block or it will impede the operation of
@@ -128,7 +128,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
       */
     virtual bool OnIncomingCall(
       OpalLocalConnection & connection ///<  Connection having event
-    );
+    ) override;
 
     /**Call back to indicate that the remote user has indicated something.
        If false is returned the call is aborted.
@@ -138,7 +138,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
     virtual bool OnUserInput(
       const OpalLocalConnection & connection, ///<  Connection having event
       const PString & indication              ///<  Received user input indications
-    );
+    ) override;
 
 #if OPAL_VIDEO
     /**Create an PVideoInputDevice for a source media stream.
@@ -148,7 +148,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
       PVideoInputDevice * & device,         ///<  Created device
       bool & autoDelete                     ///<  Flag for auto delete device
-    );
+    ) override;
 #endif
   //@}
 
@@ -459,10 +459,10 @@ class OpalPCSSConnection : public OpalLocalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -477,7 +477,7 @@ class OpalPCSSConnection : public OpalLocalConnection
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia            ///<  Open media with alerting
-    );
+    ) override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
@@ -487,7 +487,7 @@ class OpalPCSSConnection : public OpalLocalConnection
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
     /**Call back indicating result of last hold/retrieve operation.
        This also indicates if the local connection has been put on hold by the
@@ -496,7 +496,7 @@ class OpalPCSSConnection : public OpalLocalConnection
     virtual void OnHold(
       bool fromRemote,               ///<  Indicates remote has held local connection
       bool onHold                    ///<  Indicates have just been held/retrieved.
-    );
+    ) override;
 
     /**Open a new media stream.
        This will create a media stream of an appropriate subclass as required
@@ -516,7 +516,7 @@ class OpalPCSSConnection : public OpalLocalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                        ///<  Is a source stream
-    );
+    ) override;
 
     /**Call back when media stream patch thread starts.
 
@@ -524,7 +524,7 @@ class OpalPCSSConnection : public OpalLocalConnection
       */
     virtual void OnStartMediaPatch(
       OpalMediaPatch & patch    ///< Patch being started
-    );
+    ) override;
 
     /**Set  the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
@@ -532,7 +532,7 @@ class OpalPCSSConnection : public OpalLocalConnection
     virtual PBoolean SetAudioVolume(
       PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
-    );
+    ) override;
 
     /**Get  the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
@@ -540,28 +540,28 @@ class OpalPCSSConnection : public OpalLocalConnection
     virtual PBoolean GetAudioVolume(
       PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned & percentage   ///< Gain, 0=silent, 100=maximun
-    );
+    ) override;
 
     /**Set the mute state for the audio media channel.
       */
     virtual bool SetAudioMute(
       bool source,        ///< true for source (microphone), false for sink (speaker)
       bool mute           ///< Flag for muted audio
-    );
+    ) override;
 
     /**Get the mute state for the audio media channel.
       */
     virtual bool GetAudioMute(
       bool source,        ///< true for source (microphone), false for sink (speaker)
       bool & mute         ///< Flag for muted audio
-    );
+    ) override;
 
     /**Get the signal level in dBov (-127 to 0) for the audio media channel.
        A return value of INT_MAX indicates no valid signal, eg no audio channel opened.
       */
     virtual int GetAudioLevelDB(
       bool source   ///< true for source (microphone), false for sink (speaker)
-    );
+    ) override;
 
     /**Indicate alerting for the incoming connection.
        If GetSoundChannelOnRingDevice() is non-empty, then the \p withMedia
@@ -569,11 +569,11 @@ class OpalPCSSConnection : public OpalLocalConnection
       */
     virtual void AlertingIncoming(
       bool withMedia = false  ///< Indicate media should be started
-    );
+    ) override;
 
     /**Accept the incoming connection.
       */
-    virtual void AcceptIncoming();
+    virtual void AcceptIncoming() override;
   //@}
 
   /**@name New operations */

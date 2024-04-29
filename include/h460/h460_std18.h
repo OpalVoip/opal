@@ -58,15 +58,15 @@ class H460_FeatureStd18 : public H460_Feature
     H460_FeatureStd18();
 
     static const H460_FeatureID & ID();
-    virtual bool Initialise(H323EndPoint & ep, H323Connection * con);
-    virtual bool IsNegotiated() const;
+    virtual bool Initialise(H323EndPoint & ep, H323Connection * con) override;
+    virtual bool IsNegotiated() const override;
 
     // H.225.0 Messages
-    virtual bool OnSendGatekeeperRequest  (H460_FeatureDescriptor & /*pdu*/                  ) { return true; }
-    virtual bool OnSendRegistrationRequest(H460_FeatureDescriptor & /*pdu*/, bool /*lightweight*/) { return true; /*!lightweight; - Bug in GnuGK if we do this */ }
-    virtual bool OnSendSetup_UUIE         (H460_FeatureDescriptor & /*pdu*/                  ) { return true; }
+    virtual bool OnSendGatekeeperRequest  (H460_FeatureDescriptor & /*pdu*/                  ) override { return true; }
+    virtual bool OnSendRegistrationRequest(H460_FeatureDescriptor & /*pdu*/, bool /*lightweight*/) override { return true; /*!lightweight; - Bug in GnuGK if we do this */ }
+    virtual bool OnSendSetup_UUIE         (H460_FeatureDescriptor & /*pdu*/                  ) override { return true; }
 
-    virtual void OnReceiveServiceControlIndication(const H460_FeatureDescriptor & pdu);
+    virtual void OnReceiveServiceControlIndication(const H460_FeatureDescriptor & pdu) override;
 
     // Custom functions
     bool OnStartControlChannel();

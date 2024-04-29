@@ -44,10 +44,10 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
-    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
-    virtual bool GetMediaTransportAddresses(const OpalConnection &, const OpalConnection &, unsigned, const OpalMediaType &, OpalTransportAddressArray &) const;
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
+    virtual bool GetMediaTransportAddresses(const OpalConnection &, const OpalConnection &, unsigned, const OpalMediaType &, OpalTransportAddressArray &) const override;
+    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream) override;
+    virtual void OnClearedCall(OpalCall & call) override;
 };
 
 

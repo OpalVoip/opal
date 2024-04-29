@@ -73,16 +73,16 @@ class SIPEndPoint : public OpalSDPEndPoint
        destroying the object and can be handy to make sure some things are
        stopped before the vtable gets clobbered.
       */
-    virtual void ShutDown();
+    virtual void ShutDown() override;
 
     /**Get the default transports for the endpoint type.
        Overrides the default behaviour to return udp and tcp.
       */
-    virtual PString GetDefaultTransport() const;
+    virtual PString GetDefaultTransport() const override;
 
     /**Get the default signal port for this endpoint.
      */
-    virtual WORD GetDefaultSignalPort() const;
+    virtual WORD GetDefaultSignalPort() const override;
 
     /**Build a list of network accessible URIs given a user name.
        This typically gets URI's like sip:user@interface, h323:user@interface
@@ -90,14 +90,14 @@ class SIPEndPoint : public OpalSDPEndPoint
       */
     virtual PStringList GetNetworkURIs(
       const PString & name
-    ) const;
+    ) const override;
 
     /**Handle new incoming connection from listener.
       */
     virtual void NewIncomingConnection(
       OpalListener & listener,            ///<  Listner that created transport
       const OpalTransportPtr & transport  ///<  Transport connection came in on
-    );
+    ) override;
 
     /**Set up a connection to a remote party.
        This is called from the OpalManager::MakeConnection() function once
@@ -134,7 +134,7 @@ class SIPEndPoint : public OpalSDPEndPoint
       void * userData,                         ///<  Arbitrary data to pass to connection
       unsigned int options,                    ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  ///<  complex string options
-    );
+    ) override;
 
     /**A call back function whenever a connection is broken.
        This function can do any internal cleaning up and waiting on background
@@ -156,7 +156,7 @@ class SIPEndPoint : public OpalSDPEndPoint
       */
     virtual void OnReleased(
       OpalConnection & connection   ///<  Connection that was established
-    );
+    ) override;
 
     /**Call back when conferencing state information changes.
        If a conferencing endpoint type detects a change in a conference nodes
@@ -169,17 +169,17 @@ class SIPEndPoint : public OpalSDPEndPoint
       OpalEndPoint & endpoint,  /// < Endpoint sending state change
       const PString & uri,      ///< Internal URI of conference node that changed
       OpalConferenceState::ChangeType change ///< Change that occurred
-    );
+    ) override;
 
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual PBoolean GarbageCollection() override;
 
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
   //@}
 
   /**@name Customisation call backs */
@@ -822,8 +822,8 @@ class SIPEndPoint : public OpalSDPEndPoint
       public:
         RegistrarAoR(const PURL & aor);
 
-        virtual Comparison Compare(const PObject & obj) const;
-        virtual void PrintOn(ostream & strm) const;
+        virtual Comparison Compare(const PObject & obj) const override;
+        virtual void PrintOn(ostream & strm) const override;
 
         virtual SIP_PDU::StatusCodes OnReceivedREGISTER(SIPEndPoint & endpoint, const SIP_PDU & request);
         virtual bool ExpireBindings();

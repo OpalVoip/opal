@@ -35,7 +35,7 @@ class LidTest : public PProcess
   public:
     LidTest();
 
-    void Main();
+    virtual void Main() override;
 };
 
 #define new PNEW

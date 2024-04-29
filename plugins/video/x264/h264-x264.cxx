@@ -870,8 +870,10 @@ class H264_Decoder : public PluginVideoDecoder<MY_CODEC>, public FFMPEGCodec
 #else
       m_context->idct_algo = FF_IDCT_AUTO;
 #endif
-      m_context->flags2 |= AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-                           AV_CODEC_FLAG2_CHUNKS;
+#ifdef AV_CODEC_FLAG2_DROP_FRAME_TIMECODE
+      m_context->flags2 |= AV_CODEC_FLAG2_DROP_FRAME_TIMECODE;
+#endif
+      m_context->flags2 |= AV_CODEC_FLAG2_CHUNKS;
 
       if (!OpenCodec())
         return false;

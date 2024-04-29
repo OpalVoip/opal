@@ -22,7 +22,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h281.h"
 #pragma implementation "h281handler.h"
 #endif

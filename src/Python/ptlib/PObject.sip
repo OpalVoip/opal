@@ -204,7 +204,7 @@ class PObject {
        @return
        pointer to new copy of the class instance.
      */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /** This function yields a hash value required by the #PDictionary
        class. A descendent class that is required to be the key of a dictionary

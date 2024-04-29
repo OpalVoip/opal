@@ -132,7 +132,7 @@ class H323TransportAddressArray : public PArray<H323TransportAddress>
       const H323TransportAddress & address
     );
 
-    virtual PObject * Clone() const
+    virtual PObject * Clone() const override
     {
       return new H323TransportAddressArray(0, this);
     }

@@ -2417,23 +2417,23 @@ int BFCP_Server::bfcp_FloorRequest_server(st_bfcp_server *server, UINT32 confere
 	    if (i<0)
 	    {
 		error = BFCP_GENERIC_ERROR;
-		strcpy(errortext, "Server internal error");
+		strncpy(errortext, "Server internal error", sizeof(errortext));
 	    }
 	    break;
 	   
 	case -2:
 	    error = BFCP_CONFERENCE_DOES_NOT_EXIST;
-	    sprintf(errortext, "Conference %d does not exist", conferenceID);
+	    snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
 	    break;
 	   
 	case -3:
 	    error = BFCP_USER_DOES_NOT_EXIST;
-	    sprintf(errortext, "User %d does not exist in Conference %d", newnode->userID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", newnode->userID, conferenceID);
 	    break;
 	    
 	case -4:
 	    error = BFCP_UNAUTHORIZED_OPERATION;
-	    sprintf(errortext, "Floor request cannot be performed from this connection");
+	    snprintf(errortext, sizeof(errortext), "Floor request cannot be performed from this connection");
 	    break;
     }
     
@@ -2450,7 +2450,7 @@ floor_request_report_err:
 	/* Checks if the beneficiary user exists in the conference */
 	if ( bfcp_existence_user(server->list_conferences[i].user, newnode->beneficiaryID) != 0 )
 	{
-	    sprintf(errortext, "No such beneficiary ID %hu in Conference %d", newnode->beneficiaryID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "No such beneficiary ID %hu in Conference %d", newnode->beneficiaryID, conferenceID);
 	    error = BFCP_USER_DOES_NOT_EXIST;
 	    goto floor_request_report_err;
 	}
@@ -2463,7 +2463,7 @@ floor_request_report_err:
 	    if ( bfcp_exist_user_as_a_chair(server->list_conferences[i].floor, newnode->userID) != 0 )
 	    {
 		error = BFCP_UNAUTHORIZED_OPERATION;
-		sprintf(errortext, "Third-party FloorRequests (for benificiaty user %u) only allowed for chairs (User %d is not chair of any floor)", 
+		snprintf(errortext, sizeof(errortext), "Third-party FloorRequests (for benificiaty user %u) only allowed for chairs (User %d is not chair of any floor)", 
 		        newnode->beneficiaryID, newnode->userID);
 		goto floor_request_report_err;
 	    }
@@ -2481,7 +2481,7 @@ floor_request_report_err:
             position_floor = bfcp_return_position_floor(server->list_conferences[i].floor, tempnode->floorID);
             if(position_floor == -1) 
 	    {
-                sprintf(errortext, "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
 		error = BFCP_INVALID_FLOORID;
 		goto floor_request_report_err;
             }
@@ -2523,7 +2523,7 @@ floor_request_report_err:
             }
         }
     } else {
-        sprintf(errortext, "There are no floors in Conference %d", conferenceID);
+        snprintf(errortext, sizeof(errortext), "There are no floors in Conference %d", conferenceID);
         bfcp_error_code(conferenceID, newnode->userID, TransactionID, BFCP_INVALID_FLOORID, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -2729,17 +2729,17 @@ int BFCP_Server::bfcp_FloorRelease_server(st_bfcp_server *server, UINT32 confere
 	   
 	case -2:
 	    error = BFCP_CONFERENCE_DOES_NOT_EXIST;
-	    sprintf(errortext, "Conference %d does not exist", conferenceID);
+	    snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
 	    break;
 	   
 	case -3:
 	    error = BFCP_USER_DOES_NOT_EXIST;
-	    sprintf(errortext, "User %d does not exist in Conference %d", userID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", userID, conferenceID);
 	    break;
 	    
 	case -4:
 	    error = BFCP_UNAUTHORIZED_OPERATION; 
-	    sprintf(errortext, "This command is not authorized from this IP address");
+	    snprintf(errortext, sizeof(errortext), "This command is not authorized from this IP address");
 	    {
 		int tr;
 		BFCP_SOCKET su = bfcp_get_user_sockfd(m_struct_server, conferenceID, userID, &tr);
@@ -2776,7 +2776,7 @@ int BFCP_Server::bfcp_FloorRelease_server(st_bfcp_server *server, UINT32 confere
                 status_floor = BFCP_FLOOR_STATE_GRANTED;
             }
             if(newnode == NULL) {
-                sprintf(errortext, "FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
                 bfcp_error_code(conferenceID, userID, TransactionID, BFCP_FLOORREQUEST_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
                 bfcp_mutex_unlock(count_mutex);
                 return -1;
@@ -2914,7 +2914,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
 
     /* Check if this conference exists */
     if(server->list_conferences[i].conferenceID != conferenceID) {
-        sprintf(errortext, "Conference %d does not exist", conferenceID);
+        snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_CONFERENCE_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -2922,7 +2922,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
 
     /* Check if this user exists */
     if(bfcp_existence_user(server->list_conferences[i].user, userID) != 0) {
-        sprintf(errortext, "User %d does not exist in Conference %d", userID, conferenceID);
+        snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", userID, conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -2932,7 +2932,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
     for(tempnode = list_floors; tempnode; tempnode = tempnode->next) {
         position_floor = bfcp_return_position_floor(server->list_conferences[i].floor, tempnode->floorID);
         if(position_floor == -1) {
-            sprintf(errortext, "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_INVALID_FLOORID, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -2940,7 +2940,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
 
         /* Check if the user is allowed to do this operation */
         if(bfcp_return_chair_floor(server->list_conferences[i].floor, tempnode->floorID) != userID) {
-            sprintf(errortext, "User %d is not chair of Floor %hu in Conference %d", userID, tempnode->floorID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "User %d is not chair of Floor %hu in Conference %d", userID, tempnode->floorID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_UNAUTHORIZED_OPERATION, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -2952,7 +2952,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
 
         /* First check if the request node is in the Pending list */
         if(bfcp_give_user_of_request(server->list_conferences[i].pending, floorRequestID) == 0) {
-            sprintf(errortext, "Pending FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "Pending FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_FLOORREQUEST_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -2960,7 +2960,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
         /* Check if the floors involved in the accepted request exist */
         for(tempnode = list_floors; tempnode != NULL; tempnode = tempnode->next) {
             if(bfcp_change_status(server->list_conferences[i].pending, tempnode->floorID, floorRequestID, BFCP_FLOOR_STATE_ACCEPTED, tempnode->chair_info) != 0) {
-                sprintf(errortext, "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "Floor %d does not exist in Conference %d", tempnode->floorID, conferenceID);
                 bfcp_error_code(conferenceID, userID, TransactionID, BFCP_INVALID_FLOORID, errortext, NULL, sockfd, y, transport);
                 bfcp_mutex_unlock(count_mutex);
                 return -1;
@@ -3015,7 +3015,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
         /* Extract the request node from the Pending list */
         newnode = bfcp_extract_request(server->list_conferences[i].pending, floorRequestID);
         if(newnode == NULL) {
-            sprintf(errortext, "Pending FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "Pending FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_FLOORREQUEST_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -3088,7 +3088,7 @@ int BFCP_Server::bfcp_ChairAction_server(st_bfcp_server *server, UINT32 conferen
         /* Extract the request node from the Granted list */
         newnode = bfcp_extract_request(server->list_conferences[i].granted, floorRequestID);
         if(newnode == NULL) {
-            sprintf(errortext, "Granted FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "Granted FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_FLOORREQUEST_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -3228,7 +3228,7 @@ int BFCP_Server::bfcp_hello_server(st_bfcp_server *server, UINT32 conferenceID, 
     if (i == -2) 
     {
         Log(ERR,"Conference %d does not exist", conferenceID);
-        sprintf(errortext, "Conference %d does not exist", conferenceID);
+        snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_CONFERENCE_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3238,7 +3238,7 @@ int BFCP_Server::bfcp_hello_server(st_bfcp_server *server, UINT32 conferenceID, 
     if (i == -3) 
     {
         Log(ERR,"User %d does not exist in Conference %d", userID, conferenceID);
-        sprintf(errortext, "User %d does not exist in Conference %d", userID, conferenceID);
+        snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", userID, conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3247,7 +3247,7 @@ int BFCP_Server::bfcp_hello_server(st_bfcp_server *server, UINT32 conferenceID, 
     if (i < 0)
     {
 	Log(ERR,"Parameter error %d", i);
-        sprintf(errortext, "Server error");
+        snprintf(errortext, sizeof(errortext), "Server error");
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_GENERIC_ERROR, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3349,7 +3349,7 @@ int BFCP_Server::bfcp_userquery_server(st_bfcp_server *server, UINT32 conference
 
     /* Check if this conference exists */
     if(server->list_conferences[i].conferenceID != conferenceID) {
-        sprintf(errortext, "Conference %d does not exist", conferenceID);
+        snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_CONFERENCE_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3357,7 +3357,7 @@ int BFCP_Server::bfcp_userquery_server(st_bfcp_server *server, UINT32 conference
 
     /* Check if this user exists */
     if(bfcp_existence_user(server->list_conferences[i].user, userID) != 0) {
-        sprintf(errortext, "User %hu does not exist in Conference %d", userID, conferenceID);
+        snprintf(errortext, sizeof(errortext), "User %hu does not exist in Conference %d", userID, conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3367,7 +3367,7 @@ int BFCP_Server::bfcp_userquery_server(st_bfcp_server *server, UINT32 conference
         /* The user requested information about another user, the Beneficiary: */
         /* 	check if this beneficiary exists in the conference */
         if(bfcp_existence_user(server->list_conferences[i].user, beneficiaryID) != 0) {
-            sprintf(errortext, "User %hu (beneficiary of the query) does not exist in Conference %d", beneficiaryID, conferenceID);
+            snprintf(errortext, sizeof(errortext), "User %hu (beneficiary of the query) does not exist in Conference %d", beneficiaryID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
             bfcp_mutex_unlock(count_mutex);
             return -1;
@@ -3488,12 +3488,12 @@ int BFCP_Server::bfcp_floorquery_server(st_bfcp_server *server, UINT32 conferenc
     switch (i)
     {
 	case -2:
-	    sprintf(errortext, "Conference %d does not exist", conferenceID);
+	    snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_CONFERENCE_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
 	    break;
 	    
 	case -3:
-	    sprintf(errortext, "User %hu does not exist in Conference %d", userID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "User %hu does not exist in Conference %d", userID, conferenceID);
             bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
 	    break;
 	    
@@ -3520,7 +3520,7 @@ int BFCP_Server::bfcp_floorquery_server(st_bfcp_server *server, UINT32 conferenc
         for(tempnode = list_floors; tempnode; tempnode = tempnode->next) {
             position_floor = bfcp_return_position_floor(server->list_conferences[i].floor, tempnode->floorID);
             if(position_floor == -1) {
-                sprintf(errortext, "Floor %hu does not exist in Conference %d", tempnode->floorID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "Floor %hu does not exist in Conference %d", tempnode->floorID, conferenceID);
                 bfcp_error_code(conferenceID, userID, TransactionID, BFCP_INVALID_FLOORID, errortext, NULL, sockfd, y, transport);
                 bfcp_mutex_unlock(count_mutex);
                 return -1;
@@ -3686,7 +3686,7 @@ int BFCP_Server::bfcp_floorrequestquery_server(st_bfcp_server *server, UINT32 co
 
     /* Check if this conference exists */
     if(server->list_conferences[i].conferenceID != conferenceID) {
-        sprintf(errortext, "Conference %d does not exist", conferenceID);
+        snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_CONFERENCE_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3694,7 +3694,7 @@ int BFCP_Server::bfcp_floorrequestquery_server(st_bfcp_server *server, UINT32 co
 
     /* Check if this user exists */
     if(bfcp_existence_user(server->list_conferences[i].user, userID) != 0) {
-        sprintf(errortext, "User %hu does not exist in Conference %d", userID, conferenceID);
+        snprintf(errortext, sizeof(errortext), "User %hu does not exist in Conference %d", userID, conferenceID);
         bfcp_error_code(conferenceID, userID, TransactionID, BFCP_USER_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
         bfcp_mutex_unlock(count_mutex);
         return -1;
@@ -3707,7 +3707,7 @@ int BFCP_Server::bfcp_floorrequestquery_server(st_bfcp_server *server, UINT32 co
         if(bfcp_floor_request_query_server(server->list_conferences[i].accepted, floorRequestID, userID, sockfd, transport) != 0) {
             /* Check if the request is in the Granted list */
             if(bfcp_floor_request_query_server(server->list_conferences[i].granted, floorRequestID, userID, sockfd, transport) != 0) {
-                sprintf(errortext, "FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "FloorRequest %d does not exist in Conference %d", floorRequestID, conferenceID);
                 bfcp_error_code(conferenceID, userID, TransactionID, BFCP_FLOORREQUEST_DOES_NOT_EXIST, errortext, NULL, sockfd, y, transport);
                 bfcp_mutex_unlock(count_mutex);
                 return -1;
@@ -3917,7 +3917,7 @@ bool BFCP_Server::bfcp_received_msg(bfcp_received_message *recv_msg, BFCP_SOCKET
 	    {
 		case BFCP_UNKNOWN_PRIMITIVE:
                     Log(INF,"Error: UNKNOWN_PRIMITIVE  [%i]", recv_msg->primitive);
-                    sprintf(errortext, "Unknown primitive %i", recv_msg->primitive);
+                    snprintf(errortext, sizeof(errortext), "Unknown primitive %i", recv_msg->primitive);
                     bfcp_error_code(recv_msg->entity->conferenceID, recv_msg->entity->userID, recv_msg->entity->transactionID, BFCP_UNKNOWN_PRIMITIVE, errortext, NULL, 
 		                    sockfd, 0, recv_msg->transport);
                     break;
@@ -4193,7 +4193,7 @@ bool BFCP_Server::bfcp_received_msg(bfcp_received_message *recv_msg, BFCP_SOCKET
 	    case e_primitive_Cisco94:
 	    case e_primitive_Cisco95:
 		Log(INF,"CISCO promitive: [%d]", recv_msg->primitive);
-		sprintf(errortext, "CISCO primitive %i", recv_msg->primitive);
+		snprintf(errortext, sizeof(errortext), "CISCO primitive %i", recv_msg->primitive);
 	        bfcp_error_code(recv_msg->entity->conferenceID, recv_msg->entity->userID, 
 				recv_msg->entity->transactionID, BFCP_UNKNOWN_PRIMITIVE, errortext, NULL, sockfd, 0,
 				recv_msg->transport);
@@ -4205,7 +4205,7 @@ bool BFCP_Server::bfcp_received_msg(bfcp_received_message *recv_msg, BFCP_SOCKET
                 Log(INF,"UserID         %d", userID);
                 Log(INF,"ConferenceID:  %d", conferenceID);
 
-                sprintf(errortext, "Unknown primitive %i", recv_msg->primitive);
+                snprintf(errortext, sizeof(errortext), "Unknown primitive %i", recv_msg->primitive);
                 bfcp_error_code(recv_msg->entity->conferenceID, recv_msg->entity->userID, 
 				recv_msg->entity->transactionID, BFCP_UNKNOWN_PRIMITIVE, errortext, NULL, sockfd, 0,
 				recv_msg->transport);
@@ -4537,12 +4537,12 @@ bool BFCP_Server::BFCPFSM_FloorRequest(  s_bfcp_msg_event* p_evt )
 	   
 	case -2:
 	    error = BFCP_CONFERENCE_DOES_NOT_EXIST;
-	    sprintf(errortext, "Conference %d does not exist", conferenceID);
+	    snprintf(errortext, sizeof(errortext), "Conference %d does not exist", conferenceID);
 	    break;
 	   
 	case -3:
 	    error = BFCP_USER_DOES_NOT_EXIST;
-	    sprintf(errortext, "User %d does not exist in Conference %d", newnode->userID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", newnode->userID, conferenceID);
 	    break;
 	    
 	case -4:
@@ -4551,7 +4551,7 @@ bool BFCP_Server::BFCPFSM_FloorRequest(  s_bfcp_msg_event* p_evt )
 		Log(ERR,"User %u is associated with socket [%d] while request comes from socket [%d]", 
 		    newnode->userID, s2, sockfd);
 	    }
-	    sprintf(errortext, "Floor request cannot be performed from this connection");
+	    snprintf(errortext, sizeof(errortext), "Floor request cannot be performed from this connection");
 	    break;
     }
     
@@ -4568,7 +4568,7 @@ floor_request_report_err2:
 	/* Checks if the beneficiary user exists in the conference */
 	if ( bfcp_existence_user(server->list_conferences[i].user, newnode->beneficiaryID) != 0 )
 	{
-	    sprintf(errortext, "No such beneficiary ID %hu in Conference %d", newnode->beneficiaryID, conferenceID);
+	    snprintf(errortext, sizeof(errortext), "No such beneficiary ID %hu in Conference %d", newnode->beneficiaryID, conferenceID);
 	    error = BFCP_USER_DOES_NOT_EXIST;
 	    goto floor_request_report_err2;
 	}
@@ -4583,7 +4583,7 @@ floor_request_report_err2:
 	    if ( bfcp_exist_user_as_a_chair(server->list_conferences[i].floor, newnode->userID) != 0 )
 	    {
 	        error = BFCP_UNAUTHORIZED_OPERATION;
-	        sprintf(errortext, "Third-party FloorRequests only allowed for chairs (User %d is not chair of any floor)", newnode->userID);
+	        snprintf(errortext, sizeof(errortext), "Third-party FloorRequests only allowed for chairs (User %d is not chair of any floor)", newnode->userID);
 	        goto floor_request_report_err2;
 	    }
 	}
@@ -4597,7 +4597,7 @@ floor_request_report_err2:
             position_floor = bfcp_return_position_floor(server->list_conferences[i].floor, tempnode->floorID);
             if(position_floor == -1)
 	    {
-                sprintf(errortext, "Floor %hu does not exist in Conference %d", tempnode->floorID, conferenceID);
+                snprintf(errortext, sizeof(errortext), "Floor %hu does not exist in Conference %d", tempnode->floorID, conferenceID);
 		error = BFCP_INVALID_FLOORID;
 		goto floor_request_report_err2;
             }
@@ -4605,7 +4605,7 @@ floor_request_report_err2:
     }
     else 
     {
-        sprintf(errortext, "There are no floors in Conference %d", conferenceID);
+        snprintf(errortext, sizeof(errortext), "There are no floors in Conference %d", conferenceID);
 	error = BFCP_INVALID_FLOORID;
 	goto floor_request_report_err2;
     }
@@ -5330,17 +5330,17 @@ void BFCP_Server::OnGoodBye(UINT32 ConferenceID, UINT16 userID, UINT16 Transacti
 	   
 	case -2:
 	    error = BFCP_CONFERENCE_DOES_NOT_EXIST;
-	    sprintf(errortext, "Conference %d does not exist", ConferenceID);
+	    snprintf(errortext, sizeof(errortext), "Conference %d does not exist", ConferenceID);
 	    break;
 	   
 	case -3:
 	    error = BFCP_USER_DOES_NOT_EXIST;
-	    sprintf(errortext, "User %d does not exist in Conference %d", userID, ConferenceID);
+	    snprintf(errortext, sizeof(errortext), "User %d does not exist in Conference %d", userID, ConferenceID);
 	    break;
 	    
 	case -4:
 	    error = BFCP_UNAUTHORIZED_OPERATION;
-	    sprintf(errortext, "Floor request cannot be performed from this connection");
+	    snprintf(errortext, sizeof(errortext), "Floor request cannot be performed from this connection");
 	    break;
     }
 

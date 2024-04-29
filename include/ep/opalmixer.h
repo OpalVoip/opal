@@ -215,11 +215,11 @@ class OpalAudioMixer : public OpalBaseMixer
       */
     virtual void RemoveStream(
       const Key_T & key   ///< key for mixer stream
-    );
+    ) override;
 
     /** Remove all input streams from mixer.
       */
-    virtual void RemoveAllStreams();
+    virtual void RemoveAllStreams() override;
 
     /**Return flag for mixing stereo audio data.
       */
@@ -266,9 +266,9 @@ class OpalAudioMixer : public OpalBaseMixer
       size_t             m_samplesUsed;
     };
 
-    virtual Stream * CreateStream();
-    virtual bool MixStreams(RTP_DataFrame & frame);
-    virtual size_t GetOutputSize() const;
+    virtual Stream * CreateStream() override;
+    virtual bool MixStreams(RTP_DataFrame & frame) override;
+    virtual size_t GetOutputSize() const override;
 
     void PreMixStreams();
     void MixStereo(RTP_DataFrame & frame);
@@ -369,9 +369,9 @@ class OpalVideoMixer : public OpalBaseMixer
 
     friend struct VideoStream;
 
-    virtual Stream * CreateStream();
-    virtual bool MixStreams(RTP_DataFrame & frame);
-    virtual size_t GetOutputSize() const;
+    virtual Stream * CreateStream() override;
+    virtual bool MixStreams(RTP_DataFrame & frame) override;
+    virtual size_t GetOutputSize() const override;
 
     virtual bool MixVideo();
     virtual bool StartMix(unsigned & x, unsigned & y, unsigned & w, unsigned & h, unsigned & left);
@@ -604,7 +604,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        destroying the object and can be handy to make sure some things are
        stopped before the vtable gets clobbered.
       */
-    virtual void ShutDown();
+    virtual void ShutDown() override;
   //@}
 
   /**@name Overrides from OpalEndPoint */
@@ -619,11 +619,11 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        The default behaviour returns the most basic media formats, PCM audio
        and YUV420P video.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
 
     /**Set up a connection to a remote party.
        This is called from the OpalManager::MakeConnection() function once
@@ -658,7 +658,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
       void * userData = NULL,    ///<  Arbitrary data to pass to connection
       unsigned options = 0,      ///< Option bit mask to pass to connection
       OpalConnection::StringOptions * stringOptions = NULL ///< Options to pass to connection
-    );
+    ) override;
 
     /**Get conference state information for all nodes.
        This obtains the state of one or more conferences managed by this
@@ -678,13 +678,13 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     virtual bool GetConferenceStates(
       OpalConferenceStates & states,          ///< List of conference states
       const PString & name = PString::Empty() ///< Name for specific node, empty string is all
-    ) const;
+    ) const override;
 
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual PBoolean GarbageCollection() override;
   //@}
 
   /**@name Operations */
@@ -788,8 +788,8 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
   //@}
 
   protected:
-    virtual PString CreateInternalURI(const PGloballyUniqueID & guid);
-    virtual void OnNodeStatusChanged(const OpalMixerNode & node, OpalConferenceState::ChangeType change);
+    virtual PString CreateInternalURI(const PGloballyUniqueID & guid) override;
+    virtual void OnNodeStatusChanged(const OpalMixerNode & node, OpalConferenceState::ChangeType change) override;
 
     OpalMixerNodeInfo  * m_adHocNodeInfo;
     OpalMixerNodeInfo  * m_factoryNodeInfo;
@@ -843,7 +843,7 @@ class OpalMixerConnection : public OpalLocalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Get the data formats this connection is capable of operating.
        This provides a list of media data format names that a
@@ -851,7 +851,7 @@ class OpalMixerConnection : public OpalLocalConnection
 
        The default behaviour calls GetMediaFormats() on the endpoint.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Open a new media stream.
        This will create a media stream of an appropriate subclass as required
@@ -871,16 +871,16 @@ class OpalMixerConnection : public OpalLocalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                    ///<  Is a source stream
-    );
+    ) override;
 
     /**Call back when media stream patch thread starts.
       */
     virtual void OnStartMediaPatch(
       OpalMediaPatch & patch    ///< Patch being started
-    );
+    ) override;
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Send a user input indication to the remote endpoint.
        This is for sending arbitrary strings as user indications.
@@ -890,7 +890,7 @@ class OpalMixerConnection : public OpalLocalConnection
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends DTMF emulation user input. If something more sophisticated
@@ -911,7 +911,7 @@ class OpalMixerConnection : public OpalLocalConnection
     virtual PBoolean SendUserInputTone(
       char tone,        ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
-    );
+    ) override;
 
     /**Get Conference state information.
        This obtains the state information about a conference this connection
@@ -927,7 +927,7 @@ class OpalMixerConnection : public OpalLocalConnection
       */
     virtual bool GetConferenceState(
       OpalConferenceState * state  ///< Optional conference state information
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -983,7 +983,7 @@ class OpalMixerMediaStream : public OpalMediaStream
   //@{
     /**Open the media stream using the media format.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
@@ -992,12 +992,12 @@ class OpalMixerMediaStream : public OpalMediaStream
       */
     virtual PBoolean WritePacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -1009,7 +1009,7 @@ class OpalMixerMediaStream : public OpalMediaStream
        The default behaviour returns true if a sink stream. If source stream
        then threading is from the mixer class.
       */
-    virtual PBoolean RequiresPatchThread() const;
+    virtual PBoolean RequiresPatchThread() const override;
   //@}
 
   /**@name Member variable access */
@@ -1024,8 +1024,8 @@ class OpalMixerMediaStream : public OpalMediaStream
 #endif
 
   protected:
-    virtual void InternalClose();
-    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init);
+    virtual void InternalClose() override;
+    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
 
     PSafePtr<OpalMixerNode> m_node;
     bool m_listenOnly;
@@ -1059,7 +1059,7 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
     OpalAudioStreamMixer(const OpalMixerNodeInfo & info);
     ~OpalAudioStreamMixer();
 
-    virtual bool OnPush();
+    virtual bool OnPush() override;
 
   protected:
     struct CachedAudio
@@ -1103,8 +1103,8 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     OpalVideoStreamMixer(const OpalMixerNodeInfo & info);
     ~OpalVideoStreamMixer();
 
-    virtual bool SetFrameRate(unsigned rate);
-    virtual bool OnMixed(RTP_DataFrame * & output);
+    virtual bool SetFrameRate(unsigned rate) override;
+    virtual bool OnMixed(RTP_DataFrame * & output) override;
 
   protected:
     typedef PDictionary<PString, OpalTranscoder> TranscoderMap;
@@ -1148,7 +1148,7 @@ class OpalMixerNode : public PSafeObject
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */

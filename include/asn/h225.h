@@ -84,8 +84,8 @@ class H225_ReleaseCompleteReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -111,8 +111,8 @@ class H225_ScnConnectionType : public PASN_Choice
       e_multirate
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -137,8 +137,8 @@ class H225_ScnConnectionAggregation : public PASN_Choice
       e_bonded_mode3
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -160,8 +160,8 @@ class H225_PresentationIndicator : public PASN_Choice
       e_addressNotAvailable
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -185,7 +185,7 @@ class H225_ScreeningIndicator : public PASN_Enumeration
     };
 
     H225_ScreeningIndicator & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -215,8 +215,8 @@ class H225_FacilityReason : public PASN_Choice
       e_transportedInformation
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -279,8 +279,8 @@ class H225_TransportAddress : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -397,8 +397,8 @@ class H225_SupportedProtocols : public PASN_Choice
     operator const H225_SIPCaps &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -418,14 +418,14 @@ class H225_H221NonStandard : public PASN_Sequence
     PASN_Integer m_t35Extension;
     PASN_Integer m_manufacturerCode;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -448,14 +448,14 @@ class H225_TunnelledProtocolAlternateIdentifier : public PASN_Sequence
     PASN_IA5String m_protocolType;
     PASN_IA5String m_protocolVariant;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -485,8 +485,8 @@ class H225_NonStandardIdentifier : public PASN_Choice
     operator const H225_H221NonStandard &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -543,8 +543,8 @@ class H225_AliasAddress : public PASN_Choice
     operator const H225_IsupNumber &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -581,8 +581,8 @@ class H225_AddressPattern : public PASN_Choice
     operator const H225_AddressPattern_range &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -629,8 +629,8 @@ class H225_PartyNumber : public PASN_Choice
     operator const H225_PrivatePartyNumber &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -648,7 +648,7 @@ class H225_NumberDigits : public PASN_IA5String
 
     H225_NumberDigits & operator=(const char * v);
     H225_NumberDigits & operator=(const PString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -673,8 +673,8 @@ class H225_PublicTypeOfNumber : public PASN_Choice
       e_abbreviatedNumber
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -699,8 +699,8 @@ class H225_PrivateTypeOfNumber : public PASN_Choice
       e_abbreviatedNumber
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -737,8 +737,8 @@ class H225_MobileUIM : public PASN_Choice
     operator const H225_GSM_UIM &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -756,7 +756,7 @@ class H225_TBCD_STRING : public PASN_IA5String
 
     H225_TBCD_STRING & operator=(const char * v);
     H225_TBCD_STRING & operator=(const PString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -788,14 +788,14 @@ class H225_GSM_UIM : public PASN_Sequence
     PASN_IA5String m_hplmn;
     PASN_IA5String m_vplmn;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -842,8 +842,8 @@ class H225_IsupNumber : public PASN_Choice
     operator const H225_IsupPrivatePartyNumber &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -870,8 +870,8 @@ class H225_NatureOfAddress : public PASN_Choice
       e_routingNumberWithCalledDirectoryNumber
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -889,7 +889,7 @@ class H225_IsupDigits : public PASN_IA5String
 
     H225_IsupDigits & operator=(const char * v);
     H225_IsupDigits & operator=(const PString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -914,14 +914,14 @@ class H225_ExtendedAliasAddress : public PASN_Sequence
     H225_PresentationIndicator m_presentationIndicator;
     H225_ScreeningIndicator m_screeningIndicator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -943,8 +943,8 @@ class H225_UseSpecifiedTransport : public PASN_Choice
       e_sctp
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -975,8 +975,8 @@ class H225_SecurityServiceMode : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1011,8 +1011,8 @@ class H225_SecurityErrors : public PASN_Choice
       e_securityUnknownCA
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1037,8 +1037,8 @@ class H225_SecurityErrors2 : public PASN_Choice
       e_securityWrongOID
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1077,8 +1077,8 @@ class H225_H245Security : public PASN_Choice
     operator const H225_SecurityCapabilities &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1097,14 +1097,14 @@ class H225_Q954Details : public PASN_Sequence
     PASN_Boolean m_conferenceCalling;
     PASN_Boolean m_threePartyService;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1127,7 +1127,7 @@ class H225_GloballyUniqueID : public PASN_OctetString
     H225_GloballyUniqueID & operator=(const char * v);
     H225_GloballyUniqueID & operator=(const PString & v);
     H225_GloballyUniqueID & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1150,7 +1150,7 @@ class H225_ConferenceIdentifier : public H225_GloballyUniqueID
     H225_ConferenceIdentifier & operator=(const char * v);
     H225_ConferenceIdentifier & operator=(const PString & v);
     H225_ConferenceIdentifier & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1168,7 +1168,7 @@ class H225_RequestSeqNum : public PASN_Integer
 
     H225_RequestSeqNum & operator=(int v);
     H225_RequestSeqNum & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1188,7 +1188,7 @@ class H225_GatekeeperIdentifier : public PASN_BMPString
     H225_GatekeeperIdentifier & operator=(const PString & v);
     H225_GatekeeperIdentifier & operator=(const PWCharArray & v);
     H225_GatekeeperIdentifier & operator=(const PASN_BMPString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1206,7 +1206,7 @@ class H225_BandWidth : public PASN_Integer
 
     H225_BandWidth & operator=(int v);
     H225_BandWidth & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1224,7 +1224,7 @@ class H225_CallReferenceValue : public PASN_Integer
 
     H225_CallReferenceValue & operator=(int v);
     H225_CallReferenceValue & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1244,7 +1244,7 @@ class H225_EndpointIdentifier : public PASN_BMPString
     H225_EndpointIdentifier & operator=(const PString & v);
     H225_EndpointIdentifier & operator=(const PWCharArray & v);
     H225_EndpointIdentifier & operator=(const PASN_BMPString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1260,7 +1260,7 @@ class H225_ProtocolIdentifier : public PASN_ObjectId
   public:
     H225_ProtocolIdentifier(unsigned tag = UniversalObjectId, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1278,7 +1278,7 @@ class H225_TimeToLive : public PASN_Integer
 
     H225_TimeToLive & operator=(int v);
     H225_TimeToLive & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1301,7 +1301,7 @@ class H225_H248PackagesDescriptor : public PASN_OctetString
     H225_H248PackagesDescriptor & operator=(const char * v);
     H225_H248PackagesDescriptor & operator=(const PString & v);
     H225_H248PackagesDescriptor & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1324,7 +1324,7 @@ class H225_H248SignalsDescriptor : public PASN_OctetString
     H225_H248SignalsDescriptor & operator=(const char * v);
     H225_H248SignalsDescriptor & operator=(const PString & v);
     H225_H248SignalsDescriptor & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1342,14 +1342,14 @@ class H225_CallIdentifier : public PASN_Sequence
 
     H225_GloballyUniqueID m_guid;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1379,8 +1379,8 @@ class H225_EncryptIntAlg : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1412,8 +1412,8 @@ class H225_NonIsoIntegrityMechanism : public PASN_Choice
     operator const H225_EncryptIntAlg &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1452,8 +1452,8 @@ class H225_IntegrityMechanism : public PASN_Choice
     operator const H225_NonIsoIntegrityMechanism &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1472,14 +1472,14 @@ class H225_ICV : public PASN_Sequence
     PASN_ObjectId m_algorithmOID;
     PASN_BitString m_icv;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1495,7 +1495,7 @@ class H225_FastStartToken : public H235_ClearToken
   public:
     H225_FastStartToken(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1514,7 +1514,7 @@ class H225_EncodedFastStartToken : public PASN_OctetString
     PBoolean DecodeSubType(H225_FastStartToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H225_FastStartToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1582,8 +1582,8 @@ class H225_CryptoH323Token : public PASN_Choice
     operator const H235_CryptoToken &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1607,14 +1607,14 @@ class H225_CallLinkage : public PASN_Sequence
     H225_GloballyUniqueID m_globalCallId;
     H225_GloballyUniqueID m_threadId;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1632,14 +1632,14 @@ class H225_CapacityReportingCapability : public PASN_Sequence
 
     PASN_Boolean m_canReportCallCapacity;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1663,14 +1663,14 @@ class H225_CarrierInfo : public PASN_Sequence
     PASN_OctetString m_carrierIdentificationCode;
     PASN_IA5String m_carrierName;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1716,8 +1716,8 @@ class H225_ServiceControlDescriptor : public PASN_Choice
     operator const H225_CallCreditServiceControl &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1747,8 +1747,8 @@ class H225_CallTerminationCause : public PASN_Choice
     operator const H225_ReleaseCompleteReason &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1772,14 +1772,14 @@ class H225_CallCreditCapability : public PASN_Sequence
     PASN_Boolean m_canDisplayAmountString;
     PASN_Boolean m_canEnforceDurationLimit;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1810,8 +1810,8 @@ class H225_GenericIdentifier : public PASN_Choice
     operator const H225_GloballyUniqueID &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1879,8 +1879,8 @@ class H225_Content : public PASN_Choice
     operator const H225_ArrayOf_GenericData &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1904,14 +1904,14 @@ class H225_TransportChannelInfo : public PASN_Sequence
     H225_TransportAddress m_sendAddress;
     H225_TransportAddress m_recvAddress;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1932,8 +1932,8 @@ class H225_RehomingModel : public PASN_Choice
       e_endpointBased
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2218,8 +2218,8 @@ class H225_RasMessage : public PASN_Choice
     operator const H225_ArrayOf_AdmissionConfirm &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2255,8 +2255,8 @@ class H225_GatekeeperRejectReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2317,8 +2317,8 @@ class H225_RegistrationRejectReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2353,8 +2353,8 @@ class H225_UnregRequestReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2388,8 +2388,8 @@ class H225_UnregRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2412,8 +2412,8 @@ class H225_CallType : public PASN_Choice
       e_nToN
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2434,8 +2434,8 @@ class H225_CallModel : public PASN_Choice
       e_gatekeeperRouted
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2467,8 +2467,8 @@ class H225_TransportQOS : public PASN_Choice
     operator const H225_ArrayOf_QOSCapability &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2505,14 +2505,14 @@ class H225_UUIEsRequested : public PASN_Sequence
     PASN_Boolean m_setupAcknowledge;
     PASN_Boolean m_notify;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2570,8 +2570,8 @@ class H225_AdmissionRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2607,8 +2607,8 @@ class H225_BandRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2659,8 +2659,8 @@ class H225_LocationRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2682,8 +2682,8 @@ class H225_DisengageReason : public PASN_Choice
       e_undefinedReason
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2715,8 +2715,8 @@ class H225_DisengageRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2739,8 +2739,8 @@ class H225_InfoRequestResponseStatus : public PASN_Choice
       e_invalidCall
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2772,8 +2772,8 @@ class H225_InfoRequestNakReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2792,14 +2792,14 @@ class H225_H323_UserInformation_user_data : public PASN_Sequence
     PASN_Integer m_protocol_discriminator;
     PASN_OctetString m_user_information;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2917,8 +2917,8 @@ class H225_H323_UU_PDU_h323_message_body : public PASN_Choice
     operator const H225_Notify_UUIE &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2934,9 +2934,9 @@ class H225_ArrayOf_PASN_OctetString : public PASN_Array
   public:
     H225_ArrayOf_PASN_OctetString(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_OctetString & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2954,9 +2954,9 @@ class H225_ArrayOf_NonStandardParameter : public PASN_Array
   public:
     H225_ArrayOf_NonStandardParameter(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_NonStandardParameter & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2974,9 +2974,9 @@ class H225_ArrayOf_GenericData : public PASN_Array
   public:
     H225_ArrayOf_GenericData(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_GenericData & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -2994,9 +2994,9 @@ class H225_ArrayOf_ClearToken : public PASN_Array
   public:
     H225_ArrayOf_ClearToken(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_ClearToken & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3014,9 +3014,9 @@ class H225_ArrayOf_CryptoH323Token : public PASN_Array
   public:
     H225_ArrayOf_CryptoH323Token(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_CryptoH323Token & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3034,9 +3034,9 @@ class H225_ArrayOf_AliasAddress : public PASN_Array
   public:
     H225_ArrayOf_AliasAddress(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AliasAddress & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3054,9 +3054,9 @@ class H225_ArrayOf_ServiceControlSession : public PASN_Array
   public:
     H225_ArrayOf_ServiceControlSession(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_ServiceControlSession & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3072,9 +3072,9 @@ class H225_Connect_UUIE_language : public PASN_Array
   public:
     H225_Connect_UUIE_language(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_IA5String & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3092,9 +3092,9 @@ class H225_ArrayOf_CallReferenceValue : public PASN_Array
   public:
     H225_ArrayOf_CallReferenceValue(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_CallReferenceValue & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3118,8 +3118,8 @@ class H225_Setup_UUIE_conferenceGoal : public PASN_Choice
       e_callIndependentSupplementaryService
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3137,9 +3137,9 @@ class H225_ArrayOf_H245Security : public PASN_Array
   public:
     H225_ArrayOf_H245Security(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_H245Security & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3159,14 +3159,14 @@ class H225_Setup_UUIE_connectionParameters : public PASN_Sequence
     PASN_Integer m_numberOfScnConnections;
     H225_ScnConnectionAggregation m_connectionAggregation;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3182,9 +3182,9 @@ class H225_Setup_UUIE_language : public PASN_Array
   public:
     H225_Setup_UUIE_language(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_IA5String & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3202,9 +3202,9 @@ class H225_ArrayOf_SupportedProtocols : public PASN_Array
   public:
     H225_ArrayOf_SupportedProtocols(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_SupportedProtocols & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3222,9 +3222,9 @@ class H225_ArrayOf_FeatureDescriptor : public PASN_Array
   public:
     H225_ArrayOf_FeatureDescriptor(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_FeatureDescriptor & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3242,9 +3242,9 @@ class H225_ArrayOf_ExtendedAliasAddress : public PASN_Array
   public:
     H225_ArrayOf_ExtendedAliasAddress(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_ExtendedAliasAddress & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3262,9 +3262,9 @@ class H225_ArrayOf_ConferenceList : public PASN_Array
   public:
     H225_ArrayOf_ConferenceList(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_ConferenceList & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3283,14 +3283,14 @@ class H225_TransportAddress_ipAddress : public PASN_Sequence
     PASN_OctetString m_ip;
     PASN_Integer m_port;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3310,14 +3310,14 @@ class H225_TransportAddress_ipxAddress : public PASN_Sequence
     PASN_OctetString m_netnum;
     PASN_OctetString m_port;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3336,14 +3336,14 @@ class H225_TransportAddress_ip6Address : public PASN_Sequence
     PASN_OctetString m_ip;
     PASN_Integer m_port;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3361,9 +3361,9 @@ class H225_ArrayOf_TunnelledProtocol : public PASN_Array
   public:
     H225_ArrayOf_TunnelledProtocol(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_TunnelledProtocol & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3381,9 +3381,9 @@ class H225_ArrayOf_DataRate : public PASN_Array
   public:
     H225_ArrayOf_DataRate(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_DataRate & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3401,9 +3401,9 @@ class H225_ArrayOf_SupportedPrefix : public PASN_Array
   public:
     H225_ArrayOf_SupportedPrefix(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_SupportedPrefix & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3433,8 +3433,8 @@ class H225_TunnelledProtocol_id : public PASN_Choice
     operator const H225_TunnelledProtocolAlternateIdentifier &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3453,14 +3453,14 @@ class H225_AddressPattern_range : public PASN_Sequence
     H225_PartyNumber m_startOfRange;
     H225_PartyNumber m_endOfRange;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3481,8 +3481,8 @@ class H225_ANSI_41_UIM_system_id : public PASN_Choice
       e_mid
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3500,9 +3500,9 @@ class H225_ArrayOf_TransportAddress : public PASN_Array
   public:
     H225_ArrayOf_TransportAddress(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_TransportAddress & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3520,9 +3520,9 @@ class H225_ArrayOf_AlternateGK : public PASN_Array
   public:
     H225_ArrayOf_AlternateGK(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AlternateGK & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3542,14 +3542,14 @@ class H225_CryptoH323Token_cryptoEPPwdHash : public PASN_Sequence
     H235_TimeStamp m_timeStamp;
     H235_HASHED<H235_EncodedPwdCertToken> m_token;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3569,14 +3569,14 @@ class H225_CryptoH323Token_cryptoGKPwdHash : public PASN_Sequence
     H235_TimeStamp m_timeStamp;
     H235_HASHED<H235_EncodedPwdCertToken> m_token;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3600,14 +3600,14 @@ class H225_CapacityReportingSpecification_when : public PASN_Sequence
     PASN_Null m_callStart;
     PASN_Null m_callEnd;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3625,9 +3625,9 @@ class H225_ArrayOf_CallsAvailable : public PASN_Array
   public:
     H225_ArrayOf_CallsAvailable(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_CallsAvailable & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3643,9 +3643,9 @@ class H225_CicInfo_cic : public PASN_Array
   public:
     H225_CicInfo_cic(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_OctetString & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3661,9 +3661,9 @@ class H225_GroupID_member : public PASN_Array
   public:
     H225_GroupID_member(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_Integer & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3685,8 +3685,8 @@ class H225_ServiceControlSession_reason : public PASN_Choice
       e_close
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3712,14 +3712,14 @@ class H225_RasUsageSpecification_when : public PASN_Sequence
     PASN_Null m_end;
     PASN_Null m_inIrr;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3743,14 +3743,14 @@ class H225_RasUsageSpecification_callStartingPoint : public PASN_Sequence
     PASN_Null m_alerting;
     PASN_Null m_connect;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3771,8 +3771,8 @@ class H225_CallCreditServiceControl_billingMode : public PASN_Choice
       e_debit
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3793,8 +3793,8 @@ class H225_CallCreditServiceControl_callStartingPoint : public PASN_Choice
       e_connect
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3812,9 +3812,9 @@ class H225_ArrayOf_EnumeratedParameter : public PASN_Array
   public:
     H225_ArrayOf_EnumeratedParameter(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_EnumeratedParameter & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3830,9 +3830,9 @@ class H225_RTPSession_associatedSessionIds : public PASN_Array
   public:
     H225_RTPSession_associatedSessionIds(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_Integer & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3850,9 +3850,9 @@ class H225_ArrayOf_AdmissionConfirm : public PASN_Array
   public:
     H225_ArrayOf_AdmissionConfirm(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AdmissionConfirm & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3870,9 +3870,9 @@ class H225_ArrayOf_Endpoint : public PASN_Array
   public:
     H225_ArrayOf_Endpoint(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_Endpoint & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3890,9 +3890,9 @@ class H225_ArrayOf_AuthenticationMechanism : public PASN_Array
   public:
     H225_ArrayOf_AuthenticationMechanism(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_AuthenticationMechanism & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3908,9 +3908,9 @@ class H225_ArrayOf_PASN_ObjectId : public PASN_Array
   public:
     H225_ArrayOf_PASN_ObjectId(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_ObjectId & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3928,9 +3928,9 @@ class H225_ArrayOf_IntegrityMechanism : public PASN_Array
   public:
     H225_ArrayOf_IntegrityMechanism(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_IntegrityMechanism & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3948,9 +3948,9 @@ class H225_ArrayOf_AddressPattern : public PASN_Array
   public:
     H225_ArrayOf_AddressPattern(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AddressPattern & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3968,9 +3968,9 @@ class H225_ArrayOf_H248PackagesDescriptor : public PASN_Array
   public:
     H225_ArrayOf_H248PackagesDescriptor(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_H248PackagesDescriptor & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -3986,9 +3986,9 @@ class H225_RegistrationRequest_language : public PASN_Array
   public:
     H225_RegistrationRequest_language(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_IA5String & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4006,9 +4006,9 @@ class H225_ArrayOf_RasUsageSpecification : public PASN_Array
   public:
     H225_ArrayOf_RasUsageSpecification(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_RasUsageSpecification & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4034,14 +4034,14 @@ class H225_RegistrationRejectReason_invalidTerminalAliases : public PASN_Sequenc
     H225_ArrayOf_AddressPattern m_terminalAliasPattern;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4059,9 +4059,9 @@ class H225_ArrayOf_QOSCapability : public PASN_Array
   public:
     H225_ArrayOf_QOSCapability(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H245_QOSCapability & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4077,9 +4077,9 @@ class H225_AdmissionConfirm_language : public PASN_Array
   public:
     H225_AdmissionConfirm_language(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_IA5String & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4097,9 +4097,9 @@ class H225_ArrayOf_PartyNumber : public PASN_Array
   public:
     H225_ArrayOf_PartyNumber(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_PartyNumber & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4117,9 +4117,9 @@ class H225_ArrayOf_BandwidthDetails : public PASN_Array
   public:
     H225_ArrayOf_BandwidthDetails(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_BandwidthDetails & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4135,9 +4135,9 @@ class H225_LocationRequest_language : public PASN_Array
   public:
     H225_LocationRequest_language(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_IA5String & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4155,9 +4155,9 @@ class H225_InfoRequestResponse_perCallInfo : public PASN_Array
   public:
     H225_InfoRequestResponse_perCallInfo(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_InfoRequestResponse_perCallInfo_subtype & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4177,14 +4177,14 @@ class H225_ServiceControlIndication_callSpecific : public PASN_Sequence
     H225_ConferenceIdentifier m_conferenceID;
     PASN_Boolean m_answeredCall;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4208,8 +4208,8 @@ class H225_ServiceControlResponse_result : public PASN_Choice
       e_neededFeatureNotSupported
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4225,9 +4225,9 @@ class H225_TransportAddress_ipSourceRoute_route : public PASN_Array
   public:
     H225_TransportAddress_ipSourceRoute_route(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_OctetString & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4248,8 +4248,8 @@ class H225_TransportAddress_ipSourceRoute_routing : public PASN_Choice
       e_loose
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4267,9 +4267,9 @@ class H225_ArrayOf_RTPSession : public PASN_Array
   public:
     H225_ArrayOf_RTPSession(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_RTPSession & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4287,9 +4287,9 @@ class H225_ArrayOf_TransportChannelInfo : public PASN_Array
   public:
     H225_ArrayOf_TransportChannelInfo(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_TransportChannelInfo & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4307,9 +4307,9 @@ class H225_ArrayOf_ConferenceIdentifier : public PASN_Array
   public:
     H225_ArrayOf_ConferenceIdentifier(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_ConferenceIdentifier & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4327,9 +4327,9 @@ class H225_InfoRequestResponse_perCallInfo_subtype_pdu : public PASN_Array
   public:
     H225_InfoRequestResponse_perCallInfo_subtype_pdu(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_InfoRequestResponse_perCallInfo_subtype_pdu_subtype & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4355,14 +4355,14 @@ class H225_Status_UUIE : public PASN_Sequence
     H225_ArrayOf_ClearToken m_tokens;
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4388,14 +4388,14 @@ class H225_StatusInquiry_UUIE : public PASN_Sequence
     H225_ArrayOf_ClearToken m_tokens;
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4421,14 +4421,14 @@ class H225_SetupAcknowledge_UUIE : public PASN_Sequence
     H225_ArrayOf_ClearToken m_tokens;
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4454,14 +4454,14 @@ class H225_Notify_UUIE : public PASN_Sequence
     H225_ArrayOf_ClearToken m_tokens;
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4488,14 +4488,14 @@ class H225_VendorIdentifier : public PASN_Sequence
     PASN_OctetString m_versionId;
     PASN_ObjectId m_enterpriseNumber;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4518,14 +4518,14 @@ class H225_TunnelledProtocol : public PASN_Sequence
     H225_TunnelledProtocol_id m_id;
     PASN_IA5String m_subIdentifier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4544,14 +4544,14 @@ class H225_NonStandardParameter : public PASN_Sequence
     H225_NonStandardIdentifier m_nonStandardIdentifier;
     PASN_OctetString m_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4570,14 +4570,14 @@ class H225_PublicPartyNumber : public PASN_Sequence
     H225_PublicTypeOfNumber m_publicTypeOfNumber;
     H225_NumberDigits m_publicNumberDigits;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4596,14 +4596,14 @@ class H225_PrivatePartyNumber : public PASN_Sequence
     H225_PrivateTypeOfNumber m_privateTypeOfNumber;
     H225_NumberDigits m_privateNumberDigits;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4646,14 +4646,14 @@ class H225_ANSI_41_UIM : public PASN_Sequence
     PASN_IA5String m_sesn;
     PASN_IA5String m_soc;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4672,14 +4672,14 @@ class H225_IsupPublicPartyNumber : public PASN_Sequence
     H225_NatureOfAddress m_natureOfAddress;
     H225_IsupDigits m_address;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4698,14 +4698,14 @@ class H225_IsupPrivatePartyNumber : public PASN_Sequence
     H225_PrivateTypeOfNumber m_privateTypeOfNumber;
     H225_IsupDigits m_address;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4729,14 +4729,14 @@ class H225_AlternateTransportAddresses : public PASN_Sequence
     H225_ArrayOf_TransportAddress m_annexE;
     H225_ArrayOf_TransportAddress m_sctp;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4761,14 +4761,14 @@ class H225_AlternateGK : public PASN_Sequence
     PASN_Boolean m_needToRegister;
     PASN_Integer m_priority;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4787,14 +4787,14 @@ class H225_AltGKInfo : public PASN_Sequence
     H225_ArrayOf_AlternateGK m_alternateGatekeeper;
     PASN_Boolean m_altGKisPermanent;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4819,14 +4819,14 @@ class H225_SecurityCapabilities : public PASN_Sequence
     H225_SecurityServiceMode m_authenticaton;
     H225_SecurityServiceMode m_integrity;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4851,14 +4851,14 @@ class H225_QseriesOptions : public PASN_Sequence
     PASN_Boolean m_q957Full;
     H225_Q954Details m_q954Info;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4883,14 +4883,14 @@ class H225_DataRate : public PASN_Sequence
     H225_BandWidth m_channelRate;
     PASN_Integer m_channelMultiplier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4913,14 +4913,14 @@ class H225_SupportedPrefix : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
     H225_AliasAddress m_prefix;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4938,14 +4938,14 @@ class H225_CapacityReportingSpecification : public PASN_Sequence
 
     H225_CapacityReportingSpecification_when m_when;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -4989,14 +4989,14 @@ class H225_CallCapacityInfo : public PASN_Sequence
     H225_ArrayOf_CallsAvailable m_mcuCallsAvailable;
     H225_ArrayOf_CallsAvailable m_sipGwCallsAvailable;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5021,14 +5021,14 @@ class H225_CallsAvailable : public PASN_Sequence
     PASN_IA5String m_group;
     H225_CarrierInfo m_carrier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5047,14 +5047,14 @@ class H225_CicInfo : public PASN_Sequence
     H225_CicInfo_cic m_cic;
     PASN_OctetString m_pointCode;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5077,14 +5077,14 @@ class H225_GroupID : public PASN_Sequence
     H225_GroupID_member m_member;
     PASN_IA5String m_group;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5108,14 +5108,14 @@ class H225_ServiceControlSession : public PASN_Sequence
     H225_ServiceControlDescriptor m_contents;
     H225_ServiceControlSession_reason m_reason;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5142,14 +5142,14 @@ class H225_RasUsageInfoTypes : public PASN_Sequence
     PASN_Null m_endTime;
     PASN_Null m_terminationCause;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5173,14 +5173,14 @@ class H225_RasUsageSpecification : public PASN_Sequence
     H225_RasUsageSpecification_callStartingPoint m_callStartingPoint;
     H225_RasUsageInfoTypes m_required;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5207,14 +5207,14 @@ class H225_RasUsageInformation : public PASN_Sequence
     H235_TimeStamp m_connectTime;
     H235_TimeStamp m_endTime;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5235,14 +5235,14 @@ class H225_BandwidthDetails : public PASN_Sequence
     H225_BandWidth m_bandwidth;
     H225_TransportChannelInfo m_rtcpAddresses;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5272,14 +5272,14 @@ class H225_CallCreditServiceControl : public PASN_Sequence
     PASN_Boolean m_enforceCallDurationLimit;
     H225_CallCreditServiceControl_callStartingPoint m_callStartingPoint;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5302,14 +5302,14 @@ class H225_GenericData : public PASN_Sequence
     H225_GenericIdentifier m_id;
     H225_ArrayOf_EnumeratedParameter m_parameters;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5332,14 +5332,14 @@ class H225_EnumeratedParameter : public PASN_Sequence
     H225_GenericIdentifier m_id;
     H225_Content m_content;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5366,14 +5366,14 @@ class H225_FeatureSet : public PASN_Sequence
     H225_ArrayOf_FeatureDescriptor m_desiredFeatures;
     H225_ArrayOf_FeatureDescriptor m_supportedFeatures;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5403,14 +5403,14 @@ class H225_RTPSession : public PASN_Sequence
     PASN_Null m_multicast;
     H225_BandWidth m_bandwidth;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5459,14 +5459,14 @@ class H225_GatekeeperConfirm : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
     H225_RehomingModel m_rehomingModel;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5505,14 +5505,14 @@ class H225_GatekeeperReject : public PASN_Sequence
     H225_FeatureSet m_featureSet;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5553,14 +5553,14 @@ class H225_RegistrationReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5610,14 +5610,14 @@ class H225_UnregistrationRequest : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5650,14 +5650,14 @@ class H225_UnregistrationConfirm : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5691,14 +5691,14 @@ class H225_UnregistrationReject : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5740,14 +5740,14 @@ class H225_AdmissionReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5782,14 +5782,14 @@ class H225_BandwidthReject : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5827,14 +5827,14 @@ class H225_LocationReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_ArrayOf_ServiceControlSession m_serviceControl;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5868,14 +5868,14 @@ class H225_DisengageReject : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5925,14 +5925,14 @@ class H225_InfoRequest : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -5961,14 +5961,14 @@ class H225_InfoRequestAck : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
     H225_ICV m_integrityCheckValue;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6000,14 +6000,14 @@ class H225_InfoRequestNak : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
     H225_ICV m_integrityCheckValue;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6039,14 +6039,14 @@ class H225_NonStandardMessage : public PASN_Sequence
     H225_FeatureSet m_featureSet;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6075,14 +6075,14 @@ class H225_UnknownMessageResponse : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     PASN_OctetString m_messageNotUnderstood;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6112,14 +6112,14 @@ class H225_RequestInProgress : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     PASN_Integer m_delay;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6151,14 +6151,14 @@ class H225_ResourcesAvailableConfirm : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6196,14 +6196,14 @@ class H225_ServiceControlIndication : public PASN_Sequence
     H225_FeatureSet m_featureSet;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6238,14 +6238,14 @@ class H225_ServiceControlResponse : public PASN_Sequence
     H225_FeatureSet m_featureSet;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6271,14 +6271,14 @@ class H225_H323_UU_PDU_tunnelledSignallingMessage : public PASN_Sequence
     PASN_Null m_tunnellingRequired;
     H225_NonStandardParameter m_nonStandardData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6299,14 +6299,14 @@ class H225_TransportAddress_ipSourceRoute : public PASN_Sequence
     H225_TransportAddress_ipSourceRoute_route m_route;
     H225_TransportAddress_ipSourceRoute_routing m_routing;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6338,14 +6338,14 @@ class H225_RegistrationConfirm_preGrantedARQ : public PASN_Sequence
     H225_AlternateTransportAddresses m_alternateTransportAddresses;
     H225_UseSpecifiedTransport m_useSpecifiedTransport;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6371,14 +6371,14 @@ class H225_StimulusControl : public PASN_Sequence
     PASN_Null m_isText;
     PASN_OctetString m_h248Message;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6404,14 +6404,14 @@ class H225_ConferenceList : public PASN_Sequence
     H225_AliasAddress m_conferenceAlias;
     H225_NonStandardParameter m_nonStandardData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6435,14 +6435,14 @@ class H225_GatewayInfo : public PASN_Sequence
     H225_ArrayOf_SupportedProtocols m_protocol;
     H225_NonStandardParameter m_nonStandardData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6468,14 +6468,14 @@ class H225_H310Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6501,14 +6501,14 @@ class H225_H320Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6534,14 +6534,14 @@ class H225_H321Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6567,14 +6567,14 @@ class H225_H322Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6600,14 +6600,14 @@ class H225_H323Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6633,14 +6633,14 @@ class H225_H324Caps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6666,14 +6666,14 @@ class H225_VoiceCaps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6699,14 +6699,14 @@ class H225_T120OnlyCaps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6731,14 +6731,14 @@ class H225_NonStandardProtocol : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6765,14 +6765,14 @@ class H225_T38FaxAnnexbOnlyCaps : public PASN_Sequence
     H245_DataProtocolCapability m_t38FaxProtocol;
     H245_T38FaxProfile m_t38FaxProfile;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6798,14 +6798,14 @@ class H225_SIPCaps : public PASN_Sequence
     H225_ArrayOf_DataRate m_dataRatesSupported;
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6829,14 +6829,14 @@ class H225_McuInfo : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
     H225_ArrayOf_SupportedProtocols m_protocol;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6858,14 +6858,14 @@ class H225_TerminalInfo : public PASN_Sequence
 
     H225_NonStandardParameter m_nonStandardData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6887,14 +6887,14 @@ class H225_GatekeeperInfo : public PASN_Sequence
 
     H225_NonStandardParameter m_nonStandardData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6910,7 +6910,7 @@ class H225_FeatureDescriptor : public H225_GenericData
   public:
     H225_FeatureDescriptor(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6934,14 +6934,14 @@ class H225_CallCapacity : public PASN_Sequence
     H225_CallCapacityInfo m_maximumCallCapacity;
     H225_CallCapacityInfo m_currentCallCapacity;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -6967,14 +6967,14 @@ class H225_CircuitIdentifier : public PASN_Sequence
     H225_GroupID m_group;
     H225_CarrierInfo m_carrier;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7044,14 +7044,14 @@ class H225_RegistrationConfirm : public PASN_Sequence
     H225_RehomingModel m_rehomingModel;
     H225_TransportQOS m_transportQOS;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7104,14 +7104,14 @@ class H225_BandwidthRequest : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_TransportQOS m_transportQOS;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7147,14 +7147,14 @@ class H225_BandwidthConfirm : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_TransportQOS m_transportQOS;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7191,14 +7191,14 @@ class H225_ResourcesAvailableIndicate : public PASN_Sequence
     H225_CallCapacity m_capacity;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7239,14 +7239,14 @@ class H225_H323_UU_PDU : public PASN_Sequence
     H225_StimulusControl m_stimulusControl;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7287,14 +7287,14 @@ class H225_ReleaseComplete_UUIE : public PASN_Sequence
     H225_ArrayOf_ServiceControlSession m_serviceControl;
     H225_FeatureSet m_featureSet;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7332,14 +7332,14 @@ class H225_EndpointType : public PASN_Sequence
     PASN_BitString m_set;
     H225_ArrayOf_TunnelledProtocol m_supportedTunnelledProtocols;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7365,14 +7365,14 @@ class H225_CircuitInfo : public PASN_Sequence
     H225_CircuitIdentifier m_destinationCircuitID;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7428,14 +7428,14 @@ class H225_GatekeeperRequest : public PASN_Sequence
     PASN_Boolean m_supportsAssignedGK;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7522,14 +7522,14 @@ class H225_RegistrationRequest : public PASN_Sequence
     H225_TransportQOS m_transportQOS;
     H225_RegistrationRequest_language m_language;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7610,14 +7610,14 @@ class H225_AdmissionRequest : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     PASN_Boolean m_canMapSrcAlias;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7691,14 +7691,14 @@ class H225_AdmissionConfirm : public PASN_Sequence
     H225_ArrayOf_AliasAddress m_modifiedSrcInfo;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7759,14 +7759,14 @@ class H225_LocationRequest : public PASN_Sequence
     PASN_Boolean m_canMapSrcAlias;
     H225_LocationRequest_language m_language;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7825,14 +7825,14 @@ class H225_LocationConfirm : public PASN_Sequence
     H225_ArrayOf_AliasAddress m_modifiedSrcInfo;
     H225_BandWidth m_bandWidth;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7885,14 +7885,14 @@ class H225_DisengageRequest : public PASN_Sequence
     H225_ArrayOf_ServiceControlSession m_serviceControl;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7931,14 +7931,14 @@ class H225_DisengageConfirm : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
     H225_AlternateGK m_assignedGatekeeper;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -7985,14 +7985,14 @@ class H225_InfoRequestResponse : public PASN_Sequence
     PASN_Boolean m_unsolicited;
     H225_ArrayOf_GenericData m_genericData;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8045,14 +8045,14 @@ class H225_InfoRequestResponse_perCallInfo_subtype : public PASN_Sequence
     H225_RasUsageInformation m_usageInformation;
     H225_CircuitInfo m_circuitInfo;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8071,14 +8071,14 @@ class H225_InfoRequestResponse_perCallInfo_subtype_pdu_subtype : public PASN_Seq
     H225_H323_UU_PDU m_h323pdu;
     PASN_Boolean m_sent;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8101,14 +8101,14 @@ class H225_H323_UserInformation : public PASN_Sequence
     H225_H323_UU_PDU m_h323_uu_pdu;
     H225_H323_UserInformation_user_data m_user_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8160,14 +8160,14 @@ class H225_Alerting_UUIE : public PASN_Sequence
     H225_CallCapacity m_capacity;
     H225_FeatureSet m_featureSet;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8209,14 +8209,14 @@ class H225_CallProceeding_UUIE : public PASN_Sequence
     PASN_Null m_fastConnectRefused;
     H225_FeatureSet m_featureSet;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8271,14 +8271,14 @@ class H225_Connect_UUIE : public PASN_Sequence
     H225_CallCapacity m_capacity;
     H225_FeatureSet m_featureSet;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8311,14 +8311,14 @@ class H225_Information_UUIE : public PASN_Sequence
     PASN_Null m_fastConnectRefused;
     H225_CircuitInfo m_circuitInfo;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8412,14 +8412,14 @@ class H225_Setup_UUIE : public PASN_Sequence
     H225_ArrayOf_ExtendedAliasAddress m_additionalSourceAddresses;
     PASN_Integer m_hopCount;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8479,14 +8479,14 @@ class H225_Facility_UUIE : public PASN_Sequence
     H225_EndpointType m_destinationInfo;
     H225_H245Security m_h245SecurityMode;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8525,14 +8525,14 @@ class H225_Progress_UUIE : public PASN_Sequence
     PASN_Boolean m_maintainConnection;
     PASN_Null m_fastConnectRefused;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -8578,14 +8578,14 @@ class H225_Endpoint : public PASN_Sequence
     H225_CircuitInfo m_circuitInfo;
     H225_FeatureSet m_featureSet;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

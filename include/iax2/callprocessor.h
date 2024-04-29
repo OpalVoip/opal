@@ -105,7 +105,7 @@ class IAX2CallProcessor : public IAX2Processor
   
   /**A method to cause some of the values in this class to be formatted
      into a printable stream */
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Invoked by the User interface, which causes the statistics (count of
      in/out packets) to be printed*/
@@ -196,7 +196,7 @@ class IAX2CallProcessor : public IAX2Processor
 
   @return true if the frame is out of order, which deletes the supplied frame
   @return false, and does not destroy the supplied frame*/
-  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *ff);
+  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *ff) override;
 
   /** Advise the other end that we have picked up the phone. This
       method is public, as it is called by the IAX2Connection class,
@@ -224,7 +224,7 @@ class IAX2CallProcessor : public IAX2Processor
   
   /**Internal method to process an incoming network frame of type
      IAX2MiniFrame */
-  void ProcessNetworkFrame(IAX2MiniFrame * src);
+  void ProcessNetworkFrame(IAX2MiniFrame * src) override;
   
   /**Internal method to process an incoming network frame of type
     IAX2FullFrame */
@@ -256,7 +256,7 @@ class IAX2CallProcessor : public IAX2Processor
   A frame of FullFrameProtocol type is labelled as AST_FRAME_IAX in
   the asterisk souces, It will contain 0, 1, 2 or more Information
   Elements (Ie) in the data section.*/
-  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src) override;
   
   /**Internal method to process an incoming network frame of type
      IAX2FullFrameText */
@@ -276,7 +276,7 @@ class IAX2CallProcessor : public IAX2Processor
   
   /**Go through the three lists for incoming data (ethernet/sound/UI
      commands.  */
-  virtual void ProcessLists();
+  virtual void ProcessLists() override;
     
   /**Make a call to a remote node*/
   void ConnectToRemoteNode(PString & destination);
@@ -663,10 +663,10 @@ class IAX2CallProcessor : public IAX2Processor
   
   /**A call back when there has been no acknowledgment and the
     timeout peroid has been reached */
-  virtual void OnNoResponseTimeout();
+  virtual void OnNoResponseTimeout() override;
   
   /**Process a full frame and respond accordingly to it*/
-  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame);
+  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame) override;
   
   /**The calling Name - used when we send a new packet to the remote
      host - this name is put the new packet */

@@ -38,7 +38,7 @@ class H460TM_TMmode : public PASN_Enumeration
     };
 
     H460TM_TMmode & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -63,14 +63,14 @@ class H460TM_MultipointTM : public PASN_Sequence
     PASN_Integer m_sender;
     PASN_Integer m_receiver;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

@@ -49,12 +49,12 @@ class SDPFaxMediaDescription : public SDPMediaDescription
   PCLASSINFO(SDPFaxMediaDescription, SDPMediaDescription);
   public:
     SDPFaxMediaDescription(const OpalTransportAddress & address);
-    virtual SDPMediaFormat * CreateSDPMediaFormat();
-    virtual PString GetSDPPortList() const;
-    virtual void OutputAttributes(ostream & str) const;
-    virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual void ProcessMediaOptions(SDPMediaFormat & sdpFormat, const OpalMediaFormat & mediaFormat);
-    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
+    virtual SDPMediaFormat * CreateSDPMediaFormat() override;
+    virtual PString GetSDPPortList() const override;
+    virtual void OutputAttributes(ostream & str) const override;
+    virtual void SetAttribute(const PString & attr, const PString & value) override;
+    virtual void ProcessMediaOptions(SDPMediaFormat & sdpFormat, const OpalMediaFormat & mediaFormat) override;
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats) override;
 
   protected:
     class Format : public SDPMediaFormat

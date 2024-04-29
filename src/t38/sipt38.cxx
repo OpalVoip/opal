@@ -48,7 +48,7 @@ Either, or both, can be used in a call
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sipt38.h"
 #endif
 

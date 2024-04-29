@@ -999,13 +999,6 @@ void MyManager::OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & 
 }
 
 
-void MyManager::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & patch)
-{
-  dynamic_cast<MyCall &>(connection.GetCall()).OnStopMediaPatch(patch);
-  OpalManager::OnStopMediaPatch(connection, patch);
-}
-
-
 #if OPAL_HAS_MIXER
 void MyManager::StartRecordingCall(MyCall & call) const
 {

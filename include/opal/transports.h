@@ -187,7 +187,7 @@ class OpalTransportAddress : public PCaselessString
     );
 
     /// Clone function
-    virtual PObject * Clone() const { return new OpalTransportAddress(*this); }
+    virtual PObject * Clone() const override { return new OpalTransportAddress(*this); }
   //@}
 
   /**@name Operations */
@@ -427,7 +427,7 @@ class OpalListener : public PObject
       */
     void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -568,7 +568,7 @@ class OpalListenerIP : public OpalListener
     virtual OpalTransportAddress GetLocalAddress(
       const OpalTransportAddress & remoteAddress = OpalTransportAddress(),
       const OpalTransportAddress & defaultAddress = OpalTransportAddress() // If INADDR_ANY
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -638,33 +638,33 @@ class OpalListenerTCP : public OpalListenerIP
     virtual bool Open(
       const AcceptHandler & acceptHandler,  ///<  Handler function for new connections
       ThreadMode mode = SpawnNewThreadMode ///<  How handler function is called thread wise
-    );
+    ) override;
 
     /** Indicate if the listener is open.
       */
-    virtual bool IsOpen() const;
+    virtual bool IsOpen() const override;
 
     /**Stop the listener thread and no longer accept incoming connections.
      */
-    virtual void Close();
+    virtual void Close() override;
 
     /**Accept a new incoming transport.
       */
     virtual OpalTransport * Accept(
       const PTimeInterval & timeout  ///<  Time to wait for incoming connection
-    );
+    ) override;
 
     /**Create a transport compatible with this listener.
      */
     virtual OpalTransport * CreateTransport(
       const OpalTransportAddress & localAddress,
       const OpalTransportAddress & remoteAddress
-    ) const;
+    ) const override;
   //@}
 
 
   protected:
-    virtual const PCaselessString & GetProtoPrefix() const;
+    virtual const PCaselessString & GetProtoPrefix() const override;
     virtual OpalTransport * OnAccept(PTCPSocket * socket);
 
     PTCPSocket m_listener;
@@ -721,34 +721,34 @@ class OpalListenerUDP : public OpalListenerIP
     virtual bool Open(
       const AcceptHandler & acceptHandler,  ///<  Handler function for new connections
       ThreadMode mode = SpawnNewThreadMode ///<  How handler function is called thread wise
-    );
+    ) override;
 
     /** Indicate if the listener is open.
       */
-    virtual bool IsOpen() const;
+    virtual bool IsOpen() const override;
 
     /**Stop the listener thread and no longer accept incoming connections.
      */
-    virtual void Close();
+    virtual void Close() override;
 
 #if OPAL_PTLIB_NAT
     /**Indicate that the NAT methods have changed in some way.
     */
-    virtual bool ChangedNAT();
+    virtual bool ChangedNAT() override;
 #endif // OPAL_PTLIB_NAT
 
     /**Accept a new incoming transport.
       */
     virtual OpalTransport * Accept(
       const PTimeInterval & timeout  ///<  Time to wait for incoming connection
-    );
+    ) override;
 
     /**Create a transport compatible with this listener.
      */
     virtual OpalTransport * CreateTransport(
       const OpalTransportAddress & localAddress,
       const OpalTransportAddress & remoteAddress
-    ) const;
+    ) const override;
 
     /**Get the local transport address on which this listener may be accessed.
        If remoteAddress is present and is an address that requires NAT for
@@ -758,7 +758,7 @@ class OpalListenerUDP : public OpalListenerIP
     virtual OpalTransportAddress GetLocalAddress(
       const OpalTransportAddress & remoteAddress = OpalTransportAddress(),
       const OpalTransportAddress & defaultAddress = OpalTransportAddress() // If INADDR_ANY
-    ) const;
+    ) const override;
   //@}
 
   /**@name Member access */
@@ -772,7 +772,7 @@ class OpalListenerUDP : public OpalListenerIP
 
 
   protected:
-    virtual const PCaselessString & GetProtoPrefix() const;
+    virtual const PCaselessString & GetProtoPrefix() const override;
 
     PMonitoredSocketsPtr m_listenerBundle;
     PINDEX               m_bufferSize;
@@ -807,7 +807,7 @@ class OpalTransport : public PSafeObject
       */
     void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
 
     /**Low level write to the channel. This function will block until the
        requested number of characters are written or the write timeout is
@@ -1069,15 +1069,15 @@ class OpalTransportIP : public OpalTransport
   //@{
     /** Get the interface this transport is bound to.
       */
-    virtual PString GetInterface() const;
+    virtual PString GetInterface() const override;
 
     /**Get the transport dependent name of the local endpoint.
       */
-    virtual OpalTransportAddress GetLocalAddress() const;
+    virtual OpalTransportAddress GetLocalAddress() const override;
 
     /**Get the transport dependent name of the remote endpoint.
       */
-    virtual OpalTransportAddress GetRemoteAddress() const;
+    virtual OpalTransportAddress GetRemoteAddress() const override;
 
     /**Set remote address to connect to.
        Note that this does not necessarily initiate a transport level
@@ -1086,14 +1086,14 @@ class OpalTransportIP : public OpalTransport
       */
     virtual PBoolean SetRemoteAddress(
       const OpalTransportAddress & address
-    );
+    ) override;
 
   //@}
 
   protected:
     /**Get the prefix for this transports protocol type.
       */
-    virtual const PCaselessString & GetProtoPrefix() const = 0;
+    virtual const PCaselessString & GetProtoPrefix() const override = 0;
 
     PIPAddress              m_binding;
     PIPSocketAddressAndPort m_localAP;  // Address of the local (NAT adjusted)
@@ -1128,17 +1128,17 @@ class OpalTransportTCP : public OpalTransportIP
   //@{
     /**Get indication of the type of underlying transport.
       */
-    virtual PBoolean IsReliable() const;
+    virtual PBoolean IsReliable() const override;
 
     /**Check that the transport address is compatible with transport.
       */
     virtual PBoolean IsCompatibleTransport(
       const OpalTransportAddress & address
-    ) const;
+    ) const override;
 
     /**Connect to the remote address.
       */
-    virtual PBoolean Connect();
+    virtual PBoolean Connect() override;
 
     /**Read a packet from the transport.
        This will read using the transports mechanism for PDU boundaries, for
@@ -1151,7 +1151,7 @@ class OpalTransportTCP : public OpalTransportIP
       */
     virtual PBoolean ReadPDU(
       PBYTEArray & pdu  ///<  PDU read from transport
-    );
+    ) override;
 
     /**Write a packet to the transport.
        This will write using the transports mechanism for PDU boundaries, for
@@ -1160,7 +1160,7 @@ class OpalTransportTCP : public OpalTransportIP
       */
     virtual PBoolean WritePDU(
       const PBYTEArray & pdu     ///<  Packet to write
-    );
+    ) override;
   //@}
 
     /** Set PDU length format.
@@ -1185,7 +1185,7 @@ class OpalTransportTCP : public OpalTransportIP
   protected:
     /**Get the prefix for this transports protocol type.
       */
-    virtual const PCaselessString & GetProtoPrefix() const;
+    virtual const PCaselessString & GetProtoPrefix() const override;
 
     bool OnConnectedSocket(PTCPSocket * socket);
 
@@ -1235,13 +1235,13 @@ class OpalTransportUDP : public OpalTransportIP
   //@{
     /**Get indication of the type of underlying transport.
       */
-    virtual PBoolean IsReliable() const;
+    virtual PBoolean IsReliable() const override;
 
     /**Check that the transport address is compatible with transport.
       */
     virtual PBoolean IsCompatibleTransport(
       const OpalTransportAddress & address
-    ) const;
+    ) const override;
 
     /**Connect to the remote party.
        This will createa a socket for each interface on the system, then the
@@ -1250,11 +1250,11 @@ class OpalTransportUDP : public OpalTransportIP
        which interface it wants by further calls to ReadPDU(). Once it has
        selected one it calls SetInterface() to finalise the selection process.
       */
-    virtual PBoolean Connect();
+    virtual PBoolean Connect() override;
 
     /** Get the interface this transport is bound to.
       */
-    virtual PString GetInterface() const;
+    virtual PString GetInterface() const override;
 
     /**Bind this transport to an interface.
         This is generally only relevant for datagram based transports such as
@@ -1264,11 +1264,11 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual bool SetInterface(
       const PString & iface  ///< Interface to use
-    );
+    ) override;
 
     /**Get the transport dependent name of the local endpoint.
       */
-    virtual OpalTransportAddress GetLocalAddress() const;
+    virtual OpalTransportAddress GetLocalAddress() const override;
 
     /**Set remote address to connect to.
        Note that this does not necessarily initiate a transport level
@@ -1277,7 +1277,7 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual PBoolean SetRemoteAddress(
       const OpalTransportAddress & address
-    );
+    ) override;
 
     /**Set read to promiscuous mode.
        Normally only reads from the specifed remote address are accepted. This
@@ -1292,19 +1292,19 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual void SetPromiscuous(
       PromisciousModes promiscuous
-    );
+    ) override;
 
     /**Get the transport address of the last received PDU.
 
        Default behaviour returns the lastReceivedAddress member variable.
       */
-    virtual OpalTransportAddress GetLastReceivedAddress() const;
+    virtual OpalTransportAddress GetLastReceivedAddress() const override;
 
     /**Get the interface of the last received PDU arrived on.
 
        Default behaviour returns GetLocalAddress().
       */
-    virtual PString GetLastReceivedInterface() const;
+    virtual PString GetLastReceivedInterface() const override;
 
     /**Read a protocol data unit from the transport.
        This will read using the transports mechanism for PDU boundaries, for
@@ -1317,7 +1317,7 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual PBoolean ReadPDU(
       PBYTEArray & packet   ///<  Packet read from transport
-    );
+    ) override;
 
     /**Write a packet to the transport.
        This will write using the transports mechanism for PDU boundaries, for
@@ -1326,7 +1326,7 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual PBoolean WritePDU(
       const PBYTEArray & pdu     ///<  Packet to write
-    );
+    ) override;
 
     /**Write the first packet to the transport, after a connect.
        This will adjust the transport object and call the callback function,
@@ -1340,7 +1340,7 @@ class OpalTransportUDP : public OpalTransportIP
       */
     virtual bool WriteConnect(
       const WriteConnectCallback & function  ///<  Function for writing data
-    );
+    ) override;
 
     /**Set the size of UDP packet reads.
       */
@@ -1352,7 +1352,7 @@ class OpalTransportUDP : public OpalTransportIP
   protected:
     /**Get the prefix for this transports protocol type.
       */
-    virtual const PCaselessString & GetProtoPrefix() const;
+    virtual const PCaselessString & GetProtoPrefix() const override;
 
     OpalManager & m_manager;
     PINDEX        m_bufferSize;
@@ -1408,16 +1408,16 @@ class OpalInternalIPTransport : public OpalInternalTransport
     virtual bool Parse(
       OpalTransportAddress & address,
       WORD port
-    ) const;
+    ) const override;
     virtual PString GetHostName(
       const OpalTransportAddress & address,
       bool includeService
-    ) const;
+    ) const override;
     virtual PBoolean GetIpAndPort(
       const OpalTransportAddress & address,
       PIPSocket::Address & ip,
       WORD & port
-    ) const;
+    ) const override;
 
     static PBoolean GetAdjustedIpAndPort(const OpalTransportAddress & address,
                                      OpalEndPoint & endpoint,
@@ -1489,15 +1489,15 @@ class OpalListenerTLS : public OpalListenerTCP
       */
     ~OpalListenerTLS();
 
-    virtual PBoolean Open(const AcceptHandler & acceptHandler, ThreadMode mode = SpawnNewThreadMode);
-    virtual const PCaselessString & GetProtoPrefix() const;
+    virtual PBoolean Open(const AcceptHandler & acceptHandler, ThreadMode mode = SpawnNewThreadMode) override;
+    virtual const PCaselessString & GetProtoPrefix() const override;
     virtual OpalTransport * CreateTransport(
       const OpalTransportAddress & localAddress,
       const OpalTransportAddress & remoteAddress
-    ) const;
+    ) const override;
 
   protected:
-    virtual OpalTransport * OnAccept(PTCPSocket * socket);
+    virtual OpalTransport * OnAccept(PTCPSocket * socket) override;
 
     PSSLContext * m_sslContext;
 };
@@ -1523,10 +1523,10 @@ class OpalTransportTLS : public OpalTransportTCP
       ~OpalTransportTLS();
 
       // Overrides
-      virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const;
-      virtual PBoolean Connect();
-      virtual const PCaselessString & GetProtoPrefix() const;
-      virtual bool IsAuthenticated(const PString & domain) const;
+      virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const override;
+      virtual PBoolean Connect() override;
+      virtual const PCaselessString & GetProtoPrefix() const override;
+      virtual bool IsAuthenticated(const PString & domain) const override;
 };
 
 
@@ -1565,11 +1565,11 @@ public:
   virtual OpalTransport * CreateTransport(
     const OpalTransportAddress & localAddress,
     const OpalTransportAddress & remoteAddress
-    ) const;
+  ) const override;
 
 protected:
-  virtual const PCaselessString & GetProtoPrefix() const;
-  virtual OpalTransport * OnAccept(PTCPSocket * socket);
+  virtual const PCaselessString & GetProtoPrefix() const override;
+  virtual OpalTransport * OnAccept(PTCPSocket * socket) override;
 };
 
 
@@ -1589,10 +1589,10 @@ public:
     OpalTransportAddress::BindOptions option  ///< OPtions for binding
     );
 
-  virtual const PCaselessString & GetProtoPrefix() const;
+  virtual const PCaselessString & GetProtoPrefix() const override;
 
 protected:
-  virtual OpalTransport * OnAccept(PTCPSocket * socket);
+  virtual OpalTransport * OnAccept(PTCPSocket * socket) override;
 };
 
 
@@ -1613,7 +1613,7 @@ public:
 
   /**Connect to the remote address.
   */
-  virtual PBoolean Connect();
+  virtual PBoolean Connect() override;
 
   /** Read a packet from the transport.
   This will read using the transports mechanism for PDU boundaries, for
@@ -1626,7 +1626,7 @@ public:
   */
   virtual PBoolean ReadPDU(
     PBYTEArray & pdu  ///<  PDU read from transport
-    );
+  ) override;
 
   /**Write a packet to the transport.
   This will write using the transports mechanism for PDU boundaries, for
@@ -1635,10 +1635,10 @@ public:
   */
   virtual PBoolean WritePDU(
     const PBYTEArray & pdu     ///<  Packet to write
-    );
+  ) override;
 
-  virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const;
-  virtual const PCaselessString & GetProtoPrefix() const;
+  virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const override;
+  virtual const PCaselessString & GetProtoPrefix() const override;
 };
 
 
@@ -1659,7 +1659,7 @@ public:
 
   /**Connect to the remote address.
   */
-  virtual PBoolean Connect();
+  virtual PBoolean Connect() override;
 
   /** Read a packet from the transport.
   This will read using the transports mechanism for PDU boundaries, for
@@ -1672,7 +1672,7 @@ public:
   */
   virtual PBoolean ReadPDU(
     PBYTEArray & pdu  ///<  PDU read from transport
-    );
+  ) override;
 
   /**Write a packet to the transport.
   This will write using the transports mechanism for PDU boundaries, for
@@ -1681,10 +1681,10 @@ public:
   */
   virtual PBoolean WritePDU(
     const PBYTEArray & pdu     ///<  Packet to write
-    );
+  ) override;
 
-  virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const;
-  virtual const PCaselessString & GetProtoPrefix() const;
+  virtual PBoolean IsCompatibleTransport(const OpalTransportAddress & address) const override;
+  virtual const PCaselessString & GetProtoPrefix() const override;
 };
 
 
@@ -1706,7 +1706,7 @@ class OpalHTTPConnector : public PHTTPResource
       const PHTTPAuthority & auth    ///< Authorisation for the resource.
     );
 
-    virtual bool OnWebSocket(PHTTPServer & server, PHTTPConnectionInfo & connectInfo);
+    virtual bool OnWebSocket(PHTTPServer & server, PHTTPConnectionInfo & connectInfo) override;
 
   protected:
     OpalManager & m_manager;

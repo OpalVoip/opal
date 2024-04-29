@@ -58,7 +58,7 @@ class RTP_SourceDescription : public PObject
   public:
     RTP_SourceDescription(RTP_SyncSourceId src) { sourceIdentifier = src; }
 #if PTRACING
-    void PrintOn(ostream &) const;
+    void PrintOn(ostream &) const override;
 #endif
 
     RTP_SyncSourceId sourceIdentifier;
@@ -107,7 +107,7 @@ class RTP_ControlFrame : public PBYTEArray
     RTP_ControlFrame(const BYTE * data, PINDEX size, bool dynamic = true);
 
 #if PTRACING
-    virtual void PrintOn(ostream &) const;
+    virtual void PrintOn(ostream &) const override;
 #endif
 
     bool IsValid() const;
@@ -488,7 +488,7 @@ class RTP_ControlFrame : public PBYTEArray
     PINDEX m_payloadSize;
 
   private:
-    virtual PBoolean SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
+    virtual PBoolean SetSize(PINDEX sz) override { return PBYTEArray::SetSize(sz); }
 };
 
 
@@ -499,7 +499,7 @@ class RTP_SenderReport : public PObject
     RTP_SenderReport();
     RTP_SenderReport(const RTP_ControlFrame::SenderReport & report);
 #if PTRACING
-    void PrintOn(ostream &) const;
+    void PrintOn(ostream &) const override;
 #endif
 
     RTP_SyncSourceId sourceIdentifier;
@@ -517,7 +517,7 @@ class RTP_ReceiverReport : public PObject
   public:
     RTP_ReceiverReport(const RTP_ControlFrame::ReceiverReport & report, uint64_t ntpPassThru);
 #if PTRACING
-    void PrintOn(ostream &) const;
+    void PrintOn(ostream &) const override;
 #endif
 
     RTP_SyncSourceId sourceIdentifier;     /* data source being reported */
@@ -536,7 +536,7 @@ class RTP_DelayLastReceiverReport : public PObject
   public:
     RTP_DelayLastReceiverReport(const RTP_ControlFrame::DelayLastReceiverReport::Receiver & dlrr);
 #if PTRACING
-    void PrintOn(ostream &) const;
+    void PrintOn(ostream &) const override;
 #endif
 
     RTP_SyncSourceId m_ssrc;
@@ -690,9 +690,9 @@ class RTP_DataFrame : public PBYTEArray
     bool   SetPayload(const BYTE * data, PINDEX sz);
     BYTE * GetPayloadPtr() const { return const_cast<BYTE *>(GetPointer()+m_headerSize); }
 
-    virtual PObject * Clone() const { return new RTP_DataFrame(*this); }
+    virtual PObject * Clone() const override { return new RTP_DataFrame(*this); }
 #if PTRACING
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
 
     // Note this sets the whole packet length, and calculates the various
@@ -807,7 +807,7 @@ class RTP_DataFrame : public PBYTEArray
 #endif
 
   private:
-    virtual PBoolean SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
+    virtual PBoolean SetSize(PINDEX sz) override { return PBYTEArray::SetSize(sz); }
 };
 
 PLIST(RTP_DataFrameList, RTP_DataFrame);
@@ -847,9 +847,9 @@ class RTPHeaderExtensionInfo : public PObject
     );
 
 #if PTRACING
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    virtual Comparison Compare(const PObject & other) const;
+    virtual Comparison Compare(const PObject & other) const override;
 
 #if OPAL_SDP
     bool ParseSDP(const PString & param);

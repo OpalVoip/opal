@@ -523,5 +523,5 @@ class PProcess : PThread
   //@}
 
     ///< Dummy Main() as libraries do not have one.
-    virtual void Main();
+    virtual void Main() override;
 };

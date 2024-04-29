@@ -99,6 +99,7 @@ FFMPEGCodec::FFMPEGCodec(const char * prefix, OpalPluginFrame * fullFrame)
   : m_prefix(prefix)
   , m_codec(NULL)
   , m_context(NULL)
+  , m_options(NULL)
   , m_picture(NULL)
   , m_fullFrame(fullFrame)
   , m_open(false)
@@ -108,7 +109,12 @@ FFMPEGCodec::FFMPEGCodec(const char * prefix, OpalPluginFrame * fullFrame)
 {
   g_avcodec_mutex.Wait();
 
-  avcodec_register_all();
+  #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+    avcodec_register_all();
+    av_init_packet(&m_packet);
+  #else
+    av_new_packet(&m_packet, 0);
+  #endif
 
 #if PLUGINCODEC_TRACING
   av_log_set_level(AV_LOG_DEBUG);
@@ -116,8 +122,6 @@ FFMPEGCodec::FFMPEGCodec(const char * prefix, OpalPluginFrame * fullFrame)
 #endif
 
   g_avcodec_mutex.Signal();
-
-  av_init_packet(&m_packet);
 
   m_alignedYUV[0] = m_alignedYUV[1] = m_alignedYUV[2] = NULL;
 }
@@ -129,13 +133,14 @@ FFMPEGCodec::~FFMPEGCodec()
 
   if (m_context != NULL)
     av_free(m_context);
-
+  
   if (m_picture != NULL) {
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 0, 0)
     av_free(m_picture);
 #elif LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 0, 0)
     avcodec_free_frame(&m_picture);
 #else
+    av_dict_free(&m_options);
     av_frame_free(&m_picture);
 #endif
   }
@@ -152,13 +157,18 @@ FFMPEGCodec::~FFMPEGCodec()
 
 bool FFMPEGCodec::InitContext()
 {
+  if (m_fullFrame == NULL) {
+    PTRACE(1, m_prefix, "No packetizer");
+    return false;
+  }
+
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53, 0, 0)
   m_context = avcodec_alloc_context2(m_codec->type);
 #else
   m_context = avcodec_alloc_context3(m_codec);
 #endif
   if (m_context == NULL) {
-    PTRACE(1, m_prefix, "Failed to allocate context for encoder");
+    PTRACE(1, m_prefix, "Failed to allocate context for codec");
     return false;
   }
 
@@ -168,7 +178,7 @@ bool FFMPEGCodec::InitContext()
   m_picture = av_frame_alloc();
 #endif
   if (m_picture == NULL) {
-    PTRACE(1, m_prefix, "Failed to allocate frame for encoder");
+    PTRACE(1, m_prefix, "Failed to allocate frame for codec");
     return false;
   }
 
@@ -190,6 +200,7 @@ bool FFMPEGCodec::InitContext()
 }
 
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
 // This is called after an Favcodec_encode_frame() call.  This populates the 
 // m_packetSizes deque with offsets, no greated than max_rtp which we will use
 // to create RTP packets.
@@ -197,6 +208,7 @@ static void StaticRTPCallBack(AVCodecContext * ctx, void * data, int size, int n
 {
   static_cast<FFMPEGCodec *>(ctx->opaque)->GetEncodedFrame()->RTPCallBack(data, size, numMB);
 }
+#endif
 
 bool FFMPEGCodec::InitEncoder(AVCodecID codecId)
 {
@@ -211,12 +223,16 @@ bool FFMPEGCodec::InitEncoder(AVCodecID codecId)
   if (!InitContext())
     return false;
 
-  m_context->rtp_callback = &StaticRTPCallBack;
+  #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+    m_context->rtp_callback = &StaticRTPCallBack;
+  #endif
 
 #ifdef CODEC_FLAG_EMU_EDGE
   m_context->flags |= CODEC_FLAG_EMU_EDGE;   // don't draw edges
 #endif
+#ifdef AV_CODEC_FLAG_TRUNCATED
   m_context->flags |= AV_CODEC_FLAG_TRUNCATED;  // Possible missing packets
+#endif
 
   m_context->mb_decision = FF_MB_DECISION_SIMPLE;    // high quality off
 
@@ -267,9 +283,7 @@ bool FFMPEGCodec::OpenCodec()
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53, 0, 0)
   int result = avcodec_open(m_context, m_codec);
 #else
-  AVDictionary * options = NULL;
-  int result = avcodec_open2(m_context, m_codec, &options);
-  av_dict_free(&options);
+  int result = avcodec_open2(m_context, m_codec, &m_options);
 #endif
 
   g_avcodec_mutex.Signal();
@@ -299,23 +313,24 @@ void FFMPEGCodec::CloseCodec()
 
 bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
 {
+  if (m_context == NULL)
+    return false;
+
   bool wasOpen = m_open;
   if (wasOpen) {
     PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
     CloseCodec();
   }
 
-  if (m_context != NULL) {
 #ifdef CODEC_FLAG_EMU_EDGE
-    if (width > 352)
-      m_context->flags &= ~CODEC_FLAG_EMU_EDGE; // Totally bizarre! FFMPEG crashes if on for CIF4
+  if (width > 352)
+    m_context->flags &= ~CODEC_FLAG_EMU_EDGE; // Totally bizarre! FFMPEG crashes if on for CIF4
 #endif
 
-    m_context->width = width;
-    m_context->height = height;
-    m_context->coded_width = width;
-    m_context->coded_height = height;
-  }
+  m_context->width = width;
+  m_context->height = height;
+  m_context->coded_width = width;
+  m_context->coded_height = height;
 
   if (m_picture != NULL) {
     // YUV420P input
@@ -337,7 +352,7 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
     m_picture->data[2] = (uint8_t *)(m_alignedYUV[2] = av_malloc(sz));
   }
 
-  if (m_fullFrame != NULL && !m_fullFrame->SetSize(width*height*m_context->bit_rate/10000)) {
+  if (!m_fullFrame->SetSize(width*height*m_context->bit_rate/10000)) {
     PTRACE(1, m_prefix, "Frame handler SetResolution failed");
     return false;
   }
@@ -406,12 +421,12 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
   m_context->lmax = m_context->qmax * FF_QP2LAMBDA; 
 #endif
 
-  if (m_fullFrame == NULL)
-    m_context->rtp_payload_size = maxRTPSize;
-  else {
-    m_fullFrame->SetMaxPayloadSize(maxRTPSize);
-    m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
-  }
+  m_fullFrame->SetMaxPayloadSize(maxRTPSize);
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+  m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
+#else
+  av_dict_set_int(&m_options, "mb_info", m_fullFrame->GetMaxPayloadSize(), 0);
+#endif
 
   m_context->qmax = tsto;
   if (m_context->qmax <= m_context->qmin)
@@ -430,7 +445,20 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
   PTRACE(5, m_prefix, "bit_rate_tolerance set to " <<m_context->bit_rate_tolerance);
   PTRACE(5, m_prefix, "qmin set to " << m_context->qmin);
   PTRACE(5, m_prefix, "qmax set to " << m_context->qmax);
-  PTRACE(5, m_prefix, "payload size set to " << m_context->rtp_payload_size);
+  PTRACE(5, m_prefix, "payload size set to " << m_fullFrame->GetMaxPayloadSize());
+}
+
+
+bool FFMPEGCodec::SetOptionsInt(const char * name, const char * value, bool & optionsSame)
+{
+  int64_t newValue = atoi(value);
+  AVDictionaryEntry * entry = av_dict_get(m_options, name, NULL, 0);
+  if (entry != NULL && atoi(entry->value) == newValue)
+    return true;
+
+  optionsSame = false;
+  av_dict_set_int(&m_options, name, newValue, 0);
+  return true;
 }
 
 
@@ -446,7 +474,7 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
 
   out.SetTimestamp(in.GetTimestamp());
 
-  if (m_fullFrame != NULL && m_fullFrame->GetPacket(out, flags))
+  if (m_fullFrame->GetPacket(out, flags))
     return true;
 
   PluginCodec_Video_FrameHeader * header = in.GetVideoHeader();
@@ -487,28 +515,21 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   m_picture->pict_type = forceIFrame ? AV_PICTURE_TYPE_I : AV_PICTURE_TYPE_NONE;
   m_picture->key_frame = 0;
 
-  if (m_fullFrame == NULL)
-    return EncodeVideoFrame(out.GetPayloadPtr(), out.GetMaxSize()-out.GetHeaderSize(), flags) >= 0;
-
-  int result = EncodeVideoFrame(m_fullFrame->GetBuffer(), m_fullFrame->GetMaxSize(), flags);
-  if (result < 0)
+  if (!EncodeVideoFrame())
     return false;
 
-  if (!m_fullFrame->Reset(result)) {
-    PTRACE(2, m_prefix, "Encoding/Packetisation error: " << result << " bytes");
-    return false;
-  }
-
-  if (m_fullFrame->IsIntraFrame())
+  if (m_picture->key_frame || m_fullFrame->IsIntraFrame())
     flags |= PluginCodec_ReturnCoderIFrame;
 
   return m_fullFrame->GetPacket(out, flags);
 }
 
 
-int FFMPEGCodec::EncodeVideoFrame(uint8_t * frame, size_t length, unsigned & flags)
+bool FFMPEGCodec::EncodeVideoFrame()
 {
-  m_picture->key_frame = 0;
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+  uint8_t * frame = m_fullFrame->GetBuffer();
+  size_t length = m_fullFrame->GetMaxSize();
 
 #if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(54, 0, 0)
   int result = avcodec_encode_video(m_context, frame, length, m_picture);
@@ -524,25 +545,66 @@ int FFMPEGCodec::EncodeVideoFrame(uint8_t * frame, size_t length, unsigned & fla
     CloseCodec();
     if (m_consecutiveFails > 0 || !OpenCodec()) {
       PTRACE(1, m_prefix, "Encoder failed, aborting!");
-      return result;
+      return false;
     }
 
     ++m_consecutiveFails;
     PTRACE(3, m_prefix, "Encoder failed, continuing after reset.");
-    return EncodeVideoFrame(frame, length, flags);
+    return EncodeVideoFrame();
   }
 
   m_consecutiveFails = 0;
 
-  if (m_picture->key_frame)
-    flags |= PluginCodec_ReturnCoderIFrame;
+  if (!gotPacket) {
+    PTRACE(3, m_prefix, "Encoder returned no data");
+    return true;
+  }
 
-  if (gotPacket)
-    return m_packet.size;
+#else
 
-  PTRACE(3, m_prefix, "Encoder returned no data");
-  flags |= PluginCodec_ReturnCoderLastFrame;
-  return 0;
+  if (avcodec_send_frame(m_context, m_picture) != 0)
+    return false;
+
+  m_fullFrame->Reset();
+
+  for (;;) {
+    int result = avcodec_receive_packet(m_context, &m_packet);
+    PTRACE(5, m_prefix, "avcodec_receive_packet: result=" << result << ", size=" << m_packet.size);
+    if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
+      break;
+
+    if (result != 0) {
+      PTRACE(2, m_prefix, "Encoding error: " << result);
+      return false;
+    }
+
+    m_fullFrame->Append(m_packet.data, m_packet.size);
+    
+    size_t mbSize;
+    const uint8_t * mbInfo = av_packet_get_side_data(&m_packet, AV_PKT_DATA_H263_MB_INFO, &mbSize);
+    if (mbInfo) {
+      PTRACE(5, m_prefix, "MB Info: " << mbSize << '/' << mbSize/12);
+      unsigned lastBitOffset = 0;
+      while (mbSize > 0) {
+        unsigned bitOffset = *(uint32_t*)mbInfo;
+        unsigned mbAddress = *(uint16_t*)(mbInfo+6);
+        m_fullFrame->RTPCallBack(NULL, (bitOffset - lastBitOffset)/8, mbAddress);
+        lastBitOffset = bitOffset;
+        mbInfo += 12;
+        mbSize -= 12;
+      }
+    }
+  }
+
+#endif
+
+  if (!m_fullFrame->Reset(m_fullFrame->GetLength())) {
+    PTRACE(2, m_prefix, "Encoding/Packetisation error: " << m_packet.size << " bytes");
+    return false;
+  }
+
+  PTRACE(5, m_prefix, "Encoded frame");
+  return true;
 }
 
 
@@ -557,8 +619,7 @@ bool FFMPEGCodec::DecodeVideoPacket(const PluginCodec_RTP & in, unsigned & flags
   if (!m_hadMissingPacket && (flags & PluginCodec_CoderPacketLoss) != 0) {
     PTRACE(3, m_prefix, "Decoder throwing away entire video frame due to packet loss");
     m_hadMissingPacket = true;
-    if (m_fullFrame != NULL)
-        m_fullFrame->Reset();
+    m_fullFrame->Reset();
   }
 
   flags = 0;
@@ -569,9 +630,6 @@ bool FFMPEGCodec::DecodeVideoPacket(const PluginCodec_RTP & in, unsigned & flags
       m_hadMissingPacket = false;
     return true;
   }
-
-  if (m_fullFrame == NULL)
-    return DecodeVideoFrame(in.GetPayloadPtr(), in.GetPayloadSize(), flags);
 
   if (in.GetPayloadSize() > 0 && !m_fullFrame->AddPacket(in, flags))
     return false;
@@ -595,6 +653,7 @@ bool FFMPEGCodec::DecodeVideoFrame(const uint8_t * frame, size_t length, unsigne
 {
   PTRACE(5, m_prefix, "Decoding " << length << " bytes");
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
   int errorsBefore = m_errorCount;
 #ifdef FFMPEG_HAS_DECODE_ERROR_COUNT
   errorsBefore += m_context->decode_error_count;
@@ -626,20 +685,41 @@ bool FFMPEGCodec::DecodeVideoFrame(const uint8_t * frame, size_t length, unsigne
   if (errorsAfter > errorsBefore)
     flags |= PluginCodec_ReturnCoderRequestIFrame;
 
-  if (gotPicture) {
-    flags |= PluginCodec_ReturnCoderLastFrame;
-    bool isIntra = m_fullFrame != NULL ? m_fullFrame->IsIntraFrame() : (m_picture->pict_type == AV_PICTURE_TYPE_I);
-    if (isIntra)
-      flags |= PluginCodec_ReturnCoderIFrame;
-
-    PTRACE((size_t)bytesDecoded == length ? 5 : 4, m_prefix,
-           "Decoded " << bytesDecoded << " of " << length << " bytes, " <<
-           (isIntra ? 'I' : 'P') << "-Frame at " << m_context->width << "x" << m_context->height);
-  }
-  else {
+  if (!gotPicture) {
     PTRACE(4, m_prefix, "Decoded " << bytesDecoded << " of " << length << " bytes without an output frame");
+    return true;
   }
 
+#else
+
+  unsigned bytesDecoded = 0;
+  int result = avcodec_receive_frame(m_context, m_picture);
+  if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) {
+    PTRACE(5, m_prefix, "Sending packet");
+    av_packet_from_data(&m_packet, const_cast<uint8_t *>(frame), (int)length);
+    if (avcodec_send_packet(m_context, &m_packet) != 0)
+      return false;
+
+    bytesDecoded = m_packet.size;
+    result = avcodec_receive_frame(m_context, m_picture);
+  }
+
+  if (result < 0) {
+    PTRACE(3, m_prefix, "Decoder error " << result);
+    flags |= PluginCodec_ReturnCoderRequestIFrame;
+    return true;
+  }
+
+#endif
+
+  flags |= PluginCodec_ReturnCoderLastFrame;
+  bool isIntra = m_fullFrame->IsIntraFrame();
+  if (isIntra)
+    flags |= PluginCodec_ReturnCoderIFrame;
+
+  PTRACE((size_t)bytesDecoded == length ? 5 : 4, m_prefix,
+          "Decoded " << bytesDecoded << " of " << length << " bytes, " <<
+          (isIntra ? 'I' : 'P') << "-Frame at " << m_context->width << "x" << m_context->height);
   return true;
 }
 

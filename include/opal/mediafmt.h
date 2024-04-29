@@ -83,9 +83,9 @@ class OpalBandwidth : public PObject
     __inline OpalBandwidth & operator-=(const OpalBandwidth & bw)       { m_bps += bw.m_bps; return *this; }
     __inline OpalBandwidth & operator&=(const OpalBandwidth & bw)       { if (m_bps > bw.m_bps) m_bps = bw.m_bps; return *this; }
 
-    virtual Comparison Compare(const PObject & other) const;
-    virtual void PrintOn(std::ostream & strm) const;
-    virtual void ReadFrom(std::istream & strm);
+    virtual Comparison Compare(const PObject & other) const override;
+    virtual void PrintOn(std::ostream & strm) const override;
+    virtual void ReadFrom(std::istream & strm) override;
 
 #if OPAL_H323
     OpalBandwidth(const H225_BandWidth & bw);
@@ -300,8 +300,8 @@ class OpalMediaFormatList : public OpalMediaFormatBaseList
   //@}
 
   private:
-    virtual PINDEX Append(PObject *) { return P_MAX_INDEX; }
-    virtual PINDEX Insert(const PObject &, PObject *) { return P_MAX_INDEX; }
+    virtual PINDEX Append(PObject *) override { return P_MAX_INDEX; }
+    virtual PINDEX Insert(const PObject &, PObject *) override { return P_MAX_INDEX; }
 };
 
 
@@ -340,7 +340,7 @@ class OpalMediaOption : public PObject
     );
 
   public:
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     virtual bool Merge(
       const OpalMediaOption & option
@@ -453,22 +453,22 @@ class OpalMediaOptionValue : public OpalMediaOption
     {
     }
 
-    virtual PObject * Clone() const
+    virtual PObject * Clone() const override
     {
       return new OpalMediaOptionValue(*this);
     }
 
-    virtual void PrintOn(ostream & strm) const
+    virtual void PrintOn(ostream & strm) const override
     {
       strm << m_value;
     }
 
-    virtual void ReadFrom(istream & strm)
+    virtual void ReadFrom(istream & strm) override
     {
       strm >> m_value;
     }
 
-    virtual bool Merge(const OpalMediaOption & option)
+    virtual bool Merge(const OpalMediaOption & option) override
     {
       if (m_merge != IntersectionMerge)
         return OpalMediaOption::Merge(option);
@@ -481,7 +481,7 @@ class OpalMediaOptionValue : public OpalMediaOption
       return true;
     }
 
-    virtual Comparison CompareValue(const OpalMediaOption & option) const
+    virtual Comparison CompareValue(const OpalMediaOption & option) const override
     {
       const OpalMediaOptionValue * otherOption = PDownCast(const OpalMediaOptionValue, &option);
       if (otherOption == NULL)
@@ -493,7 +493,7 @@ class OpalMediaOptionValue : public OpalMediaOption
       return EqualTo;
     }
 
-    virtual void Assign(const OpalMediaOption & option)
+    virtual void Assign(const OpalMediaOption & option) override
     {
       const OpalMediaOptionValue * otherOption = PDownCast(const OpalMediaOptionValue, &option);
       if (otherOption != NULL)
@@ -535,12 +535,12 @@ class OpalMediaOptionNumericalValue : public OpalMediaOptionValue<T>
     {
     }
 
-    virtual PObject * Clone() const
+    virtual PObject * Clone() const override
     {
       return new OpalMediaOptionNumericalValue(*this);
     }
 
-    virtual void ReadFrom(istream & strm)
+    virtual void ReadFrom(istream & strm) override
     {
       T temp = 0;
       strm >> temp;
@@ -614,13 +614,13 @@ class OpalMediaOptionEnum : public OpalMediaOption
       PINDEX value = 0
     );
 
-    virtual PObject * Clone() const;
-    virtual void PrintOn(ostream & strm) const;
-    virtual void ReadFrom(istream & strm);
+    virtual PObject * Clone() const override;
+    virtual void PrintOn(ostream & strm) const override;
+    virtual void ReadFrom(istream & strm) override;
 
-    virtual bool Merge(const OpalMediaOption & option);
-    virtual Comparison CompareValue(const OpalMediaOption & option) const;
-    virtual void Assign(const OpalMediaOption & option);
+    virtual bool Merge(const OpalMediaOption & option) override;
+    virtual Comparison CompareValue(const OpalMediaOption & option) const override;
+    virtual void Assign(const OpalMediaOption & option) override;
 
     PINDEX GetValue() const { return m_value; }
     void SetValue(PINDEX value);
@@ -651,13 +651,13 @@ class OpalMediaOptionString : public OpalMediaOption
       const PString & value
     );
 
-    virtual PObject * Clone() const;
-    virtual void PrintOn(ostream & strm) const;
-    virtual void ReadFrom(istream & strm);
+    virtual PObject * Clone() const override;
+    virtual void PrintOn(ostream & strm) const override;
+    virtual void ReadFrom(istream & strm) override;
 
-    virtual bool Merge(const OpalMediaOption & option);
-    virtual Comparison CompareValue(const OpalMediaOption & option) const;
-    virtual void Assign(const OpalMediaOption & option);
+    virtual bool Merge(const OpalMediaOption & option) override;
+    virtual Comparison CompareValue(const OpalMediaOption & option) const override;
+    virtual void Assign(const OpalMediaOption & option) override;
 
     const PString & GetValue() const { return m_value; }
     void SetValue(const PString & value);
@@ -690,12 +690,12 @@ class OpalMediaOptionOctets : public OpalMediaOption
       PINDEX length
     );
 
-    virtual PObject * Clone() const;
-    virtual void PrintOn(ostream & strm) const;
-    virtual void ReadFrom(istream & strm);
+    virtual PObject * Clone() const override;
+    virtual void PrintOn(ostream & strm) const override;
+    virtual void ReadFrom(istream & strm) override;
 
-    virtual Comparison CompareValue(const OpalMediaOption & option) const;
-    virtual void Assign(const OpalMediaOption & option);
+    virtual Comparison CompareValue(const OpalMediaOption & option) const override;
+    virtual void Assign(const OpalMediaOption & option) override;
 
     const PBYTEArray & GetValue() const { return m_value; }
     void SetValue(const PBYTEArray & value);
@@ -734,8 +734,8 @@ class OpalMediaFormatInternal : public PObject
 
     const PCaselessString & GetName() const { return formatName; }
 
-    virtual PObject * Clone() const;
-    virtual void PrintOn(ostream & strm) const;
+    virtual PObject * Clone() const override;
+    virtual void PrintOn(ostream & strm) const override;
 
     virtual bool IsValid() const;
     virtual bool IsTransportable() const;
@@ -810,10 +810,10 @@ class OpalMediaFormat : public PContainer
     OpalMediaFormat(const OpalMediaFormat & c);
     virtual ~OpalMediaFormat();
     OpalMediaFormat & operator=(const OpalMediaFormat & c)     { AssignContents(c); return *this; }
-    virtual PBoolean MakeUnique();
+    virtual PBoolean MakeUnique() override;
   protected:
-    virtual void DestroyContents();
-    virtual void AssignContents(const PContainer & c);
+    virtual void DestroyContents() override;
+    virtual void AssignContents(const PContainer & c) override;
 
   public:
     typedef OpalMediaFormatInternal Internal;
@@ -925,21 +925,21 @@ class OpalMediaFormat : public PContainer
 
     /**Create a copy of the media format.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /**Compare two media formats.
       */
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**Print media format.
        Note if the user specifies a width (using setw() for example) of -1, then
        a details multi-line output of all the options for the format is included.
       */
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     /**Read media format.
       */
-    virtual void ReadFrom(istream & strm);
+    virtual void ReadFrom(istream & strm) override;
 
     /**This will translate the codec specific "custom" options to OPAL
        "normalised" options, e.g. For H.261 "QCIF MPI"="1", "CIF MPI"="5"
@@ -1351,7 +1351,7 @@ class OpalMediaFormat : public PContainer
 #endif
 
     // Backward compatibility
-    virtual PBoolean IsEmpty() const { PWaitAndSignal m(m_mutex); return m_info == NULL || !m_info->IsValid(); }
+    virtual PBoolean IsEmpty() const override { PWaitAndSignal m(m_mutex); return m_info == NULL || !m_info->IsValid(); }
     operator PString() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
     operator const char *() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
     bool operator==(const char * other) const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->formatName == other; }
@@ -1374,7 +1374,7 @@ class OpalMediaFormat : public PContainer
 #endif
 
   private:
-    PBoolean SetSize(PINDEX) { return true; }
+    PBoolean SetSize(PINDEX) override { return true; }
 
   protected:
     void Construct(OpalMediaFormatInternal * info);
@@ -1468,8 +1468,8 @@ class OpalAudioFormatInternal : public OpalMediaFormatInternal
       time_t timeStamp = 0,
       unsigned channels = 1
     );
-    virtual PObject * Clone() const;
-    virtual bool Merge(const OpalMediaFormatInternal & mediaFormat);
+    virtual PObject * Clone() const override;
+    virtual bool Merge(const OpalMediaFormatInternal & mediaFormat) override;
 
     virtual OpalAudioFormat::FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, OpalAudioFormat::FrameDetectorPtr & detector) const;
 };
@@ -1584,8 +1584,8 @@ class OpalVideoFormatInternal : public OpalMediaFormatInternal
       unsigned maxBitRate,
       time_t timeStamp = 0
     );
-    virtual PObject * Clone() const;
-    virtual bool Merge(const OpalMediaFormatInternal & mediaFormat);
+    virtual PObject * Clone() const override;
+    virtual bool Merge(const OpalMediaFormatInternal & mediaFormat) override;
 
     virtual OpalVideoFormat::FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, OpalVideoFormat::FrameDetectorPtr & detector) const;
 };

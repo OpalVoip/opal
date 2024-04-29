@@ -50,7 +50,7 @@ class POrdinalKey : PObject
   /**@name Overrides from class PObject */
   //@{
     /// Create a duplicate of the POrdinalKey.
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /* Get the relative rank of the ordinal index. This is a simpel comparison
        of the objects PINDEX values.
@@ -61,7 +61,7 @@ class POrdinalKey : PObject
        object and <code>GreaterThan</code> for \p obj logically
        greater than the object.
      */
-    virtual PObject::Comparison Compare(const PObject & obj) const;
+    virtual PObject::virtual Comparison Compare(const PObject & obj) const override;
 
     /**This function calculates a hash table index value for the implementation
        of <code>PSet</code> and <code>PDictionary</code> classes.

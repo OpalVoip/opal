@@ -66,8 +66,8 @@ class X880_ROS : public PASN_Choice
     operator const X880_Reject &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -85,7 +85,7 @@ class X880_GeneralProblem : public PASN_Integer
 
     X880_GeneralProblem & operator=(int v);
     X880_GeneralProblem & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -103,7 +103,7 @@ class X880_InvokeProblem : public PASN_Integer
 
     X880_InvokeProblem & operator=(int v);
     X880_InvokeProblem & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -121,7 +121,7 @@ class X880_ReturnResultProblem : public PASN_Integer
 
     X880_ReturnResultProblem & operator=(int v);
     X880_ReturnResultProblem & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -139,7 +139,7 @@ class X880_ReturnErrorProblem : public PASN_Integer
 
     X880_ReturnErrorProblem & operator=(int v);
     X880_ReturnErrorProblem & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -157,7 +157,7 @@ class X880_RejectProblem : public PASN_Integer
 
     X880_RejectProblem & operator=(int v);
     X880_RejectProblem & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -175,7 +175,7 @@ class X880_InvokeId : public PASN_Integer
 
     X880_InvokeId & operator=(int v);
     X880_InvokeId & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -196,8 +196,8 @@ class X880_Code : public PASN_Choice
       e_global
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -216,14 +216,14 @@ class X880_ReturnResult_result : public PASN_Sequence
     X880_Code m_opcode;
     PASN_OctetString m_result;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -276,8 +276,8 @@ class X880_Reject_problem : public PASN_Choice
     operator const X880_ReturnErrorProblem &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -303,14 +303,14 @@ class X880_Invoke : public PASN_Sequence
     X880_Code m_opcode;
     PASN_OctetString m_argument;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -333,14 +333,14 @@ class X880_ReturnResult : public PASN_Sequence
     X880_InvokeId m_invokeId;
     X880_ReturnResult_result m_result;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -364,14 +364,14 @@ class X880_ReturnError : public PASN_Sequence
     X880_Code m_errorCode;
     PASN_OctetString m_parameter;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -390,14 +390,14 @@ class X880_Reject : public PASN_Sequence
     X880_InvokeId m_invokeId;
     X880_Reject_problem m_problem;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

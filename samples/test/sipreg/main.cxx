@@ -67,7 +67,7 @@ class RegTest : public PProcess
   public:
     RegTest();
 
-    virtual void Main();
+    virtual void Main() override;
 };
 
 

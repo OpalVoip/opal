@@ -51,7 +51,7 @@ class OpalPCAPFile : public PFile
 
     bool Restart();
 
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     bool WriteFrame(const PEthSocket::Frame & frame);
     bool WriteRTP(const RTP_DataFrame & rtp, WORD port = 5000);
@@ -115,8 +115,8 @@ class OpalPCAPFile : public PFile
       RTP_SyncSourceId  m_ssrc;
 
       DiscoveredRTPKey();
-      Comparison Compare(const PObject & obj) const;
-      void PrintOn(ostream & strm) const;
+      virtual Comparison Compare(const PObject & obj) const override;
+      virtual void PrintOn(ostream & strm) const override;
     };
 
     struct DiscoveredRTPInfo : DiscoveredRTPKey {
@@ -125,7 +125,7 @@ class OpalPCAPFile : public PFile
 
       DiscoveredRTPInfo();
       DiscoveredRTPInfo(const DiscoveredRTPKey & key);
-      void PrintOn(ostream & strm) const;
+      virtual void PrintOn(ostream & strm) const override;
     };
 
     typedef PArray<DiscoveredRTPInfo> DiscoveredRTP;
@@ -167,7 +167,7 @@ class OpalPCAPFile : public PFile
     OpalMediaFormat GetMediaFormat(const RTP_DataFrame & rtp) const;
 
   protected:
-    bool InternalOpen(OpenMode mode, OpenOptions opt, PFileInfo::Permissions permissions);
+    bool InternalOpen(OpenMode mode, OpenOptions opt, PFileInfo::Permissions permissions) override;
     int InternalDecodeRTP(RTP_DataFrame & encodedRTP, RTP_DataFrame & decodedRTP, DecodeContext & context);
 
     struct FileHeader { 

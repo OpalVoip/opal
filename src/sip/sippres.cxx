@@ -194,7 +194,7 @@ bool SIP_Presentity::Open()
     }
 
     m_presenceAgentURL.Parse(presenceAgent);
-    m_presenceAgentURL.SetParamVar("transport", m_attributes.Get(TransportKey, "tcp").ToLower());
+    m_presenceAgentURL.SetTransport(m_attributes.Get(TransportKey, "tcp").ToLower());
 
     m_defaultRootURL.Parse(m_attributes.Get(XcapRootKey), "http");
     if (m_defaultRootURL.IsEmpty()) {
@@ -321,13 +321,14 @@ void SIP_Presentity::OnPresenceSubscriptionStatus(SIPSubscribeHandler &, const S
   PString id = status.m_handler->GetCallID();
   StringMap::iterator aor = m_presenceAorById.find(id);
   if (aor == m_presenceAorById.end()) {
-    PTRACE(2, m_aor << " " << "recieved subscription status for unknown ID " << id);
+    PTRACE(2, m_aor << " " << "received subscription status for unknown ID " << id);
   }
   else {
     SIPPresenceInfo info(status.m_reason, status.m_wasSubscribing);
     SetPIDFEntity(info.m_entity);
     info.m_target = aor->second;
 
+    PTRACE(3, m_aor << " presence of '" << info.m_entity << "' is " << info.m_state);
     OnPresenceChange(info);
 
     if (!status.m_wasSubscribing) {
@@ -384,14 +385,13 @@ void SIP_Presentity::Internal_SubscribeToWatcherInfo(const SIPWatcherInfoCommand
     return;
   }
 
-  PString aorStr = m_aor.AsString();
-  PTRACE(3, '\'' << aorStr << "' sending subscribe for own presence.watcherinfo");
+  PTRACE(3, m_aor << " sending subscribe for own presence.watcherinfo");
 
   // subscribe to the presence.winfo event on the presence server
   SIPSubscribe::Params param(SIPSubscribe::Presence | SIPSubscribe::Watcher);
   param.m_contentType      = "application/watcherinfo+xml";
-  param.m_localAddress     = aorStr;
-  param.m_addressOfRecord  = aorStr;
+  param.m_localAddress     = m_aor;
+  param.m_addressOfRecord  = m_aor;
   param.m_remoteAddress    = m_presenceAgentURL;
   param.m_authID           = m_attributes.Get(OpalPresentity::AuthNameKey, m_aor.GetUserName());
   param.m_password         = m_attributes.Get(OpalPresentity::AuthPasswordKey);

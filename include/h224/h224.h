@@ -52,7 +52,7 @@ class OpalH224MediaFormat : public OpalMediaFormat
         PCLASSINFO(Internal, OpalMediaFormatInternal);
       public:
         Internal(const char * fullName, const char * description, bool hdlcTunneling);
-        virtual bool IsValidForProtocol(const PString & protocol) const;
+        virtual bool IsValidForProtocol(const PString & protocol) const override;
     };
 
     OpalH224MediaFormat(Internal * info, bool dynamic) : OpalMediaFormat(info, dynamic) { }

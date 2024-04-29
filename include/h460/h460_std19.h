@@ -58,14 +58,14 @@ class H460_FeatureStd19 : public H460_Feature
     H460_FeatureStd19();
 
     static const H460_FeatureID & ID();
-    virtual bool Initialise(H323EndPoint & ep, H323Connection * con);
+    virtual bool Initialise(H323EndPoint & ep, H323Connection * con) override;
 
     // H.225.0 Messages
-    virtual bool OnSendPDU(H460_MessageType pduType, H460_FeatureDescriptor & pdu);
-    virtual void OnReceivePDU(H460_MessageType pduType, const H460_FeatureDescriptor & pdu);
+    virtual bool OnSendPDU(H460_MessageType pduType, H460_FeatureDescriptor & pdu) override;
+    virtual void OnReceivePDU(H460_MessageType pduType, const H460_FeatureDescriptor & pdu) override;
 
-    virtual bool OnSendingOLCGenericInformation(unsigned sessionID, H245_ArrayOf_GenericParameter & param, bool isAck);
-    virtual void OnReceiveOLCGenericInformation(unsigned sessionID, const H245_ArrayOf_GenericParameter & param, bool isAck);
+    virtual bool OnSendingOLCGenericInformation(unsigned sessionID, H245_ArrayOf_GenericParameter & param, bool isAck) override;
+    virtual void OnReceiveOLCGenericInformation(unsigned sessionID, const H245_ArrayOf_GenericParameter & param, bool isAck) override;
 
     // Member access
     bool IsRemoteServer() const { return m_remoteIsServer; }
@@ -139,12 +139,12 @@ class PNatMethod_H46019 : public PNatMethod
     /**  GetName
         Get the NAT method name 
     */
-    virtual PCaselessString GetMethodName() const;
+    virtual PCaselessString GetMethodName() const override;
     static const char * MethodName();
 
     /**Get the current server address name.
       */
-    virtual PString GetServer() const;
+    virtual PString GetServer() const override;
 
     /**  isAvailable.
         Returns whether the Nat Method is ready and available in
@@ -154,13 +154,13 @@ class PNatMethod_H46019 : public PNatMethod
         The Order of adding to the PNstStrategy determines which method
         is used
     */
-    virtual bool IsAvailable(const PIPSocket::Address & address, PObject * userData);
+    virtual bool IsAvailable(const PIPSocket::Address & address, PObject * userData) override;
     //@}
 
   protected:
-    virtual bool InternalGetServerAddress(PIPSocketAddressAndPort & ap) const;
-    virtual PNATUDPSocket * InternalCreateSocket(Component component, PObject * context);
-    virtual void InternalUpdate(bool);
+    virtual bool InternalGetServerAddress(PIPSocketAddressAndPort & ap) const override;
+    virtual PNATUDPSocket * InternalCreateSocket(Component component, PObject * context) override;
+    virtual void InternalUpdate(bool) override;
 };
 
 
@@ -185,7 +185,7 @@ class H46019UDPSocket : public PNATUDPSocket
 
     /**@name Functions */
     //@{
-    virtual const char * GetNatName() const;
+    virtual const char * GetNatName() const override;
 
     /** Activate keep-alive mechanism.
     */
@@ -201,7 +201,7 @@ class H46019UDPSocket : public PNATUDPSocket
     RTP_DataFrame::PayloadTypes FindKeepAlivePayloadType(H323Connection & connection);
 
   protected:
-    bool InternalWriteTo(const Slice * slices, size_t sliceCount, const PIPSocketAddressAndPort & ipAndPort);
+    bool InternalWriteTo(const Slice * slices, size_t sliceCount, const PIPSocketAddressAndPort & ipAndPort) override;
 
   // Memeber variables
     OpalRTPSession & m_session;

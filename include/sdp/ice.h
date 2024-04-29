@@ -78,13 +78,13 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
       OptTrickle
     ));
 
-    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool IsEstablished() const;
-    virtual void SetCandidates(const PString & user, const PString & pass, const PNatCandidateList & candidates, unsigned options = OptNone);
-    virtual void AddCandidate(const PNatCandidate & candidate);
-    virtual bool GetCandidates(PString & user, PString & pass, PNatCandidateList & candidates, unsigned & options, bool offering);
+    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool IsEstablished() const override;
+    virtual void SetCandidates(const PString & user, const PString & pass, const PNatCandidateList & candidates, unsigned options = OptNone) override;
+    virtual void AddCandidate(const PNatCandidate & candidate) override;
+    virtual bool GetCandidates(PString & user, PString & pass, PNatCandidateList & candidates, unsigned & options, bool offering) override;
 #if OPAL_STATISTICS
-    virtual void GetStatistics(OpalMediaStatistics & statistics) const;
+    virtual void GetStatistics(OpalMediaStatistics & statistics) const override;
 #endif
 
   protected:
@@ -99,10 +99,10 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     bool          m_remoteTrickle;
     bool          m_useNetworkCost;
 
-    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
-    virtual bool InternalOpenPinHole(PUDPSocket & socket);
-    virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
-    virtual PTimeInterval GetTimeout(SubChannels subchannel) const;
+    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data) override;
+    virtual bool InternalOpenPinHole(PUDPSocket & socket) override;
+    virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel) override;
+    virtual PTimeInterval GetTimeout(SubChannels subchannel) const override;
 
     enum CandidateStates
     {
@@ -148,7 +148,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
         PCLASSINFO(ICEChannel, PIndirectChannel);
       public:
         ICEChannel(OpalICEMediaTransport & owner, SubChannels subchannel, PChannel * channel);
-        virtual PBoolean Read(void * buf, PINDEX len);
+        virtual PBoolean Read(void * buf, PINDEX len) override;
         void AddRemoteCandidate(const PNatCandidate & candidate PTRACE_PARAM(, const char * where));
         void GetLocalCandidates(PNatCandidateList & candidates);
         bool AddLocalCandidate(const OpalTransportAddress & address);

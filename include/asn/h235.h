@@ -36,7 +36,7 @@ class H235_ChallengeString : public PASN_OctetString
     H235_ChallengeString & operator=(const char * v);
     H235_ChallengeString & operator=(const PString & v);
     H235_ChallengeString & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -54,7 +54,7 @@ class H235_TimeStamp : public PASN_Integer
 
     H235_TimeStamp & operator=(int v);
     H235_TimeStamp & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -72,7 +72,7 @@ class H235_RandomVal : public PASN_Integer
 
     H235_RandomVal & operator=(int v);
     H235_RandomVal & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -92,7 +92,7 @@ class H235_Password : public PASN_BMPString
     H235_Password & operator=(const PString & v);
     H235_Password & operator=(const PWCharArray & v);
     H235_Password & operator=(const PASN_BMPString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -112,7 +112,7 @@ class H235_Identifier : public PASN_BMPString
     H235_Identifier & operator=(const PString & v);
     H235_Identifier & operator=(const PWCharArray & v);
     H235_Identifier & operator=(const PASN_BMPString & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -128,7 +128,7 @@ class H235_KeyMaterial : public PASN_BitString
   public:
     H235_KeyMaterial(unsigned tag = UniversalBitString, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -144,7 +144,7 @@ class H235_KeyMaterialExt : public PASN_BitString
   public:
     H235_KeyMaterialExt(unsigned tag = UniversalBitString, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -163,14 +163,14 @@ class H235_NonStandardParameter : public PASN_Sequence
     PASN_ObjectId m_nonStandardIdentifier;
     PASN_OctetString m_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -190,14 +190,14 @@ class H235_DHset : public PASN_Sequence
     PASN_BitString m_modSize;
     PASN_BitString m_generator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -222,14 +222,14 @@ class H235_DHsetExt : public PASN_Sequence
     PASN_BitString m_modSize;
     PASN_BitString m_generator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -253,14 +253,14 @@ class H235_ECpoint : public PASN_Sequence
     PASN_BitString m_x;
     PASN_BitString m_y;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -297,8 +297,8 @@ class H235_ECKASDH : public PASN_Choice
     operator const H235_ECKASDH_eckasdh2 &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -317,14 +317,14 @@ class H235_ECGDSASignature : public PASN_Sequence
     PASN_BitString m_r;
     PASN_BitString m_s;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -343,14 +343,14 @@ class H235_TypedCertificate : public PASN_Sequence
     PASN_ObjectId m_type;
     PASN_OctetString m_certificate;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -371,8 +371,8 @@ class H235_AuthenticationBES : public PASN_Choice
       e_radius
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -416,8 +416,8 @@ class H235_AuthenticationMechanism : public PASN_Choice
     operator const H235_AuthenticationBES &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -441,8 +441,8 @@ class H235_Element : public PASN_Choice
       e_flag
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -465,7 +465,7 @@ class H235_IV8 : public PASN_OctetString
     H235_IV8 & operator=(const char * v);
     H235_IV8 & operator=(const PString & v);
     H235_IV8 & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -488,7 +488,7 @@ class H235_IV16 : public PASN_OctetString
     H235_IV16 & operator=(const char * v);
     H235_IV16 & operator=(const PString & v);
     H235_IV16 & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -518,14 +518,14 @@ class H235_Params : public PASN_Sequence
     PASN_OctetString m_iv;
     PASN_OctetString m_clearSalt;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -551,14 +551,14 @@ class H235_ReturnSig : public PASN_Sequence
     H235_RandomVal m_requestRandom;
     H235_TypedCertificate m_certificate;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -577,7 +577,7 @@ class H235_EncodedReturnSig : public PASN_OctetString
     PBoolean DecodeSubType(H235_ReturnSig & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_ReturnSig & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -596,14 +596,14 @@ class H235_KeySyncMaterial : public PASN_Sequence
     H235_Identifier m_generalID;
     H235_KeyMaterial m_keyMaterial;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -622,7 +622,7 @@ class H235_EncodedKeySyncMaterial : public PASN_OctetString
     PBoolean DecodeSubType(H235_KeySyncMaterial & obj) const { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_KeySyncMaterial & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -659,14 +659,14 @@ class H235_V3KeySyncMaterial : public PASN_Sequence
     PASN_ObjectId m_keyDerivationOID;
     PASN_OctetString m_genericKeyMaterial;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -688,14 +688,14 @@ class H235_ECKASDH_eckasdhp : public PASN_Sequence
     PASN_BitString m_weierstrassA;
     PASN_BitString m_weierstrassB;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -717,14 +717,14 @@ class H235_ECKASDH_eckasdh2 : public PASN_Sequence
     PASN_BitString m_weierstrassA;
     PASN_BitString m_weierstrassB;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -742,9 +742,9 @@ class H235_ArrayOf_ProfileElement : public PASN_Array
   public:
     H235_ArrayOf_ProfileElement(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H235_ProfileElement & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -769,14 +769,14 @@ class H235_ProfileElement : public PASN_Sequence
     H235_Params m_paramS;
     H235_Element m_element;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -798,14 +798,14 @@ class H235_SIGNED : public PASN_Sequence
     H235_Params m_paramS;
     PASN_BitString m_signature;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -827,14 +827,14 @@ class H235_ENCRYPTED : public PASN_Sequence
     PASN_OctetString m_encryptedData;
     ToBeEncrypted m_clearData;  // Note this is not actually encoded
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -855,14 +855,14 @@ class H235_HASHED : public PASN_Sequence
     H235_Params m_paramS;
     PASN_BitString m_hash;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -889,14 +889,14 @@ class H235_KeySignedMaterial : public PASN_Sequence
     H235_TimeStamp m_timeStamp;
     H235_ENCRYPTED<H235_EncodedKeySyncMaterial> m_encrptval;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -915,7 +915,7 @@ class H235_EncodedKeySignedMaterial : public PASN_OctetString
     PBoolean DecodeSubType(H235_KeySignedMaterial & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_KeySignedMaterial & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -940,14 +940,14 @@ class H235_H235CertificateSignature : public PASN_Sequence
     H235_RandomVal m_requesterRandom;
     H235_SIGNED<H235_EncodedReturnSig> m_signature;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1006,8 +1006,8 @@ class H235_H235Key : public PASN_Choice
     operator const H235_KeyMaterialExt &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1054,14 +1054,14 @@ class H235_ClearToken : public PASN_Sequence
     H235_ArrayOf_ProfileElement m_profileInfo;
     H235_DHsetExt m_dhkeyext;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1080,7 +1080,7 @@ class H235_EncodedGeneralToken : public PASN_OctetString
     PBoolean DecodeSubType(H235_ClearToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_ClearToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1096,7 +1096,7 @@ class H235_PwdCertToken : public H235_ClearToken
   public:
     H235_PwdCertToken(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1115,7 +1115,7 @@ class H235_EncodedPwdCertToken : public PASN_OctetString
     PBoolean DecodeSubType(H235_PwdCertToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_PwdCertToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1167,8 +1167,8 @@ class H235_CryptoToken : public PASN_Choice
     operator const H235_ENCRYPTED<H235_EncodedPwdCertToken> &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1187,14 +1187,14 @@ class H235_CryptoToken_cryptoEncryptedToken : public PASN_Sequence
     PASN_ObjectId m_tokenOID;
     H235_ENCRYPTED<H235_EncodedGeneralToken> m_token;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1213,14 +1213,14 @@ class H235_CryptoToken_cryptoSignedToken : public PASN_Sequence
     PASN_ObjectId m_tokenOID;
     H235_SIGNED<H235_EncodedGeneralToken> m_token;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -1240,14 +1240,14 @@ class H235_CryptoToken_cryptoHashedToken : public PASN_Sequence
     H235_ClearToken m_hashedVals;
     H235_HASHED<H235_EncodedGeneralToken> m_token;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

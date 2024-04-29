@@ -77,7 +77,7 @@ class OpalRTPMediaSession : OpalMediaSession
     );
     OpalRTPMediaSession(const OpalRTPMediaSession & obj);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 	
 	void Attach(RTP_Session * rtpSession);
 

@@ -128,8 +128,7 @@ class OpalIVREndPoint : public OpalLocalEndPoint
       void * userData = NULL,   ///<  Arbitrary data to pass to connection
       unsigned int options = 0, ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions = NULL
-
-    );
+    ) override;
 
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
@@ -140,11 +139,11 @@ class OpalIVREndPoint : public OpalLocalEndPoint
 
        The default behaviour returns the basic media formats for PCM/YUV.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
   //@}
 
   /**@name Customisation call backs */
@@ -273,10 +272,10 @@ class OpalIVRConnection : public OpalLocalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return false; }
+    virtual bool IsNetworkConnection() const override { return false; }
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -295,7 +294,7 @@ class OpalIVRConnection : public OpalLocalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Call back when media stream patch thread starts.
 
@@ -303,7 +302,7 @@ class OpalIVRConnection : public OpalLocalConnection
       */
     virtual void OnStartMediaPatch(
       OpalMediaPatch & patch    ///< Patch being started
-    );
+    ) override;
     
     /**A call back function to monitor the progress of a transfer.
 
@@ -315,7 +314,7 @@ class OpalIVRConnection : public OpalLocalConnection
       const PStringToString & info, ///< State of the transfer
       const OpalConnection * transferringConnection
                                     ///< Connection performing transfer, maybe "this"
-    );
+    ) override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
@@ -325,7 +324,7 @@ class OpalIVRConnection : public OpalLocalConnection
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
     /**Get the data formats this connection is capable of operating.
        This provides a list of media data format names that an
@@ -334,7 +333,7 @@ class OpalIVRConnection : public OpalLocalConnection
        The default behaviour returns the formats the PSoundChannel can do,
        typically only PCM-16.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Open a new media stream.
        This will create a media stream of an appropriate subclass as required
@@ -354,7 +353,7 @@ class OpalIVRConnection : public OpalLocalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                        ///<  Is a source stream
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends an arbitrary string as a user indication. If DTMF tones in
@@ -365,7 +364,7 @@ class OpalIVRConnection : public OpalLocalConnection
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
   //@}
 
     /** Called when VXML ends.
@@ -421,16 +420,16 @@ class OpalIVRMediaStream : public OpalRawMediaStream
        The default behaviour simply sets the member variable "mediaFormat"
        and "defaultDataSize".
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Indicate if the media stream is synchronous.
        Returns false for IVR streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
   //@}
 
   protected:
-    virtual void InternalClose();
+    virtual void InternalClose() override;
 
     PVXMLSession & m_vxmlSession;
 };

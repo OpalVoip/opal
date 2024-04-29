@@ -275,26 +275,26 @@ class H4502Handler : public H450xHandler
 
     virtual void AttachToSetup(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToAlerting(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToConnect(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToReleaseComplete(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual PBoolean OnReceivedInvoke(
       int opcode,
       int invokeId,                           ///<  InvokeId of operation (used in response)
       int linkedId,                           ///<  InvokeId of associated operation (if any)
       PASN_OctetString * argument             ///<  Parameters for the initiate operation
-    );
+    ) override;
 
     /**Handle an incoming Call Transfer Identify operation.
      */
@@ -352,7 +352,7 @@ class H4502Handler : public H450xHandler
 
     virtual PBoolean OnReceivedReturnResult(
       X880_ReturnResult & returnResult
-    );
+    ) override;
 
     /**Handle the reception of a callTransferInitiate returnResult when we are in call transfer state 
        e_ctAwaitInitiateResponse.  Note this is an internal function and it is not expected an 
@@ -376,7 +376,7 @@ class H4502Handler : public H450xHandler
     virtual PBoolean OnReceivedReturnError(
       int errorCode,
       X880_ReturnError & returnError
-    );
+    ) override;
 
     /**Handle the reception of a callTransferInitiate returnError or expiry of Call Transfer Timer CT-T3 
        when we are in call transfer state e_ctAwaitInitiateResponse.  Note this is an internal function 
@@ -529,7 +529,7 @@ class H4504Handler : public H450xHandler
       int invokeId,                           ///<  InvokeId of operation (used in response)
       int linkedId,                           ///<  InvokeId of associated operation (if any)
       PASN_OctetString * argument             ///<  Parameters for the initiate operation
-    );
+    ) override;
 
     /**Handle an incoming Near-End Call Hold operation
     */
@@ -601,7 +601,7 @@ class H4506Handler : public H450xHandler
       int invokeId,                           ///<  InvokeId of operation (used in response)
       int linkedId,                           ///<  InvokeId of associated operation (if any)
       PASN_OctetString * argument             ///<  Parameters for the initiate operation
-    );
+    ) override;
 
     /**Handle an incoming Call Waiting Indication PDU
     */
@@ -651,7 +651,7 @@ class H4507Handler : public H450xHandler
       int invokeId,                           /// InvokeId of operation (used in response)
       int linkedId,                           /// InvokeId of associated operation (if any)
       PASN_OctetString * argument             /// Parameters for the initiate operation
-    );
+    ) override;
     
     
     /**Attach a message waiting APDU to the passed in Setup PDU. 
@@ -693,26 +693,26 @@ class H45011Handler : public H450xHandler
 
     virtual void AttachToSetup(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToAlerting(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToConnect(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual void AttachToReleaseComplete(
       H323SignalPDU & pdu
-    );
+    ) override;
 
     virtual PBoolean OnReceivedInvoke(
       int opcode,
       int invokeId,                           ///<  InvokeId of operation (used in response)
       int linkedId,                           ///<  InvokeId of associated operation (if any)
       PASN_OctetString * argument             ///<  Parameters for the initiate operation
-    );
+    ) override;
 
     /**Handle an incoming Call Intrusion operation
     */
@@ -786,14 +786,14 @@ class H45011Handler : public H450xHandler
 
     virtual PBoolean OnReceivedReturnResult(
       X880_ReturnResult & returnResult
-    );
+    ) override;
 
     void OnReceivedCIRequestResult(/*X880_ReturnResult & returnResult*/);
 
     virtual PBoolean OnReceivedReturnError(
       int errorCode,
       X880_ReturnError & returnError
-    );
+    ) override;
 
     PBoolean OnReceivedInvokeReturnError (
       int errorCode,
@@ -830,7 +830,7 @@ class H45011Handler : public H450xHandler
     virtual PBoolean OnReceivedReject(
       int problemType,
       int problemNumber
-    );
+    ) override;
 
     /**Sub-state for call intrusion.
       */

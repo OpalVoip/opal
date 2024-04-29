@@ -40,9 +40,9 @@ class H323ChannelNumber : PObject
     H323ChannelNumber();
     H323ChannelNumber(unsigned number, PBoolean fromRemote);
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
     virtual PINDEX HashFunction() const;
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     //H323ChannelNumber & operator++(int);
 

@@ -81,7 +81,7 @@ class OpalMediaPatch : public PSafeObject
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -334,8 +334,8 @@ class OpalPassiveMediaPatch : public OpalMediaPatch
       OpalMediaStream & source       ///<  Source media stream
     );
 
-    virtual bool Start();
-    virtual void Close();
+    virtual bool Start() override;
+    virtual void Close() override;
 
   protected:
     bool m_started;

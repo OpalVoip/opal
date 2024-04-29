@@ -115,8 +115,8 @@ class OpalG711_PLC
     void convertsf(short *f, double *t, int c, int cnt) const;
     void convertfs(double *f, short *t, int c, int cnt) const;
 
-    inline void copy(double *f, double *t, int cnt) const { memmove(t,f,cnt*channels*sizeof(double)); };
-    inline void copy(short *f, short *t, int cnt) const { memmove(t,f,cnt*channels*sizeof(short)); };
+    inline void copy(double *f, double *t, int cnt) const { memmove(t,f, sizeof(double)*cnt*channels); };
+    inline void copy(short *f, short *t, int cnt) const { memmove(t,f, sizeof(short)*cnt*channels); };
 
     int dofe_partly(short *out, int c, int size);
 };

@@ -138,10 +138,10 @@ class IAX2Ie : public PObject
   int GetBinarySize() const { return 2 + GetLengthOfData(); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /** Get the enum value for this information element class */
-  virtual BYTE GetKeyValue() const  { return 255; }
+  virtual BYTE GetKeyValue() const { return 255; }
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(int &/*newData*/) { PAssertAlways("Ie class cannnot set data value"); };
@@ -180,13 +180,13 @@ class IAX2IeInvalidElement : public IAX2Ie
   virtual BYTE GetlengthOfData() { return 0; }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const
+  virtual void PrintOn(ostream & str) const override
     { str << "Invlalid Information Element" << endl; }
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.  For an IAX2IeInvalidElement, there is no work
       done, as the data is invalid. */
-  virtual void WriteBinary(BYTE * /*data*/) {  }
+  virtual void WriteBinary(BYTE * /*data*/) override {  }
 };
 /////////////////////////////////////////////////////////////////////////////    
 /**An Information Element that contains no data. */
@@ -208,13 +208,13 @@ class IAX2IeNone : public IAX2Ie
   /**@name Worker methods*/
   //@{  
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return 0; }
+  virtual BYTE GetLengthOfData() const override { return 0; }
   
   /**Report the value stored in this class */
   BYTE GetValue() { return 0; }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(void * /*newData*/) 
@@ -227,7 +227,7 @@ class IAX2IeNone : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the memory region.
       For this IAX2Ie (IAX2IeNone) there is no work to do as there is no data. */
-  virtual void WriteBinary(BYTE * /*data*/) {  }
+  virtual void WriteBinary(BYTE * /*data*/) override {  }
 };
 
 /////////////////////////////////////////////////////////////////////////////    
@@ -253,10 +253,10 @@ class IAX2IeByte : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(BYTE newData) { dataValue = newData; validData = true; }
@@ -268,7 +268,7 @@ class IAX2IeByte : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data) { data[0] = dataValue; }
+  virtual void WriteBinary(BYTE *data) override { data[0] = dataValue; }
   
   /**The actual data stored in a IAX2IeByte class */
   BYTE dataValue;
@@ -297,10 +297,10 @@ class IAX2IeChar : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(char newData) { dataValue = newData; validData = true; }
@@ -312,7 +312,7 @@ class IAX2IeChar : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data) { data[0] = dataValue; }
+  virtual void WriteBinary(BYTE *data) override { data[0] = dataValue; }
   
   /**The actual data stored in a IAX2IeChar class */
   char dataValue;
@@ -341,10 +341,10 @@ class IAX2IeShort : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(short newData) { dataValue = newData; validData = true; }
@@ -355,7 +355,7 @@ class IAX2IeShort : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeShort class */
   short dataValue;
@@ -383,10 +383,10 @@ class IAX2IeInt : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(int newData) { dataValue = newData; validData = true; }
@@ -398,7 +398,7 @@ class IAX2IeInt : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeInt class */
   int dataValue;
@@ -426,10 +426,10 @@ class IAX2IeUShort : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(unsigned short newData) { dataValue = newData; validData = true; }
@@ -440,7 +440,7 @@ class IAX2IeUShort : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeUShort class */
   unsigned short dataValue;
@@ -468,10 +468,10 @@ class IAX2IeUInt : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(dataValue); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(dataValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(unsigned int &newData) { dataValue = newData; validData = true; }
@@ -483,7 +483,7 @@ class IAX2IeUInt : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeUInt class */
   unsigned int dataValue;
@@ -516,10 +516,10 @@ class IAX2IeString : public IAX2Ie
   /**@name Worker methods*/
   //@{  
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const;
+  virtual BYTE GetLengthOfData() const override;
   
   /**print this class (nicely) to the designated stream*/
-  void PrintOn(ostream & str) const;
+  void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(const PString & newData);
@@ -534,7 +534,7 @@ class IAX2IeString : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeString class */
   PString dataValue;
@@ -566,10 +566,10 @@ class IAX2IeBinary : public IAX2Ie
   /**@name Worker methods*/
   //@{  
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return (BYTE)dataValue.GetSize(); }
+  virtual BYTE GetLengthOfData() const override { return (BYTE)dataValue.GetSize(); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(const PBYTEArray & newData);
@@ -585,7 +585,7 @@ class IAX2IeBinary : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeBinary class */
   PBYTEArray dataValue;
@@ -616,10 +616,10 @@ class IAX2IeDateAndTime : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return 4; }
+  virtual BYTE GetLengthOfData() const override { return 4; }
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(const PTime & newData) 
@@ -631,7 +631,7 @@ class IAX2IeDateAndTime : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeDateAndTime class */
   PTime dataValue;
@@ -660,10 +660,10 @@ class IAX2IeBlockOfData : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return (BYTE)dataValue.GetSize(); }
+  virtual BYTE GetLengthOfData() const override { return (BYTE)dataValue.GetSize(); }
   
   /**Take the supplied data and copy contents into this IE */
   void SetData(const PBYTEArray & newData) 
@@ -676,7 +676,7 @@ class IAX2IeBlockOfData : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual data stored in a IAX2IeBlockOfData class */
   PBYTEArray dataValue;
@@ -709,10 +709,10 @@ class IAX2IeSockaddrIn : public IAX2Ie
   /**@name Worker methods*/
   //@{
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**return the number of bytes to hold this data element */
-  virtual BYTE GetLengthOfData() const { return sizeof(struct sockaddr_in); }
+  virtual BYTE GetLengthOfData() const override { return sizeof(struct sockaddr_in); }
     
   /**Take the supplied data and copy contents into this IE */
   void SetData(const PIPSocket::Address & newAddr, PINDEX newPort) 
@@ -725,7 +725,7 @@ class IAX2IeSockaddrIn : public IAX2Ie
  protected:
   /** Take the data value for this particular IAX2Ie and copy into the
       memory region.*/
-  virtual void WriteBinary(BYTE *data);
+  virtual void WriteBinary(BYTE *data) override;
   
   /**The actual ip address data stored in a IAX2IeSockaddrIn class */
   PIPSocket::Address dataValue;
@@ -750,15 +750,15 @@ class IAX2IeCalledNumber : public IAX2IeString
   IAX2IeCalledNumber(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_calledNumber; }
+  virtual BYTE GetKeyValue() const override  { return ie_calledNumber; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.calledNumber = dataValue; }
+  virtual void StoreDataIn(IAX2IeData &res) override { res.calledNumber = dataValue; }
  protected:
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -778,15 +778,15 @@ class IAX2IeCallingNumber : public IAX2IeString
   IAX2IeCallingNumber(const PString & newValue)  { SetData(newValue); } 
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingNumber; }
+  virtual BYTE GetKeyValue() const override  { return ie_callingNumber; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) 
+  virtual void StoreDataIn(IAX2IeData &res)  override
   { res.callingNumber = dataValue; }     
  protected:
 };
@@ -807,15 +807,15 @@ class IAX2IeCallingAni : public IAX2IeString
   IAX2IeCallingAni(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingAni; }
+  virtual BYTE GetKeyValue() const override  { return ie_callingAni; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) 
+  virtual void StoreDataIn(IAX2IeData &res)  override
      { res.callingAni = dataValue; }     
  protected:
 };
@@ -836,15 +836,15 @@ class IAX2IeCallingName : public IAX2IeString
   IAX2IeCallingName(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingName; }
+  virtual BYTE GetKeyValue() const override  { return ie_callingName; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) 
+  virtual void StoreDataIn(IAX2IeData &res)  override
   { res.callingName = dataValue; }     
  protected:
 };
@@ -864,15 +864,15 @@ class IAX2IeCalledContext : public IAX2IeString
   IAX2IeCalledContext(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_calledContext; }
+  virtual BYTE GetKeyValue() const override  { return ie_calledContext; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) 
+  virtual void StoreDataIn(IAX2IeData &res)  override
   { res.calledContext = dataValue; }     
  protected:
 };
@@ -892,15 +892,15 @@ class IAX2IeUserName : public IAX2IeString
   IAX2IeUserName(const PString & newValue)  { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_userName; }
+  virtual BYTE GetKeyValue() const override  { return ie_userName; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.userName = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.userName = dataValue; }     
  protected:
 };
 
@@ -919,15 +919,15 @@ class IAX2IePassword : public IAX2IeString
   IAX2IePassword(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_password; }
+  virtual BYTE GetKeyValue() const override  { return ie_password; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.password = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.password = dataValue; }     
  protected:
 };
 
@@ -946,15 +946,15 @@ class IAX2IeCapability : public IAX2IeUInt
   IAX2IeCapability(unsigned int newValue) : IAX2IeUInt(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_capability; }
+  virtual BYTE GetKeyValue() const override  { return ie_capability; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.capability = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.capability = dataValue; }     
  protected:
 };
 
@@ -973,15 +973,15 @@ class IAX2IeFormat : public IAX2IeUInt
   IAX2IeFormat(unsigned int newValue) : IAX2IeUInt(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_format; }
+  virtual BYTE GetKeyValue() const override  { return ie_format; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.format = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.format = dataValue; }     
  protected:
 };
 
@@ -1000,15 +1000,15 @@ class IAX2IeLanguage : public IAX2IeString
   IAX2IeLanguage(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_language; }
+  virtual BYTE GetKeyValue() const override  { return ie_language; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.language = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.language = dataValue; }     
  protected:
 };
 
@@ -1027,15 +1027,15 @@ class IAX2IeVersion : public IAX2IeShort
   IAX2IeVersion() { dataValue = 2; validData = true; }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_version; }
+  virtual BYTE GetKeyValue() const override  { return ie_version; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.version = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.version = dataValue; }     
  protected:
 };
 
@@ -1051,15 +1051,15 @@ class IAX2IeAdsicpe : public IAX2IeShort
   IAX2IeAdsicpe(BYTE length, BYTE *srcData) : IAX2IeShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_adsicpe; }
+  virtual BYTE GetKeyValue() const override  { return ie_adsicpe; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.adsicpe = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.adsicpe = dataValue; }     
  protected:
 };
 
@@ -1078,15 +1078,15 @@ class IAX2IeDnid : public IAX2IeString
   IAX2IeDnid(const PString & newValue)  { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_dnid; }
+  virtual BYTE GetKeyValue() const override  { return ie_dnid; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.dnid = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.dnid = dataValue; }     
  protected:
 };
 
@@ -1105,15 +1105,15 @@ class IAX2IeAuthMethods : public IAX2IeShort
   IAX2IeAuthMethods(short newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_authMethods; }
+  virtual BYTE GetKeyValue() const override  { return ie_authMethods; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.authMethods = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.authMethods = dataValue; }     
   
   /**Return true if the supplied value has the RSA key on*/
   static PBoolean IsRsaAuthentication(short testValue) { return InternalIsRsa(testValue); }
@@ -1160,15 +1160,15 @@ class IAX2IeChallenge : public IAX2IeString
   IAX2IeChallenge(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_challenge; }
+  virtual BYTE GetKeyValue() const override  { return ie_challenge; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.challenge = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.challenge = dataValue; }     
  protected:
 };
 
@@ -1196,15 +1196,15 @@ class IAX2IeMd5Result : public IAX2IeString
   void InitializeChallengePassword(const PString & newChallenge, const PString & newPassword);
 
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_md5Result; }
+  virtual BYTE GetKeyValue() const override{ return ie_md5Result; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.md5Result = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.md5Result = dataValue; }     
 
   /**GetAccess to the stomach, which is the concatanation of the various
      components used to make a key */
@@ -1231,15 +1231,15 @@ class IAX2IeRsaResult : public IAX2IeString
   IAX2IeRsaResult(const PString & newValue) { SetData(newValue); }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_rsaResult; }
+  virtual BYTE GetKeyValue() const override{ return ie_rsaResult; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.rsaResult = dataValue; }
+  virtual void StoreDataIn(IAX2IeData &res) override { res.rsaResult = dataValue; }
  protected:
 };
 
@@ -1258,15 +1258,15 @@ class IAX2IeApparentAddr : public IAX2IeSockaddrIn
   ~IAX2IeApparentAddr() { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_apparentAddr; }
+  virtual BYTE GetKeyValue() const override{ return ie_apparentAddr; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.apparentAddr = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.apparentAddr = dataValue; }     
  protected:
 };
 
@@ -1285,15 +1285,15 @@ class IAX2IeRefresh : public IAX2IeShort
   IAX2IeRefresh(short refreshTime) : IAX2IeShort(refreshTime) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_refresh; }
+  virtual BYTE GetKeyValue() const override{ return ie_refresh; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.refresh = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.refresh = dataValue; }     
  protected:
 };
 
@@ -1309,15 +1309,15 @@ class IAX2IeDpStatus : public IAX2IeShort
   IAX2IeDpStatus(BYTE length, BYTE *srcData) : IAX2IeShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_dpStatus; }
+  virtual BYTE GetKeyValue() const override{ return ie_dpStatus; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.dpStatus = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.dpStatus = dataValue; }     
  protected:
 };
 
@@ -1333,15 +1333,15 @@ class IAX2IeCallNo : public IAX2IeShort
   IAX2IeCallNo(BYTE length, BYTE *srcData) : IAX2IeShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callNo; }
+  virtual BYTE GetKeyValue() const override{ return ie_callNo; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.callNo = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.callNo = dataValue; }     
  protected:
 };
 
@@ -1363,15 +1363,15 @@ class IAX2IeCause : public IAX2IeString
   IAX2IeCause(const char *newValue) : IAX2IeString(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_cause; }
+  virtual BYTE GetKeyValue() const override{ return ie_cause; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.cause = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.cause = dataValue; }     
  protected:
 };
 
@@ -1390,15 +1390,15 @@ class IAX2IeIaxUnknown : public IAX2IeByte
   IAX2IeIaxUnknown(BYTE newValue) : IAX2IeByte(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_iaxUnknown; }
+  virtual BYTE GetKeyValue() const override{ return ie_iaxUnknown; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.iaxUnknown = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.iaxUnknown = dataValue; }     
  protected:
 };
 
@@ -1414,15 +1414,15 @@ class IAX2IeMsgCount : public IAX2IeShort
   IAX2IeMsgCount(BYTE length, BYTE *srcData) : IAX2IeShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_msgCount; }
+  virtual BYTE GetKeyValue() const override{ return ie_msgCount; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.msgCount = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.msgCount = dataValue; }     
  protected:
 };
 
@@ -1438,15 +1438,15 @@ class IAX2IeAutoAnswer : public IAX2IeNone
   IAX2IeAutoAnswer(BYTE length, BYTE *srcData) : IAX2IeNone(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_autoAnswer; }
+  virtual BYTE GetKeyValue() const override{ return ie_autoAnswer; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.autoAnswer = true;; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.autoAnswer = true;; }     
  protected:
 };
 
@@ -1465,15 +1465,15 @@ class IAX2IeMusicOnHold : public IAX2IeNone
   IAX2IeMusicOnHold() : IAX2IeNone() { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_musicOnHold; }
+  virtual BYTE GetKeyValue() const override{ return ie_musicOnHold; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.musicOnHold = true; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.musicOnHold = true; }     
  protected:
 };
 
@@ -1489,15 +1489,15 @@ class IAX2IeTransferId : public IAX2IeInt
   IAX2IeTransferId(BYTE length, BYTE *srcData) : IAX2IeInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_transferId; }
+  virtual BYTE GetKeyValue() const override{ return ie_transferId; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.transferId = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.transferId = dataValue; }     
  protected:
 };
 
@@ -1513,15 +1513,15 @@ class IAX2IeRdnis : public IAX2IeString
   IAX2IeRdnis(BYTE length, BYTE *srcData) : IAX2IeString(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_rdnis; }
+  virtual BYTE GetKeyValue() const override{ return ie_rdnis; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.rdnis = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.rdnis = dataValue; }     
  protected:
 };
 
@@ -1537,15 +1537,15 @@ class IAX2IeProvisioning : public IAX2IeBlockOfData
   IAX2IeProvisioning(BYTE length, BYTE *srcData) : IAX2IeBlockOfData   (length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_provisioning; }
+  virtual BYTE GetKeyValue() const override{ return ie_provisioning; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &/*res*/) {  }     
+  virtual void StoreDataIn(IAX2IeData &/*res*/) override {  }     
  protected:
 };
 
@@ -1561,15 +1561,15 @@ class IAX2IeAesProvisioning : public IAX2IeNone
   IAX2IeAesProvisioning(BYTE length, BYTE *srcData) : IAX2IeNone(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_aesProvisioning; }
+  virtual BYTE GetKeyValue() const override{ return ie_aesProvisioning; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &/*res*/) {  }     
+  virtual void StoreDataIn(IAX2IeData &/*res*/) override {  }     
  protected:
 };
 
@@ -1585,15 +1585,15 @@ class IAX2IeDateTime : public IAX2IeDateAndTime
   IAX2IeDateTime(BYTE length, BYTE *srcData) : IAX2IeDateAndTime(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_dateTime; }
+  virtual BYTE GetKeyValue() const override{ return ie_dateTime; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.dateTime = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.dateTime = dataValue; }     
  protected:
 };
 
@@ -1609,15 +1609,15 @@ class IAX2IeDeviceType : public IAX2IeString
   IAX2IeDeviceType(BYTE length, BYTE *srcData) : IAX2IeString(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_deviceType; }
+  virtual BYTE GetKeyValue() const override{ return ie_deviceType; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.deviceType = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.deviceType = dataValue; }     
  protected:
 };
 
@@ -1633,15 +1633,15 @@ class IAX2IeServiceIdent : public IAX2IeString
   IAX2IeServiceIdent(BYTE length, BYTE *srcData) : IAX2IeString(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_serviceIdent; }
+  virtual BYTE GetKeyValue() const override{ return ie_serviceIdent; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.serviceIdent = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.serviceIdent = dataValue; }     
  protected:
 };
 
@@ -1657,15 +1657,15 @@ class IAX2IeFirmwareVer : public IAX2IeShort
   IAX2IeFirmwareVer(BYTE length, BYTE *srcData) : IAX2IeShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_firmwareVer; }
+  virtual BYTE GetKeyValue() const override{ return ie_firmwareVer; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.firmwareVer = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.firmwareVer = dataValue; }     
  protected:
 };
 
@@ -1684,15 +1684,15 @@ class IAX2IeFwBlockDesc : public IAX2IeUInt
   IAX2IeFwBlockDesc(unsigned int newValue) : IAX2IeUInt(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_fwBlockDesc; }
+  virtual BYTE GetKeyValue() const override{ return ie_fwBlockDesc; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.fwBlockDesc = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.fwBlockDesc = dataValue; }     
  protected:
 };
 
@@ -1708,15 +1708,15 @@ class IAX2IeFwBlockData : public IAX2IeBlockOfData
   IAX2IeFwBlockData(BYTE length, BYTE *srcData) : IAX2IeBlockOfData(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_fwBlockData; }
+  virtual BYTE GetKeyValue() const override{ return ie_fwBlockData; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.fwBlockData = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.fwBlockData = dataValue; }     
  protected:
 };
 
@@ -1735,15 +1735,15 @@ class IAX2IeProvVer : public IAX2IeUInt
   IAX2IeProvVer(unsigned int newValue) : IAX2IeUInt(newValue) { }
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_provVer; }
+  virtual BYTE GetKeyValue() const override{ return ie_provVer; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.provVer = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.provVer = dataValue; }     
  protected:
 };
 
@@ -1759,15 +1759,15 @@ class IAX2IeCallingPres : public IAX2IeByte
   IAX2IeCallingPres(BYTE length, BYTE *srcData) : IAX2IeByte(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingPres; }
+  virtual BYTE GetKeyValue() const override{ return ie_callingPres; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.callingPres = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.callingPres = dataValue; }     
  protected:
 };
 
@@ -1783,15 +1783,15 @@ class IAX2IeCallingTon : public IAX2IeByte
   IAX2IeCallingTon(BYTE length, BYTE *srcData) : IAX2IeByte(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingTon; }
+  virtual BYTE GetKeyValue() const override{ return ie_callingTon; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.callingTon = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.callingTon = dataValue; }     
  protected:
 };
 
@@ -1807,15 +1807,15 @@ class IAX2IeCallingTns : public IAX2IeUShort
   IAX2IeCallingTns(BYTE length, BYTE *srcData) : IAX2IeUShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callingTns; }
+  virtual BYTE GetKeyValue() const override{ return ie_callingTns; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.callingTns = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.callingTns = dataValue; }     
  protected:
 };
 
@@ -1831,15 +1831,15 @@ class IAX2IeSamplingRate : public IAX2IeUShort
   IAX2IeSamplingRate(BYTE length, BYTE *srcData) : IAX2IeUShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_samplingRate; }
+  virtual BYTE GetKeyValue() const override{ return ie_samplingRate; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.samplingRate = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.samplingRate = dataValue; }     
  protected:
 };
 
@@ -1863,15 +1863,15 @@ class IAX2IeEncryption : public IAX2IeUShort
   IAX2IeEncryption(BYTE length, BYTE *srcData) : IAX2IeUShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_encryption; }
+  virtual BYTE GetKeyValue() const override{ return ie_encryption; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.encryptionMethods = dataValue; }
+  virtual void StoreDataIn(IAX2IeData &res) override { res.encryptionMethods = dataValue; }
  protected:
 };
 
@@ -1887,15 +1887,15 @@ class IAX2IeEncKey : public IAX2IeString
   IAX2IeEncKey(BYTE length, BYTE *srcData) : IAX2IeString(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_encKey; }
+  virtual BYTE GetKeyValue() const override{ return ie_encKey; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.encKey = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.encKey = dataValue; }     
  protected:
 };
 
@@ -1911,15 +1911,15 @@ class IAX2IeCodecPrefs : public IAX2IeByte
   IAX2IeCodecPrefs(BYTE length, BYTE *srcData) : IAX2IeByte(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_codecPrefs; }
+  virtual BYTE GetKeyValue() const override{ return ie_codecPrefs; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.codecPrefs = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.codecPrefs = dataValue; }     
  protected:
 };
 
@@ -1935,15 +1935,15 @@ class IAX2IeReceivedJitter : public IAX2IeUInt
   IAX2IeReceivedJitter(BYTE length, BYTE *srcData) : IAX2IeUInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recJitter; }
+  virtual BYTE GetKeyValue() const override{ return ie_recJitter; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedJitter = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedJitter = dataValue; }     
  protected:
 };
 
@@ -1959,15 +1959,15 @@ class IAX2IeReceivedLoss : public IAX2IeUInt
   IAX2IeReceivedLoss(BYTE length, BYTE *srcData) : IAX2IeUInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recLoss; }
+  virtual BYTE GetKeyValue() const override{ return ie_recLoss; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedLoss = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedLoss = dataValue; }     
  protected:
 };
 
@@ -1983,15 +1983,15 @@ class IAX2IeReceivedFrames : public IAX2IeUInt
   IAX2IeReceivedFrames(BYTE length, BYTE *srcData) : IAX2IeUInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recPackets; }
+  virtual BYTE GetKeyValue() const override{ return ie_recPackets; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedPackets = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedPackets = dataValue; }     
  protected:
 };
 
@@ -2007,15 +2007,15 @@ class IAX2IeReceivedDelay : public IAX2IeUShort
   IAX2IeReceivedDelay(BYTE length, BYTE *srcData) : IAX2IeUShort(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recDelay; }
+  virtual BYTE GetKeyValue() const override{ return ie_recDelay; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedDelay = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedDelay = dataValue; }     
  protected:
 };
 
@@ -2031,15 +2031,15 @@ class IAX2IeDroppedFrames : public IAX2IeUInt
   IAX2IeDroppedFrames(BYTE length, BYTE *srcData) : IAX2IeUInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recDropped; }
+  virtual BYTE GetKeyValue() const override{ return ie_recDropped; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedDropped = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedDropped = dataValue; }     
  protected:
 };
 
@@ -2055,15 +2055,15 @@ class IAX2IeReceivedOoo : public IAX2IeUInt
   IAX2IeReceivedOoo(BYTE length, BYTE *srcData) : IAX2IeUInt(length, srcData) { };
   
   /**print this class (nicely) to the designated stream*/
-  virtual void PrintOn(ostream & str) const;
+  virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_recOoo; }
+  virtual BYTE GetKeyValue() const override{ return ie_recOoo; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.receivedOoo = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.receivedOoo = dataValue; }     
  protected:
 };
 
@@ -2089,15 +2089,15 @@ class IAX2IeCallToken : public IAX2IeBinary
    IAX2IeCallToken() : IAX2IeBinary(0, NULL) {};
      
   /**print this class (nicely) to the designated stream*/
-     virtual void PrintOn(ostream & str) const;
+     virtual void PrintOn(ostream & str) const override;
   
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const  { return ie_callToken; }
+  virtual BYTE GetKeyValue() const override{ return ie_callToken; }
   
   /** Take the data from this IAX2Ie, and copy it into the IAX2IeData
       structure.  This is done on processing an incoming frame which
       contains IAX2Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.callToken = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.callToken = dataValue; }     
 
   /**Initialise the internal key, and the iKeyPad and oKeyPad
      variables, for the generation of the SHA1-HMAC keysequence. This

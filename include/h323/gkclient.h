@@ -80,39 +80,39 @@ class H323Gatekeeper : public H225_RAS
     /**Stop the channel processing transactions.
        Must be called in each descendants destructor.
       */
-    virtual void StopChannel();
+    virtual void StopChannel() override;
 
     virtual PBoolean WriteTo(
       H323TransactionPDU & pdu,
       const H323TransportAddressArray & addresses,
       PBoolean callback = true
-    );
+    ) override;
   //@}
 
   /**@name Overrides from H225_RAS */
   //@{
-    PBoolean OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf);
-    PBoolean OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj);
-    PBoolean OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf);
-    PBoolean OnReceiveRegistrationReject(const H225_RegistrationReject & rrj);
-    PBoolean OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq);
-    PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf);
-    PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj);
-    PBoolean OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf);
-    PBoolean OnReceiveAdmissionReject(const H225_AdmissionReject & arj);
-    PBoolean OnReceiveDisengageRequest(const H225_DisengageRequest & drq);
-    PBoolean OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &);
-    PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf);
-    PBoolean OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq);
-    PBoolean OnReceiveInfoRequest(const H225_InfoRequest & irq);
-    PBoolean OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr);
-    PBoolean OnReceiveServiceControlIndication(const H225_ServiceControlIndication &);
-    PBoolean OnReceiveNonStandardMessage(const H225_NonStandardMessage &);
-    void OnSendGatekeeperRequest(H225_GatekeeperRequest & grq);
-    void OnSendAdmissionRequest(H225_AdmissionRequest & arq);
+    PBoolean OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf) override;
+    PBoolean OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj) override;
+    PBoolean OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf) override;
+    PBoolean OnReceiveRegistrationReject(const H225_RegistrationReject & rrj) override;
+    PBoolean OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq) override;
+    PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf) override;
+    PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj) override;
+    PBoolean OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf) override;
+    PBoolean OnReceiveAdmissionReject(const H225_AdmissionReject & arj) override;
+    PBoolean OnReceiveDisengageRequest(const H225_DisengageRequest & drq) override;
+    PBoolean OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &) override;
+    PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf) override;
+    PBoolean OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq) override;
+    PBoolean OnReceiveInfoRequest(const H225_InfoRequest & irq) override;
+    PBoolean OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr) override;
+    PBoolean OnReceiveServiceControlIndication(const H225_ServiceControlIndication &) override;
+    PBoolean OnReceiveNonStandardMessage(const H225_NonStandardMessage &) override;
+    void OnSendGatekeeperRequest(H225_GatekeeperRequest & grq) override;
+    void OnSendAdmissionRequest(H225_AdmissionRequest & arq) override;
 #if OPAL_H460
-    PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
-    void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const;
+    PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const override;
+    void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const override;
 #endif
   //@}
 
@@ -362,7 +362,7 @@ class H323Gatekeeper : public H225_RAS
 
     virtual PBoolean MakeRequest(
       Request & request
-    );
+    ) override;
     PBoolean MakeRequestWithReregister(
       Request & request,
       unsigned unregisteredTag
@@ -389,13 +389,13 @@ class H323Gatekeeper : public H225_RAS
     PDECLARE_InterfaceNotifier(H323Gatekeeper, OnLowPriorityInterfaceChange);
     PInterfaceMonitor::Notifier m_onLowPriorityInterfaceChange;
     
-    class AlternateInfo : public PObject {
+    class AlternateInfo : public PObject, PNonCopyable {
       PCLASSINFO(AlternateInfo, PObject);
       public:
         AlternateInfo(H225_AlternateGK & alt);
         ~AlternateInfo();
-        Comparison Compare(const PObject & obj) const;
-        void PrintOn(ostream & strm) const;
+        virtual Comparison Compare(const PObject & obj) const override;
+        virtual void PrintOn(ostream & strm) const override;
 
         H323TransportAddress rasAddress;
         PString              gatekeeperIdentifier;
@@ -406,11 +406,6 @@ class H323Gatekeeper : public H225_RAS
           IsRegistered,
           RegistrationFailed
         } registrationState;
-
-      private:
-        // Disable copy constructor and assignment
-        AlternateInfo(const AlternateInfo &other): PObject(other) { }
-        AlternateInfo & operator=(const AlternateInfo &) { return *this; }
     };
     typedef PSortedList<AlternateInfo> AlternateList;
     AlternateList m_alternates;

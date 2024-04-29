@@ -32,11 +32,11 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
-    virtual PString GetArgumentSpec() const;
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
-    virtual void Run();
-    virtual void OnClearedCall(OpalCall & call); // Callback override
+    virtual PString GetArgumentSpec() const override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
+    virtual void Run() override;
+    virtual void OnClearedCall(OpalCall & call) override; // Callback override
 
   private:
     PSimpleTimer m_competionTimeout;
@@ -50,7 +50,7 @@ class MyFaxEndPoint : public OpalFaxEndPoint
 
   public:
     MyFaxEndPoint(OpalManager & manager) : OpalFaxEndPoint(manager) { }
-    virtual void OnFaxCompleted(OpalFaxConnection & connection, bool timeout);
+    virtual void OnFaxCompleted(OpalFaxConnection & connection, bool timeout) override;
 };
 
 

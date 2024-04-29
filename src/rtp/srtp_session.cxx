@@ -27,7 +27,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "srtp_session.h"
 #endif
 
@@ -235,7 +235,7 @@ class PSRTPInitialiser : public PProcessStartup
 {
   PCLASSINFO(PSRTPInitialiser, PProcessStartup)
   public:
-    virtual void OnStartup()
+    virtual void OnStartup() override
     {
       PTRACE(2, "Initialising SRTP: " << srtp_get_version_string());
       CHECK_ERROR(srtp_install_log_handler,(srtp_log_handler, NULL));
@@ -266,15 +266,15 @@ template <const char FactoryName[],
     PCLASSINFO(OpalSRTPCryptoSuiteTemplate, OpalSRTPCryptoSuite);
   public:
     static const PCaselessString & MyFactoryName() { static PConstCaselessString const s(FactoryName); return s; }
-    virtual const PCaselessString & GetFactoryName() const { return MyFactoryName(); }
-    virtual const char * GetDescription() const { return Description; }
-    virtual PINDEX GetCipherKeyBits() const { return CipherBits; }
-    virtual const char * GetDTLSName() const { return DTLSName; }
+    virtual const PCaselessString & GetFactoryName() const override { return MyFactoryName(); }
+    virtual const char * GetDescription() const override { return Description; }
+    virtual PINDEX GetCipherKeyBits() const override { return CipherBits; }
+    virtual const char * GetDTLSName() const override { return DTLSName; }
 #if OPAL_H235_6 || OPAL_H235_8
-    virtual const char * GetOID() const { return OID; }
+    virtual const char * GetOID() const override { return OID; }
 #endif
 
-    virtual void SetCryptoPolicy(struct srtp_crypto_policy_t & policy) const { CryptoPolicySet(&policy); }
+    virtual void SetCryptoPolicy(struct srtp_crypto_policy_t & policy) const override { CryptoPolicySet(&policy); }
 };
 
 #define DEFINE_CRYPTO_SUITE(name, desc, bits, dtls, oid, libFn) \

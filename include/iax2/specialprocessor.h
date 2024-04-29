@@ -62,23 +62,23 @@ class IAX2SpecialProcessor : public IAX2Processor
   
  protected:
   /**Go through the three lists for incoming data (ethernet/sound/UI commands.  */
-  virtual void ProcessLists();
+  virtual void ProcessLists() override;
   
   /**Processes a full frame*/
-  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame);
+  virtual void ProcessFullFrame(IAX2FullFrame & fullFrame) override;
   
   /**Processes are mini frame*/
-  virtual void ProcessNetworkFrame(IAX2MiniFrame * src);
+  virtual void ProcessNetworkFrame(IAX2MiniFrame * src) override;
   
   /**Print information about the class on to a stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Called when there is no response to a request*/
-  virtual void OnNoResponseTimeout();
+  virtual void OnNoResponseTimeout() override;
   
   /**Process an IAX2FullFrameProtocol. This special processor handles
    things relative to special needs of full frame protocols.*/
-  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src) override;
   
   /**Process a poke command*/
   void ProcessIaxCmdPoke(IAX2FullFrameProtocol * src);
@@ -89,7 +89,7 @@ class IAX2SpecialProcessor : public IAX2Processor
 
      @return false always, as the special packet handler never gets
      frame ordered correctly - there will always be skipped frames. */
-  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *) 
+  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *)  override
   { return false; }
 
 

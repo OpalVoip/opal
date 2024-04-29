@@ -47,7 +47,7 @@ class RTP_MetricsReport : public PObject
   public:
     RTP_MetricsReport(const RTP_ControlFrame::MetricsReport & mr);
 #if PTRACING
-    void PrintOn(ostream &) const;
+    void PrintOn(ostream &) const override;
 #endif
 
     RTP_SyncSourceId sourceIdentifier;

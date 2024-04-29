@@ -40,7 +40,7 @@ class PlayRTP : public PProcess
     PlayRTP();
     ~PlayRTP();
 
-    virtual void Main();
+    virtual void Main() override;
     void Play(OpalPCAPFile & pcap);
 
     PDECLARE_NOTIFIER(OpalMediaCommand, PlayRTP, OnTranscoderCommand);

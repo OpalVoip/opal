@@ -483,9 +483,8 @@ case "$target_os" in
       AR="libtool"
       ARFLAGS="-static -o"
       RANLIB=
-      CPPFLAGS="-stdlib=libc++ $CPPFLAGS"
-      LDFLAGS="${LDFLAGS} -stdlib=libc++"
-      LIBS="-framework AudioToolbox -framework CoreAudio -framework SystemConfiguration -framework Foundation -lobjc $LIBS"
+      LDFLAGS="${LDFLAGS} -framework AudioToolbox -framework CoreAudio -framework SystemConfiguration -framework Foundation"
+      LIBS="-lobjc $LIBS"
    ;;
 
    cygwin* | mingw* )
@@ -515,8 +514,22 @@ case "$target_os" in
       AS_VAR_IF([target_cpu],[arm],[target_cpu=arm64])
 
       CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS"
-      LDFLAGS="-mmacosx-version-min=$target_release $LDFLAGS"
-      LIBS="-framework AVFoundation -framework CoreVideo -framework CoreMedia -framework AudioUnit $LIBS"
+      LDFLAGS="-mmacosx-version-min=$target_release -framework AVFoundation -framework CoreVideo -framework CoreMedia -framework AudioUnit $LDFLAGS"
+
+      dnl Where "port" libraries live
+      if test -d /opt/local/include; then
+        CPPFLAGS="$CPPFLAGS -I/opt/local/include"
+      fi
+      if test -d /opt/local/lib; then
+        LIBS="-L/opt/local/lib $LIBS"
+      fi
+      if test -d /opt/homebrew/include; then
+        CPPFLAGS="$CPPFLAGS -I/opt/homebrew/include"
+      fi
+      if test -d /opt/homebrew/lib; then
+        LIBS="-L/opt/homebrew/lib $LIBS"
+      fi
+
    ;;
 
    linux* | Linux* | uclibc* )

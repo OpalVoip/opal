@@ -75,17 +75,17 @@ class OpalSRTPKeyInfo : public OpalMediaCryptoKeyInfo
   public:
     OpalSRTPKeyInfo(const OpalSRTPCryptoSuite & cryptoSuite);
 
-    PObject * Clone() const;
-    virtual Comparison Compare(const PObject & other) const;
+    virtual PObject * Clone() const override;
+    virtual Comparison Compare(const PObject & other) const override;
 
-    virtual bool IsValid() const;
-    virtual void Randomise();
-    virtual bool FromString(const PString & str);
-    virtual PString ToString() const;
-    virtual bool SetCipherKey(const PBYTEArray & key);
-    virtual bool SetAuthSalt(const PBYTEArray & key);
-    virtual PBYTEArray GetCipherKey() const;
-    virtual PBYTEArray GetAuthSalt() const;
+    virtual bool IsValid() const override;
+    virtual void Randomise() override;
+    virtual bool FromString(const PString & str) override;
+    virtual PString ToString() const override;
+    virtual bool SetCipherKey(const PBYTEArray & key) override;
+    virtual bool SetAuthSalt(const PBYTEArray & key) override;
+    virtual PBYTEArray GetCipherKey() const override;
+    virtual PBYTEArray GetAuthSalt() const override;
 
     const OpalSRTPCryptoSuite & GetCryptoSuite() const { return m_cryptoSuite; }
 
@@ -107,13 +107,13 @@ class OpalSRTPCryptoSuite : public OpalMediaCryptoSuite
 
   public:
 #if OPAL_H235_8
-    virtual H235SecurityCapability * CreateCapability(const H323Capability & mediaCapability) const;
+    virtual H235SecurityCapability * CreateCapability(const H323Capability & mediaCapability) const override;
 #endif
-    virtual bool Supports(const PCaselessString & proto) const;
-    virtual bool ChangeSessionType(PCaselessString & mediaSession, KeyExchangeModes modes) const;
+    virtual bool Supports(const PCaselessString & proto) const override;
+    virtual bool ChangeSessionType(PCaselessString & mediaSession, KeyExchangeModes modes) const override;
 
-    virtual PINDEX GetAuthSaltBits() const;
-    virtual OpalMediaCryptoKeyInfo * CreateKeyInfo() const;
+    virtual PINDEX GetAuthSaltBits() const override;
+    virtual OpalMediaCryptoKeyInfo * CreateKeyInfo() const override;
 
     virtual void SetCryptoPolicy(struct srtp_crypto_policy_t & policy) const = 0;
 };
@@ -131,29 +131,29 @@ class OpalSRTPSession : public OpalRTPSession
     OpalSRTPSession(const Init & init);
     ~OpalSRTPSession();
 
-    virtual const PCaselessString & GetSessionType() const { return RTP_SAVP(); }
-    virtual OpalMediaCryptoKeyList & GetOfferedCryptoKeys();
-    virtual bool ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx);
-    virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const;
+    virtual const PCaselessString & GetSessionType() const override { return RTP_SAVP(); }
+    virtual OpalMediaCryptoKeyList & GetOfferedCryptoKeys() override;
+    virtual bool ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx) override;
+    virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const override;
 
-    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual RTP_SyncSourceId AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname = NULL);
+    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual RTP_SyncSourceId AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname = NULL) override;
 
-    virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now);
-    virtual SendReceiveStatus OnSendControl(RTP_ControlFrame & frame, const PTime & now);
-    virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now);
-    virtual SendReceiveStatus OnReceiveControl(RTP_ControlFrame & frame, const PTime & now);
-    virtual bool IsEncrypted() const { return true; }
+    virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now) override;
+    virtual SendReceiveStatus OnSendControl(RTP_ControlFrame & frame, const PTime & now) override;
+    virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now) override;
+    virtual SendReceiveStatus OnReceiveControl(RTP_ControlFrame & frame, const PTime & now) override;
+    virtual bool IsEncrypted() const override { return true; }
 
     virtual SendReceiveStatus OnReceiveDecodedControl(RTP_ControlFrame & frame, const PTime & now);
 
   protected:
-    virtual bool ResequenceOutOfOrderPackets(SyncSource & ssrc) const;
+    virtual bool ResequenceOutOfOrderPackets(SyncSource & ssrc) const override;
     virtual bool ApplyKeysToSRTP(OpalMediaTransport & transport);
     virtual bool ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Direction dir);
     virtual bool AddStreamToSRTP(RTP_SyncSourceId ssrc, Direction dir);
-    virtual void OnRxDataPacket(OpalMediaTransport & transport, PBYTEArray data);
-    virtual void OnRxControlPacket(OpalMediaTransport & transport, PBYTEArray data);
+    virtual void OnRxDataPacket(OpalMediaTransport & transport, PBYTEArray data) override;
+    virtual void OnRxControlPacket(OpalMediaTransport & transport, PBYTEArray data) override;
 
     bool                       m_anyRTCP_SSRC;
     srtp_ctx_t               * m_context;

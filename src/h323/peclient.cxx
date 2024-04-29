@@ -31,7 +31,7 @@
 
 #if OPAL_H501
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "peclient.h"
 #endif
 

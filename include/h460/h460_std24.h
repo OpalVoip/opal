@@ -64,9 +64,9 @@ class PNatMethod_H46024 : public PSTUNClient
     PNatMethod_H46024(unsigned priority = DefaultPriority);
 
     static const char * MethodName();
-    virtual PCaselessString GetMethodName() const;
+    virtual PCaselessString GetMethodName() const override;
 
-    virtual bool IsAvailable(const PIPSocket::Address & binding, PObject * context);
+    virtual bool IsAvailable(const PIPSocket::Address & binding, PObject * context) override;
 };
 
 
@@ -79,7 +79,7 @@ class H460_FeatureStd24 : public H460_Feature
     H460_FeatureStd24();
 
     static const H460_FeatureID & ID();
-    virtual bool Initialise(H323EndPoint & ep, H323Connection * con);
+    virtual bool Initialise(H323EndPoint & ep, H323Connection * con) override;
 
     /// Values as per H.460.24 Table 9
     enum MediaStrategyIndicator
@@ -97,12 +97,12 @@ class H460_FeatureStd24 : public H460_Feature
     };
 
     // Messages
-    virtual bool OnSendAdmissionRequest(H460_FeatureDescriptor & pdu);
-    virtual void OnReceiveAdmissionConfirm(const H460_FeatureDescriptor & pdu);
-    virtual void OnReceiveAdmissionReject(const H460_FeatureDescriptor & pdu);
+    virtual bool OnSendAdmissionRequest(H460_FeatureDescriptor & pdu) override;
+    virtual void OnReceiveAdmissionConfirm(const H460_FeatureDescriptor & pdu) override;
+    virtual void OnReceiveAdmissionReject(const H460_FeatureDescriptor & pdu) override;
 
-    virtual bool OnSendSetup_UUIE(H460_FeatureDescriptor & pdu);
-    virtual void OnReceiveSetup_UUIE(const H460_FeatureDescriptor & pdu);
+    virtual bool OnSendSetup_UUIE(H460_FeatureDescriptor & pdu) override;
+    virtual void OnReceiveSetup_UUIE(const H460_FeatureDescriptor & pdu) override;
 
     MediaStrategyIndicator GetStrategy() const { return m_strategy; }
     bool IsDisabledH46019() const;
@@ -127,8 +127,8 @@ class H460_FeatureStd24AnnexA : public H460_Feature
 
     static const H460_FeatureID & ID();
 
-    virtual bool OnSendingOLCGenericInformation(unsigned sessionID, H245_ArrayOf_GenericParameter & param, bool isAck);
-    virtual void OnReceiveOLCGenericInformation(unsigned sessionID, const H245_ArrayOf_GenericParameter & param, bool isAck);
+    virtual bool OnSendingOLCGenericInformation(unsigned sessionID, H245_ArrayOf_GenericParameter & param, bool isAck) override;
+    virtual void OnReceiveOLCGenericInformation(unsigned sessionID, const H245_ArrayOf_GenericParameter & param, bool isAck) override;
 
   protected:
     bool InitProbe(unsigned sessionID);

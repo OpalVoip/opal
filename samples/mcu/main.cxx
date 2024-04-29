@@ -63,7 +63,7 @@ PString MyManager::GetArgumentSpec() const
 }
 
 
-bool MyManager::Initialise(PArgList & args, bool verbose)
+bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 {
   if (!OpalManagerCLI::Initialise(args, verbose, "mcu:<du>"))
     return false;

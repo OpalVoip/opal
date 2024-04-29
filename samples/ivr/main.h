@@ -35,7 +35,7 @@ class MyIVREndPoint : public OpalConsoleIVREndPoint
   public:
     MyIVREndPoint(OpalManagerConsole & manager) : OpalConsoleIVREndPoint(manager) { }
 
-    virtual void OnEndDialog(OpalIVRConnection & connection);
+    virtual void OnEndDialog(OpalIVRConnection & connection) override;
 };
 
 #endif
@@ -48,10 +48,10 @@ class MyManager : public OpalManagerConsole
     MyManager() : OpalManagerConsole(OPAL_CONSOLE_PREFIXES OPAL_PCSS_PREFIX " " OPAL_IVR_PREFIX) { }
 
 #if OPAL_IVR
-    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
-    virtual void Usage(ostream & strm, const PArgList & args);
-    virtual void OnEstablishedCall(OpalCall & call); // Callback override
-    virtual void OnClearedCall(OpalCall & call); // Callback override
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
+    virtual void OnEstablishedCall(OpalCall & call) override; // Callback override
+    virtual void OnClearedCall(OpalCall & call) override; // Callback override
 #endif
 };
 

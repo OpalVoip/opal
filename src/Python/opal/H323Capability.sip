@@ -60,7 +60,7 @@ class H323Capability : PObject /Abstract/
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
   /**@name Identification functions */
   //@{
@@ -469,7 +469,7 @@ class H323NonStandardAudioCapability : H323AudioCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -510,7 +510,7 @@ class H323GenericAudioCapability : H323AudioCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -611,7 +611,7 @@ class H323NonStandardVideoCapability : H323VideoCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -653,7 +653,7 @@ class H323GenericVideoCapability : H323VideoCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -754,11 +754,11 @@ class H323H239VideoCapability : H323ExtendedVideoCapability
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -788,7 +788,7 @@ class H323H239ControlCapability : H323GenericControlCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -896,7 +896,7 @@ class H323NonStandardDataCapability : H323DataCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -951,7 +951,7 @@ class H323_G711Capability : H323AudioCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -1006,7 +1006,7 @@ class H323_UserInputCapability : H323Capability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */

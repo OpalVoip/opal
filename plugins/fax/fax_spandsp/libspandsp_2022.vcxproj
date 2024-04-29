@@ -74,7 +74,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\spandsp;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\msvc;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -84,7 +84,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\spandsp;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\msvc;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -93,7 +93,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\spandsp;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\msvc;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -102,7 +102,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\spandsp;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)compat_headers;$(ProjectDir)spandsp\src\msvc;$(ProjectDir)spandsp\src;$(ProjectDir)jpeg;$(ProjectDir)tiff\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -254,6 +254,7 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     <ClCompile Include="spandsp\src\g711.c" />
     <ClCompile Include="spandsp\src\g722.c" />
     <ClCompile Include="spandsp\src\g726.c" />
+    <ClCompile Include="spandsp\src\godard.c" />
     <ClCompile Include="spandsp\src\gsm0610_decode.c" />
     <ClCompile Include="spandsp\src\gsm0610_encode.c" />
     <ClCompile Include="spandsp\src\gsm0610_long_term.c" />
@@ -331,8 +332,8 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     <ClInclude Include="compat_headers\math_fixed_tables.h" />
     <ClInclude Include="compat_headers\spandsp.h" />
     <ClInclude Include="compat_headers\t43_gray_code_tables.h" />
-    <ClInclude Include="compat_headers\tgmath.h" />
     <ClInclude Include="compat_headers\unistd.h" />
+    <ClInclude Include="compat_headers\v17_v32bis_rx_godard.h" />
     <ClInclude Include="compat_headers\v17_v32bis_rx_rrc.h" />
     <ClInclude Include="compat_headers\v17_v32bis_tx_rrc.h" />
     <ClInclude Include="compat_headers\v22bis_rx_1200_rrc.h" />
@@ -342,6 +343,7 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     <ClInclude Include="compat_headers\v27ter_rx_4800_rrc.h" />
     <ClInclude Include="compat_headers\v27ter_tx_2400_rrc.h" />
     <ClInclude Include="compat_headers\v27ter_tx_4800_rrc.h" />
+    <ClInclude Include="compat_headers\v29rx_godard.h" />
     <ClInclude Include="compat_headers\v29rx_rrc.h" />
     <ClInclude Include="compat_headers\v29tx_rrc.h" />
     <ClInclude Include="spandsp\src\spandsp\ademco_contactid.h" />

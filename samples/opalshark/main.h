@@ -56,13 +56,13 @@ class wxSpinCtrl;
 struct MyOptions
 {
   PwxString m_AudioDevice;
+  int       m_AudioTiming;
   int       m_VideoTiming;
   OpalPCAPFile::PayloadMap m_mappings;
+  int       m_LogLevel;
+  PwxString m_LogFile;
 
-  MyOptions()
-    : m_AudioDevice("Default")
-    , m_VideoTiming(0)
-  { }
+  MyOptions();
 };
 
 
@@ -118,7 +118,7 @@ class MediaStream : public wxListCtrl
 
 
 public:
-  MediaStream(MyPlayer & player, const OpalPCAPFile::DiscoveredRTPInfo & filterInfo);
+  MediaStream(wxWindow * parent, MyPlayer & player, const OpalPCAPFile::DiscoveredRTPInfo & filterInfo);
   ~MediaStream();
 
   void StartThread();
@@ -171,6 +171,12 @@ class MyPlayer : public wxMDIChildFrame
     void Export(OpalPCAPFile * pcapFile, OpalRecordManager * recorder);
     void OnExportComplete();
 
+    MyManager & GetManager() const { return m_manager; }
+    const PFilePath & GetPcapFilepath() const { return m_pcapFilePath; }
+    const MyOptions & GetOptions() const;
+    Controls GetControl() const { return m_playThreadCtrl; }
+    void PauseOnNext(unsigned packetNumber);
+
   private:
     MyManager & m_manager;
     PFilePath   m_pcapFilePath;
@@ -198,9 +204,10 @@ class MyPlayer : public wxMDIChildFrame
     wxNotebook * m_streamTabs;
     typedef std::map<RTP_SyncSourceId, MediaStream *> StreamBySSRC;
     StreamBySSRC m_streamsBySSRC;
+    void AddStream(const OpalPCAPFile::DiscoveredRTPInfo & selectedInfo);
 
-    Controls  m_playThreadCtrl;
-    unsigned  m_pausePacket;
+    atomic<Controls> m_playThreadCtrl;
+    unsigned         m_pausePacket;
 
     wxButton   * m_play;
     wxButton   * m_stop;
@@ -209,8 +216,6 @@ class MyPlayer : public wxMDIChildFrame
     wxButton   * m_step;
     wxButton   * m_analyse;
     wxSpinCtrl * m_playToPacket;
-
-  friend class MediaStream;
 
   wxDECLARE_EVENT_TABLE();
 };
@@ -225,7 +230,7 @@ class MyManager : public wxMDIParentFrame, public OpalManager
     bool Initialise(bool startMinimised);
     void Load(wxString fname);
 
-    const MyOptions GetOptions() const { return m_options; }
+    const MyOptions & GetOptions() const { return m_options; }
 
   private:
     void OnMenuOpen(wxMenuEvent &);

@@ -1,7 +1,6 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.181
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPAL Shark", "opalshark_2022.vcxproj", "{37C1B6FC-14A8-4870-9EE0-ED3FA11B6E49}"
 EndProject
@@ -43,7 +42,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - Opus", "..\..\plugi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - iSAC", "..\..\plugins\audio\iSAC\isaccodec_2022.vcxproj", "{851A8648-5021-4FC3-ACED-40D2802D9C5E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opus", "..\..\plugins\audio\Opus\opus\win32\VS2019\opus.vcxproj", "{219EC965-228A-1824-174D-96449D05F88A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opus", "..\..\plugins\audio\Opus\opus\win32\VS2022\opus.vcxproj", "{219EC965-228A-1824-174D-96449D05F88A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.264 (Cisco OpenH264)", "..\..\plugins\video\openh264\openh264_2022.vcxproj", "{E513A4F2-5341-4CAE-A643-D47975AE291C}"
 EndProject

@@ -53,7 +53,7 @@ class TranscoderThread : public PThread
 
     int InitialiseCodec(PArgList & args, const OpalMediaType & mediaType, OpalMediaFormat & mediaFormat, OpalMediaFormat & rawFormat);
 
-    virtual void Main();
+    virtual void Main() override;
 
     virtual bool Read(RTP_DataFrame & frame) = 0;
     virtual bool Write(const RTP_DataFrame & frame) = 0;
@@ -118,10 +118,10 @@ class AudioThread : public TranscoderThread
 
     bool Initialise(PArgList & args);
 
-    virtual void Main();
-    virtual bool Read(RTP_DataFrame & frame);
-    virtual bool Write(const RTP_DataFrame & frame);
-    virtual void Stop();
+    virtual void Main() override;
+    virtual bool Read(RTP_DataFrame & frame) override;
+    virtual bool Write(const RTP_DataFrame & frame) override;
+    virtual void Stop() override;
 
     PSoundChannel * m_recorder;
     PSoundChannel * m_player;
@@ -150,10 +150,10 @@ class VideoThread : public TranscoderThread
 
     bool Initialise(PArgList & args);
 
-    virtual void Main();
-    virtual bool Read(RTP_DataFrame & frame);
-    virtual bool Write(const RTP_DataFrame & frame);
-    virtual void Stop();
+    virtual void Main() override;
+    virtual bool Read(RTP_DataFrame & frame) override;
+    virtual bool Write(const RTP_DataFrame & frame) override;
+    virtual void Stop() override;
 
     PDECLARE_NOTIFIER(OpalMediaCommand, VideoThread, OnTranscoderCommand);
     void WriteFrameStats(const PString & str);
@@ -167,8 +167,8 @@ class VideoThread : public TranscoderThread
 
     void SaveSNRFrame(const RTP_DataFrame & src);
     void CalcSNR(const RTP_DataFrame & src);
-    void CalcSNR(const RTP_DataFrame & src, const RTP_DataFrame & dst);
-    void ReportSNR();
+    void CalcSNR(const RTP_DataFrame & src, const RTP_DataFrame & dst) override;
+    void ReportSNR() override;
 
     PString   m_frameFilename;
     PTextFile m_frameStatFile;
@@ -193,7 +193,7 @@ class CodecTest : public PProcess
     CodecTest();
     ~CodecTest();
 
-    virtual void Main();
+    virtual void Main() override;
 
     class TestThreadInfo : public PObject
     {

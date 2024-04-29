@@ -110,7 +110,7 @@ class OpalRTPConnection : public OpalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
   //@}
 
 
@@ -132,7 +132,7 @@ class OpalRTPConnection : public OpalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                        ///<  Is a source stream
-    );
+    ) override;
 
     /**Get transports for the media session on the connection.
        This is primarily used by the media bypass feature controlled by the
@@ -148,7 +148,7 @@ class OpalRTPConnection : public OpalConnection
       unsigned sessionId,                    ///< Session identifier
       const OpalMediaType & mediaType,       ///< Media type for session to return information
       OpalTransportAddressArray & transports ///<  Information on media session
-    ) const;
+    ) const override;
 
     /**Adjust media formats available on a connection.
        This is called by a connection after it has called
@@ -167,7 +167,7 @@ class OpalRTPConnection : public OpalConnection
       bool local,                             ///<  Media formats a local ones to be presented to remote
       const OpalConnection * otherConnection, ///<  Other connection we are adjusting media for
       OpalMediaFormatList & mediaFormats      ///<  Media formats to use
-    ) const;
+    ) const override;
 
     /**Call back when patching a media stream.
        This function is called when a connection has created a new media
@@ -180,7 +180,7 @@ class OpalRTPConnection : public OpalConnection
     virtual void OnPatchMediaStream(
       PBoolean isSource,        ///< Is source/sink call
       OpalMediaPatch & patch    ///<  New patch
-    );
+    ) override;
 
     /** Callback for media commands.
         Calls the SendIntraFrameRequest on the rtp session
@@ -190,12 +190,12 @@ class OpalRTPConnection : public OpalConnection
     virtual bool OnMediaCommand(
       OpalMediaStream & stream,         ///< Stream command executed on
       const OpalMediaCommand & command  ///< Media command being executed
-    );
+    ) override;
 
     virtual PBoolean SendUserInputTone(
       char tone,        ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
-    );
+    ) override;
   //@}
 
 
@@ -206,7 +206,7 @@ class OpalRTPConnection : public OpalConnection
     virtual unsigned GetNextSessionID(
       const OpalMediaType & mediaType,   ///< Media type of stream being opened
       bool isSource                      ///< Stream is a source/sink
-    );
+    ) override;
 
     /**Indicate crypto key exchange modes available in media negotiation.
        For example, offers in CreateAllMediaSessions().
@@ -331,7 +331,7 @@ class OpalRTPConnection : public OpalConnection
     typedef PSafeDictionary<PKey<unsigned>, OpalMediaSession> SessionMap;
 
   protected:
-    virtual bool GarbageCollection();
+    virtual bool GarbageCollection() override;
     PDECLARE_NOTIFIER2(OpalRFC2833Info, OpalRTPConnection, OnUserInputInlineRFC2833, OpalRFC2833Proto::NotifyState);
 
 #if OPAL_RTP_FEC

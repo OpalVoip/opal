@@ -241,12 +241,12 @@ class OpalIMConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual PBoolean IsNetworkConnection() const { return false; }
+    virtual PBoolean IsNetworkConnection() const override { return false; }
 
     /**Callback for outgoing connection, it is invoked after SetUpConnection
        This function allows the application to set up some parameters or to log some messages
      */
-    virtual PBoolean OnSetUpConnection();
+    virtual PBoolean OnSetUpConnection() override;
 
     /**A call back function whenever a connection is established.
        This indicates that a connection to an endpoint was established. This
@@ -259,7 +259,7 @@ class OpalIMConnection : public OpalConnection
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnEstablished();
+    virtual void OnEstablished() override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -267,7 +267,7 @@ class OpalIMConnection : public OpalConnection
 
        The default behaviour closes the context the calls the ancestor.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
   //@}
 
   protected:

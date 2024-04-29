@@ -27,7 +27,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "dtls_srtp_session.h"
 #endif
 
@@ -55,7 +55,7 @@ class OpalDTLSContext : public PSSLContext
     PCLASSINFO(OpalDTLSContext, PSSLContext);
   public:
     OpalDTLSContext(const OpalDTLSMediaTransport & transport)
-      : PSSLContext(PSSLContext::DTLSv1_2_v1_0)
+      : PSSLContext(PSSLContext::DTLSv1_2)
     {
       if (!UseCertificate(transport.m_certificate))
       {

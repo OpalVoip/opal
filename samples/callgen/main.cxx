@@ -692,7 +692,7 @@ void MyLocalConnection::AdjustMediaFormats(bool local, const OpalConnection * ot
 }
 
 
-bool MyLocalConnection::OnReadMediaData(const OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length)
+bool MyLocalConnection::OnReadMediaData(OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length)
 {
   if (m_audioFile != NULL) {
     // WAV or RAW file

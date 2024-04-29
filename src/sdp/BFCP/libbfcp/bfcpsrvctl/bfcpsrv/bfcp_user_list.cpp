@@ -330,7 +330,7 @@ int BFCP_UserList::bfcp_add_user_request(UINT32 ConferenceID, UINT16 Transaction
 		if((temp_list_users->numberfloorrequest[position_floor]) >= list_users->max_number_floor_request)
 		{
 			char errortext[200];
-			sprintf(errortext, "User %d has already reached the maximum allowed number of requests (%i) for the same floor in Conference %d", userID, list_users->max_number_floor_request, ConferenceID);
+			snprintf(errortext, sizeof(errortext), "User %d has already reached the maximum allowed number of requests (%i) for the same floor in Conference %d", userID, list_users->max_number_floor_request, ConferenceID);
 			BFCP_UserList_error_code(ConferenceID, userID, TransactionID, BFCP_MAX_FLOORREQUESTS_REACHED, errortext, NULL, sockfd, y, temp_list_users->bfcp_transport);
 			return -1;
 		} else
@@ -369,7 +369,7 @@ int BFCP_UserList::bfcp_is_floor_request_full(UINT32 ConferenceID, UINT16 Transa
 	if((temp_list_users != NULL) && (temp_list_users->userID == userID)) {
 		if(temp_list_users->numberfloorrequest[position_floor] >= list_users->max_number_floor_request) {
 			char errortext[200];
-			sprintf(errortext, "User %hu has already reached the maximum allowed number of requests (%i) for the same floor in Conference %d", userID, list_users->max_number_floor_request, ConferenceID);
+			snprintf(errortext, sizeof(errortext), "User %hu has already reached the maximum allowed number of requests (%i) for the same floor in Conference %d", userID, list_users->max_number_floor_request, ConferenceID);
 			BFCP_UserList_error_code(ConferenceID, userID, TransactionID, BFCP_MAX_FLOORREQUESTS_REACHED, errortext, NULL, sockfd, y, transport);
 			return -1;
 		}

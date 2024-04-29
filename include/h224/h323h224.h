@@ -45,12 +45,12 @@ class H323_H224_AnnexQCapability : public H323GenericDataCapability
 public:
   H323_H224_AnnexQCapability(const OpalMediaFormat & mediaFormat);
 
-  virtual PString GetFormatName() const;
+  virtual PString GetFormatName() const override;
 
   virtual H323Channel * CreateChannel(H323Connection & connection,
                                       H323Channel::Directions direction,
                                       unsigned int sessionID,
-                                      const H245_H2250LogicalChannelParameters * params) const;
+                                      const H245_H2250LogicalChannelParameters * params) const override;
 };
 
 class H323_FECC_RTP_Capability : public H323_H224_AnnexQCapability
@@ -72,18 +72,18 @@ class H323_H224_HDLCTunnelingCapability : public H323DataCapability
 public:
   H323_H224_HDLCTunnelingCapability(const OpalMediaFormat & mediaFormat);
 
-  virtual unsigned GetSubType() const;
+  virtual unsigned GetSubType() const override;
 
-  virtual PString GetFormatName() const;
+  virtual PString GetFormatName() const override;
 
   virtual H323Channel * CreateChannel(H323Connection & connection,
                                       H323Channel::Directions direction,
                                       unsigned int sessionID,
-                                      const H245_H2250LogicalChannelParameters * params) const;
+                                      const H245_H2250LogicalChannelParameters * params) const override;
 
-  virtual PBoolean OnSendingPDU(H245_DataApplicationCapability & pdu) const;
-  virtual PBoolean OnSendingPDU(H245_DataMode & pdu) const;
-  virtual PBoolean OnReceivedPDU(const H245_DataApplicationCapability & pdu);
+  virtual PBoolean OnSendingPDU(H245_DataApplicationCapability & pdu) const override;
+  virtual PBoolean OnSendingPDU(H245_DataMode & pdu) const override;
+  virtual PBoolean OnReceivedPDU(const H245_DataApplicationCapability & pdu) override;
 
 };
 

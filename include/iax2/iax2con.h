@@ -94,7 +94,7 @@ class IAX2Connection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return true; }
+    virtual bool IsNetworkConnection() const override { return true; }
 
     /**Initiate the transfer of an existing call (connection) to a new
        remote party.
@@ -105,7 +105,7 @@ class IAX2Connection : public OpalConnection
      */
     virtual bool TransferConnection(
       const PString & remoteParty ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
   /**Clean up the termination of the connection.  This function can
      do any internal cleaning up and waiting on background threads
@@ -125,7 +125,7 @@ class IAX2Connection : public OpalConnection
      The default behaviour calls the OpalEndPoint function of the
      same name.
   */
-  virtual void OnReleased();
+  virtual void OnReleased() override;
 
   /**Get the data formats this connection is capable of operating.
      This provides a list of media data format names that a
@@ -137,7 +137,7 @@ class IAX2Connection : public OpalConnection
 
      The OpalConnection has this method as pure, so it is defined for IAX2.
   */
-  OpalMediaFormatList GetMediaFormats() const { return remoteMediaFormats; }
+  OpalMediaFormatList GetMediaFormats() const override { return remoteMediaFormats; }
 
   /**Cause the call to end now, but do not send any iax hangup frames etc */
   void EndCallNow(
@@ -148,10 +148,10 @@ class IAX2Connection : public OpalConnection
   void SendDtmf(const PString & dtmf);
 
   /** sending text fullframes **/
-  virtual PBoolean SendUserInputString(const PString & value );
+  virtual PBoolean SendUserInputString(const PString & value ) override;
   
   /** sending dtmf  - which is 1 char per IAX2FullFrameDtmf on the frame.**/
-  virtual PBoolean SendUserInputTone(char tone, unsigned duration );
+  virtual PBoolean SendUserInputTone(char tone, unsigned duration ) override;
 
   /**Report if this Connection is still active */
   PBoolean IsCallTerminating() { return iax2Processor.IsCallTerminating(); }
@@ -166,7 +166,7 @@ class IAX2Connection : public OpalConnection
   */
   virtual void AnsweringCall(
 			     AnswerCallResponse response ///< response to incoming call
-			     );
+			     ) override;
 
   /**Capture an Opal generated call back, which tells us the media
      streams are about to start. In this method, we start the jitter
@@ -175,7 +175,7 @@ class IAX2Connection : public OpalConnection
 
   That this method is called is an indication that the remote endpoint
   has answered our call and is happy for the call to proceed.*/
-  void OnConnected();   
+  void OnConnected() override;   
     
   /**Indicate to remote endpoint we are connected.  In other words,
      tell the remote endpoint we accept the call and things proceed
@@ -188,7 +188,7 @@ class IAX2Connection : public OpalConnection
      The IAX2 answer packet is sent by the iax2 call processor, and
      indicates we have agreed to the incoming call.
   */
-  virtual PBoolean SetConnected();
+  virtual PBoolean SetConnected() override;
 
   /**A call back function whenever a connection is established.
        This indicates that a connection to an endpoint was established. This
@@ -204,7 +204,7 @@ class IAX2Connection : public OpalConnection
 
        This exchange proces is invoked in the IAX2CallProcessor.
       */
-  void OnEstablished();
+  void OnEstablished() override;
 
   /**Indicate to remote endpoint an alert is in progress.  If this is
      an incoming connection and the AnswerCallResponse is in a
@@ -220,7 +220,7 @@ class IAX2Connection : public OpalConnection
   PBoolean SetAlerting(   
 		       const PString & calleeName,///< Name of endpoint being alerted.
 		       PBoolean withMedia  ///< Open media with alerting
-			  ); 
+			  ) override; 
      
   /**Open a new media stream.  This will create a media stream of 
      class OpalIAX2MediaStream.
@@ -233,7 +233,7 @@ class IAX2Connection : public OpalConnection
 				      const OpalMediaFormat & mediaFormat, ///< Media format for stream
 				      unsigned sessionID,///< Session number for stream
 				      PBoolean isSource  ///< Is a source stream
-				      );
+				      ) override;
 
   /**Give the call token a value. The call token is the ipaddress of
      the remote node concatented with the remote nodes src
@@ -292,7 +292,7 @@ class IAX2Connection : public OpalConnection
 
      The behaviour at the opal level is pure. Here, the method is defined.
   */
-  PBoolean SetUpConnection();
+  PBoolean SetUpConnection() override;
 
 
   /**Return the bitmask which specifies the possible codecs we
@@ -335,7 +335,7 @@ class IAX2Connection : public OpalConnection
      */
     virtual bool HoldRemote(
       bool placeOnHold  ///< Flag for setting on or off hold
-    );
+    ) override;
 
     /**Return true if the current connection is on hold.
        The \p fromRemote parameter indicates if we are testing if the remote
@@ -343,7 +343,7 @@ class IAX2Connection : public OpalConnection
      */
     virtual bool IsOnHold(
       bool fromRemote  ///< Flag for if remote has us on hold, or we have them
-    ) const;
+    ) const override;
   
   /**Signal that the remote side has put the connection on hold*/
   void RemoteHoldConnection();
@@ -385,7 +385,7 @@ class IAX2Connection : public OpalConnection
   */
   virtual PBoolean ForwardCall(
 			       const PString & forwardParty   ///<  Party to forward call to.
-			       );
+			       ) override;
   
   /**Handle a received IAX frame. This may be a mini frame or full frame.
    Typically, this connection instance will immediately pass the frame on to

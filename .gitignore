@@ -161,3 +161,5 @@ nbproject/private/
 /samples/c_api/cache
 /samples/ivr/cache
 .vscode/*.log
+/samples/opalshark/__pycache__
+*.bak

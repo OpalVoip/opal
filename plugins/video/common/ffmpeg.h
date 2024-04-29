@@ -49,6 +49,7 @@
 
 extern "C" {
   #include "libavcodec/avcodec.h"
+  #include "libavutil/dict.h"
   #include "libavutil/mem.h"
 };
 
@@ -95,8 +96,9 @@ class FFMPEGCodec
 {
   protected:
     const char     * m_prefix;
-    AVCodec        * m_codec;
+    const AVCodec  * m_codec;
     AVCodecContext * m_context;
+    AVDictionary   * m_options;
     AVFrame        * m_picture;
     AVPacket         m_packet;
     void           * m_alignedYUV[3];
@@ -121,6 +123,7 @@ class FFMPEGCodec
       unsigned tsto,
       unsigned keyFramePeriod
     );
+    bool SetOptionsInt(const char * name, const char * value, bool & optionsSame);
 
     virtual bool OpenCodec();
     virtual void CloseCodec();
@@ -128,7 +131,7 @@ class FFMPEGCodec
     virtual bool EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP & out, unsigned & flags);
     virtual bool DecodeVideoPacket(const PluginCodec_RTP & in, unsigned & flags);
 
-    virtual int EncodeVideoFrame(uint8_t * frame, size_t length, unsigned & flags);
+    virtual bool EncodeVideoFrame();
     virtual bool DecodeVideoFrame(const uint8_t * frame, size_t length, unsigned & flags);
 
     OpalPluginFrame * GetEncodedFrame() const { return m_fullFrame; }

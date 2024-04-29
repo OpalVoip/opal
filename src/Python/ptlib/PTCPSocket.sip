@@ -78,7 +78,7 @@ class PTCPSocket : PIPSocket
        @return
        pointer to new copy of the class instance.
      */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Overrides from class PChannel. */

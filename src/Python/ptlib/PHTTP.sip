@@ -933,7 +933,7 @@ class PHTTPSimpleAuth : PHTTPAuthority
        @return
        pointer to new copy of the class instance.
      */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
 
   // Overrides from class PHTTPAuthority.
@@ -1014,7 +1014,7 @@ class PHTTPMultiSimpAuth : PHTTPAuthority
        @return
        pointer to new copy of the class instance.
      */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
 
   // Overrides from class PHTTPAuthority.

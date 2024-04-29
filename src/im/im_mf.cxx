@@ -25,7 +25,7 @@
  *
  */
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "im.h"
 #pragma implementation "im_ep.h"
 #endif

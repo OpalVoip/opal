@@ -91,5 +91,5 @@ class OpalPresenceInfo : PObject
     static State FromString(const PString & str);
     PString AsString() const;
 	
-	PObject::Comparison Compare(const PObject & other) const;
+	PObject::Comparison Compare(const PObject & other) const override;
 };

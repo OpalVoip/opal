@@ -30,7 +30,7 @@
 
 #if OPAL_SDP
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sdp.h"
 #endif
 

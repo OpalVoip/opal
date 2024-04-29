@@ -16,11 +16,15 @@
             "args": [
                 "--directory=${workspaceFolder}",
                 "MULTIPLATFORM=yes",
+                "OPAL_SAMPLES=yes",
                 "all"
             ],
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "group": {
+                "kind": "build"
+            }
         },
         {
             "label": "Make OPAL (debug)",
@@ -40,7 +44,11 @@
             ],
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "Make OPAL (release)",
@@ -60,7 +68,10 @@
             ],
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "group": {
+                "kind": "build"
+            }
         },
         {
             "label": "Clean OPAL",
@@ -76,7 +87,13 @@
                 "--directory=${workspaceFolder}",
                 "MULTIPLATFORM=yes",
                 "clean"
-            ]
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }

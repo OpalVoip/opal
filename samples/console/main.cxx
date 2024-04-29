@@ -59,7 +59,7 @@ void MyManager::Usage(ostream & strm, const PArgList & args)
 }
 
 
-bool MyManager::Initialise(PArgList & args, bool verbose)
+bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 {
   if (!OpalManagerCLI::Initialise(args, verbose, OPAL_PREFIX_PCSS":"))
     return false;

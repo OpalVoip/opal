@@ -135,7 +135,7 @@ class IAX2Frame :  public PObject
   virtual PBoolean TransmitPacket(PUDPSocket &sock);
   
   /**Pretty print this frame data to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Calculate the timestamp value, given the call start tick*/
   static DWORD CalcTimeStamp(const PTimeInterval & callStartTick);
@@ -326,20 +326,20 @@ class IAX2MiniFrame : public IAX2Frame
   
   /** Process the incoming frame some more, but process it as this
       frame type demands*/
-  virtual PBoolean ProcessNetworkPacket();
+  virtual PBoolean ProcessNetworkPacket() override;
   
   /**Write the header to the internal data area */
-  virtual PBoolean WriteHeader();
+  virtual PBoolean WriteHeader() override;
   
   /**Pretty print this frame data to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Pointer to the beginning of the media (after the header) in this
      packet */
-  virtual BYTE *GetMediaDataPointer();
+  virtual BYTE *GetMediaDataPointer() override;
   
   /**Number of bytes in the media section of this packet. */
-  virtual PINDEX GetMediaDataSize();
+  virtual PINDEX GetMediaDataSize() override;
   
   /**Fix the timestamp in this class, after being shrunk in the MiniFrames */
   void AlterTimeStamp(PINDEX newValue);
@@ -349,10 +349,10 @@ class IAX2MiniFrame : public IAX2Frame
      This method is never called when processing a received frame.
 
      Whenever a frame is transmitted, this method will be called.*/ 
-  virtual void InitialiseHeader(IAX2Processor *processor);
+  virtual void InitialiseHeader(IAX2Processor *processor) override;
   
   /**Get the offset to the beginning of the encrypted region */
-  virtual PINDEX GetEncryptionOffset();
+  virtual PINDEX GetEncryptionOffset() override;
 
  protected:
   /**Initialise valus in this class to some preset value */
@@ -426,7 +426,7 @@ class IAX2FullFrame : public IAX2Frame
 
   /**True if this is a full frame - always returns true as this is a
      full frame. */
-  virtual PBoolean IsFullFrame() { return true; }  
+  virtual PBoolean IsFullFrame() override { return true; }  
   
   /**Report true if this is a hangup frame. We need this information
      for processing incoming frames, before fully dissection of the
@@ -438,11 +438,11 @@ class IAX2FullFrame : public IAX2Frame
   
   /** Process the incoming frame some more, but process it as a full
       frame */
-  virtual PBoolean ProcessNetworkPacket();
+  virtual PBoolean ProcessNetworkPacket() override;
   
   /**Send this packet on the specified socket to the remote host. This
      method is only called by the transmiter.*/
-  virtual PBoolean TransmitPacket(PUDPSocket &sock);
+  virtual PBoolean TransmitPacket(PUDPSocket &sock) override;
   
   /**Get text descrption of this frame type*/
   PString GetFullFrameName() const;
@@ -464,10 +464,10 @@ class IAX2FullFrame : public IAX2Frame
 
   /**Pointer to the beginning of the media (after the header) in this
      packet */
-  virtual BYTE *GetMediaDataPointer();
+  virtual BYTE *GetMediaDataPointer() override;
   
   /**Number of bytes in the media section of this packet. */
-  virtual PINDEX GetMediaDataSize();
+  virtual PINDEX GetMediaDataSize() override;
   
   /**Determine the current value of the subClass variable */
   PINDEX GetSubClass() const { return subClass; }
@@ -478,7 +478,7 @@ class IAX2FullFrame : public IAX2Frame
   /**Write the header for this class to the internal data array. 12
      bytes of data are writen.  The application developer must write
      the remaining bytes, before transmiting this frame. */
-  virtual PBoolean WriteHeader();
+  virtual PBoolean WriteHeader() override;
   
   /**Alter the two bytes for in and out sequence values. (in the
      header)*/
@@ -505,7 +505,7 @@ class IAX2FullFrame : public IAX2Frame
   IAX2SequenceNumbers & GetSequenceInfo() { return sequence; }
   
   /**Pretty print this frame data to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
   
   /**Mark this frame as having been resent (set bit 7 of data[2])*/
   void MarkAsResent();
@@ -525,11 +525,11 @@ class IAX2FullFrame : public IAX2Frame
   virtual BYTE GetFullFrameType() { return 0; }
 
   /**Get the offset to the beginning of the encrypted region */
-  virtual PINDEX GetEncryptionOffset() { return 4; }
+  virtual PINDEX GetEncryptionOffset() override { return 4; }
   
  protected:
   /** Report flag stating that this call must be active when this frame is transmitted*/
-  virtual PBoolean CallMustBeActive() { return callMustBeActive; }
+  virtual PBoolean CallMustBeActive() override { return callMustBeActive; }
   
   /**Turn the 8 bit subClass value into a 16 bit representation */
   void UnCompressSubClass(BYTE a);
@@ -545,7 +545,7 @@ class IAX2FullFrame : public IAX2Frame
      This method is never called when processing a received frame.
 
      Whenever a frame is transmitted, this method will be called.*/
-  virtual void InitialiseHeader(IAX2Processor *processor);
+  virtual void InitialiseHeader(IAX2Processor *processor) override;
   
 #ifdef DOC_PLUS_PLUS
   /** pwlib constructs to cope with timeout, when transmitting a full frame.  This
@@ -628,7 +628,7 @@ class IAX2FullFrameDtmf : public IAX2FullFrame
   
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const; 
+  virtual PString GetSubClassName() const override; 
   
   /**enum comtaining the possible subclass value for these dtmf frames */
   enum DtmfSc {
@@ -651,7 +651,7 @@ class IAX2FullFrameDtmf : public IAX2FullFrame
   };
   
   /**Return the FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return dtmfType; }
+  virtual BYTE GetFullFrameType() override { return dtmfType; }
   
  protected:
 };
@@ -692,7 +692,7 @@ class IAX2FullFrameVoice : public IAX2FullFrame
   virtual ~IAX2FullFrameVoice();
 
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Get text description of the subclass contents, given the supplied
      argument*/
@@ -724,7 +724,7 @@ class IAX2FullFrameVoice : public IAX2FullFrame
   };
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return voiceType; }
+  virtual BYTE GetFullFrameType() override { return voiceType; }
 };
 /////////////////////////////////////////////////////////////////////////////    
 /**Used for transmitting video packets in a relaible
@@ -746,7 +746,7 @@ class IAX2FullFrameVideo : public IAX2FullFrame
   IAX2FullFrameVideo(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**enum comtaining the possible (uncompressed) subclass value for these video frames */
   enum VideoSc {
@@ -757,7 +757,7 @@ class IAX2FullFrameVideo : public IAX2FullFrame
   };
   
   /**Return the FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return videoType; }
+  virtual BYTE GetFullFrameType() override { return videoType; }
  protected:
 };
 
@@ -820,10 +820,10 @@ class IAX2FullFrameSessionControl : public IAX2FullFrame
   virtual ~IAX2FullFrameSessionControl() { }
 
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return controlType; }
+  virtual BYTE GetFullFrameType() override { return controlType; }
   
  protected:
 };
@@ -854,10 +854,10 @@ class IAX2FullFrameNull : public IAX2FullFrame
   IAX2FullFrameNull(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const { return  PString(""); }
+  virtual PString GetSubClassName() const override { return  PString(""); }
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return nullType; }
+  virtual BYTE GetFullFrameType() override { return nullType; }
   
  protected:
 };
@@ -963,13 +963,13 @@ class IAX2FullFrameProtocol : public IAX2FullFrame
   void SetRetransmissionRequired();
   
   /**Mark this frame as having (or not having) information elements*/
-  virtual PBoolean InformationElementsPresent() { return !ieElements.IsEmpty(); }
+  virtual PBoolean InformationElementsPresent() override { return !ieElements.IsEmpty(); }
   
   /**Report the current value of the subClass variable */
   ProtocolSc GetSubClass() const { return (ProtocolSc) subClass; }
 
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const; 
+  virtual PString GetSubClassName() const override; 
 
   /**Get text description of the subclass contents*/
   static PString GetSubClassName(unsigned t);
@@ -993,10 +993,10 @@ class IAX2FullFrameProtocol : public IAX2FullFrame
 
   /**Return the IAX2FullFrame type represented here (voice, protocol,
      session etc*/
-  virtual BYTE GetFullFrameType() { return iax2ProtocolType; }
+  virtual BYTE GetFullFrameType() override { return iax2ProtocolType; }
   
   /**Pretty print this frame data to the designated stream*/
-  virtual void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
 
   /**Go through the list of IEs read in, and find the CallToken Ie,
      and return a copy of it to the caller. If found, return true. */
@@ -1045,10 +1045,10 @@ class IAX2FullFrameText : public IAX2FullFrame
   IAX2FullFrameText(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return textType; }
+  virtual BYTE GetFullFrameType() override { return textType; }
 
   /**Return the text data*/
   PString GetTextString() const;
@@ -1078,10 +1078,10 @@ class IAX2FullFrameImage : public IAX2FullFrame
   IAX2FullFrameImage(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return imageType; }
+  virtual BYTE GetFullFrameType() override { return imageType; }
  protected:
 };
 
@@ -1105,10 +1105,10 @@ class IAX2FullFrameHtml : public IAX2FullFrame
   IAX2FullFrameHtml(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return htmlType; }
+  virtual BYTE GetFullFrameType() override { return htmlType; }
  protected:
 };
 
@@ -1131,10 +1131,10 @@ class IAX2FullFrameCng : public IAX2FullFrame
   IAX2FullFrameCng(const IAX2FullFrame & srcFrame);
   
   /**Get text description of the subclass contents*/
-  virtual PString GetSubClassName() const;
+  virtual PString GetSubClassName() const override;
   
   /**Return the IAX2FullFrame type represented here (voice, protocol, session etc*/
-  virtual BYTE GetFullFrameType() { return cngType; }
+  virtual BYTE GetFullFrameType() override { return cngType; }
  protected:
 };
 

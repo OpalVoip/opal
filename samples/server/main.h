@@ -133,16 +133,16 @@ public:
   MyCall(MyManager & manager);
 
   // Callbacks from OPAL
-  virtual PBoolean OnSetUp(OpalConnection & connection);
-  virtual void OnProceeding(OpalConnection & connection);
-  virtual PBoolean OnAlerting(OpalConnection & connection);
-  virtual PBoolean OnConnected(OpalConnection & connection);
-  virtual void OnEstablishedCall();
-  virtual void OnCleared();
+  virtual PBoolean OnSetUp(OpalConnection & connection) override;
+  virtual void OnProceeding(OpalConnection & connection) override;
+  virtual PBoolean OnAlerting(OpalConnection & connection) override;
+  virtual PBoolean OnConnected(OpalConnection & connection) override;
+  virtual void OnEstablishedCall() override;
+  virtual void OnCleared() override;
 
   // Called by MyManager
-  void OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & patch);
-  void OnStopMediaPatch(OpalMediaPatch & patch);
+  void OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & patch) override;
+  void OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & patch) override;
 
 protected:
   MyManager & m_manager;
@@ -168,7 +168,7 @@ class MyGatekeeperCall : public H323GatekeeperCall
 
     virtual H323GatekeeperRequest::Response OnAdmission(
       H323GatekeeperARQ & request
-    );
+    ) override;
 
 #ifdef H323_TRANSNEXUS_OSP
     PBoolean AuthoriseOSPCall(H323GatekeeperARQ & info);
@@ -189,14 +189,14 @@ class MyGatekeeperServer : public H323GatekeeperServer
     virtual H323GatekeeperCall * CreateCall(
       const OpalGloballyUniqueID & callIdentifier,
       H323GatekeeperCall::Direction direction
-    );
+    ) override;
     virtual PBoolean TranslateAliasAddress(
       const H225_AliasAddress & alias,
       H225_ArrayOf_AliasAddress & aliases,
       H323TransportAddress & address,
       PBoolean & isGkRouted,
       H323GatekeeperCall * call
-    );
+    ) override;
 
     // new functions
     bool Configure(PConfig & cfg, PConfigPage * rsrc);
@@ -221,7 +221,7 @@ class MyGatekeeperServer : public H323GatekeeperServer
 
         void PrintOn(
           ostream & strm
-        ) const;
+        ) const override;
 
         bool IsValid() const;
 
@@ -293,7 +293,7 @@ public:
   bool ForceUnregister(const PString id);
 
 #if OPAL_H323 || OPAL_SKINNY
-  virtual void OnChangedRegistrarAoR(RegistrarAoR & ua);
+  virtual void OnChangedRegistrarAoR(RegistrarAoR & ua) override;
 #endif
 
 #if OPAL_H323
@@ -368,13 +368,13 @@ class BaseStatusPage : public PServiceHTTPString
 
     virtual PString LoadText(
       PHTTPRequest & request    // Information on this request.
-      );
+    ) override;
 
     virtual PBoolean Post(
       PHTTPRequest & request,
       const PStringToString &,
       PHTML & msg
-    );
+    ) override;
 
     MyManager & m_manager;
 
@@ -415,9 +415,9 @@ class RegistrationStatusPage : public BaseStatusPage
 #endif
 
   protected:
-    virtual PString LoadText(PHTTPRequest & request);
-    virtual const char * GetTitle() const;
-    virtual void CreateContent(PHTML & html, const PStringToString & query) const;
+    virtual PString LoadText(PHTTPRequest & request) override;
+    virtual const char * GetTitle() const override;
+    virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
 
 #if OPAL_H323
     StatusMap m_h323;
@@ -447,10 +447,10 @@ class CallStatusPage : public BaseStatusPage
     PINDEX GetCallCount() const { return m_calls.GetSize(); }
 
   protected:
-    virtual PString LoadText(PHTTPRequest & request);
-    virtual const char * GetTitle() const;
-    virtual void CreateContent(PHTML & html, const PStringToString & query) const;
-    virtual bool OnPostControl(const PStringToString & data, PHTML & msg);
+    virtual PString LoadText(PHTTPRequest & request) override;
+    virtual const char * GetTitle() const override;
+    virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
+    virtual bool OnPostControl(const PStringToString & data, PHTML & msg) override;
 
     PArray<PString> m_calls;
     PDECLARE_MUTEX(m_mutex);
@@ -468,9 +468,9 @@ class GkStatusPage : public BaseStatusPage
     GkStatusPage(MyManager & mgr, const PHTTPAuthority & auth);
 
   protected:
-    virtual const char * GetTitle() const;
-    virtual void CreateContent(PHTML & html, const PStringToString & query) const;
-    virtual bool OnPostControl(const PStringToString & data, PHTML & msg);
+    virtual const char * GetTitle() const override;
+    virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
+    virtual bool OnPostControl(const PStringToString & data, PHTML & msg) override;
 
     MyGatekeeperServer & m_gkServer;
 
@@ -491,9 +491,9 @@ class RegistrarStatusPage : public BaseStatusPage
     RegistrarStatusPage(MyManager & mgr, const PHTTPAuthority & auth);
 
   protected:
-    virtual const char * GetTitle() const;
-    virtual void CreateContent(PHTML & html, const PStringToString & query) const;
-    virtual bool OnPostControl(const PStringToString & data, PHTML & msg);
+    virtual const char * GetTitle() const override;
+    virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
+    virtual bool OnPostControl(const PStringToString & data, PHTML & msg) override;
 
     MySIPEndPoint & m_registrar;
 
@@ -511,8 +511,8 @@ class CDRListPage : public BaseStatusPage
 public:
   CDRListPage(MyManager & mgr, const PHTTPAuthority & auth);
 protected:
-  virtual const char * GetTitle() const;
-  virtual void CreateContent(PHTML & html, const PStringToString & query) const;
+  virtual const char * GetTitle() const override;
+  virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
 };
 
 
@@ -524,8 +524,8 @@ class CDRPage : public BaseStatusPage
   public:
     CDRPage(MyManager & mgr, const PHTTPAuthority & auth);
   protected:
-    virtual const char * GetTitle() const;
-    virtual void CreateContent(PHTML & html, const PStringToString & query) const;
+    virtual const char * GetTitle() const override;
+    virtual void CreateContent(PHTML & html, const PStringToString & query) const override;
 };
 
 
@@ -544,7 +544,7 @@ class MyManager : public MyManagerParent
     MyManager();
     ~MyManager();
 
-    virtual void EndRun(bool interrupt);
+    virtual void EndRun(bool interrupt) override;
 
     bool Configure(PConfig & cfg, PConfigPage * rsrc);
     bool ConfigureCDR(PConfig & cfg, PConfigPage * rsrc);
@@ -556,21 +556,17 @@ class MyManager : public MyManagerParent
       PConfigPage * rsrc
     );
 
-    virtual OpalCall * CreateCall(void *);
+    virtual OpalCall * CreateCall(void *) override;
 
     virtual MediaTransferMode GetMediaTransferMode(
       const OpalConnection & source,      ///<  Source connection
       const OpalConnection & destination, ///<  Destination connection
       const OpalMediaType & mediaType     ///<  Media type for session
-    ) const;
+    ) const override;
     virtual void OnStartMediaPatch(
       OpalConnection & connection,  ///< Connection patch is in
       OpalMediaPatch & patch        ///< Media patch being started
-    );
-    virtual void OnStopMediaPatch(
-      OpalConnection & connection,
-      OpalMediaPatch & patch
-    );
+    ) override;
 
 
     PString OnLoadCallStatus(const PString & htmlBlock);
@@ -580,19 +576,19 @@ class MyManager : public MyManagerParent
 #endif
 
 #if OPAL_H323
-    virtual H323ConsoleEndPoint * CreateH323EndPoint();
+    virtual H323ConsoleEndPoint * CreateH323EndPoint() override;
     MyH323EndPoint & GetH323EndPoint() const { return *FindEndPointAs<MyH323EndPoint>(OPAL_PREFIX_H323); }
 #endif
 #if OPAL_SIP
-    virtual SIPConsoleEndPoint * CreateSIPEndPoint();
+    virtual SIPConsoleEndPoint * CreateSIPEndPoint() override;
     MySIPEndPoint & GetSIPEndPoint() const { return *FindEndPointAs<MySIPEndPoint>(OPAL_PREFIX_SIP); }
 #endif
 #if OPAL_SKINNY
-    virtual OpalConsoleSkinnyEndPoint * CreateSkinnyEndPoint();
+    virtual OpalConsoleSkinnyEndPoint * CreateSkinnyEndPoint() override;
     MySkinnyEndPoint & GetSkinnyEndPoint() const { return *FindEndPointAs<MySkinnyEndPoint>(OPAL_PREFIX_SKINNY); }
 #endif
 #if OPAL_LYNC
-    virtual OpalConsoleLyncEndPoint * CreateLyncEndPoint();
+    virtual OpalConsoleLyncEndPoint * CreateLyncEndPoint() override;
     MyLyncEndPoint & GetLyncEndPoint() const { return *FindEndPointAs<MyLyncEndPoint>(OPAL_PREFIX_LYNC); }
 #endif
 
@@ -654,11 +650,11 @@ class MyProcess : public MyProcessAncestor
   public:
     MyProcess();
     ~MyProcess();
-    virtual PBoolean OnStart();
-    virtual void OnStop();
-    virtual void OnControl();
-    virtual void OnConfigChanged();
-    virtual PBoolean Initialise(const char * initMsg);
+    virtual PBoolean OnStart() override;
+    virtual void OnStop() override;
+    virtual void OnControl() override;
+    virtual void OnConfigChanged() override;
+    virtual PBoolean Initialise(const char * initMsg) override;
 
   protected:
     MyManager * m_manager;

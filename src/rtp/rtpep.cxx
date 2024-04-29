@@ -176,6 +176,9 @@ PStringList OpalRTPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_RTP_ALLOW_SSRC,
     OPAL_OPT_RTP_ABS_SEND_TIME,
     OPAL_OPT_RTP_AUDIO_LEVEL,
+    #if OPAL_ICE
+      OPAL_OPT_DISABLE_ICE,
+    #endif
     OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL
   };
 

@@ -118,7 +118,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Basic operations */

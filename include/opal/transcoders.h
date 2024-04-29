@@ -71,7 +71,7 @@ class OpalMediaFormatPair : public PObject
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
 
     /** Compare the two objects and return their relative rank. This function is
        usually overridden by descendent classes to yield the ranking according
@@ -86,7 +86,7 @@ class OpalMediaFormatPair : public PObject
      */
     virtual Comparison Compare(
       const PObject & obj   ///<  Object to compare against.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -401,7 +401,7 @@ class OpalFramedTranscoder : public OpalTranscoder
     virtual bool UpdateMediaFormats(
       const OpalMediaFormat & inputMediaFormat,  ///<  Input media format
       const OpalMediaFormat & outputMediaFormat  ///<  Output media format
-    );
+    ) override;
 
     /**Get the optimal size for data frames to be converted.
        This function returns the size of frames that will be most efficient
@@ -411,7 +411,7 @@ class OpalFramedTranscoder : public OpalTranscoder
       */
     virtual PINDEX GetOptimalDataFrameSize(
       PBoolean input      ///<  Flag for input or output data size
-    ) const;
+    ) const override;
 
     /**Convert the data from one format to another.
        This function takes the input data as a RTP_DataFrame and converts it
@@ -422,7 +422,7 @@ class OpalFramedTranscoder : public OpalTranscoder
     virtual PBoolean Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
-    );
+    ) override;
 
     /**Convert a frame of data from one format to another.
        This function implicitly knows the input and output frame sizes.
@@ -494,7 +494,7 @@ class OpalStreamedTranscoder : public OpalTranscoder
       */
     virtual PINDEX GetOptimalDataFrameSize(
       PBoolean input      ///<  Flag for input or output data size
-    ) const;
+    ) const override;
 
     /**Convert the data from one format to another.
        This function takes the input data as a RTP_DataFrame and converts it
@@ -505,7 +505,7 @@ class OpalStreamedTranscoder : public OpalTranscoder
     virtual PBoolean Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
-    );
+    ) override;
 
     /**Convert one sample from one format to another.
        This function takes the input data as a single sample value and
@@ -555,7 +555,7 @@ class OpalEmptyFramedAudioTranscoder : public OpalFramedTranscoder
       : OpalFramedTranscoder(inFormat, outFormat)
     {  }
 
-    PBoolean ConvertFrame(const BYTE *, PINDEX &, BYTE *, PINDEX &)
+    PBoolean ConvertFrame(const BYTE *, PINDEX &, BYTE *, PINDEX &) override
     { return false; }
 };
 

@@ -50,8 +50,8 @@ class T38_Type_of_msg : public PASN_Choice
     operator const T38_Type_of_msg_data &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -69,9 +69,9 @@ class T38_Data_Field : public PASN_Array
   public:
     T38_Data_Field(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     T38_Data_Field_subtype & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -89,9 +89,9 @@ class T38_PreCorrigendum_Data_Field : public PASN_Array
   public:
     T38_PreCorrigendum_Data_Field(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     T38_PreCorrigendum_Data_Field_subtype & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -127,7 +127,7 @@ class T38_Type_of_msg_t30_indicator : public PASN_Enumeration
     };
 
     T38_Type_of_msg_t30_indicator & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -156,7 +156,7 @@ class T38_Type_of_msg_data : public PASN_Enumeration
     };
 
     T38_Type_of_msg_data & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -193,8 +193,8 @@ class T38_UDPTLPacket_error_recovery : public PASN_Choice
     operator const T38_UDPTLPacket_error_recovery_fec_info &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -222,7 +222,7 @@ class T38_Data_Field_subtype_field_type : public PASN_Enumeration
     };
 
     T38_Data_Field_subtype_field_type & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -250,7 +250,7 @@ class T38_PreCorrigendum_Data_Field_subtype_field_type : public PASN_Enumeration
     };
 
     T38_PreCorrigendum_Data_Field_subtype_field_type & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -268,9 +268,9 @@ class T38_UDPTLPacket_error_recovery_secondary_ifp_packets : public PASN_Array
   public:
     T38_UDPTLPacket_error_recovery_secondary_ifp_packets(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     T38_UDPTLPacket_error_recovery_secondary_ifp_packets_subtype & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -286,9 +286,9 @@ class T38_ArrayOf_PASN_OctetString : public PASN_Array
   public:
     T38_ArrayOf_PASN_OctetString(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     PASN_OctetString & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -311,14 +311,14 @@ class T38_IFPPacket : public PASN_Sequence
     T38_Type_of_msg m_type_of_msg;
     T38_Data_Field m_data_field;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -341,14 +341,14 @@ class T38_PreCorrigendum_IFPPacket : public PASN_Sequence
     T38_Type_of_msg m_type_of_msg;
     T38_PreCorrigendum_Data_Field m_data_field;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -371,14 +371,14 @@ class T38_Data_Field_subtype : public PASN_Sequence
     T38_Data_Field_subtype_field_type m_field_type;
     PASN_OctetString m_field_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -401,14 +401,14 @@ class T38_PreCorrigendum_Data_Field_subtype : public PASN_Sequence
     T38_PreCorrigendum_Data_Field_subtype_field_type m_field_type;
     PASN_OctetString m_field_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -427,7 +427,7 @@ class T38_UDPTLPacket_primary_ifp_packet : public PASN_OctetString
     PBoolean DecodeSubType(T38_IFPPacket & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const T38_IFPPacket & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -446,14 +446,14 @@ class T38_UDPTLPacket_error_recovery_fec_info : public PASN_Sequence
     PASN_Integer m_fec_npackets;
     T38_ArrayOf_PASN_OctetString m_fec_data;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -472,7 +472,7 @@ class T38_UDPTLPacket_error_recovery_secondary_ifp_packets_subtype : public PASN
     PBoolean DecodeSubType(T38_IFPPacket & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const T38_IFPPacket & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -492,14 +492,14 @@ class T38_UDPTLPacket : public PASN_Sequence
     T38_UDPTLPacket_primary_ifp_packet m_primary_ifp_packet;
     T38_UDPTLPacket_error_recovery m_error_recovery;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

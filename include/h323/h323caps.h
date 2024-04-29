@@ -115,11 +115,11 @@ class H323Capability : public PObject
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**Print out the object to the stream, virtual version of << operator.
      */
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
   //@}
 
   /**@name Identification functions */
@@ -587,7 +587,7 @@ class H323RealTimeCapability : public H323Capability
       unsigned sessionID,             ///<  Session ID for RTP channel
       const H245_H2250LogicalChannelParameters * param
                                       ///<  Parameters for channel
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -615,7 +615,7 @@ class H323AudioCapability : public H323RealTimeCapability
     /**Get the main type of the capability.
        Always returns e_Audio.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
   //@}
 
   /**@name Operations */
@@ -628,7 +628,7 @@ class H323AudioCapability : public H323RealTimeCapability
        The default behaviour returns zero, indicating it is not an RTP
        based capability.
       */
-    virtual unsigned GetDefaultSessionID() const;
+    virtual unsigned GetDefaultSessionID() const override;
 
     /**Set the maximum size (in frames) of data that will be transmitted in a
        single PDU.
@@ -640,21 +640,21 @@ class H323AudioCapability : public H323RealTimeCapability
      */
     virtual void SetTxFramesInPacket(
       unsigned frames   ///<  Number of frames per packet
-    );
+    ) override;
 
     /**Get the maximum size (in frames) of data that will be transmitted in a
        single PDU.
 
        The default behaviour sends the txFramesInPacket variable.
      */
-    virtual unsigned GetTxFramesInPacket() const;
+    virtual unsigned GetTxFramesInPacket() const override;
 
     /**Get the maximum size (in frames) of data that can be received in a
        single PDU.
 
        The default behaviour sends the rxFramesInPacket variable.
      */
-    virtual unsigned GetRxFramesInPacket() const;
+    virtual unsigned GetRxFramesInPacket() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -669,7 +669,7 @@ class H323AudioCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing OpenLogicalChannel
        PDU is being constructed for the control channel. It allows the
@@ -681,7 +681,7 @@ class H323AudioCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataType & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -693,7 +693,7 @@ class H323AudioCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_ModeElement & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing TerminalCapabilitySet
        or OpenLogicalChannel PDU is being constructed for the control channel.
@@ -738,7 +738,7 @@ class H323AudioCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu  ///<  PDU to get information from
-    );
+    ) override;
 
     /**This function is called whenever and incoming OpenLogicalChannel
        PDU has been used to construct the control channel. It allows the
@@ -752,7 +752,7 @@ class H323AudioCapability : public H323RealTimeCapability
     virtual PBoolean OnReceivedPDU(
       const H245_DataType & pdu,  ///<  PDU to get information from
       PBoolean receiver               ///<  Is receiver OLC
-    );
+    ) override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -832,7 +832,7 @@ class H323NonStandardAudioCapability : public H323AudioCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -842,7 +842,7 @@ class H323NonStandardAudioCapability : public H323AudioCapability,
 
        This returns H245_AudioCapability::e_nonStandard.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -858,7 +858,7 @@ class H323NonStandardAudioCapability : public H323AudioCapability,
     virtual PBoolean OnSendingPDU(
       H245_AudioCapability & pdu,  ///<  PDU to set information on
       unsigned packetSize          ///<  Packet size to use in capability
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -870,7 +870,7 @@ class H323NonStandardAudioCapability : public H323AudioCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_AudioMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -883,14 +883,14 @@ class H323NonStandardAudioCapability : public H323AudioCapability,
     virtual PBoolean OnReceivedPDU(
       const H245_AudioCapability & pdu,  ///<  PDU to get information from
       unsigned & packetSize              ///<  Packet size to use in capability
-    );
+    ) override;
 
     /**Compare the nonStandardData part of the capability, if applicable.
       */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -922,7 +922,7 @@ class H323GenericAudioCapability : public H323AudioCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -932,7 +932,7 @@ class H323GenericAudioCapability : public H323AudioCapability,
 
        This returns H245_AudioCapability::e_genericCapability.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -949,7 +949,7 @@ class H323GenericAudioCapability : public H323AudioCapability,
       H245_AudioCapability & pdu,  ///<  PDU to set information on
       unsigned packetSize,         ///<  Packet size to use in capability
       CommandType type             ///<  Type of PDU to send in
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -961,7 +961,7 @@ class H323GenericAudioCapability : public H323AudioCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_AudioMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -975,14 +975,14 @@ class H323GenericAudioCapability : public H323AudioCapability,
       const H245_AudioCapability & pdu,  ///< PDU to get information from
       unsigned & packetSize,             ///< Packet size to use in capability
       CommandType type                   ///<  Type of PDU to send in
-    );
+    ) override;
 
     /**Compare the generic part of the capability, if applicable.
      */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -1026,7 +1026,7 @@ class H323VideoCapability : public H323RealTimeCapability
     /**Get the main type of the capability.
        Always returns e_Video.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
   //@}
 
   /**@name Operations */
@@ -1039,7 +1039,7 @@ class H323VideoCapability : public H323RealTimeCapability
        The default behaviour returns zero, indicating it is not an RTP
        based capability.
       */
-    virtual unsigned GetDefaultSessionID() const;
+    virtual unsigned GetDefaultSessionID() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1054,7 +1054,7 @@ class H323VideoCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing OpenLogicalChannel
        PDU is being constructed for the control channel. It allows the
@@ -1066,7 +1066,7 @@ class H323VideoCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataType & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -1078,7 +1078,7 @@ class H323VideoCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_ModeElement & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing TerminalCapabilitySet
        or OpenLogicalChannel PDU is being constructed for the control channel.
@@ -1118,7 +1118,7 @@ class H323VideoCapability : public H323RealTimeCapability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu  ///<  PDU to get information from
-    );
+    ) override;
 
     /**This function is called whenever and incoming OpenLogicalChannel
        PDU has been used to construct the control channel. It allows the
@@ -1130,7 +1130,7 @@ class H323VideoCapability : public H323RealTimeCapability
     virtual PBoolean OnReceivedPDU(
       const H245_DataType & pdu,  ///<  PDU to get information from
       PBoolean receiver               ///<  Is receiver OLC
-    );
+    ) override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -1207,7 +1207,7 @@ class H323NonStandardVideoCapability : public H323VideoCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -1218,7 +1218,7 @@ class H323NonStandardVideoCapability : public H323VideoCapability,
        This returns one of the four possible combinations of mode and speed
        using the enum values of the protocol ASN H245_AudioCapability class.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1233,7 +1233,7 @@ class H323NonStandardVideoCapability : public H323VideoCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -1245,7 +1245,7 @@ class H323NonStandardVideoCapability : public H323VideoCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -1257,14 +1257,14 @@ class H323NonStandardVideoCapability : public H323VideoCapability,
      */
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu  ///<  PDU to set information on
-    );
+    ) override;
 
     /**Compare the nonStandardData part of the capability, if applicable.
       */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -1296,7 +1296,7 @@ class H323GenericVideoCapability : public H323VideoCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -1306,7 +1306,7 @@ class H323GenericVideoCapability : public H323VideoCapability,
 
        This returns H245_VideoCapability::e_genericCapability.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1322,7 +1322,7 @@ class H323GenericVideoCapability : public H323VideoCapability,
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu,  ///<  PDU to set information on
       CommandType type             ///<  Type of PDU to send in
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -1334,7 +1334,7 @@ class H323GenericVideoCapability : public H323VideoCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -1347,14 +1347,14 @@ class H323GenericVideoCapability : public H323VideoCapability,
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu,  ///< PDU to get information from
       CommandType type                   ///<  Type of PDU to send in
-    );
+    ) override;
 
     /**Compare the generic part of the capability, if applicable.
      */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -1405,7 +1405,7 @@ class H323ExtendedVideoCapability : public H323GenericVideoCapability
 
        This returns H245_VideoCapability::e_extendedVideoCapability.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1421,7 +1421,7 @@ class H323ExtendedVideoCapability : public H323GenericVideoCapability
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu,  ///<  PDU to set information on
       CommandType type             ///<  Type of PDU to send in
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -1433,7 +1433,7 @@ class H323ExtendedVideoCapability : public H323GenericVideoCapability
      */
     virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -1446,14 +1446,14 @@ class H323ExtendedVideoCapability : public H323GenericVideoCapability
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu,  ///< PDU to get information from
       CommandType type                   ///<  Type of PDU to send in
-    );
+    ) override;
 
     /**Compare the generic part of the capability, if applicable.
      */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 
   protected:
@@ -1485,14 +1485,14 @@ class H323GenericControlCapability : public H323Capability,
     /**Get the main type of the capability.
        Always returns e_Data.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
 
     /**Get the sub-type of the capability. This is a code dependent on the
        main type of the capability.
 
        This returns H245_VideoCapability::e_extendedVideoCapability.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1507,7 +1507,7 @@ class H323GenericControlCapability : public H323Capability,
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        PDU is received on the control channel, and a new H323Capability
@@ -1520,14 +1520,14 @@ class H323GenericControlCapability : public H323Capability,
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu  ///<  PDU to get information from
-    );
+    ) override;
 
     /**Compare the generic part of the capability, if applicable.
      */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -1553,18 +1553,18 @@ class H323H239VideoCapability : public H323ExtendedVideoCapability
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
   //@{
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 
   /**@name Identification functions */
@@ -1580,7 +1580,7 @@ class H323H239VideoCapability : public H323ExtendedVideoCapability
     virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu,  ///<  PDU to set information on
       CommandType type             ///<  Type of PDU to send in
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -1593,7 +1593,7 @@ class H323H239VideoCapability : public H323ExtendedVideoCapability
     virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu,  ///< PDU to get information from
       CommandType type                   ///<  Type of PDU to send in
-    );
+    ) override;
   //@}
 };
 
@@ -1616,14 +1616,14 @@ class H323H239ControlCapability : public H323GenericControlCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
   //@{
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 };
 
@@ -1658,16 +1658,16 @@ class H235SecurityCapability : public H323Capability
        This function is overridden by one of the three main sub-classes off
        which real capabilities would be descendend.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
 
     /**Get the sub-type of the capability. This is a code dependent on the
        main type of the capability.
      */
-    virtual unsigned  GetSubType()  const;
+    virtual unsigned  GetSubType()  const override;
 
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
 
     /**This function is called whenever and outgoing TerminalCapabilitySet
        PDU is being constructed for the control channel. It allows the
@@ -1678,7 +1678,7 @@ class H235SecurityCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        PDU is received on the control channel, and a new H323Capability
@@ -1694,7 +1694,7 @@ class H235SecurityCapability : public H323Capability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu ///<  PDU to get information from
-    );
+    ) override;
 
     /// OnSendingPDU for security
     virtual bool OnSendingPDU(
@@ -1702,7 +1702,7 @@ class H235SecurityCapability : public H323Capability
       const H323Connection & connection,
       unsigned sessionID,
       bool rx
-    );
+    ) override;
 
     /// On received security key information
     virtual bool OnReceivedPDU(
@@ -1710,13 +1710,13 @@ class H235SecurityCapability : public H323Capability
       const H323Connection & connection,
       unsigned sessionID,
       bool rx
-    );
+    ) override;
 
     /// Do some post processing after decoding TCS
     virtual bool PostTCS(
       const H323Connection & connection,
       const H323Capabilities & capabilities
-    );
+    ) override;
   //@}
 
     virtual bool OnSendingPDU(H245_EncryptionAuthenticationAndIntegrity & pdu) const = 0;
@@ -1766,7 +1766,7 @@ class H235SecurityAlgorithmCapability : public H235SecurityCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Overrides from class H323Capability */
@@ -1776,14 +1776,14 @@ class H235SecurityAlgorithmCapability : public H235SecurityCapability
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 
-    virtual bool OnSendingPDU(H245_EncryptionAuthenticationAndIntegrity & pdu) const;
-    virtual bool OnReceivedPDU(const H245_EncryptionAuthenticationAndIntegrity & pdu);
+    virtual bool OnSendingPDU(H245_EncryptionAuthenticationAndIntegrity & pdu) const override;
+    virtual bool OnReceivedPDU(const H245_EncryptionAuthenticationAndIntegrity & pdu) override;
 
-    virtual bool OnSendingPDU(H245_EncryptionSync & encryptionSync, const H323Connection & connection, const OpalMediaCryptoKeyList & keys);
-    virtual bool OnReceivedPDU(const H245_EncryptionSync & encryptionSync, const H323Connection & connection, OpalMediaCryptoKeyList & keys);
+    virtual bool OnSendingPDU(H245_EncryptionSync & encryptionSync, const H323Connection & connection, const OpalMediaCryptoKeyList & keys) override;
+    virtual bool OnReceivedPDU(const H245_EncryptionSync & encryptionSync, const H323Connection & connection, OpalMediaCryptoKeyList & keys) override;
 };
 
 #endif // OPAL_H235_6
@@ -1812,7 +1812,7 @@ class H235SecurityGenericCapability : public H235SecurityCapability,
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Overrides from class H323Capability */
@@ -1822,14 +1822,14 @@ class H235SecurityGenericCapability : public H235SecurityCapability,
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 
-    virtual bool OnSendingPDU(H245_EncryptionAuthenticationAndIntegrity & pdu) const;
-    virtual bool OnReceivedPDU(const H245_EncryptionAuthenticationAndIntegrity & pdu);
+    virtual bool OnSendingPDU(H245_EncryptionAuthenticationAndIntegrity & pdu) const override;
+    virtual bool OnReceivedPDU(const H245_EncryptionAuthenticationAndIntegrity & pdu) override;
 
-    virtual bool OnSendingPDU(H245_EncryptionSync & encryptionSync, const H323Connection & connection, const OpalMediaCryptoKeyList & keys);
-    virtual bool OnReceivedPDU(const H245_EncryptionSync & encryptionSync, const H323Connection & connection, OpalMediaCryptoKeyList & keys);
+    virtual bool OnSendingPDU(H245_EncryptionSync & encryptionSync, const H323Connection & connection, const OpalMediaCryptoKeyList & keys) override;
+    virtual bool OnReceivedPDU(const H245_EncryptionSync & encryptionSync, const H323Connection & connection, OpalMediaCryptoKeyList & keys) override;
 };
 
 #endif // OPAL_H235_8
@@ -1862,7 +1862,7 @@ class H323DataCapability : public H323Capability
     /**Get the main type of the capability.
        Always returns e_Data.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
   //@}
 
   /**@name Operations */
@@ -1874,7 +1874,7 @@ class H323DataCapability : public H323Capability
 
        The default behaviour returns 3, indicating a data session.
       */
-    virtual unsigned GetDefaultSessionID() const;
+    virtual unsigned GetDefaultSessionID() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -1889,7 +1889,7 @@ class H323DataCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing OpenLogicalChannel
        PDU is being constructed for the control channel. It allows the
@@ -1901,7 +1901,7 @@ class H323DataCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataType & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -1913,7 +1913,7 @@ class H323DataCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_ModeElement & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing TerminalCapabilitySet
        or OpenLogicalChannel PDU is being constructed for the control channel.
@@ -1953,7 +1953,7 @@ class H323DataCapability : public H323Capability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu  ///<  PDU to get information from
-    );
+    ) override;
 
     /**This function is called whenever and incoming OpenLogicalChannel
        PDU has been used to construct the control channel. It allows the
@@ -1965,7 +1965,7 @@ class H323DataCapability : public H323Capability
     virtual PBoolean OnReceivedPDU(
       const H245_DataType & pdu,  ///<  PDU to get information from
       PBoolean receiver               ///<  Is receiver OLC
-    );
+    ) override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -2043,7 +2043,7 @@ class H323NonStandardDataCapability : public H323DataCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -2054,7 +2054,7 @@ class H323NonStandardDataCapability : public H323DataCapability,
        This returns one of the four possible combinations of mode and speed
        using the enum values of the protocol ASN H245_AudioCapability class.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -2069,7 +2069,7 @@ class H323NonStandardDataCapability : public H323DataCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_DataApplicationCapability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -2081,7 +2081,7 @@ class H323NonStandardDataCapability : public H323DataCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_DataMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -2093,14 +2093,14 @@ class H323NonStandardDataCapability : public H323DataCapability,
      */
     virtual PBoolean OnReceivedPDU(
       const H245_DataApplicationCapability & pdu  ///<  PDU to set information on
-    );
+    ) override;
 
     /**Compare the nonStandardData part of the capability, if applicable.
       */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -2133,7 +2133,7 @@ class H323GenericDataCapability : public H323DataCapability,
     /**Compare two capability instances. This compares the main and sub-types
        of the capability.
      */
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
   //@}
 
   /**@name Identification functions */
@@ -2143,7 +2143,7 @@ class H323GenericDataCapability : public H323DataCapability,
 
        This returns H245_AudioCapability::e_genericCapability.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -2159,7 +2159,7 @@ class H323GenericDataCapability : public H323DataCapability,
     virtual PBoolean OnSendingPDU(
       H245_DataApplicationCapability & pdu, ///<  PDU to set information on
       CommandType type                      ///<  Type of PDU to send in
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing RequestMode
        PDU is being constructed for the control channel. It allows the
@@ -2171,7 +2171,7 @@ class H323GenericDataCapability : public H323DataCapability,
      */
     virtual PBoolean OnSendingPDU(
       H245_DataMode & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        or OpenLogicalChannel PDU has been used to construct the control
@@ -2184,14 +2184,14 @@ class H323GenericDataCapability : public H323DataCapability,
     virtual PBoolean OnReceivedPDU(
       const H245_DataApplicationCapability & pdu, ///<  PDU to set information on
       CommandType type                            ///<  Type of PDU to send in
-    );
+    ) override;
 
     /**Compare the generic part of the capability, if applicable.
      */
     virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
-    ) const;
+    ) const override;
   //@}
 };
 
@@ -2235,7 +2235,7 @@ class H323_G711Capability : public H323AudioCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -2246,11 +2246,11 @@ class H323_G711Capability : public H323AudioCapability
        This returns one of the four possible combinations of mode and speed
        using the enum values of the protocol ASN H245_AudioCapability class.
      */
-    virtual unsigned GetSubType() const;
+    virtual unsigned GetSubType() const override;
 
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 
   protected:
@@ -2294,7 +2294,7 @@ class H323_UserInputCapability : public H323Capability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */
@@ -2304,16 +2304,16 @@ class H323_UserInputCapability : public H323Capability
        This function is overridden by one of the three main sub-classes off
        which real capabilities would be descendend.
      */
-    virtual MainTypes GetMainType() const;
+    virtual MainTypes GetMainType() const override;
 
     /**Get the sub-type of the capability. This is a code dependent on the
        main type of the capability.
      */
-    virtual unsigned  GetSubType()  const;
+    virtual unsigned  GetSubType()  const override;
 
     /**Get the name of the media data format this class represents.
      */
-    virtual PString GetFormatName() const;
+    virtual PString GetFormatName() const override;
   //@}
 
   /**@name Protocol manipulation */
@@ -2327,7 +2327,7 @@ class H323_UserInputCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_Capability & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and outgoing OpenLogicalChannel
        PDU is being constructed for the control channel. It allows the
@@ -2338,7 +2338,7 @@ class H323_UserInputCapability : public H323Capability
      */
     virtual PBoolean OnSendingPDU(
       H245_DataType & pdu  ///<  PDU to set information on
-    ) const;
+    ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
        PDU is received on the control channel, and a new H323Capability
@@ -2351,7 +2351,7 @@ class H323_UserInputCapability : public H323Capability
      */
     virtual PBoolean OnReceivedPDU(
       const H245_Capability & pdu  ///<  PDU to get information from
-    );
+    ) override;
 
     /**This function is called whenever and incoming OpenLogicalChannel
        PDU has been used to construct the control channel. It allows the
@@ -2363,7 +2363,7 @@ class H323_UserInputCapability : public H323Capability
     virtual PBoolean OnReceivedPDU(
       const H245_DataType & pdu,  ///<  PDU to get information from
       PBoolean receiver               ///<  Is receiver OLC
-    );
+    ) override;
 
     /**Validate that the capability is usable given the connection.
        This checks agains the negotiated protocol version number and remote
@@ -2375,7 +2375,7 @@ class H323_UserInputCapability : public H323Capability
       */
     virtual PBoolean IsUsable(
       const H323Connection & connection
-    ) const;
+    ) const override;
   //@}
 
     static void AddAllCapabilities(
@@ -2485,7 +2485,7 @@ class H323SimultaneousCapabilities : public H323CapabilitiesListArray
   public:
     H323SimultaneousCapabilities() : m_capabilityDescriptorNumber(0) { }
 
-    PBoolean SetSize(PINDEX newSize);
+    PBoolean SetSize(PINDEX newSize) override;
 
     unsigned m_capabilityDescriptorNumber;
 };
@@ -2499,7 +2499,7 @@ class H323CapabilitiesSet : public H323CapabilitiesSetArray
   PCLASSINFO(H323CapabilitiesSet, H323CapabilitiesSetArray);
   public:
     /// Set the new size of the table, internal use only.
-    PBoolean SetSize(PINDEX newSize);
+    PBoolean SetSize(PINDEX newSize) override;
 };
 
 
@@ -2545,7 +2545,7 @@ class H323Capabilities : public PObject
      */
     void PrintOn(
       ostream & strm    ///<  Stream to print out to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */

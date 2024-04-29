@@ -73,7 +73,7 @@ class PGloballyUniqueID
        The duplicate ID has the same value as the source. Required for having
        this object as a key in dictionaries.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /**Get the hash value for the ID.
        Creates a number based on the ID value for use in the hash table of

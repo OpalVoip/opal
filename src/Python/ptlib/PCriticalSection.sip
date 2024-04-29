@@ -51,7 +51,7 @@ class PCriticalSection : PSync
   //@{
     /** Create a new PCriticalSection
       */
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /** Enter the critical section by waiting for exclusive access.
      */

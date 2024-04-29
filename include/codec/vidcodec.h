@@ -158,7 +158,7 @@ class OpalVideoTranscoder : public OpalTranscoder
   /**@name Operations */
   //@{
 #if OPAL_STATISTICS
-    virtual void GetStatistics(OpalMediaStatistics & statistics) const;
+    virtual void GetStatistics(OpalMediaStatistics & statistics) const override;
 #endif
 
     /**Update the input and output media formats. This can be used to adjust
@@ -177,7 +177,7 @@ class OpalVideoTranscoder : public OpalTranscoder
     virtual bool UpdateMediaFormats(
       const OpalMediaFormat & inputMediaFormat,  ///<  Input media format
       const OpalMediaFormat & outputMediaFormat  ///<  Output media format
-    );
+    ) override;
 
     /**Get the optimal size for data frames to be converted.
        This function returns the size of frames that will be most efficient
@@ -187,7 +187,7 @@ class OpalVideoTranscoder : public OpalTranscoder
       */
     virtual PINDEX GetOptimalDataFrameSize(
       PBoolean input      ///<  Flag for input or output data size
-    ) const;
+    ) const override;
 
     /**Execute the command specified to the transcoder. The commands are
        highly context sensitive, for example OpalVideoUpdatePicture would only
@@ -200,7 +200,7 @@ class OpalVideoTranscoder : public OpalTranscoder
       */
     virtual PBoolean ExecuteCommand(
       const OpalMediaCommand & command    ///<  Command to execute.
-    );
+    ) override;
 
     /**Convert the data from one format to another.
        This function takes the input data as a RTP_DataFrame and converts it
@@ -215,7 +215,7 @@ class OpalVideoTranscoder : public OpalTranscoder
     virtual PBoolean Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
-    );
+    ) override;
 
 
     virtual bool HasErrorConcealment() const  { return m_errorConcealment; }
@@ -277,7 +277,7 @@ class OpalVideoUpdatePicture : public OpalMediaCommand
       unsigned sessionID = 0,          ///< Session for media stream, 0 is use first \p mediaType stream
       unsigned ssrc = 0                ///< Sync Source for media stream (if RTP)
     );
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 };
 
 /**This indicates that the remote has had a picture loss and that a
@@ -296,7 +296,7 @@ class OpalVideoPictureLoss : public OpalVideoUpdatePicture
       unsigned ssrc = 0                ///< Sync Source for media stream (if RTP)
     );
 
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 
     unsigned GetSequenceNumber() const { return m_sequenceNumber; }
     unsigned GetTimestamp() const { return m_timestamp; }
@@ -325,7 +325,7 @@ class OpalTemporalSpatialTradeOff : public OpalMediaCommand
       unsigned ssrc = 0                ///< Sync Source for media stream (if RTP)
     );
 
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 
     enum {
       MaximiseSpatial = 0,

@@ -26,7 +26,7 @@
  *
  */
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "opalpluginmgr.h"
 #endif
 
@@ -1448,12 +1448,12 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
 
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
                            const OpalMediaFormat & destFormat,
-                           const BYTE * instance, unsigned instanceLen)
+                           const BYTE * instance, unsigned instanceLen) override
     {
       return CreateContext(instance, instanceLen) && OpalTranscoder::OnCreated(srcFormat, destFormat, instance, instanceLen);
     }
 
-    virtual PINDEX GetOptimalDataFrameSize(PBoolean input) const
+    virtual PINDEX GetOptimalDataFrameSize(PBoolean input) const override
     {
       const OpalMediaFormat & fmt = (input ? inputMediaFormat : outputMediaFormat);
       if (fmt == OpalPCM16)
@@ -1462,25 +1462,25 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return fmt.GetFrameSize();
     }
 
-    PBoolean UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
+    PBoolean UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output) override
     {
       PWaitAndSignal mutex(updateMutex);
       return OpalTranscoder::UpdateMediaFormats(input, output) &&
              UpdateOptions(inputMediaFormat) && UpdateOptions(outputMediaFormat);
     }
 
-    virtual PBoolean ExecuteCommand(const OpalMediaCommand & command)
+    virtual PBoolean ExecuteCommand(const OpalMediaCommand & command) override
     {
       PWaitAndSignal mutex(updateMutex);
       return OpalPluginTranscoder::ExecuteCommand(command) || OpalTranscoder::ExecuteCommand(command);
     }
 
-    virtual bool AcceptComfortNoise() const
+    virtual bool AcceptComfortNoise() const override
     {
       return true;
     }
 
-    virtual PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList)
+    virtual PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList) override
     {
       if (context == NULL)
         return false;
@@ -1551,13 +1551,13 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return true;
     }
 
-    virtual PBoolean Convert(const RTP_DataFrame &, RTP_DataFrame &)
+    virtual PBoolean Convert(const RTP_DataFrame &, RTP_DataFrame &) override
     {
       // Dummy function, never called
       return false;
     }
 
-    void GetStatistics(OpalMediaStatistics & statistics) const
+    void GetStatistics(OpalMediaStatistics & statistics) const override
     {
       statistics.m_fax.m_result = -2;
       char buf[1000];
@@ -2094,20 +2094,20 @@ class H323GSMPluginCapability : public H323AudioPluginCapability
         comfortNoise(_comfortNoise), scrambled(_scrambled)
     { }
 
-    Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
-    virtual PObject * Clone() const
+    virtual PObject * Clone() const override
     { return new H323GSMPluginCapability(*this); }
 
     virtual PBoolean OnSendingPDU(
       H245_AudioCapability & pdu,  /// PDU to set information on
       unsigned packetSize          /// Packet size to use in capability
-    ) const;
+    ) const override;
 
     virtual PBoolean OnReceivedPDU(
       const H245_AudioCapability & pdu,  /// PDU to get information from
       unsigned & packetSize              /// Packet size to use in capability
-    );
+    ) override;
   protected:
     int comfortNoise;
     int scrambled;

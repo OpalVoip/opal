@@ -58,7 +58,7 @@ class OpalMediaCommand : public PObject
       */
     virtual void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
 
     /** Compare the two objects and return their relative rank. This function is
        usually overridden by descendent classes to yield the ranking according
@@ -73,10 +73,10 @@ class OpalMediaCommand : public PObject
      */
     virtual Comparison Compare(
       const PObject & obj   ///<  Object to compare against.
-    ) const;
+    ) const override;
 
     // Redefine as pure, derived classes from here MUST implment it.
-    virtual PObject * Clone() const = 0;
+    virtual PObject * Clone() const override = 0;
   //@}
 
   /**@name Operations */
@@ -114,7 +114,7 @@ class OpalMediaCommand : public PObject
       PCLASSINFO_WITH_CLONE(cls, OpalMediaCommand) \
     public: \
       cls(unsigned id = 0, unsigned ssrc = 0) : OpalMediaCommand(mediaType, id, ssrc) { } \
-      virtual PString GetName() const { return name; } \
+      virtual PString GetName() const override { return name; } \
   }
 
 
@@ -137,7 +137,7 @@ class OpalMediaFlowControl : public OpalMediaCommand
       const RTP_SyncSourceArray & ssrcs ///< Sync Source(s) for media stream(s) (if RTP)
     );
 
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 
     const OpalBandwidth & GetMaxBitRate() const { return m_bitRate; }
     const RTP_SyncSourceArray & GetSSRCs() const { return m_ssrcs; }
@@ -161,7 +161,7 @@ class OpalMediaPacketLoss : public OpalMediaCommand
       unsigned ssrc = 0                ///< Sync Source for media stream (if RTP)
     );
 
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 
     unsigned GetPacketLoss() const { return m_packetLoss; }
 
@@ -183,7 +183,7 @@ class OpalMediaMaxPayload : public OpalMediaCommand
       unsigned ssrc = 0                ///< Sync Source for media stream (if RTP)
     );
 
-    virtual PString GetName() const;
+    virtual PString GetName() const override;
 
     unsigned GetPayloadSize() const { return m_payloadSize; }
 

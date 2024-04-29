@@ -33,7 +33,7 @@
 #include <opal_config.h>
 #if OPAL_H323
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "q931.h"
 #endif
 

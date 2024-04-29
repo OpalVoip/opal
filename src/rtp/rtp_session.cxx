@@ -28,7 +28,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "rtp_session.h"
 #endif
 
@@ -1011,7 +1011,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     else {
       PTRACE(2, &m_session, *this << "abnormal change of sequence numbers, adjusting from " << m_lastSequenceNumber << " to " << sequenceNumber);
       SetLastSequenceNumber(sequenceNumber);
-      frame.SetDiscontinuity(sequenceDelta);  // Assume we've lost some packets
+      frame.SetDiscontinuity(1);  // Assume we've lost at least one packet
     }
 
 #if OPAL_RTCP_XR
@@ -3515,10 +3515,10 @@ OpalMediaStream * OpalRTPSession::CreateMediaStream(const OpalMediaFormat & medi
 OpalMediaTransport * OpalRTPSession::CreateMediaTransport(const PString & name)
 {
 #if OPAL_ICE
-  return new OpalICEMediaTransport(name);
-#else
-  return new OpalUDPMediaTransport(name);
+  if (!m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_ICE))
+    return new OpalICEMediaTransport(name);
 #endif
+  return new OpalUDPMediaTransport(name);
 }
 
 

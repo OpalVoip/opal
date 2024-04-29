@@ -233,7 +233,7 @@ class OpalAudioJitterBuffer : public OpalJitterBuffer
     /**Report the statistics for this jitter instance */
     void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -242,22 +242,22 @@ class OpalAudioJitterBuffer : public OpalJitterBuffer
       */
     virtual void SetDelay(
       const Init & init  ///< Initialisation information
-    );
+    ) override;
 
     /**Reset jitter buffer.
       */
-    virtual void Close();
+    virtual void Close() override;
 
     /**Restart jitter buffer.
       */
-    virtual void Restart();
+    virtual void Restart() override;
 
     /**Write data frame from the RTP channel.
       */
     virtual bool WriteData(
       const RTP_DataFrame & frame,        ///< Frame to feed into jitter buffer
       const PTimeInterval & tick = PTimer::Tick() ///< Real time tick for packet arrival
-    );
+    ) override;
 
     /**Read a data frame from the jitter buffer.
        This function never blocks. If no data is available, an RTP packet
@@ -267,15 +267,15 @@ class OpalAudioJitterBuffer : public OpalJitterBuffer
       RTP_DataFrame & frame,              ///<  Frame to extract from jitter buffer
       const PTimeInterval & timeout = PMaxTimeInterval  ///< Time out for read
       PTRACE_PARAM(, const PTimeInterval & tick = PMaxTimeInterval)
-    );
+    ) override;
 
     /**Get current delay for jitter buffer.
       */
-    virtual RTP_Timestamp GetCurrentJitterDelay() const;
+    virtual RTP_Timestamp GetCurrentJitterDelay() const override;
 
     /**Get average packet time for incoming data.
       */
-    virtual RTP_Timestamp GetPacketTime() const;
+    virtual RTP_Timestamp GetPacketTime() const override;
 
     /**Get maximum consecutive marker bits before buffer starts to ignore them.
       */
@@ -369,18 +369,18 @@ class OpalNonJitterBuffer : public OpalJitterBuffer
   //@{
     /**Reset jitter buffer.
       */
-    virtual void Close();
+    virtual void Close() override;
 
     /**Restart jitter buffer.
       */
-    virtual void Restart();
+    virtual void Restart() override;
 
     /**Write data frame from the RTP channel.
       */
     virtual bool WriteData(
       const RTP_DataFrame & frame,        ///< Frame to feed into jitter buffer
       const PTimeInterval & tick = PTimer::Tick() ///< Real time tick for packet arrival
-    );
+    ) override;
 
     /**Read a data frame from the jitter buffer.
        This function never blocks. If no data is available, an RTP packet
@@ -390,7 +390,7 @@ class OpalNonJitterBuffer : public OpalJitterBuffer
       RTP_DataFrame & frame,              ///<  Frame to extract from jitter buffer
       const PTimeInterval & timeout = PMaxTimeInterval  ///< Time out for read
       PTRACE_PARAM(, const PTimeInterval & tick = PMaxTimeInterval)
-    );
+    ) override;
   //@}
 
   protected:

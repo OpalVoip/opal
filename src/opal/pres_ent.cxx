@@ -114,6 +114,35 @@ PObject::Comparison OpalPresenceInfo::Compare(const PObject & obj) const
 }
 
 
+void OpalPresenceInfo::PrintOn(ostream & strm) const
+{
+  if (m_entity.IsEmpty()) {
+    strm << "N/A";
+    return;
+  }
+
+  strm << "Entity       : " << m_entity << "\n"
+          "State        : " << m_state << "\n"
+          "Timestamp    : " << m_when << '\n';
+  if (!m_target.IsEmpty())
+    strm << "Target       : " << m_target << '\n';
+  if (!m_service.IsEmpty())
+    strm << "Service      : " << m_service << '\n';
+  if (!m_serviceClass.IsEmpty())
+    strm << "Service Class: " << m_serviceClass << '\n';
+  if (!m_relationship.IsEmpty())
+    strm << "Relationship : " << m_relationship << '\n';
+  if (!m_contact.IsEmpty())
+    strm << "Contact      : " << m_contact << '\n';
+  if (!m_capabilities.IsEmpty())
+    strm << "Capabilities : " << setfill(',') << m_capabilities << '\n';
+  if (!m_activities.IsEmpty())
+    strm << "Activities   : " << setfill(',') << m_activities << '\n';
+  if (!m_note.IsEmpty())
+    strm << "Notes:\n" << m_note << '\n';
+}
+
+
 ///////////////////////////////////////////////////////////////////////
 
 OpalPresentity::OpalPresentity()

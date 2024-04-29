@@ -125,7 +125,7 @@ class OpalFaxEndPoint : public OpalLocalEndPoint
       void * userData = NULL,          ///<  Arbitrary data to pass to connection
       unsigned int options = 0,     ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions = NULL  ///< Options to pass to connection
-    );
+    ) override;
 
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
@@ -134,11 +134,11 @@ class OpalFaxEndPoint : public OpalLocalEndPoint
        Note that a specific connection may not actually support all of the
        media formats returned here, but should return no more.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
   //@}
 
   /**@name Fax specific operations */
@@ -229,21 +229,21 @@ class OpalFaxConnection : public OpalLocalConnection
 
   /**@name Overrides from OpalLocalConnection */
   //@{
-    virtual PString GetPrefixName() const;
+    virtual PString GetPrefixName() const override;
 
-    virtual OpalMediaFormatList GetMediaFormats() const;
-    virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const;
-    virtual void OnEstablished();
-    virtual void OnReleased();
-    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, PBoolean isSource);
-    virtual void OnClosedMediaStream(const OpalMediaStream & stream);
-    virtual void OnStopMediaPatch(OpalMediaPatch & patch);
-    virtual PBoolean SendUserInputTone(char tone, unsigned duration);
-    virtual void OnUserInputTone(char tone, unsigned duration);
-    virtual bool SwitchFaxMediaStreams(bool toT38);
-    virtual void OnSwitchedFaxMediaStreams(bool toT38, bool success);
-    virtual bool OnSwitchingFaxMediaStreams(bool toT38);
-    virtual void OnApplyStringOptions();
+    virtual OpalMediaFormatList GetMediaFormats() const override;
+    virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const override;
+    virtual void OnEstablished() override;
+    virtual void OnReleased() override;
+    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, PBoolean isSource) override;
+    virtual void OnClosedMediaStream(const OpalMediaStream & stream) override;
+    virtual void OnStopMediaPatch(OpalMediaPatch & patch) override;
+    virtual PBoolean SendUserInputTone(char tone, unsigned duration) override;
+    virtual void OnUserInputTone(char tone, unsigned duration) override;
+    virtual bool SwitchFaxMediaStreams(bool toT38) override;
+    virtual void OnSwitchedFaxMediaStreams(bool toT38, bool success) override;
+    virtual bool OnSwitchingFaxMediaStreams(bool toT38) override;
+    virtual void OnApplyStringOptions() override;
   //@}
 
   /**@name New operations */
@@ -368,17 +368,17 @@ class OpalFaxMediaStream : public OpalMediaStream
                        bool isSource,
                        OpalFaxSession & session);
 
-    virtual PBoolean Open();
-    virtual PBoolean Start();
-    virtual PBoolean ReadPacket(RTP_DataFrame & packet);
-    virtual PBoolean WritePacket(RTP_DataFrame & packet);
-    virtual PString GetPatchThreadName() const;
-    virtual PBoolean IsSynchronous() const;
-    virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat);
-    virtual void GetStatistics(OpalMediaStatistics & statistics, bool fromPatch) const;
+    virtual PBoolean Open() override;
+    virtual PBoolean Start() override;
+    virtual PBoolean ReadPacket(RTP_DataFrame & packet) override;
+    virtual PBoolean WritePacket(RTP_DataFrame & packet) override;
+    virtual PString GetPatchThreadName() const override;
+    virtual PBoolean IsSynchronous() const override;
+    virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
+    virtual void GetStatistics(OpalMediaStatistics & statistics, bool fromPatch) const override;
 
   protected:
-    virtual void InternalClose();
+    virtual void InternalClose() override;
 
     OpalFaxSession & m_session;
 };

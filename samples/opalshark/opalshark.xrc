@@ -1,292 +1,312 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
-	<object class="wxMenuBar" name="MenuBar">
-		<label></label>
-		<object class="wxMenu" name="m_menu1">
-			<label>_File</label>
-			<object class="wxMenuItem" name="wxID_OPEN">
-				<label>Open ...</label>
-				<help></help>
-			</object>
-			<object class="wxMenuItem" name="wxID_CLOSE">
-				<label>Close</label>
-				<help></help>
-			</object>
-			<object class="wxMenuItem" name="wxID_CLOSE_ALL">
-				<label>Close All</label>
-				<help></help>
-			</object>
-			<object class="separator" />
-			<object class="wxMenuItem" name="MenuExport">
-				<label>Export...</label>
-				<help></help>
-				<enabled>0</enabled>
-			</object>
-			<object class="separator" />
-			<object class="wxMenuItem" name="wxID_EXIT">
-				<label>E_xit</label>
-				<help></help>
-			</object>
-		</object>
-		<object class="wxMenu" name="m_menu2">
-			<label>_Edit</label>
-			<object class="wxMenuItem" name="wxID_CUT">
-				<label>Cu_t</label>
-				<help></help>
-			</object>
-			<object class="wxMenuItem" name="wxID_COPY">
-				<label>_Copy</label>
-				<help></help>
-			</object>
-			<object class="wxMenuItem" name="wxID_PASTE">
-				<label>_Paste</label>
-				<help></help>
-			</object>
-			<object class="wxMenuItem" name="wxID_DELETE">
-				<label>_Delete</label>
-				<help></help>
-			</object>
-			<object class="separator" />
-			<object class="wxMenuItem" name="wxID_PREFERENCES">
-				<label>_Options...</label>
-				<help></help>
-			</object>
-		</object>
-		<object class="wxMenu" name="m_menu3">
-			<label>_Help</label>
-			<object class="wxMenuItem" name="wxID_ABOUT">
-				<label>_About ...</label>
-				<help></help>
-			</object>
-		</object>
-	</object>
-	<object class="wxDialog" name="OptionsDialog" subclass="OptionsDialog">
-		<style>wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU</style>
-		<title>Options</title>
-		<centered>1</centered>
-		<object class="wxBoxSizer">
-			<orient>wxVERTICAL</orient>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxEXPAND</flag>
-				<border>0</border>
-				<object class="wxFlexGridSizer">
-					<rows>4</rows>
-					<cols>2</cols>
-					<vgap>0</vgap>
-					<hgap>0</hgap>
-					<growablecols></growablecols>
-					<growablerows></growablerows>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
-						<border>20</border>
-						<object class="wxStaticText" name="label_1">
-							<label>Audio Player: </label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxEXPAND|wxRIGHT|wxTOP</flag>
-						<border>20</border>
-						<object class="wxComboBox" name="AudioDevice">
-							<value></value>
-							<content />
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
-						<border>20</border>
-						<object class="wxStaticText" name="label_2">
-							<label>Video Timing: </label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
-						<border>10</border>
-						<object class="wxRadioBox" name="VideoTiming">
-							<style>wxRA_SPECIFY_COLS</style>
-							<label></label>
-							<selection>1</selection>
-							<content>
-								<item>PCAP Packet Time</item>
-								<item>RTP Timestamps</item>
-							</content>
-							<dimension>2</dimension>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
-						<border>20</border>
-						<object class="wxStaticText" name="m_staticText3">
-							<label>Mappings: </label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxRIGHT|wxTOP</flag>
-						<border>20</border>
-						<object class="wxGrid" name="Mappings">
-							<style>wxBORDER_SIMPLE</style>
-							<size>250,100</size>
-						</object>
-					</object>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxEXPAND</flag>
-				<border>0</border>
-				<object class="wxBoxSizer">
-					<orient>wxHORIZONTAL</orient>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_BOTTOM|wxALL</flag>
-						<border>16</border>
-						<object class="wxButton" name="wxID_OK">
-							<label>OK</label>
-							<default>0</default>
-							<markup>0</markup>
-							<bitmap />
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_BOTTOM|wxALL</flag>
-						<border>16</border>
-						<object class="wxButton" name="wxID_CANCEL">
-							<label>Cancel</label>
-							<default>0</default>
-							<markup>0</markup>
-							<bitmap />
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_BOTTOM|wxALL</flag>
-						<border>16</border>
-						<object class="wxButton" name="wxID_APPLY">
-							<label>Apply</label>
-							<default>0</default>
-							<markup>0</markup>
-							<bitmap />
-						</object>
-					</object>
-				</object>
-			</object>
-		</object>
-	</object>
-	<object class="wxPanel" name="PlayerPanel">
-		<style>wxTAB_TRAVERSAL</style>
-		<size>681,404</size>
-		<object class="wxBoxSizer">
-			<orient>wxVERTICAL</orient>
-			<object class="sizeritem">
-				<option>1</option>
-				<flag>wxEXPAND</flag>
-				<border>5</border>
-				<object class="wxSplitterWindow" name="TopSplitter">
-					<style>wxSP_3DSASH</style>
-					<sashpos>100</sashpos>
-					<gravity>0</gravity>
-					<minsize>0</minsize>
-					<orientation>horizontal</orientation>
-					<object class="wxPanel" name="m_panel1">
-						<style>wxTAB_TRAVERSAL</style>
-						<object class="wxBoxSizer">
-							<orient>wxVERTICAL</orient>
-							<object class="sizeritem">
-								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<object class="wxGrid" name="RTPList" />
-							</object>
-						</object>
-					</object>
-					<object class="wxPanel" name="m_panel4">
-						<style>wxTAB_TRAVERSAL</style>
-						<object class="wxBoxSizer">
-							<orient>wxVERTICAL</orient>
-							<object class="sizeritem">
-								<option>1</option>
-								<flag>wxEXPAND | wxALL</flag>
-								<border>5</border>
-								<object class="wxNotebook" name="StreamAnalysis" />
-							</object>
-						</object>
-					</object>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxEXPAND</flag>
-				<border>5</border>
-				<object class="wxToolBar" name="m_toolBar1">
-					<style>wxTB_HORIZONTAL</style>
-					<bitmapsize></bitmapsize>
-					<margins></margins>
-					<packing>1</packing>
-					<separation>5</separation>
-					<object class="wxButton" name="Play">
-						<enabled>0</enabled>
-						<label>Play</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxButton" name="Stop">
-						<enabled>0</enabled>
-						<label>Stop</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxButton" name="Pause">
-						<enabled>0</enabled>
-						<label>Pause</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxButton" name="Resume">
-						<enabled>0</enabled>
-						<label>Resume</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxButton" name="Step">
-						<enabled>0</enabled>
-						<label>Step</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxButton" name="Analyse">
-						<label>Analyse</label>
-						<default>0</default>
-						<markup>0</markup>
-						<bitmap />
-					</object>
-					<object class="wxStaticText" name="m_staticText4">
-						<style>wxALIGN_RIGHT</style>
-						<label>   Run to packet:</label>
-						<wrap>-1</wrap>
-					</object>
-					<object class="wxSpinCtrl" name="PlayToPacket">
-						<style>wxSP_ARROW_KEYS</style>
-						<value>0</value>
-						<min>0</min>
-						<max>10000000</max>
-					</object>
-				</object>
-			</object>
-		</object>
-	</object>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- generated by wxGlade 1.1.0a2 on Sat Jan 20 14:38:02 2024 -->
+
+<resource version="2.3.0.1">
+    <object class="wxMenuBar" name="MenuBar">
+        <object class="wxMenu" name="m_menu1">
+            <label>_File</label>
+            <object class="wxMenuItem" name="wxID_OPEN">
+                <label>Open ...</label>
+            </object>
+            <object class="wxMenuItem" name="wxID_CLOSE">
+                <label>Close</label>
+            </object>
+            <object class="wxMenuItem" name="wxID_CLOSE_ALL">
+                <label>Close All</label>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="MenuExport">
+                <label>Export...</label>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="wxID_EXIT">
+                <label>E_xit</label>
+            </object>
+        </object>
+        <object class="wxMenu" name="m_menu2">
+            <label>_Edit</label>
+            <object class="wxMenuItem" name="wxID_CUT">
+                <label>Cu_t</label>
+            </object>
+            <object class="wxMenuItem" name="wxID_COPY">
+                <label>_Copy</label>
+            </object>
+            <object class="wxMenuItem" name="wxID_PASTE">
+                <label>_Paste</label>
+            </object>
+            <object class="wxMenuItem" name="wxID_DELETE">
+                <label>_Delete</label>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="wxID_PREFERENCES">
+                <label>_Options...</label>
+            </object>
+        </object>
+        <object class="wxMenu" name="m_menu3">
+            <label>_Help</label>
+            <object class="wxMenuItem" name="wxID_ABOUT">
+                <label>_About ...</label>
+            </object>
+        </object>
+    </object>
+    <object class="wxDialog" name="OptionsDialog" subclass="MyDialog">
+        <centered>1</centered>
+        <size>650, 450</size>
+        <style>wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU</style>
+        <title>Options</title>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <object class="wxFlexGridSizer">
+                    <cols>2</cols>
+                    <growablecols>1</growablecols>
+                    <growablerows>0</growablerows>
+                    <hgap>0</hgap>
+                    <rows>6</rows>
+                    <vgap>0</vgap>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="label_1">
+                            <label>Audio Player: </label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxEXPAND|wxRIGHT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxComboBox" name="AudioDevice">
+                            <content>
+                            </content>
+                            <selection>-1</selection>
+                            <size>450, 24</size>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="label_3">
+                            <label>Audio Timing:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
+                        <border>10</border>
+                        <object class="wxRadioBox" name="AudioTiming">
+                            <content>
+                                <item>PCAP Packet Time</item>
+                                <item>RTP Timestamps</item>
+                                <item>Uninterrupted Mode</item>
+                            </content>
+                            <dimension>3</dimension>
+                            <selection>0</selection>
+                            <style>wxRA_SPECIFY_COLS</style>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="label_2">
+                            <label>Video Timing: </label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
+                        <border>10</border>
+                        <object class="wxRadioBox" name="VideoTiming">
+                            <content>
+                                <item>PCAP Packet Time</item>
+                                <item>RTP Timestamps</item>
+                            </content>
+                            <dimension>2</dimension>
+                            <selection>1</selection>
+                            <style>wxRA_SPECIFY_COLS</style>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="m_staticText3">
+                            <label>Mappings: </label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxEXPAND|wxRIGHT|wxSHAPED|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxGrid" name="Mappings">
+                            <size>300, 100</size>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="label_4">
+                            <label>Log Level:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxSpinCtrl" name="LogLevel">
+                            <min>0</min>
+                            <max> 9</max>
+                            <value>0</value>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxStaticText" name="label_5">
+                            <label>Log File:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxEXPAND|wxRIGHT|wxTOP</flag>
+                        <border>20</border>
+                        <object class="wxTextCtrl" name="LogFile">
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_RIGHT</flag>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_BOTTOM|wxALL</flag>
+                        <border>16</border>
+                        <object class="wxButton" name="wxID_OK">
+                            <label>OK</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_BOTTOM|wxALL</flag>
+                        <border>16</border>
+                        <object class="wxButton" name="wxID_CANCEL">
+                            <label>Cancel</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_BOTTOM|wxALL</flag>
+                        <border>16</border>
+                        <object class="wxButton" name="wxID_APPLY">
+                            <label>Apply</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+    <object class="wxPanel" name="PlayerPanel">
+        <size>702, 402</size>
+        <style>wxTAB_TRAVERSAL</style>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <object class="wxSplitterWindow" name="TopSplitter">
+                    <bg>#808080</bg>
+                    <min_pane_size>150</min_pane_size>
+                    <sashpos>150</sashpos>
+                    <style>wxSP_3D|wxSP_BORDER</style>
+                    <object class="wxPanel" name="m_panel1">
+                        <style>wxTAB_TRAVERSAL</style>
+                        <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                                <flag>wxALL|wxEXPAND</flag>
+                                <border>5</border>
+                                <object class="wxGrid" name="RTPList">
+                                    <size>-1, 150</size>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
+                    <object class="wxPanel" name="m_panel4">
+                        <style>wxTAB_TRAVERSAL</style>
+                        <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                                <option>1</option>
+                                <flag>wxALL|wxEXPAND</flag>
+                                <border>5</border>
+                                <object class="wxNotebook" name="StreamAnalysis">
+                                    <size>-1, 250</size>
+                                    <usenotebooksizer>1</usenotebooksizer>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALL</flag>
+                <border>6</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxLEFT|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Play">
+                            <label>Play</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Stop">
+                            <label>Stop</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Pause">
+                            <label>Pause</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Resume">
+                            <label>Resume</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Step">
+                            <label>Step</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                        <border>10</border>
+                        <object class="wxButton" name="Analyse">
+                            <label>Analyse</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxLEFT</flag>
+                        <border>10</border>
+                        <object class="wxStaticText" name="label_2">
+                            <label>Run to Packet:</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTER_VERTICAL|wxLEFT</flag>
+                        <border>10</border>
+                        <object class="wxSpinCtrl" name="PlayToPacket">
+                            <min>0</min>
+                            <max> 9999999</max>
+                            <value>0</value>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
 </resource>

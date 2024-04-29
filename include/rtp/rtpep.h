@@ -97,7 +97,7 @@ class OpalRTPEndPoint : public OpalEndPoint
   //@{
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
 
     /**A call back function whenever a connection is broken.
        This function can do any internal cleaning up and waiting on background
@@ -119,7 +119,7 @@ class OpalRTPEndPoint : public OpalEndPoint
       */
     virtual void OnReleased(
       OpalConnection & connection   ///<  Connection that was established
-    );
+    ) override;
 
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
@@ -130,7 +130,7 @@ class OpalRTPEndPoint : public OpalEndPoint
 
        The default behaviour is pure.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Call back for closed a media stream.
 
@@ -139,7 +139,7 @@ class OpalRTPEndPoint : public OpalEndPoint
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
   //@}
 
   /**@name RTP handling */

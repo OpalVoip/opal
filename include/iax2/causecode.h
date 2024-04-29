@@ -106,14 +106,14 @@ class IAX2IeCauseCode : public IAX2IeByte
   IAX2IeCauseCode(BYTE newValue) : IAX2IeByte(newValue) { }
 
   /**Get the key value for this particular Information Element class */
-  virtual BYTE GetKeyValue() const { return ie_causeCode; }
+  virtual BYTE GetKeyValue() const override { return ie_causeCode; }
 
   /**print this class (nicely) to the designated stream*/
-  void PrintOn(ostream & str) const;
+  void PrintOn(ostream & str) const override;
 
   /** Take the data from this Ie, and copy it into the IeData structure.
       This is done on processing an incoming frame which contains Ie in the data section. */
-  virtual void StoreDataIn(IAX2IeData &res) { res.causeCode = dataValue; }     
+  virtual void StoreDataIn(IAX2IeData &res) override { res.causeCode = dataValue; }     
 
 };
 

@@ -88,7 +88,7 @@ class OpalRFC4175Encoder : public OpalRFC4175Transcoder
       const OpalMediaFormat & outputMediaFormat  ///<  Output media format
     );
 
-    bool ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output);
+    bool ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output) override;
 
   protected:
     virtual void StartEncoding(const RTP_DataFrame & input);
@@ -125,10 +125,9 @@ class OpalRFC4175Decoder : public OpalRFC4175Transcoder
     );
     ~OpalRFC4175Decoder();
 
-    virtual PINDEX PixelsToBytes(PINDEX pixels) const = 0;
-    virtual PINDEX BytesToPixels(PINDEX pixels) const = 0;
+    virtual PINDEX PixelsToBytes(PINDEX pixels) const override = 0;
 
-    bool ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output);
+    bool ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output) override;
 
   protected:
     void DecodeFramesAndSetFrameSize(RTP_DataFrameList & output);
@@ -157,14 +156,13 @@ class Opal_RFC4175YCbCr420_to_YUV420P : public OpalRFC4175Decoder
   PCLASSINFO(Opal_RFC4175YCbCr420_to_YUV420P, OpalRFC4175Decoder);
   public:
     Opal_RFC4175YCbCr420_to_YUV420P() : OpalRFC4175Decoder(OpalRFC4175YCbCr420, OpalYUV420P) { }
-    PINDEX GetPgroupSize() const        { return 6; }       
-    PINDEX GetColsPerPgroup() const     { return 2; }   
-    PINDEX GetRowsPerPgroup() const     { return 2; }
+    PINDEX GetPgroupSize() const override        { return 6; }       
+    PINDEX GetColsPerPgroup() const override     { return 2; }   
+    PINDEX GetRowsPerPgroup() const override     { return 2; }
 
-    PINDEX PixelsToBytes(PINDEX pixels) const { return pixels*12/8; }
-    PINDEX BytesToPixels(PINDEX bytes) const  { return bytes*8/12; }
+    PINDEX PixelsToBytes(PINDEX pixels) const override { return pixels*12/8; }
 
-    bool DecodeFrames(RTP_DataFrameList & output);
+    bool DecodeFrames(RTP_DataFrameList & output) override;
 };
 
 class Opal_YUV420P_to_RFC4175YCbCr420 : public OpalRFC4175Encoder
@@ -172,15 +170,14 @@ class Opal_YUV420P_to_RFC4175YCbCr420 : public OpalRFC4175Encoder
   PCLASSINFO(Opal_YUV420P_to_RFC4175YCbCr420, OpalRFC4175Encoder);
   public:
     Opal_YUV420P_to_RFC4175YCbCr420() : OpalRFC4175Encoder(OpalYUV420P, OpalRFC4175YCbCr420) { }
-    PINDEX GetPgroupSize() const        { return 6; }       
-    PINDEX GetColsPerPgroup() const     { return 2; }   
-    PINDEX GetRowsPerPgroup() const     { return 2; }
+    PINDEX GetPgroupSize() const override        { return 6; }       
+    PINDEX GetColsPerPgroup() const override     { return 2; }   
+    PINDEX GetRowsPerPgroup() const override     { return 2; }
 
-    PINDEX PixelsToBytes(PINDEX pixels) const { return pixels * 12 / 8; }
-    PINDEX BytesToPixels(PINDEX bytes) const  { return bytes * 8 / 12; }
+    PINDEX PixelsToBytes(PINDEX pixels) const override { return pixels * 12 / 8; }
 
-    void StartEncoding(const RTP_DataFrame & input);
-    void EndEncoding();
+    void StartEncoding(const RTP_DataFrame & input) override;
+    void EndEncoding() override;
 
   protected:
     BYTE * m_srcYPlane;
@@ -195,14 +192,13 @@ class Opal_RFC4175RGB_to_RGB24 : public OpalRFC4175Decoder
   PCLASSINFO(Opal_RFC4175RGB_to_RGB24, OpalRFC4175Decoder);
   public:
     Opal_RFC4175RGB_to_RGB24() : OpalRFC4175Decoder(OpalRFC4175RGB, OpalRGB24) { }
-    PINDEX GetPgroupSize() const        { return 3; }       
-    PINDEX GetColsPerPgroup() const     { return 1; }   
-    PINDEX GetRowsPerPgroup() const     { return 1; }
+    PINDEX GetPgroupSize() const override        { return 3; }       
+    PINDEX GetColsPerPgroup() const override     { return 1; }   
+    PINDEX GetRowsPerPgroup() const override     { return 1; }
 
-    PINDEX PixelsToBytes(PINDEX pixels) const { return pixels * 3; }
-    PINDEX BytesToPixels(PINDEX bytes) const  { return bytes / 3; }
+    PINDEX PixelsToBytes(PINDEX pixels) const override { return pixels * 3; }
 
-    bool DecodeFrames(RTP_DataFrameList & output);
+    bool DecodeFrames(RTP_DataFrameList & output) override;
 };
 
 class Opal_RGB24_to_RFC4175RGB : public OpalRFC4175Encoder
@@ -210,15 +206,14 @@ class Opal_RGB24_to_RFC4175RGB : public OpalRFC4175Encoder
   PCLASSINFO(Opal_RGB24_to_RFC4175RGB, OpalRFC4175Encoder);
   public:
     Opal_RGB24_to_RFC4175RGB() : OpalRFC4175Encoder(OpalRGB24, OpalRFC4175RGB) { }
-    PINDEX GetPgroupSize() const        { return 3; }       
-    PINDEX GetColsPerPgroup() const     { return 1; }   
-    PINDEX GetRowsPerPgroup() const     { return 1; }
+    PINDEX GetPgroupSize() const override        { return 3; }       
+    PINDEX GetColsPerPgroup() const override     { return 1; }   
+    PINDEX GetRowsPerPgroup() const override     { return 1; }
 
-    PINDEX PixelsToBytes(PINDEX pixels) const { return pixels * 3; }
-    PINDEX BytesToPixels(PINDEX bytes) const  { return bytes / 3; }
+    PINDEX PixelsToBytes(PINDEX pixels) const override { return pixels * 3; }
 
-    void StartEncoding(const RTP_DataFrame & input);
-    void EndEncoding();
+    void StartEncoding(const RTP_DataFrame & input) override;
+    void EndEncoding() override;
 
   protected:
     BYTE * m_rgbBase;

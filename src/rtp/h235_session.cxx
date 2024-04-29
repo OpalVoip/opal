@@ -27,7 +27,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h235_session.h"
 #endif
 
@@ -56,10 +56,10 @@ class H2356_CryptoSuite_128 : public H2356_CryptoSuite
 {
     PCLASSINFO(H2356_CryptoSuite_128, H2356_CryptoSuite);
   public:
-    virtual const PCaselessString & GetFactoryName() const { return AES_128; }
-    virtual const char * GetDescription() const { return "H.235.6 AES-128"; }
-    virtual const char * GetOID() const { return "2.16.840.1.101.3.4.1.2"; }
-    virtual PINDEX GetCipherKeyBits() const { return 128; }
+    virtual const PCaselessString & GetFactoryName() const override { return AES_128; }
+    virtual const char * GetDescription() const override { return "H.235.6 AES-128"; }
+    virtual const char * GetOID() const override { return "2.16.840.1.101.3.4.1.2"; }
+    virtual PINDEX GetCipherKeyBits() const override { return 128; }
 };
 
 PFACTORY_CREATE(OpalMediaCryptoSuiteFactory, H2356_CryptoSuite_128, AES_128, true);
@@ -71,10 +71,10 @@ class H2356_CryptoSuite_192 : public H2356_CryptoSuite
 {
     PCLASSINFO(H2356_CryptoSuite_192, H2356_CryptoSuite);
   public:
-    virtual const PCaselessString & GetFactoryName() const { return AES_192; }
-    virtual const char * GetDescription() const { return "H.235.6 AES-192"; }
-    virtual const char * GetOID() const { return "2.16.840.1.101.3.4.1.22"; }
-    virtual PINDEX GetCipherKeyBits() const { return 192; }
+    virtual const PCaselessString & GetFactoryName() const override { return AES_192; }
+    virtual const char * GetDescription() const override { return "H.235.6 AES-192"; }
+    virtual const char * GetOID() const override { return "2.16.840.1.101.3.4.1.22"; }
+    virtual PINDEX GetCipherKeyBits() const override { return 192; }
 };
 
 PFACTORY_CREATE(OpalMediaCryptoSuiteFactory, H2356_CryptoSuite_192, AES_192, true);
@@ -86,10 +86,10 @@ class H2356_CryptoSuite_256 : public H2356_CryptoSuite
 {
     PCLASSINFO(H2356_CryptoSuite_256, H2356_CryptoSuite);
   public:
-    virtual const PCaselessString & GetFactoryName() const { return AES_256; }
-    virtual const char * GetDescription() const { return "H.235.6 AES-256"; }
-    virtual const char * GetOID() const { return "2.16.840.1.101.3.4.1.42"; }
-    virtual PINDEX GetCipherKeyBits() const { return 256; }
+    virtual const PCaselessString & GetFactoryName() const override { return AES_256; }
+    virtual const char * GetDescription() const override { return "H.235.6 AES-256"; }
+    virtual const char * GetOID() const override { return "2.16.840.1.101.3.4.1.42"; }
+    virtual PINDEX GetCipherKeyBits() const override { return 256; }
 };
 
 PFACTORY_CREATE(OpalMediaCryptoSuiteFactory, H2356_CryptoSuite_256, AES_256, true);

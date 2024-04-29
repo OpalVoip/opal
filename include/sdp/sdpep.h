@@ -114,7 +114,7 @@ class OpalSDPEndPoint : public OpalRTPEndPoint
   //@{
     /** Get available string option names.
       */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
   //@}
 
   /**@name Actions */
@@ -179,14 +179,14 @@ class OpalSDPConnection : public OpalRTPConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return true; }
+    virtual bool IsNetworkConnection() const override { return true; }
 
     /**Get the data formats this endpoint is capable of operating in.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
@@ -204,7 +204,7 @@ class OpalSDPConnection : public OpalRTPConnection
      */
     virtual bool HoldRemote(
       bool placeOnHold  ///< Flag for setting on or off hold
-    );
+    ) override;
 
     /**Return true if the current connection is on hold.
        The \p fromRemote parameter indicates if we are testing if the remote
@@ -212,7 +212,7 @@ class OpalSDPConnection : public OpalRTPConnection
      */
     virtual bool IsOnHold(
       bool fromRemote  ///< Flag for if remote has us on hold, or we have them
-    ) const;
+    ) const override;
   //@}
 
   /**@name Actions */
@@ -281,14 +281,14 @@ class OpalSDPConnection : public OpalRTPConnection
 
 #if OPAL_BFCP
     // Callbacks from BFCP library
-    virtual bool OnBfcpConnected();
-    virtual bool OnBfcpDisconnected();
-    virtual bool OnFloorRequestStatusAccepted(const BFCPEvent & evt);
-    virtual bool OnFloorRequestStatusGranted(const BFCPEvent & evt);
-    virtual bool OnFloorRequestStatusAborted(const BFCPEvent & evt);
-    virtual bool OnFloorStatusAccepted(const BFCPEvent & evt);
-    virtual bool OnFloorStatusGranted(const BFCPEvent & evt);
-    virtual bool OnFloorStatusAborted(const BFCPEvent & evt);
+    virtual bool OnBfcpConnected() override;
+    virtual bool OnBfcpDisconnected() override;
+    virtual bool OnFloorRequestStatusAccepted(const BFCPEvent & evt) override;
+    virtual bool OnFloorRequestStatusGranted(const BFCPEvent & evt) override;
+    virtual bool OnFloorRequestStatusAborted(const BFCPEvent & evt) override;
+    virtual bool OnFloorStatusAccepted(const BFCPEvent & evt) override;
+    virtual bool OnFloorStatusGranted(const BFCPEvent & evt) override;
+    virtual bool OnFloorStatusAborted(const BFCPEvent & evt) override;
 #endif // OPAL_BFCP
   //@}
 

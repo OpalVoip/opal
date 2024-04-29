@@ -75,12 +75,12 @@ class OpalH281Client : public OpalH224Client
     static const PConstString & VideoPlayback();
 
     /**Overriding default OpalH224Client methods */
-    virtual BYTE GetClientID() const { return OpalH224Client::H281ClientID; }
-    virtual bool HasExtraCapabilities() const { return true; }
+    virtual BYTE GetClientID() const override { return OpalH224Client::H281ClientID; }
+    virtual bool HasExtraCapabilities() const override { return true; }
 
     /**Process incoming frames. Overrides from OpalH224Client */
-    virtual void OnReceivedExtraCapabilities(const BYTE *capabilities, PINDEX size);
-    virtual void OnReceivedMessage(const H224_Frame & message);
+    virtual void OnReceivedExtraCapabilities(const BYTE *capabilities, PINDEX size) override;
+    virtual void OnReceivedMessage(const H224_Frame & message) override;
 
     // Presets
     unsigned GetLocalNumberOfPresets() const { return m_localNumberOfPresets; }
@@ -117,7 +117,7 @@ class OpalH281Client : public OpalH224Client
       the camera abilities (default none) and the number of presets that
         can be stored (default zero)
      */
-    void SendExtraCapabilities() const;
+    void SendExtraCapabilities() const override;
 
     /*
      * methods that subclasses can override.
@@ -244,8 +244,8 @@ class OpalFarEndCameraControl : public OpalH281Client
       H281_Frame::VideoMode mode = H281_Frame::MotionVideo
     );
 
-    virtual void OnStartAction(int directions[PVideoControlInfo::NumTypes]);
-    virtual void OnStopAction();
+    virtual void OnStartAction(int directions[PVideoControlInfo::NumTypes]) override;
+    virtual void OnStopAction() override;
 
   protected:
     PDECLARE_NOTIFIER(PTimer, OpalFarEndCameraControl, StepCamera);

@@ -30,7 +30,7 @@
 
 #if OPAL_SIP
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sipcon.h"
 #endif
 
@@ -595,8 +595,21 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
 
 void SIPConnection::OnReferFailSafe()
 {
-  PTRACE(2, "Fail safe ending of call after REFER.");
-  Release(EndedByCallForwarded);
+  if (m_referOfRemoteState == eNoRemoteRefer) {
+    PTRACE(2, "Fail safe ending of call after REFER without NOTIFY.");
+    Release(EndedByCallForwarded);
+    return;
+  }
+
+  m_referOfRemoteState = eNoRemoteRefer;
+
+  PTRACE(3, "Failed transfer of " << *this);
+  PStringToString info;
+  info.SetAt("result", "error");
+  info.SetAt("party", "B");
+  info.SetAt("Refer-To", m_sentReferTo);
+  info.SetAt("state", "terminated;reason=x-no-final-notify");
+  OnTransferNotify(info, this);
 }
 
 
@@ -1133,7 +1146,7 @@ void SIPConnection::WriteINVITE(OpalTransport & transport, bool & succeeded)
 
   PString transportProtocol = m_dialog.GetRequestURI().GetTransportProto();
   if (!transportProtocol.IsEmpty())
-    myAddress.SetParamVar("transport", transportProtocol);
+    myAddress.SetTransport(transportProtocol);
 
   if (IsOriginating()) {
     // only allow override of calling party number if the local party
@@ -1643,6 +1656,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
     /* If we had SDP but no media could not be decoded from it, then we should return
        Not Acceptable Here error and not do an offer. Only offer if there was no body
        at all or there was a valid SDP with no m lines. */
+    PTRACE(3, "Unacceptable SDP in body");
     Release(EndedByCapabilityExchange);
     return true;
   }
@@ -1698,6 +1712,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
   if (sdp == NULL || transaction.GetSDP() != NULL)
     return statusCode >= 200; // Don't send ACK if only provisional response
 
+  PTRACE(4, "Handling response to our empty INVITE");
   // Empty INVITE means offer in remotes response, get the media formats out of it
   if (SetRemoteMediaFormatsFromPDU(response) <= 0) {
     Release(EndedByCapabilityExchange);
@@ -2582,7 +2597,8 @@ void SIPConnection::OnReceivedACK(SIP_PDU & ack)
 void SIPConnection::OnReceivedOPTIONS(SIP_PDU & request)
 {
   SIPTransaction * response = new SIPResponse(GetEndPoint(), request, SIP_PDU::Failure_UnsupportedMediaType);
-  if (request.GetMIME().GetAccept().Find(OpalSDPEndPoint::ContentType()) != P_MAX_INDEX) {
+  PCaselessString accept = request.GetMIME().GetAccept();
+  if (accept.IsEmpty() || accept.Find(OpalSDPEndPoint::ContentType()) != P_MAX_INDEX) {
     response->SetStatusCode(SIP_PDU::Successful_OK);
     response->SetAllow(GetAllowedMethods());
     response->SetSDP(GetEndPoint().CreateSDP(m_sdpSessionId, m_sdpVersion, OpalTransportAddress()));
@@ -2665,11 +2681,22 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
   }
   else {
     m_referOfRemoteState = eNoRemoteRefer;
-    info.SetAt("result", code < 300 ? "success" : "failed");
+    if (code < 300)
+      info.SetAt("result", "success");
+    else {
+      info.SetAt("result", "failed");
+      info.SetAt("reason", GetCallEndReasonFromResponse(static_cast<SIP_PDU::StatusCodes>(code)).AsInteger());
+    }
   }
 
-  if (OnTransferNotify(info, this))
+  if (OnTransferNotify(info, this)) {
+    if (state != "terminated") {
+      PTimeInterval expires(info("expires"));
+      if (expires > 0)
+        m_referFailSafeTimer = std::min(expires, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120)));
+    }
     return;
+  }
 
   // Release the connection
   if (IsReleased())
@@ -3064,8 +3091,8 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
         // Used RFC4488 to indicate we are NOT doing NOTIFYs, release now
         PTRACE(3, "Transfer accepted, without NOTIFY.");
         m_referOfRemoteState = eNoRemoteRefer;
-        m_referFailSafeTimer = m_sipEndpoint.GetInviteTimeout();
       }
+      m_referFailSafeTimer = m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120));
       // Do next case
 
     default :

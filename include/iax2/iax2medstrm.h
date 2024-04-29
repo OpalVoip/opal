@@ -78,7 +78,7 @@ class OpalIAX2MediaStream : public OpalMediaStream
     @return true on successful read of a packet, false on faulty read.*/
     virtual PBoolean ReadPacket(
       RTP_DataFrame & packet ///< Data buffer to read to
-    );
+    ) override;
 
    /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
@@ -87,18 +87,18 @@ class OpalIAX2MediaStream : public OpalMediaStream
       const BYTE * data,   ///< Data to write
       PINDEX length,       ///< Length of data to write.
       PINDEX & written     ///<Length of data actually written
-    );
+    ) override;
 
  /**Indicate if the media stream is synchronous.
        @Return false if this stream is from the network.
        @return true if this stream is from a sound card.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
   //@}
 
   protected:
-    virtual void InternalClose() { }
+    virtual void InternalClose() override { }
 
     /**The connection is the source/sink of our data packets */
     IAX2Connection & connection;

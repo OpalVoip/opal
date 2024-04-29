@@ -53,7 +53,7 @@ class MyMixerConnection : public OpalMixerConnection
       OpalConnection::StringOptions * stringOptions
     );
 
-    virtual bool SendUserInputString(const PString & value);
+    virtual bool SendUserInputString(const PString & value) override;
 
   protected:
     MyMixerEndPoint & m_endpoint;
@@ -73,11 +73,11 @@ class MyMixerEndPoint : public OpalMixerEndPoint
       void * userData,
       unsigned options,
       OpalConnection::StringOptions * stringOptions
-    );
+    ) override;
 
     virtual OpalMixerNode * CreateNode(
       OpalMixerNodeInfo * info ///< Initial info for node
-    );
+    ) override;
 
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfAdd);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfList);
@@ -131,13 +131,13 @@ class MyManager : public OpalManagerCLI
 
 #if OPAL_HAS_MIXER && OPAL_IVR
 
-    PString GetArgumentSpec() const;
-    bool Initialise(PArgList & args, bool verbose);
+    PString GetArgumentSpec() const override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
 
-    virtual void OnEstablishedCall(OpalCall & call);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual void OnEstablishedCall(OpalCall & call) override;
+    virtual void OnClearedCall(OpalCall & call) override;
 
-    void Broadcast(const PString & str) { m_cli->Broadcast(str); }
+    void Broadcast(const PString & str) override { m_cli->Broadcast(str); }
 #endif
 
     MyMixerEndPoint * m_mixer;

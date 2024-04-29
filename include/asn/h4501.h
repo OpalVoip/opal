@@ -38,8 +38,8 @@ class H4501_EntityType : public PASN_Choice
       e_anyEntity
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -55,7 +55,7 @@ class H4501_AddressInformation : public H225_AliasAddress
   public:
     H4501_AddressInformation(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -77,8 +77,8 @@ class H4501_InterpretationApdu : public PASN_Choice
       e_rejectAnyUnrecognizedInvokePdu
     };
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -107,8 +107,8 @@ class H4501_ServiceApdus : public PASN_Choice
     operator const H4501_ArrayOf_ROS &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -126,7 +126,7 @@ class H4501_InvokeIdSet : public PASN_Integer
 
     H4501_InvokeIdSet & operator=(int v);
     H4501_InvokeIdSet & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -144,7 +144,7 @@ class H4501_InvokeIDs : public PASN_Integer
 
     H4501_InvokeIDs & operator=(int v);
     H4501_InvokeIDs & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -176,8 +176,8 @@ class H4501_PresentedAddressScreened : public PASN_Choice
     operator const H4501_AddressScreened &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -209,8 +209,8 @@ class H4501_PresentedAddressUnscreened : public PASN_Choice
     operator const H4501_Address &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -242,8 +242,8 @@ class H4501_PresentedNumberScreened : public PASN_Choice
     operator const H4501_NumberScreened &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -275,8 +275,8 @@ class H4501_PresentedNumberUnscreened : public PASN_Choice
     operator const H225_PartyNumber &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -313,8 +313,8 @@ class H4501_PartySubaddress : public PASN_Choice
     operator const H4501_NSAPSubaddress &() const;
 #endif
 
-    PBoolean CreateObject();
-    PObject * Clone() const;
+    virtual PBoolean CreateObject() override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -337,7 +337,7 @@ class H4501_NSAPSubaddress : public PASN_OctetString
     H4501_NSAPSubaddress & operator=(const char * v);
     H4501_NSAPSubaddress & operator=(const PString & v);
     H4501_NSAPSubaddress & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -360,7 +360,7 @@ class H4501_SubaddressInformation : public PASN_OctetString
     H4501_SubaddressInformation & operator=(const char * v);
     H4501_SubaddressInformation & operator=(const PString & v);
     H4501_SubaddressInformation & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -384,7 +384,7 @@ class H4501_ScreeningIndicator : public PASN_Enumeration
     };
 
     H4501_ScreeningIndicator & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -401,7 +401,7 @@ class H4501_PresentationAllowedIndicator : public PASN_Boolean
     H4501_PresentationAllowedIndicator(unsigned tag = UniversalBoolean, TagClass tagClass = UniversalTagClass);
 
     H4501_PresentationAllowedIndicator & operator=(PBoolean v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -434,7 +434,7 @@ class H4501_GeneralErrorList : public PASN_Enumeration
     };
 
     H4501_GeneralErrorList & operator=(unsigned v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -457,7 +457,7 @@ class H4501_H225InformationElement : public PASN_OctetString
     H4501_H225InformationElement & operator=(const char * v);
     H4501_H225InformationElement & operator=(const PString & v);
     H4501_H225InformationElement & operator=(const PBYTEArray & v);
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -476,14 +476,14 @@ class H4501_Extension : public PASN_Sequence
     X880_Code m_extensionId;
     PASN_OctetString m_extensionArgument;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -501,9 +501,9 @@ class H4501_ArrayOf_ROS : public PASN_Array
   public:
     H4501_ArrayOf_ROS(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     X880_ROS & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -521,9 +521,9 @@ class H4501_ArrayOf_AliasAddress : public PASN_Array
   public:
     H4501_ArrayOf_AliasAddress(unsigned tag = UniversalSequence, TagClass tagClass = UniversalTagClass);
 
-    PASN_Object * CreateObject() const;
+    virtual PASN_Object * CreateObject() const override;
     H225_AliasAddress & operator[](PINDEX i) const;
-    PObject * Clone() const;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -549,14 +549,14 @@ class H4501_NetworkFacilityExtension : public PASN_Sequence
     H4501_EntityType m_destinationEntity;
     H4501_AddressInformation m_destinationEntityAddress;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -580,14 +580,14 @@ class H4501_AddressScreened : public PASN_Sequence
     H4501_ScreeningIndicator m_screeningIndicator;
     H4501_PartySubaddress m_partySubaddress;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -606,14 +606,14 @@ class H4501_NumberScreened : public PASN_Sequence
     H225_PartyNumber m_partyNumber;
     H4501_ScreeningIndicator m_screeningIndicator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -636,14 +636,14 @@ class H4501_Address : public PASN_Sequence
     H225_PartyNumber m_partyNumber;
     H4501_PartySubaddress m_partySubaddress;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -666,14 +666,14 @@ class H4501_EndpointAddress : public PASN_Sequence
     H4501_ArrayOf_AliasAddress m_destinationAddress;
     H225_AliasAddress m_remoteExtensionAddress;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -696,14 +696,14 @@ class H4501_UserSpecifiedSubaddress : public PASN_Sequence
     H4501_SubaddressInformation m_subaddressInformation;
     PASN_Boolean m_oddCountIndicator;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 
@@ -728,14 +728,14 @@ class H4501_SupplementaryService : public PASN_Sequence
     H4501_InterpretationApdu m_interpretationApdu;
     H4501_ServiceApdus m_serviceApdu;
 
-    PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
-    void Encode(PASN_Stream & strm) const;
+    virtual PINDEX GetDataLength() const override;
+    virtual PBoolean Decode(PASN_Stream & strm) override;
+    virtual void Encode(PASN_Stream & strm) const override;
 #ifndef PASN_NOPRINTON
-    void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 #endif
-    Comparison Compare(const PObject & obj) const;
-    PObject * Clone() const;
+    virtual Comparison Compare(const PObject & obj) const override;
+    virtual PObject * Clone() const override;
 };
 
 

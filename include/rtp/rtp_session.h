@@ -88,6 +88,11 @@ class RTP_MetricsReport;
   */
 #define OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL "Transport-Wide-Congestion-Control"
 
+/**String option key to a boolean indicating that the ICE detection
+   should be disabled. Default false.
+  */
+#define OPAL_OPT_DISABLE_ICE "Disable-ICE"
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -115,23 +120,23 @@ class OpalRTPSession : public OpalMediaSession
 
   /**@name Overrides from class OpalMediaSession */
   //@{
-    virtual const PCaselessString & GetSessionType() const { return RTP_AVP(); }
-    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool Close();
-    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const;
-    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const;
-    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true);
-    virtual void AttachTransport(const OpalMediaTransportPtr & transport);
-    virtual OpalMediaTransportPtr DetachTransport();
-    virtual bool AddGroup(const PString & groupId, unsigned index, const PString & mediaId);
+    virtual const PCaselessString & GetSessionType() const override { return RTP_AVP(); }
+    virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool Close() override;
+    virtual OpalTransportAddress GetLocalAddress(bool isMediaAddress = true) const override;
+    virtual OpalTransportAddress GetRemoteAddress(bool isMediaAddress = true) const override;
+    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true) override;
+    virtual void AttachTransport(const OpalMediaTransportPtr & transport) override;
+    virtual OpalMediaTransportPtr DetachTransport() override;
+    virtual bool AddGroup(const PString & groupId, unsigned index, const PString & mediaId) override;
 
-    virtual bool UpdateMediaFormat(const OpalMediaFormat & mediaFormat);
+    virtual bool UpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
 
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, 
       unsigned sessionID, 
       bool isSource
-    );
+    ) override;
   //@}
 
   /**@name Operations */

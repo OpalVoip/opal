@@ -59,7 +59,7 @@ class H323_T120Capability : public H323DataCapability
   //@{
     /**Create a copy of the object.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
   //@}
 
   /**@name Identification functions */

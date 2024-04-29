@@ -150,7 +150,7 @@ class H323HTTPServiceControl : public H323ServiceControlSession
 
        Default behaviour returns true if url is not an empty string.
       */
-    virtual PBoolean IsValid() const;
+    virtual PBoolean IsValid() const override;
 
     /**Get identification name for the Control Service.
        This function separates the dynamic data from the fundamental type of
@@ -159,7 +159,7 @@ class H323HTTPServiceControl : public H323ServiceControlSession
 
        Default behaviour returns the class name.
       */
-    virtual PString GetServiceControlType() const;
+    virtual PString GetServiceControlType() const override;
 
     /**Handle a received PDU.
        Update in the internal state from the received PDU.
@@ -168,7 +168,7 @@ class H323HTTPServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnReceivedPDU(
       const H225_ServiceControlDescriptor & contents
-    );
+    ) override;
 
     /**Handle a sent PDU.
        Set the PDU fields from in the internal state.
@@ -177,7 +177,7 @@ class H323HTTPServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnSendingPDU(
       H225_ServiceControlDescriptor & contents
-    ) const;
+    ) const override;
 
     /**Handle a change of the state of the Service Control Session.
 
@@ -188,7 +188,7 @@ class H323HTTPServiceControl : public H323ServiceControlSession
       unsigned sessionId,
       H323EndPoint & endpoint,
       H323Connection * connection
-    ) const;
+    ) const override;
   //@}
 
   protected:
@@ -225,7 +225,7 @@ class H323H248ServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnReceivedPDU(
       const H225_ServiceControlDescriptor & contents
-    );
+    ) override;
 
     /**Handle a sent PDU.
        Set the PDU fields from in the internal state.
@@ -235,7 +235,7 @@ class H323H248ServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnSendingPDU(
       H225_ServiceControlDescriptor & contents
-    ) const;
+    ) const override;
 
     /**Handle a received PDU.
        Update in the internal state from the received PDU.
@@ -308,7 +308,7 @@ class H323CallCreditServiceControl : public H323ServiceControlSession
 
        Default behaviour returns true if amount or duration is set.
       */
-    virtual PBoolean IsValid() const;
+    virtual PBoolean IsValid() const override;
 
     /**Handle a received PDU.
        Update in the internal state from the received PDU.
@@ -317,7 +317,7 @@ class H323CallCreditServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnReceivedPDU(
       const H225_ServiceControlDescriptor & contents
-    );
+    ) override;
 
     /**Handle a sent PDU.
        Set the PDU fields from in the internal state.
@@ -326,7 +326,7 @@ class H323CallCreditServiceControl : public H323ServiceControlSession
       */
     virtual PBoolean OnSendingPDU(
       H225_ServiceControlDescriptor & contents
-    ) const;
+    ) const override;
 
     /**Handle a change of the state of the Service Control Session.
 
@@ -338,7 +338,7 @@ class H323CallCreditServiceControl : public H323ServiceControlSession
       unsigned sessionId,
       H323EndPoint & endpoint,
       H323Connection * connection
-    ) const;
+    ) const override;
   //@}
 
   /**@name Member access */

@@ -55,20 +55,20 @@ class H501PDU : public H501_Message, public H323TransactionPDU
     H501PDU();
 
     // overrides from PObject
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     // overrides from H323TransactionPDU
-    virtual PASN_Object & GetPDU();
-    virtual PASN_Choice & GetChoice();
-    virtual const PASN_Object & GetPDU() const;
-    virtual const PASN_Choice & GetChoice() const;
-    virtual unsigned GetSequenceNumber() const;
-    virtual unsigned GetRequestInProgressDelay() const;
+    virtual PASN_Object & GetPDU() override;
+    virtual PASN_Choice & GetChoice() override;
+    virtual const PASN_Object & GetPDU() const override;
+    virtual const PASN_Choice & GetChoice() const override;
+    virtual unsigned GetSequenceNumber() const override;
+    virtual unsigned GetRequestInProgressDelay() const override;
 #if PTRACING
-    virtual const char * GetProtocolName() const;
+    virtual const char * GetProtocolName() const override;
 #endif
-    virtual H323TransactionPDU * ClonePDU() const;
-    virtual void DeletePDU();
+    virtual H323TransactionPDU * ClonePDU() const override;
+    virtual void DeletePDU() override;
 
     // new functions
     H501_ServiceRequest               & BuildServiceRequest              (unsigned seqnum, const H323TransportAddressArray & reply);

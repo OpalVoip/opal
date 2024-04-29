@@ -30,7 +30,7 @@
 
 #if OPAL_SIP
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "sippdu.h"
 #endif
 
@@ -207,6 +207,7 @@ static struct {
 
 const WORD SIPURL::DefaultPort = 5060;
 const WORD SIPURL::DefaultSecurePort = 5061;
+const PCaselessString & SIPURL::TransportKey() { static PConstCaselessString const s("transport"); return s; }
 
 SIPURL::SIPURL()
 {
@@ -302,7 +303,7 @@ void SIPURL::ParseAsAddress(const PString & name,
   SetHostName(ip.AsString(true, true));
   SetPort(port != defaultPort ? port : 0);
   if (proto != defaultProto)
-    SetParamVar("transport", proto.Left(proto.Find('$'))); // Remove dollar
+    SetTransport(proto.Left(proto.Find('$'))); // Remove dollar
 }
 
 
@@ -423,7 +424,7 @@ PBoolean SIPURL::ReallyInternalParse(bool fromHeader, const char * cstr, const c
     for (PStringToString::iterator it = m_paramVars.begin(); it != m_paramVars.end(); ++it) {
       PINDEX pos = it->second.FindLast('\n');
       if (pos != P_MAX_INDEX &&
-            (it->first == "user" || it->first == "ttl" || it->first == "method" || it->first == "transport")) {
+            (it->first == "user" || it->first == "ttl" || it->first == "method" || it->first == TransportKey())) {
         it->second.Delete(0, pos+1);
         Recalculate();
       }
@@ -466,7 +467,7 @@ PObject::Comparison SIPURL::Compare(const PObject & obj) const
      sectionas the above, the "not equivalent" examples do state that the
      absence of a transport is not the same as using the default. While this
      is not normative, the logic is impeccable so we add it in. */
-  COMPARE_COMPONENT(m_paramVars("transport"));
+  COMPARE_COMPONENT(m_paramVars(TransportKey()));
 
   return EqualTo;
 }
@@ -571,7 +572,7 @@ void SIPURL::SetHostAddress(const OpalTransportAddress & addr)
 
 PCaselessString SIPURL::GetTransportProto() const
 {
-  return m_paramVars("transport", m_scheme == "sips" ? "tls" : "udp").ToLower();
+  return GetTransport(m_scheme == "sips" ? "tls" : "udp").ToLower();
 }
 
 
@@ -2742,7 +2743,7 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PMultiPartList & parts)
 
 bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts)
 {
-  bool createSDP = m_SDP == NULL && m_mime.GetSDP(m_entityBody, sdpText, parts);
+  bool hasSDP = m_mime.GetSDP(m_entityBody, sdpText, parts);
 
   static PConstString const x_sip_headers("x-sip/headers");
   for (PMultiPartList::iterator it = parts.begin(); ; ++it) {
@@ -2756,7 +2757,10 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPar
     }
   }
 
-  if (!createSDP)
+  if (m_SDP != NULL)
+    return true; // Already decoded, but may need the multipart MIME fields
+
+  if (!hasSDP)
     return false;
 
   m_SDP = connection.GetEndPoint().CreateSDP(0, 0, OpalTransportAddress());
@@ -3003,13 +3007,13 @@ OpalTransportAddress SIPDialogContext::GetRemoteTransportAddress(PINDEX dnsEntry
     addr = m_proxy.GetTransportAddress(dnsEntry);
     PTRACE(4, "Remote dialog address proxied: " << addr);
   }
-  else if (m_routeSet.empty()) {
-    addr = m_requestURI.GetTransportAddress(dnsEntry);
-    PTRACE(4, "Remote dialog address from target: " << addr);
-  }
-  else {
+  else if (!m_routeSet.empty()) {
     addr = m_routeSet.front().GetTransportAddress(dnsEntry);
     PTRACE(4, "Remote dialog address from route set: " << addr);
+  }
+  else {
+    addr = m_requestURI.GetTransportAddress(dnsEntry);
+    PTRACE(4, "Remote dialog address from target: " << addr);
   }
 
   return addr;
@@ -3038,7 +3042,7 @@ SIPTransactionOwner::~SIPTransactionOwner()
 SIP_PDU::StatusCodes SIPTransactionOwner::SwitchTransportProto(const char * proto, SIP_PDU * pdu)
 {
   SIPURL newTransportAddress(m_dialog.GetRequestURI());
-  newTransportAddress.SetParamVar("transport", proto);
+  newTransportAddress.SetTransport(proto);
   m_dialog.SetRequestURI(newTransportAddress);
 
   PTRACE(4, "Setting new transport for destination \"" << newTransportAddress << '"');
@@ -4063,12 +4067,6 @@ SIPAck::SIPAck(const SIPTransaction & invite, const SIP_PDU & response)
     SIPAuthenticator auth(*this);
     invite.GetConnection()->GetAuthenticator()->Authorise(auth);
   }
-}
-
-
-SIPTransaction * SIPAck::CreateDuplicate() const
-{
-  return NULL;
 }
 
 

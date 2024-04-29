@@ -49,7 +49,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
        The default behaviour returns the most basic media formats, PCM audio
        and YUV420P video.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Call back to indicate that there is an incoming call.
        Note this function should not block or it will impede the operation of
@@ -61,7 +61,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
       */
     virtual bool OnIncomingCall(
       OpalLocalConnection & connection ///<  Connection having event
-    );
+    ) override;
 
     /**Call back when opening a media stream.
        This function is called when a connection has created a new media
@@ -77,7 +77,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
     virtual bool OnOpenMediaStream(
       OpalConnection & connection,  ///<  Connection that owns the media stream
       OpalMediaStream & stream      ///<  New media stream being opened
-    );
+    ) override;
 
     /**Call back to handle received media data.
        If false is returned then OnWriteMediaData() is called.
@@ -94,7 +94,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
       const OpalLocalConnection & connection, ///<  Connection for media
       const OpalMediaStream & mediaStream,    ///<  Media stream data is required for
       RTP_DataFrame & frame                   ///<  RTP frame for data
-    );
+    ) override;
 
     // New functions
     bool Initialise(PArgList & args);
@@ -118,13 +118,13 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
-    virtual PString GetArgumentSpec() const;
-    virtual void Usage(ostream & strm, const PArgList & args);
+    virtual PString GetArgumentSpec() const override;
+    virtual void Usage(ostream & strm, const PArgList & args) override;
     virtual bool Initialise(
       PArgList & args,
       bool verbose,
       const PString & defaultRoute = EXTERNAL_SCHEME":"
-    );
+    ) override;
 
     /**A call back function whenever a call is completed.
        In telephony terminology a completed call is one where there is an
@@ -136,7 +136,7 @@ class MyManager : public OpalManagerConsole
       */
     virtual void OnEstablishedCall(
       OpalCall & call   ///<  Call that was completed
-    );
+    ) override;
 
   protected:
     PDirectory m_outputDir;

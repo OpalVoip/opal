@@ -78,7 +78,7 @@ class IAX2Transmit : public PThread
   //@{
   
   /**Cause this thread to end now */
-  virtual void Terminate();
+  virtual void Terminate() override;
 
   /**Queue a frame for delivery. This is called by a connection, and then
      the transmit thread is woken up.
@@ -96,7 +96,7 @@ class IAX2Transmit : public PThread
   
   /**Do the work of the thread here. Read all lists and check for
      frames to send/delete.*/
-  virtual void Main();
+  virtual void Main() override;
   
   /** A full frame was transmitted a while ago, and the receiver has replied
       with a suitable acknowledgement. The acknowledgment (the newFrame) means

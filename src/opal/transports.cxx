@@ -32,7 +32,7 @@
 
 #include <ptlib.h>
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "transports.h"
 #endif
 
@@ -1330,10 +1330,11 @@ PBoolean OpalTransportTCP::IsCompatibleTransport(const OpalTransportAddress & ad
 
 PBoolean OpalTransportTCP::Connect()
 {
-  if (IsOpen())
-    return true;
-
   PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+  if (m_channel->IsOpen())
+    return true;
 
   PTCPSocket * socket = dynamic_cast<PTCPSocket *>(m_channel);
   if (!PAssert(socket != NULL, PLogicError))
@@ -1877,10 +1878,11 @@ PBoolean OpalTransportTLS::IsCompatibleTransport(const OpalTransportAddress & ad
 
 PBoolean OpalTransportTLS::Connect()
 {
-  if (IsOpen())
-    return true;
-
   PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+  if (m_channel != NULL && m_channel->IsOpen())
+    return true;
 
   delete m_channel;
   m_channel = new PTCPSocket(m_remoteAP.GetPort());
@@ -2070,6 +2072,10 @@ PBoolean OpalTransportWS::IsCompatibleTransport(const OpalTransportAddress & add
 PBoolean OpalTransportWS::Connect()
 {
   PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+  if (m_channel->IsOpen())
+    return true;
 
   if (!OpalTransportTCP::Connect())
     return false;
@@ -2127,6 +2133,10 @@ PBoolean OpalTransportWSS::IsCompatibleTransport(const OpalTransportAddress & ad
 PBoolean OpalTransportWSS::Connect()
 {
   PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+  if (m_channel->IsOpen())
+    return true;
 
   if (!OpalTransportTLS::Connect())
     return false;

@@ -59,7 +59,7 @@ class OpalMediaOption : PObject /Abstract/
     );
 
   public:
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     virtual bool Merge(
       const OpalMediaOption & option
@@ -210,11 +210,11 @@ class OpalMediaFormat : PContainer
 
     /**Create a copy of the media format.
       */
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     /**Compare two media formats.
       */
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     /**This will translate the codec specific "custom" options to OPAL
        "normalised" options, e.g. For H.261 "QCIF MPI"="1", "CIF MPI"="5"
@@ -558,7 +558,7 @@ class OpalMediaFormatInternal : PObject
 
     const PCaselessString & GetName() const;
 
-    virtual PObject * Clone() const;
+    virtual PObject * Clone() const override;
 
     virtual bool IsValid() const;
     virtual bool IsTransportable() const;

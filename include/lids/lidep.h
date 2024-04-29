@@ -104,7 +104,7 @@ class OpalLineEndPoint : public OpalEndPoint
       void * userData = NULL,   ///< Arbitrary data to pass to connection
       unsigned int options = 0,  ///<  options to pass to conneciton
       OpalConnection::StringOptions * stringOptions  = NULL ///< Options to pass to connection
-    );
+    ) override;
 
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
@@ -115,7 +115,7 @@ class OpalLineEndPoint : public OpalEndPoint
 
        The default behaviour is pure.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
   //@}
 
   /**@name Connection management */
@@ -324,7 +324,7 @@ class OpalLineConnection : public OpalConnection
   //@{
     /**Get this connections protocol prefix for URLs.
       */
-    virtual PString GetPrefixName() const;
+    virtual PString GetPrefixName() const override;
 
     /**Get indication of connection being to a "network".
        This indicates the if the connection may be regarded as a "network"
@@ -334,7 +334,7 @@ class OpalLineConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return !m_line.IsTerminal(); }
+    virtual bool IsNetworkConnection() const override { return !m_line.IsTerminal(); }
 
     /**Start an outgoing connection.
        This function will initiate the connection to the remote entity, for
@@ -342,7 +342,7 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour does.
       */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -357,13 +357,13 @@ class OpalLineConnection : public OpalConnection
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia                ///<  Open media with alerting
-    );
+    ) override;
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour stops the ring back tone.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -383,7 +383,7 @@ class OpalLineConnection : public OpalConnection
        The default behaviour calls starts playing the busy tone and calls the
        ancestor function.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Get the destination address of an incoming connection.
        The default behaviour collects a DTMF number terminated with a '#' or
@@ -391,7 +391,7 @@ class OpalLineConnection : public OpalConnection
        are entered within a longer time time (default 30 seconds), then an
        empty string is returned.
       */
-    virtual PString GetDestinationAddress();
+    virtual PString GetDestinationAddress() override;
 
     /**Get the data formats this connection is capable of operating.
        This provides a list of media data format names that a
@@ -399,7 +399,7 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour returns the capabilities of the LID line.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Open a new media stream.
        This will create a media stream of an appropriate subclass as required
@@ -419,7 +419,7 @@ class OpalLineConnection : public OpalConnection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                        ///<  Is a source stream
-    );
+    ) override;
 
     /**Call back when opening a media stream.
        This function is called when a connection has created a new media
@@ -435,7 +435,7 @@ class OpalLineConnection : public OpalConnection
       */
     virtual PBoolean OnOpenMediaStream(
       OpalMediaStream & stream    ///<  New media stream being opened
-    );
+    ) override;
 
     /**Call back for closed a media stream.
 
@@ -446,21 +446,21 @@ class OpalLineConnection : public OpalConnection
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
 
     /**Set  the volume (gain) for the audio media channel to the specified percentage.
       */
     virtual PBoolean SetAudioVolume(
       PBoolean source,                  ///< true for source (microphone), false for sink (speaker)
       unsigned percentage           ///< Gain, 0=silent, 100=maximun
-    );
+    ) override;
 
     /**Get the signal level in dBov (-127 to 0) for the audio media channel.
        A return value of INT_MAX indicates no valid signal, eg no audio channel opened.
       */
     virtual int GetAudioLevelDB(
       bool source   ///< true for source (microphone), false for sink (speaker)
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends an arbitrary string as a user indication. If DTMF tones in
@@ -471,7 +471,7 @@ class OpalLineConnection : public OpalConnection
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends DTMF emulation user input. If something other than the
@@ -481,8 +481,8 @@ class OpalLineConnection : public OpalConnection
       */
     virtual PBoolean SendUserInputTone(
       char tone,    ///<  DTMF tone code
-      int duration  ///<  Duration of tone in milliseconds
-    );
+      unsigned duration  ///<  Duration of tone in milliseconds
+    ) override;
 
     /**Play a prompt to the connection before rading user indication string.
 
@@ -492,7 +492,7 @@ class OpalLineConnection : public OpalConnection
       */
     virtual PBoolean PromptUserInput(
       PBoolean play   ///<  Flag to start or stop playing the prompt
-    );
+    ) override;
   //@}
 
   /**@name Call handling functions */
@@ -578,7 +578,7 @@ class OpalLineMediaStream : public OpalMediaStream
        The default behaviour sets the OpalLineInterfaceDevice format and
        calls Resume() on the associated OpalMediaPatch thread.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Read an RTP frame of data from the source media stream.
        The default behaviour simply calls ReadData() on the data portion of the
@@ -587,7 +587,7 @@ class OpalLineMediaStream : public OpalMediaStream
       */
     virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
@@ -596,7 +596,7 @@ class OpalLineMediaStream : public OpalMediaStream
       */
     virtual PBoolean WritePacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
@@ -605,7 +605,7 @@ class OpalLineMediaStream : public OpalMediaStream
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
-    );
+    ) override;
 
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
@@ -614,7 +614,7 @@ class OpalLineMediaStream : public OpalMediaStream
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
-    );
+    ) override;
 
     /**Set the data size in bytes that is expected to be used. Some media
        streams can make use of this information to perform optimisations.
@@ -624,12 +624,12 @@ class OpalLineMediaStream : public OpalMediaStream
     virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const override;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -643,7 +643,7 @@ class OpalLineMediaStream : public OpalMediaStream
       */
     virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
-    ) const;
+    ) const override;
   //@}
 
   /**@name Member variable access */
@@ -654,7 +654,7 @@ class OpalLineMediaStream : public OpalMediaStream
   //@}
 
   protected:
-    virtual void InternalClose();
+    virtual void InternalClose() override;
 
     OpalLine & m_line;
     bool       m_notUsingRTP;
@@ -693,7 +693,7 @@ class OpalLineSilenceDetector : public OpalSilenceDetector
     virtual int GetAudioLevelDB(
       const BYTE * buffer,  ///<  RTP payload being detected
       PINDEX size           ///<  Size of payload buffer
-    );
+    ) override;
   //@}
 
   protected:

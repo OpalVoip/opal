@@ -82,26 +82,26 @@ class H323_AnnexG : public H323Transactor
       */
     void PrintOn(
       ostream & strm    ///<  Stream to print to.
-    ) const;
+    ) const override;
   //@}
 
   /**@name Overrides from H323Transactor */
   //@{
     /**Create the transaction PDU for reading.
       */
-    virtual H323TransactionPDU * CreateTransactionPDU() const;
+    virtual H323TransactionPDU * CreateTransactionPDU() const override;
 
     /**Handle and dispatch a transaction PDU
       */
     virtual PBoolean HandleTransaction(
       const PASN_Object & rawPDU
-    );
+    ) override;
 
     /**Allow for modifications to PDU on send.
       */
     virtual void OnSendingPDU(
       PASN_Object & rawPDU
-    );
+    ) override;
   //@}
 
   /**@name Protocol callbacks */

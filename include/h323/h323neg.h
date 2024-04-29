@@ -82,7 +82,7 @@ class H245NegMasterSlaveDetermination : public H245Negotiator
     PBoolean HandleAck(const H245_MasterSlaveDeterminationAck & pdu);
     PBoolean HandleReject(const H245_MasterSlaveDeterminationReject & pdu);
     PBoolean HandleRelease(const H245_MasterSlaveDeterminationRelease & pdu);
-    void HandleTimeout();
+    void HandleTimeout() override;
 
     PBoolean IsMaster() const     { return m_status == e_DeterminedMaster; }
     PBoolean IsDetermined() const { return m_status != e_Indeterminate; }
@@ -116,7 +116,7 @@ class H245NegTerminalCapabilitySet : public H245Negotiator
     PBoolean HandleAck(const H245_TerminalCapabilitySetAck & pdu);
     PBoolean HandleReject(const H245_TerminalCapabilitySetReject & pdu);
     PBoolean HandleRelease(const H245_TerminalCapabilitySetRelease & pdu);
-    void HandleTimeout();
+    void HandleTimeout() override;
 
     bool HasSentCapabilities() const { return state >= e_InProgress; }
     bool IsSendingCapabilities() const { return state == e_InProgress; }
@@ -166,7 +166,7 @@ class H245NegLogicalChannel : public H245Negotiator
     virtual PBoolean HandleRequestCloseAck(const H245_RequestChannelCloseAck & pdu);
     virtual PBoolean HandleRequestCloseReject(const H245_RequestChannelCloseReject & pdu);
     virtual PBoolean HandleRequestCloseRelease(const H245_RequestChannelCloseRelease & pdu);
-    virtual void HandleTimeout();
+    virtual void HandleTimeout() override;
 
     H323Channel * GetChannel() const;
 
@@ -258,7 +258,7 @@ class H245NegRequestMode : public H245Negotiator
     virtual PBoolean HandleAck(const H245_RequestModeAck & pdu);
     virtual PBoolean HandleReject(const H245_RequestModeReject & pdu);
     virtual PBoolean HandleRelease(const H245_RequestModeRelease & pdu);
-    virtual void HandleTimeout();
+    virtual void HandleTimeout() override;
 
   protected:
     PBoolean awaitingResponse;
@@ -279,7 +279,7 @@ class H245NegRoundTripDelay : public H245Negotiator
     PBoolean StartRequest();
     PBoolean HandleRequest(const H245_RoundTripDelayRequest & pdu);
     PBoolean HandleResponse(const H245_RoundTripDelayResponse & pdu);
-    void HandleTimeout();
+    void HandleTimeout() override;
 
     PTimeInterval GetRoundTripDelay() const { return roundTripTime; }
     PBoolean IsRemoteOffline() const { return retryCount == 0; }

@@ -62,8 +62,8 @@ public:
   ~SIPHandler();
 
   // Overrides from SIPTransactionOwner
-  virtual PString GetAuthID() const        { return m_username; }
-  virtual PString GetPassword() const      { return m_password; }
+  virtual PString GetAuthID() const override        { return m_username; }
+  virtual PString GetPassword() const override      { return m_password; }
 
   enum State {
     Subscribed,       // The registration is active
@@ -103,13 +103,13 @@ public:
   SIP_PDU::Methods GetMethod() const { return m_method; }
   virtual SIPSubscribe::EventPackage GetEventPackage() const { return SIPSubscribe::EventPackage(); }
 
-  virtual void OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & response);
+  virtual void OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & response) override;
   virtual void OnReceivedIntervalTooBrief(SIPTransaction & transaction, SIP_PDU & response);
   virtual void OnReceivedTemporarilyUnavailable(SIPTransaction & transaction, SIP_PDU & response);
   virtual void OnReceivedForbidden(SIPTransaction & transaction, SIP_PDU & response);
   virtual void OnReceivedAuthenticationRequired(SIPTransaction & transaction, SIP_PDU & response);
   virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
-  virtual void OnTransactionFailed(SIPTransaction & transaction);
+  virtual void OnTransactionFailed(SIPTransaction & transaction) override;
 
 //  virtual void OnFailed(const SIP_PDU & response);
   virtual void OnFailed(SIP_PDU::StatusCodes);
@@ -178,8 +178,8 @@ public:
     const SIPRegister::Params & params
   );
 
-  virtual SIPTransaction * CreateTransaction(OpalTransport &);
-  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
+  virtual SIPTransaction * CreateTransaction(OpalTransport &) override;
+  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response) override;
 
   void UpdateParameters(const SIPRegister::Params & params);
 
@@ -189,8 +189,8 @@ public:
   const SIPURLList & GetServiceRoute() const { return m_serviceRoute; }
 
 protected:
-  virtual PBoolean SendRequest(SIPHandler::State state);
-  virtual void SendStatus(SIP_PDU::StatusCodes code, State state);
+  virtual PBoolean SendRequest(SIPHandler::State state) override;
+  virtual void SendStatus(SIP_PDU::StatusCodes code, State state) override;
   PString CreateRegisterContact(const OpalTransportAddress & address, int q);
 
   SIPRegister::Params  m_parameters;
@@ -209,11 +209,11 @@ public:
   SIPSubscribeHandler(SIPEndPoint & ep, const SIPSubscribe::Params & params);
   ~SIPSubscribeHandler();
 
-  virtual SIPTransaction * CreateTransaction (OpalTransport &);
-  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
-  virtual PBoolean OnReceivedNOTIFY(SIP_PDU & response);
-  virtual void OnFailed(SIP_PDU::StatusCodes);
-  virtual SIPEventPackage GetEventPackage() const
+  virtual SIPTransaction * CreateTransaction (OpalTransport &) override;
+  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response) override;
+  virtual PBoolean OnReceivedNOTIFY(SIP_PDU & response) override;
+  virtual void OnFailed(SIP_PDU::StatusCodes) override;
+  virtual SIPEventPackage GetEventPackage() const override
     { return m_parameters.m_eventPackage; }
 
   void UpdateParameters(const SIPSubscribe::Params & params);
@@ -221,8 +221,8 @@ public:
   const SIPSubscribe::Params & GetParams() const { return m_parameters; }
 
 protected:
-  virtual void WriteTransaction(OpalTransport & transport, bool & succeeded);
-  virtual void SendStatus(SIP_PDU::StatusCodes code, State state);
+  virtual void WriteTransaction(OpalTransport & transport, bool & succeeded) override;
+  virtual void SendStatus(SIP_PDU::StatusCodes code, State state) override;
   bool DispatchNOTIFY(SIP_PDU & request, SIP_PDU & response);
 
   SIPSubscribe::Params     m_parameters;
@@ -242,13 +242,13 @@ public:
   );
   ~SIPNotifyHandler();
 
-  virtual SIPTransaction * CreateTransaction(OpalTransport &);
-  virtual SIPEventPackage GetEventPackage() const
+  virtual SIPTransaction * CreateTransaction(OpalTransport &) override;
+  virtual SIPEventPackage GetEventPackage() const override
     { return m_eventPackage; }
 
-  virtual void SetBody(const PString & body) { m_body = body; }
+  virtual void SetBody(const PString & body) override { m_body = body; }
 
-  virtual bool SendNotify(const PObject * body);
+  virtual bool SendNotify(const PObject * body) override;
 
   enum Reasons {
     Deactivated,
@@ -260,8 +260,8 @@ public:
   };
 
 protected:
-  virtual PBoolean SendRequest(SIPHandler::State state);
-  virtual void WriteTransaction(OpalTransport & transport, bool & succeeded);
+  virtual PBoolean SendRequest(SIPHandler::State state) override;
+  virtual void WriteTransaction(OpalTransport & transport, bool & succeeded) override;
 
   SIPEventPackage          m_eventPackage;
   Reasons                  m_reason;
@@ -279,11 +279,11 @@ public:
                     const SIPSubscribe::Params & params,
                     const PString & body);
 
-  virtual void SetBody(const PString & body) { m_body = body; }
+  virtual void SetBody(const PString & body) override { m_body = body; }
 
-  virtual SIPTransaction * CreateTransaction(OpalTransport &);
-  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
-  virtual SIPEventPackage GetEventPackage() const { return m_parameters.m_eventPackage; }
+  virtual SIPTransaction * CreateTransaction(OpalTransport &) override;
+  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response) override;
+  virtual SIPEventPackage GetEventPackage() const override { return m_parameters.m_eventPackage; }
 
 protected:
   SIPSubscribe::Params m_parameters;
@@ -298,9 +298,9 @@ class SIPMessageHandler : public SIPHandler
 public:
   SIPMessageHandler(SIPEndPoint & ep, const SIPMessage::Params & params);
 
-  virtual SIPTransaction * CreateTransaction (OpalTransport &);
-  virtual void OnFailed(SIP_PDU::StatusCodes);
-  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
+  virtual SIPTransaction * CreateTransaction (OpalTransport &) override;
+  virtual void OnFailed(SIP_PDU::StatusCodes) override;
+  virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response) override;
 
   void UpdateParameters(const SIPMessage::Params & params);
 
@@ -315,7 +315,7 @@ class SIPPingHandler : public SIPHandler
   PCLASSINFO(SIPPingHandler, SIPHandler);
 public:
   SIPPingHandler(SIPEndPoint & ep, const PURL & to);
-  virtual SIPTransaction * CreateTransaction (OpalTransport &);
+  virtual SIPTransaction * CreateTransaction (OpalTransport &) override;
 };
 
 
@@ -416,9 +416,9 @@ public:
     const PXML & xml,
     list<SIPPresenceInfo> & info
   );
+  static PXML::ValidationInfo const * const GetValidation();
 
-  void PrintOn(ostream & strm) const;
-  friend ostream & operator<<(ostream & strm, const SIPPresenceInfo & info) { info.PrintOn(strm); return strm; }
+  virtual void PrintOn(ostream & strm) const override;
 
   // Constructor
   SIPPresenceInfo(
@@ -490,7 +490,7 @@ struct SIPDialogNotification : public PObject
 
   SIPDialogNotification(const PString & entity = PString::Empty());
 
-  void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
 };
 
 
@@ -518,7 +518,7 @@ public:
   States            m_state;
   std::list<SIPURL> m_contacts;
 
-  void PrintOn(ostream & strm) const;
+  virtual void PrintOn(ostream & strm) const override;
 };
 
 

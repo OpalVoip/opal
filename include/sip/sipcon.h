@@ -57,9 +57,16 @@ class OpalSIPIMContext;
 #define OPAL_OPT_REFER_SUB       "Refer-Sub"
 
 /**OpalConnection::StringOption key to a boolean indicating whether to not 
-use RFC4488 ("Refer-Sub" header) at all, in the REFER request. Default false.
-*/
+   use RFC4488 ("Refer-Sub" header) at all, in the REFER request. Default false.
+ */
 #define OPAL_OPT_NO_REFER_SUB    "No-Refer-Sub"
+
+/**OpalConnection::StringOption key to an integer indicating the maximum time
+   in seconds to await the completion of a REFER with NOTIFY operation. Note
+   that the smaller of the subscription "expires" field, indicated in RFC3515,
+   and this value will be used. Default is 120.
+ */
+#define OPAL_OPT_MAX_REFER_TIME    "Max-Refer-Time"
 
 /**OpalConnection::StringOption key to an integer indicating the the mode
    for the reliable provisional response system. See PRACKMode for more
@@ -170,10 +177,10 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
   //@{
     /**Get this connections protocol prefix for URLs.
       */
-    virtual PString GetPrefixName() const;
+    virtual PString GetPrefixName() const override;
 
     /// Call back for connection to act on changed string options
-    virtual void OnApplyStringOptions();
+    virtual void OnApplyStringOptions() override;
 
     /**Start an outgoing connection.
        This function will initiate the connection to the remote entity, for
@@ -181,18 +188,18 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour is .
       */
-    virtual PBoolean SetUpConnection();
+    virtual PBoolean SetUpConnection() override;
 
     /** Get the remote transport address
       */
-    virtual OpalTransportAddress GetRemoteAddress() const { return m_remoteAddress; }
+    virtual OpalTransportAddress GetRemoteAddress() const override { return m_remoteAddress; }
 
     /** Get the remote identity.
         Under some circumstances the "identity" of the remote party, may be
         different from the name, number or URL for that user. For example, this
         would be the P-Asserted-Identity field in SIP.
       */
-    virtual PString GetRemoteIdentity() const;
+    virtual PString GetRemoteIdentity() const override;
 
     /**Get the destination address of an incoming connection.
        This will, for example, collect a phone number from a POTS line, or
@@ -200,7 +207,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour for sip returns the request URI in the INVITE.
       */
-    virtual PString GetDestinationAddress();
+    virtual PString GetDestinationAddress() override;
 
     /**Get the fulll URL being indicated by the remote for incoming calls. This may
        not have any relation to the local name of the endpoint.
@@ -209,11 +216,11 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        The remote may provide a full URL, if it does not then the prefix for the
        endpoint is prepended to the destination address.
       */
-    virtual PString GetCalledPartyURL();
+    virtual PString GetCalledPartyURL() override;
 
     /**Get any extra call information.
       */
-    virtual PMultiPartList GetExtraCallInfo() const { return m_multiPartMIME; }
+    virtual PMultiPartList GetExtraCallInfo() const override { return m_multiPartMIME; }
 
     /**Get alerting type information of an incoming call.
        The type of "distinctive ringing" for the call. The string is protocol
@@ -228,7 +235,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        Default behaviour returns an empty string.
       */
-    virtual PString GetAlertingType() const;
+    virtual PString GetAlertingType() const override;
 
     /**Set alerting type information for outgoing call.
        The type of "distinctive ringing" for the call. The string is protocol
@@ -243,7 +250,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        Default behaviour returns false.
       */
-    virtual bool SetAlertingType(const PString & info);
+    virtual bool SetAlertingType(const PString & info) override;
 
     /**Get call information of an incoming call.
        This is protocol dependent information provided about the call. The
@@ -252,7 +259,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        For SIP this corresponds to the string contained in the "Call-Info"
        header field of the INVITE.
       */
-    virtual PString GetCallInfo() const;
+    virtual PString GetCallInfo() const override;
 
     /**Get supported features for an incoming call.
        A '\n' separated list of protocol dependent names about the supported
@@ -262,7 +269,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        For SIP this corresponds to the contents of the "Supported" header field
        of the INVITE.
       */
-    virtual PString GetSupportedFeatures() const;
+    virtual PString GetSupportedFeatures() const override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
@@ -286,7 +293,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
-    );
+    ) override;
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -301,34 +308,34 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
       PBoolean withMedia            ///<  Flag to alert with/without media
-    );
+    ) override;
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour does nothing.
       */
-    virtual PBoolean SetConnected();
+    virtual PBoolean SetConnected() override;
 
     /**Get the data formats this endpoint is capable of operating in.
       */
-    virtual OpalMediaFormatList GetMediaFormats() const;
+    virtual OpalMediaFormatList GetMediaFormats() const override;
 
     /**Indicate connection requires symmetric media.
        Default behaviour returns false.
       */
-    virtual bool RequireSymmetricMediaStreams() const;
+    virtual bool RequireSymmetricMediaStreams() const override;
 
 #if OPAL_T38_CAPABILITY
     /**Switch to/from T.38 fax mode.
       */
     virtual bool SwitchFaxMediaStreams(
       bool toT38  ///< T.38 or return to audio mode
-    );
+    ) override;
 #endif
 
     /**Indicate security modes available in media negotiation.
     */
-    virtual OpalMediaCryptoSuite::KeyExchangeModes GetMediaCryptoKeyExchangeModes() const;
+    virtual OpalMediaCryptoSuite::KeyExchangeModes GetMediaCryptoKeyExchangeModes() const override;
 
     /**Create a new media stream.
      */
@@ -336,7 +343,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
       PBoolean isSource                        ///<  Is a source stream
-    );
+    ) override;
 
     /**Open source or sink media stream for session.
       */
@@ -345,7 +352,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       unsigned sessionID,                  ///<  Session to start stream on
       bool isSource,                       ///< Stream is a source/sink
       RTP_SyncSourceId ssrc                ///<  Source within the session
-    );
+    ) override;
 
     /**Call back for closed a media stream.
 
@@ -353,7 +360,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       */
     virtual void OnClosedMediaStream(
       const OpalMediaStream & stream     ///<  Media stream being closed
-    );
+    ) override;
 
     /**Get transports for the media session on the connection.
        This is primarily used by the media bypass feature controlled by the
@@ -369,7 +376,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       unsigned sessionId,                    ///< Session identifier
       const OpalMediaType & mediaType,       ///< Media type for session to return information
       OpalTransportAddressArray & transports ///<  Information on media session
-    ) const;
+    ) const override;
 
     /**Call back when patching a media stream.
        This function is called when a connection has created a new media
@@ -382,14 +389,14 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual void OnPatchMediaStream(
       PBoolean isSource,        ///< Is source/sink call
       OpalMediaPatch & patch    ///<  New patch
-    );
+    ) override;
 
     /**Pause media streams for connection.
       */
     virtual void OnPauseMediaStream(
       OpalMediaStream & strm,     ///< Media stream paused/un-paused
       bool paused                 ///< Flag for pausing/un-pausing
-    );
+    ) override;
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -408,7 +415,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual void OnReleased();
+    virtual void OnReleased() override;
 
     /**Forward incoming connection to the specified address.
        This would typically be called from within the OnIncomingConnection()
@@ -421,14 +428,14 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       */
     virtual PBoolean ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
-    );
+    ) override;
 
     /**Get the real user input indication transmission mode.
        This will return the user input mode that will actually be used for
        transmissions. It will be the value of GetSendUserInputMode() provided
        the remote endpoint is capable of that mode.
       */
-    virtual SendUserInputModes GetRealSendUserInputMode() const;
+    virtual SendUserInputModes GetRealSendUserInputMode() const override;
 
     /**Send a user input indication to the remote endpoint.
        This is for sending arbitrary strings as user indications.
@@ -438,7 +445,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       */
     virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
-    );
+    ) override;
 
     /**Send a user input indication to the remote endpoint.
        This sends DTMF emulation user input. If something more sophisticated
@@ -456,7 +463,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour sends the tone using RFC2833.
       */
-    PBoolean SendUserInputTone(char tone, unsigned duration);
+    PBoolean SendUserInputTone(char tone, unsigned duration) override;
   //@}
 
   /**@name Protocol handling functions */
@@ -465,7 +472,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       */
     virtual void OnTransactionFailed(
       SIPTransaction & transaction
-    );
+    ) override;
 
     /**Handle an incoming SIP PDU that has been full decoded
       */
@@ -536,7 +543,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual void OnReceivedResponse(
       SIPTransaction & transaction,
       SIP_PDU & response
-    );
+    ) override;
 
     /**Handle an incoming Trying response PDU
       */
@@ -642,7 +649,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
     /** Return a bit mask of the allowed local SIP methods.
       */
-    virtual unsigned GetAllowedMethods() const;
+    virtual unsigned GetAllowedMethods() const override;
 
     /** REturn true if remote allows the method.
      */
@@ -665,31 +672,31 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual bool OnMediaCommand(
       OpalMediaStream & stream,         ///< Stream command executed on
       const OpalMediaCommand & command  ///< Media command being executed
-    );
+    ) override;
 
     // Overrides from SIPTransactionOwner
-    virtual PString GetAuthID() const;
+    virtual PString GetAuthID() const override;
 
 
-    virtual void OnStartTransaction(SIPTransaction & transaction);
+    virtual void OnStartTransaction(SIPTransaction & transaction) override;
     virtual void OnReceivedMESSAGE(SIP_PDU & pdu);
     virtual void OnReceivedSUBSCRIBE(SIP_PDU & pdu);
 
-    virtual PString GetMediaInterface();
-    virtual OpalTransportAddress GetRemoteMediaAddress();
+    virtual PString GetMediaInterface() override;
+    virtual OpalTransportAddress GetRemoteMediaAddress() override;
 
 
   protected:
-    virtual bool GarbageCollection();
+    virtual bool GarbageCollection() override;
     void OnSessionTimeout();
     void OnInviteResponseRetry();
     void OnInviteResponseTimeout();
     void OnInviteCollision();
     void OnReferFailSafe();
     void OnDelayedRefer();
-    virtual bool AllowMusicOnHold() const;
-    virtual bool OnHoldStateChanged(bool placeOnHold);
-    virtual void OnMediaStreamOpenFailed(bool rx);
+    virtual bool AllowMusicOnHold() const override;
+    virtual bool OnHoldStateChanged(bool placeOnHold) override;
+    virtual void OnMediaStreamOpenFailed(bool rx) override;
 
     void OnReceivedAlertingResponse(
       SIPTransaction & transaction,
@@ -810,7 +817,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       ReceivedRFC2833,
       ReceivedINFO
     } m_receivedUserInputMethod;
-    void OnUserInputInlineRFC2833(OpalRFC2833Info & info, OpalRFC2833Proto::NotifyState state);
+    void OnUserInputInlineRFC2833(OpalRFC2833Info & info, OpalRFC2833Proto::NotifyState state) override;
 
 
   private:

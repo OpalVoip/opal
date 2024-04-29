@@ -146,7 +146,7 @@ class PIntCondMutex : PCondMutex
     /** Print the object on the stream. This will be of the form
        #"(value < target)"#.
      */
-    //void PrintOn(ostream & strm) const;
+    //virtual void PrintOn(ostream & strm) const override;
   //@}
 
   /**@name Condition access functions */

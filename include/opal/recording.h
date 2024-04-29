@@ -88,9 +88,11 @@ class OpalRecordManager : public PObject
                                      supported is dependent on the concrete
                                      OpalRecordManager class. For example, for WAV files
                                      "PCM-16", "G.723.1", "G.728", "G.729" or "MS-GSM"
-                                     is supported. */
+                                     is supported. An empty string indicates a default format
+                                     for the file format. */
       PINDEX    m_audioBufferSize; /**< Size of buffer before writing to output. Note, this
                                         will always be rounded up to whole packet sizes. */
+      unsigned  m_audioSampleRate; /**< Sample rate for audio, default is 8000Hz. */
 
 #if OPAL_VIDEO
       VideoMode m_videoMixing;  ///< Mode for how incoming video is mixed.
@@ -98,7 +100,9 @@ class OpalRecordManager : public PObject
                                      supported is dependent on the concrete
                                      OpalRecordManager class. For example, for AVI files
                                      this will be the four letter code supported by the
-                                     operating system, e.g. "MSVC" for Microsoft Video 1. */
+                                     operating system, e.g. "MSVC" for Microsoft Video 1.
+                                     An empty string indicates a default format for the
+                                     file format. */
       unsigned  m_videoWidth;   ///< Video mixer buffer width. Inputs are scaled accordingly.
       unsigned  m_videoHeight;  ///< Video mixer buffer heigth. Inputs are scaled accordingly.
       unsigned  m_videoRate;    /**< Video mixer output frame rate. This is independent of
@@ -122,6 +126,7 @@ class OpalRecordManager : public PObject
       ) : m_stereo(stereo)
         , m_audioFormat(audioFormat)
         , m_audioBufferSize(0)
+        , m_audioSampleRate(8000)
 #if OPAL_VIDEO
         , m_videoMixing(videoMixing)
         , m_videoFormat(videoFormat)

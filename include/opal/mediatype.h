@@ -55,7 +55,7 @@ class OpalMediaTypeList : public OpalMediaTypesFactory::KeyList_T, public PObjec
     OpalMediaTypeList(const OpalMediaTypesFactory::KeyList_T & list)
       : OpalMediaTypesFactory::KeyList_T(list) { }
 
-    virtual void PrintOn(ostream & strm) const;
+    virtual void PrintOn(ostream & strm) const override;
 
     void PrioritiseAudioVideo();
 };

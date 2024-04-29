@@ -108,13 +108,13 @@ class H323EndPoint : public OpalRTPEndPoint
        destroying the object and can be handy to make sure some things are
        stopped before the vtable gets clobbered.
       */
-    virtual void ShutDown();
+    virtual void ShutDown() override;
 
     /** Execute garbage collection for endpoint.
     Returns true if all garbage has been collected.
     Default behaviour deletes the objects in the connectionsActive list.
     */
-    virtual PBoolean GarbageCollection();
+    virtual PBoolean GarbageCollection() override;
 
     /**Set up a connection to a remote party.
        This is called from the OpalManager::SetUpConnection() function once
@@ -151,7 +151,7 @@ class H323EndPoint : public OpalRTPEndPoint
       void * userData  = NULL,          ///<  Arbitrary data to pass to connection
       unsigned int options = 0,         ///<  options to pass to connection
       OpalConnection::StringOptions * stringOptions = NULL
-    );
+    ) override;
 
     /**A call back function whenever a connection is broken.
        This function can do any internal cleaning up and waiting on background
@@ -173,11 +173,11 @@ class H323EndPoint : public OpalRTPEndPoint
       */
     virtual void OnReleased(
       OpalConnection & connection   ///<  Connection that was established
-    );
+    ) override;
 
     /** Get available string option names.
     */
-    virtual PStringList GetAvailableStringOptions() const;
+    virtual PStringList GetAvailableStringOptions() const override;
     //@}
 
   /**@name Set up functions */
@@ -413,7 +413,7 @@ class H323EndPoint : public OpalRTPEndPoint
     virtual void NewIncomingConnection(
       OpalListener & listener,            ///<  Listner that created transport
       const OpalTransportPtr & transport  ///<  Transport connection came in on
-    );
+    ) override;
 
     void InternalNewIncomingConnection(
       OpalTransportPtr transport,   ///< Transport connection came in on
@@ -628,7 +628,7 @@ class H323EndPoint : public OpalRTPEndPoint
     virtual OpalConnection::AnswerCallResponse OnAnswerCall(
        OpalConnection & connection,
        const PString & caller
-    );
+    ) override;
 
     /**Call back for remote party being alerted.
        This function is called from the SendSignalSetup() function after it
@@ -815,7 +815,7 @@ class H323EndPoint : public OpalRTPEndPoint
       */
     virtual void SetDefaultLocalPartyName(
       const PString & name  /// Name for local party
-    );
+    ) override;
 
     /**Set alias names to be used for the local end of any connections. If
        an alias name already exists in the list then is is not added again.
@@ -1321,11 +1321,11 @@ class H323EndPoint : public OpalRTPEndPoint
     /**Get the default transports for the endpoint type.
        Overrides the default behaviour to return udp and tcp.
       */
-    virtual PString GetDefaultTransport() const;
+    virtual PString GetDefaultTransport() const override;
 
     /**Get the default signal port for this endpoint.
      */
-    virtual WORD GetDefaultSignalPort() const;
+    virtual WORD GetDefaultSignalPort() const override;
 
     /// Gets the current regular expression for the compatibility issue
     PString GetCompatibility(

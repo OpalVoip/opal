@@ -71,10 +71,10 @@ class H323ChannelNumber : public PObject
     H323ChannelNumber() { number = 0; fromRemote = false; }
     H323ChannelNumber(unsigned number, PBoolean fromRemote);
 
-    virtual PObject * Clone() const;
-    virtual PINDEX HashFunction() const;
-    virtual void PrintOn(ostream & strm) const;
-    virtual Comparison Compare(const PObject & obj) const;
+    virtual PObject * Clone() const override;
+    virtual PINDEX HashFunction() const override;
+    virtual void PrintOn(ostream & strm) const override;
+    virtual Comparison Compare(const PObject & obj) const override;
 
     H323ChannelNumber & operator++(int);
     operator unsigned() const { return number; }
@@ -117,7 +117,7 @@ class H323Channel : public PObject
   //@{
     virtual void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
   //@}
 
   /**@name Operations */
@@ -371,7 +371,7 @@ class H323UnidirectionalChannel : public H323Channel
        Return if the channel is bidirectional, or unidirectional, and which
        direction for th latter case.
      */
-    virtual Directions GetDirection() const;
+    virtual Directions GetDirection() const override;
 
     /**Set the initial bandwidth for the channel.
        This calculates the initial bandwidth required by the channel and
@@ -380,7 +380,7 @@ class H323UnidirectionalChannel : public H323Channel
        The default behaviour gets the bandwidth requirement from the codec
        object created by the channel.
      */
-    virtual PBoolean SetInitialBandwidth();
+    virtual PBoolean SetInitialBandwidth() override;
 
     /**PreOpen the channel.
        This occurs when we send an OLC, full open happens when the OLC comes
@@ -388,14 +388,14 @@ class H323UnidirectionalChannel : public H323Channel
 
        Default behaviour create media stream.
       */
-    virtual bool PreOpen();
+    virtual bool PreOpen() override;
 
     /**Open the channel.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /// Update media format options
-    virtual bool UpdateMediaFormat(const OpalMediaFormat & mediaFormat);
+    virtual bool UpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
   //@}
 
   /**@name Member variable access */
@@ -403,17 +403,17 @@ class H323UnidirectionalChannel : public H323Channel
     /**Get the media stream associated with this logical channel.
        The default behaviour returns m_mediaStream.
       */
-    virtual OpalMediaStreamPtr GetMediaStream() const;
+    virtual OpalMediaStreamPtr GetMediaStream() const override;
 
     /**Set the media stream associated with this logical channel.
        The default behaviour sets m_mediaStream and m_mediaFormat.
       */
-    virtual void SetMediaStream(OpalMediaStreamPtr mediaStream);
+    virtual void SetMediaStream(OpalMediaStreamPtr mediaStream) override;
   //@}
 
 
   protected:
-    virtual void InternalClose();
+    virtual void InternalClose() override;
 
     bool               receiver;
     OpalMediaStreamPtr m_mediaStream;
@@ -447,7 +447,7 @@ class H323BidirectionalChannel : public H323Channel
        Return if the channel is bidirectional, or unidirectional, and which
        direction for th latter case.
      */
-    virtual Directions GetDirection() const;
+    virtual Directions GetDirection() const override;
   //@}
 };
 
@@ -478,7 +478,7 @@ class H323_RealTimeChannel : public H323UnidirectionalChannel
      */
     virtual PBoolean OnSendingPDU(
       H245_OpenLogicalChannel & openPDU  ///<  Open PDU to send. 
-    ) const;
+    ) const override;
 
     /**This is called when request to create a channel is received from a
        remote machine and is about to be acknowledged.
@@ -486,7 +486,7 @@ class H323_RealTimeChannel : public H323UnidirectionalChannel
     virtual void OnSendOpenAck(
       const H245_OpenLogicalChannel & open,   ///<  Open PDU
       H245_OpenLogicalChannelAck & ack        ///<  Acknowledgement PDU
-    ) const;
+    ) const override;
 
     virtual void OnSendOpenAck(
       H245_H2250LogicalChannelAckParameters & param ///<  Acknowledgement PDU
@@ -503,7 +503,7 @@ class H323_RealTimeChannel : public H323UnidirectionalChannel
     virtual PBoolean OnReceivedPDU(
       const H245_OpenLogicalChannel & pdu,    ///<  Open PDU
       unsigned & errorCode                    ///<  Error code on failure
-    );
+    ) override;
 
     /**This is called after a request to create a channel occurs from the
        local machine via the H245LogicalChannelDict::Open() function, and
@@ -514,7 +514,7 @@ class H323_RealTimeChannel : public H323UnidirectionalChannel
      */
     virtual PBoolean OnReceivedAckPDU(
       const H245_OpenLogicalChannelAck & pdu ///<  Acknowledgement PDU
-    );
+    ) override;
   //@}
 
   /**@name Operations */
@@ -594,13 +594,13 @@ class H323DataChannel : public H323UnidirectionalChannel
   //@{
     /**Indicate the session number of the channel.
      */
-    virtual unsigned GetSessionID() const;
+    virtual unsigned GetSessionID() const override;
 
     /**Fill out the OpenLogicalChannel PDU for the particular channel type.
      */
     virtual PBoolean OnSendingPDU(
       H245_OpenLogicalChannel & openPDU  ///<  Open PDU to send. 
-    ) const;
+    ) const override;
 
     /**This is called when request to create a channel is received from a
        remote machine and is about to be acknowledged.
@@ -608,7 +608,7 @@ class H323DataChannel : public H323UnidirectionalChannel
     virtual void OnSendOpenAck(
       const H245_OpenLogicalChannel & open,   ///<  Open PDU
       H245_OpenLogicalChannelAck & ack        ///<  Acknowledgement PDU
-    ) const;
+    ) const override;
 
     /**This is called after a request to create a channel occurs from the
        local machine via the H245LogicalChannelDict::Open() function, and
@@ -620,7 +620,7 @@ class H323DataChannel : public H323UnidirectionalChannel
     virtual PBoolean OnReceivedPDU(
       const H245_OpenLogicalChannel & pdu,    ///<  Open PDU
       unsigned & errorCode                    ///<  Error code on failure
-    );
+    ) override;
 
     /**This is called after a request to create a channel occurs from the
        local machine via the H245LogicalChannelDict::Open() function, and
@@ -631,7 +631,7 @@ class H323DataChannel : public H323UnidirectionalChannel
      */
     virtual PBoolean OnReceivedAckPDU(
       const H245_OpenLogicalChannelAck & pdu ///<  Acknowledgement PDU
-    );
+    ) override;
   //@}
 
   /**@name Operations */
@@ -655,7 +655,7 @@ class H323DataChannel : public H323UnidirectionalChannel
   //@}
 
   protected:
-    virtual void InternalClose();
+    virtual void InternalClose() override;
 
     unsigned        sessionID;
     H323Listener  * listener;

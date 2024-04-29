@@ -35,7 +35,10 @@
 
 #define LOCAL_MEDIA 0
 #define CERTIFICATES 0
-#define STUN_SERVER "stun.l.google.com:19302"
+#define SIP_INTERFACES "udp$0.0.0.0:15060\ntcp$0.0.0.0:15060"
+//#define MEDIA_MASK "@video"
+#define MEDIA_MASK "!G.711*"
+//#define STUN_SERVER "stun.l.google.com:19302"
 
 
 #if defined(_WIN32)
@@ -67,6 +70,10 @@
 
   #define TRACE_FILE "debugstream"
 
+  #if _MSC_VER
+    #pragma warning(disable:4100)
+  #endif
+
 #else // _WIN32
 
   #include <memory.h>
@@ -96,6 +103,9 @@ char * CurrentCallToken;
 char * HeldCallToken;
 char * PlayScript;
 
+#ifndef bool
+typedef enum bool { false, true } bool;
+#endif
 
 
 OpalMessage * MySendCommand(OpalMessage * command, const char * errorMessage)
@@ -164,7 +174,7 @@ int MyWriteMediaData(const char * token, const char * id, const char * format, v
 #endif // LOCAL_MEDIA
 
 
-int InitialiseOPAL()
+bool InitialiseOPAL()
 {
   OpalMessage   command;
   OpalMessage * response;
@@ -175,7 +185,7 @@ int InitialiseOPAL()
 
   if ((hDLL = OPEN_LIBRARY(OPAL_DLL)) == NULL) {
     fprintf(stderr, "Could not file %s, error=%u\n", OPAL_DLL, GET_ERRNO);
-    return 0;
+    return false;
   }
 
   InitialiseFunction  = (OpalInitialiseFunction )GET_LIBRARY_FUNCTION(hDLL, OPAL_INITIALISE_FUNCTION  );
@@ -190,7 +200,7 @@ int InitialiseOPAL()
       SendMessageFunction == NULL ||
       FreeMessageFunction == NULL) {
     fputs("OPAL.DLL is invalid\n", stderr);
-    return 0;
+    return false;
   }
 
 
@@ -200,7 +210,7 @@ int InitialiseOPAL()
   version = OPAL_C_API_VERSION;
   if ((hOPAL = InitialiseFunction(&version, OPALOptions)) == NULL) {
     fputs("Could not initialise OPAL\n", stderr);
-    return 0;
+    return false;
   }
 
   // General options
@@ -212,7 +222,9 @@ int InitialiseOPAL()
   command.m_param.m_general.m_natMethod = "STUN";
   command.m_param.m_general.m_natServer = STUN_SERVER;
 #endif
-  command.m_param.m_general.m_mediaMask = "RFC4175*";
+#ifdef MEDIA_MASK
+  command.m_param.m_general.m_mediaMask = MEDIA_MASK;
+#endif
 
 #if CERTIFICATES
   command.m_param.m_general.m_caFiles = "*";
@@ -228,7 +240,7 @@ int InitialiseOPAL()
 #endif
 
   if ((response = MySendCommand(&command, "Could not set general options")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
 
@@ -242,7 +254,7 @@ int InitialiseOPAL()
   //command.m_param.m_protocol.m_defaultOptions = "Http-Proxy=http://192.168.1.10";
 
   if ((response = MySendCommand(&command, "Could not set protocol options")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
 
@@ -250,7 +262,10 @@ int InitialiseOPAL()
   command.m_type = OpalCmdSetProtocolParameters;
 
   command.m_param.m_protocol.m_prefix = "sip";
-  command.m_param.m_protocol.m_defaultOptions = "PRACK-Mode=0\nInitial-Offer=false";
+#ifdef SIP_INTERFACES
+  command.m_param.m_protocol.m_interfaceAddresses = SIP_INTERFACES;
+#endif
+  //command.m_param.m_protocol.m_defaultOptions = "PRACK-Mode=0\nInitial-Offer=false";
 #if CERTIFICATES
   command.m_param.m_protocol.m_caFiles = "*";
   command.m_param.m_protocol.m_certificate = "C:\\data\\temp\\sip_cert.pem";
@@ -259,11 +274,11 @@ int InitialiseOPAL()
 #endif
 
   if ((response = MySendCommand(&command, "Could not set SIP options")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
 
-  return 1;
+  return true;
 }
 
 
@@ -272,7 +287,7 @@ static void HandleMessages(unsigned timeout)
   OpalMessage command;
   OpalMessage * response;
   OpalMessage * message;
-    
+
 
   while ((message = GetMessageFunction(hOPAL, timeout*1000)) != NULL) {
     switch (message->m_type) {
@@ -328,6 +343,8 @@ static void HandleMessages(unsigned timeout)
         break;
 
       case OpalIndIncomingCall :
+        if (CurrentCallToken != NULL && strcmp(CurrentCallToken, message->m_param.m_incomingCall.m_callToken) == 0)
+          break;
         printf("Incoming call from \"%s\", \"%s\" to \"%s\", handled by \"%s\".\n",
                message->m_param.m_incomingCall.m_remoteDisplayName,
                message->m_param.m_incomingCall.m_remoteAddress,
@@ -372,6 +389,20 @@ static void HandleMessages(unsigned timeout)
           command.m_param.m_callSetUp.m_partyA = "pc:";
           command.m_param.m_callSetUp.m_partyB = PlayScript;
           if ((response = MySendCommand(&command, "Could not start playing")) != NULL)
+            FreeMessageFunction(response);
+        }
+        break;
+
+      case OpalIndCompletedIVR :
+        if (PlayScript != NULL) {
+          printf("Played %s\n", PlayScript);
+
+          memset(&command, 0, sizeof(command));
+          command.m_type = OpalCmdTransferCall;
+          command.m_param.m_callSetUp.m_callToken = CurrentCallToken;
+          command.m_param.m_callSetUp.m_partyA = "ivr:";
+          command.m_param.m_callSetUp.m_partyB = "pc:*";
+          if ((response = MySendCommand(&command, "Could not finish playing")) != NULL)
             FreeMessageFunction(response);
         }
         break;
@@ -444,7 +475,7 @@ static void HandleMessages(unsigned timeout)
 }
 
 
-int DoCall(const char * from, const char * to)
+bool DoCall(const char * from, const char * to)
 {
   // Example cmd line: call 612@ekiga.net
   OpalMessage command;
@@ -459,15 +490,15 @@ int DoCall(const char * from, const char * to)
   command.m_param.m_callSetUp.m_partyB = to;
   command.m_param.m_callSetUp.m_overrides.m_displayName = "Test Calling Party";
   if ((response = MySendCommand(&command, "Could not make call")) == NULL)
-    return 0;
+    return false;
 
   CurrentCallToken = strdup(response->m_param.m_callSetUp.m_callToken);
   FreeMessageFunction(response);
-  return 1;
+  return true;
 }
 
 
-int DoMute(int on)
+bool DoMute(int on)
 {
   // Example cmd line: mute 612@ekiga.net
   OpalMessage command;
@@ -482,14 +513,14 @@ int DoMute(int on)
   command.m_param.m_mediaStream.m_type = "audio out";
   command.m_param.m_mediaStream.m_state = on ? OpalMediaStatePause : OpalMediaStateResume;
   if ((response = MySendCommand(&command, "Could not mute call")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
-  return 1;
+  return true;
 }
 
 
-int DoHold()
+bool DoHold()
 {
   // Example cmd line: hold 612@ekiga.net
   OpalMessage command;
@@ -502,17 +533,17 @@ int DoHold()
   command.m_type = OpalCmdHoldCall;
   command.m_param.m_callToken = CurrentCallToken;
   if ((response = MySendCommand(&command, "Could not hold call")) == NULL)
-    return 0;
+    return false;
 
   HeldCallToken = CurrentCallToken;
   CurrentCallToken = NULL;
 
   FreeMessageFunction(response);
-  return 1;
+  return true;
 }
 
 
-int DoTransfer(const char * to)
+bool DoTransfer(const char * to)
 {
   // Example cmd line: transfer fred@10.0.1.11 noris@10.0.1.15
   OpalMessage command;
@@ -526,19 +557,21 @@ int DoTransfer(const char * to)
   command.m_param.m_callSetUp.m_partyB = to;
   command.m_param.m_callSetUp.m_callToken = CurrentCallToken;
   if ((response = MySendCommand(&command, "Could not transfer call")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
-  return 1;
+  return true;
 }
 
 
-int DoRegister(const char * aor, const char * pwd)
+bool OpRegister(int argc, const char * const * argv)
 {
   // Example cmd line: register robertj@ekiga.net secret
   OpalMessage command;
   OpalMessage * response;
   char * colon;
+  const char * aor = argv[2];
+  const char * pwd = argv[3];
 
 
   printf("Registering %s\n", aor);
@@ -559,18 +592,22 @@ int DoRegister(const char * aor, const char * pwd)
   command.m_param.m_registrationInfo.m_password = pwd;
   command.m_param.m_registrationInfo.m_timeToLive = 300;
   if ((response = MySendCommand(&command, "Could not register endpoint")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
-  return 1;
+  HandleMessages(15);
+  return true;
 }
 
 
-int DoSubscribe(const char * package, const char * aor, const char * from)
+bool OpSubscribe(int argc, const char * const * argv)
 {
   // Example cmd line: subscribe "dialog;sla;ma" 1501@192.168.1.32 1502@192.168.1.32
   OpalMessage command;
   OpalMessage * response;
+  const char * package = argv[2];
+  const char * aor = argv[3];
+  const char * from = argv[4];
 
 
   printf("Susbcribing %s\n", aor);
@@ -583,18 +620,21 @@ int DoSubscribe(const char * package, const char * aor, const char * from)
   command.m_param.m_registrationInfo.m_eventPackage = package;
   command.m_param.m_registrationInfo.m_timeToLive = 300;
   if ((response = MySendCommand(&command, "Could not subscribe")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
-  return 1;
+  HandleMessages(60);
+  return true;
 }
 
 
-int DoRecord(const char * to, const char * file)
+bool OpRecord(int argc, const char * const * argv)
 {
   // Example cmd line: call 612@ekiga.net
   OpalMessage command;
   OpalMessage * response;
+  const char * to = argv[2];
+  const char * file = argv[3];
 
 
   printf("Calling %s\n", to);
@@ -603,7 +643,7 @@ int DoRecord(const char * to, const char * file)
   command.m_type = OpalCmdSetUpCall;
   command.m_param.m_callSetUp.m_partyB = to;
   if ((response = MySendCommand(&command, "Could not make call")) == NULL)
-    return 0;
+    return false;
 
   CurrentCallToken = strdup(response->m_param.m_callSetUp.m_callToken);
   FreeMessageFunction(response);
@@ -616,29 +656,36 @@ int DoRecord(const char * to, const char * file)
   command.m_param.m_recording.m_file = file;
   command.m_param.m_recording.m_channels = 2;
   if ((response = MySendCommand(&command, "Could not start recording")) == NULL)
-    return 0;
+    return false;
 
-  return 1;
+  HandleMessages(120);
+  return true;
 }
 
 
-int DoPlay(const char * to, const char * file)
+bool OpPlay(int argc, const char * const * argv)
 {
   // Example cmd line: call 612@ekiga.net
   OpalMessage command;
   OpalMessage * response;
+  const char * to = argv[2];
+  const char * file = argv[3];
 
 
   printf("Playing %s to %s\n", file, to);
 
   PlayScript = (char *)malloc(1000); // Yes, this leaks, don't care!
-  snprintf(PlayScript, 999,
-           "ivr:<?xml version=\"1.0\"?>"
-           "<vxml version=\"1.0\">"
-             "<form id=\"PlayFile\">"
-               "<audio src=\"%s\"/>"
-             "</form>"
-           "</vxml>", file);
+
+  if (strstr(file, ".vxml") != NULL)
+    snprintf(PlayScript, 999, "ivr:%s", file);
+  else
+    snprintf(PlayScript, 999,
+             "ivr:<?xml version=\"1.0\"?>"
+             "<vxml version=\"1.0\">"
+               "<form id=\"PlayFile\">"
+                 "<audio src=\"%s\"/>"
+               "</form>"
+             "</vxml>", file);
 
   memset(&command, 0, sizeof(command));
   command.m_type = OpalCmdSetUpCall;
@@ -648,16 +695,17 @@ int DoPlay(const char * to, const char * file)
   }
   command.m_param.m_callSetUp.m_partyB = to;
   if ((response = MySendCommand(&command, "Could not make call")) == NULL)
-    return 0;
+    return false;
 
   CurrentCallToken = strdup(response->m_param.m_callSetUp.m_callToken);
   FreeMessageFunction(response);
 
-  return 1;
+  HandleMessages(120);
+  return true;
 }
 
 
-int DoPresence(const char * local, int argc, const char * const * argv)
+bool DoPresence(const char * local, int argc, const char * const * argv)
 {
   // Example cmd line: presence fred@flintstone.com wilma@flintstone.com
   OpalMessage command;
@@ -685,7 +733,10 @@ int DoPresence(const char * local, int argc, const char * const * argv)
         break;
       {
         size_t argLen = strlen(argv[arg]);
-        attributes = (char *)realloc(attributes, attrLen+argLen+2);
+        char * newAttributes = (char *)realloc(attributes, attrLen+argLen+2);
+        if (newAttributes == NULL)
+          abort();
+        attributes = newAttributes;
         strcpy(attributes+attrLen, argv[arg]);
         strcpy(attributes+attrLen+argLen, "\n");
         attrLen += argLen + 1;
@@ -699,7 +750,7 @@ int DoPresence(const char * local, int argc, const char * const * argv)
   free(attributes);
 
   if (response == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
 
@@ -712,16 +763,16 @@ int DoPresence(const char * local, int argc, const char * const * argv)
     command.m_param.m_presenceStatus.m_state = OpalPresenceAuthRequest;
 
     if ((response = MySendCommand(&command, "Could not subscribe to presentity")) == NULL)
-      return 0;
+      return false;
 
     FreeMessageFunction(response);
   }
 
-  return 1;
+  return true;
 }
 
 
-int UndoPresence(const char * local, int argc, const char * const * argv)
+bool UndoPresence(const char * local, int argc, const char * const * argv)
 {
   OpalMessage command;
   OpalMessage * response;
@@ -742,16 +793,16 @@ int UndoPresence(const char * local, int argc, const char * const * argv)
     command.m_param.m_presenceStatus.m_state = OpalPresenceNone;
 
     if ((response = MySendCommand(&command, "Could not unsubscribe to presentity")) == NULL)
-      return 0;
+      return false;
 
     FreeMessageFunction(response);
   }
 
-  return 1;
+  return true;
 }
 
 
-int DoPresenceChange(const char * local, OpalPresenceStates state)
+bool DoPresenceChange(const char * local, OpalPresenceStates state)
 {
   OpalMessage command;
   OpalMessage * response;
@@ -767,17 +818,40 @@ int DoPresenceChange(const char * local, OpalPresenceStates state)
   command.m_param.m_presenceStatus.m_note = state == OpalPresenceUnavailable ? "Leave me alone" : "Talk to me";
 
   if ((response = MySendCommand(&command, "Could not change status of presentity")) == NULL)
-    return 0;
+    return false;
 
   FreeMessageFunction(response);
-  return 1;
+  return true;
 }
 
 
-int DoSendIM(const char * from, const char * to, int argc, const char * const * argv)
+bool OpPresence(int argc, const char * const * argv)
+{
+  if (!DoPresence(argv[2], argc-3, argv+3))
+    return false;
+  HandleMessages(5);
+  if (!DoPresenceChange(argv[2], OpalPresenceUnavailable))
+    return false;
+  HandleMessages(5);
+  if (!DoPresenceChange(argv[2], OpalPresenceAvailable))
+    return false;
+  HandleMessages(5);
+  if (!UndoPresence(argv[2], argc-3, argv+3))
+    return false;
+  HandleMessages(60);
+  return true;
+}
+
+
+bool OpInstantMsg(int argc, const char * const * argv)
 {
   OpalMessage command;
   OpalMessage * response;
+
+  const char * from = argv[2];
+  const char * to = argv[3];
+  argc -= 4;
+  argv += 4;
 
   printf("Sending message from %s to %s\n", from, to);
 
@@ -792,233 +866,192 @@ int DoSendIM(const char * from, const char * to, int argc, const char * const * 
     else {
       command.m_param.m_instantMessage.m_host = &argv[0][5];
       if (argc == 1)
-        return 0;
+        return false;
       command.m_param.m_instantMessage.m_textBody = argv[1];
     }
   }
 
   if ((response = MySendCommand(&command, "Could not change status of presentity")) == NULL)
-    return 0;
+    return false;
 
   printf("Sending message number %u, with conversation id is %s\n",
          response->m_param.m_instantMessage.m_messageId,
          response->m_param.m_instantMessage.m_conversationId);
   FreeMessageFunction(response);
-  return 1;
+
+  HandleMessages(30);
+  return true;
 }
 
 
-typedef enum
+bool OpShutdown(int argc, const char * const * argv)
 {
-  OpFirst,
-  OpShutdown = OpFirst,
-  OpListen,
-  OpCall,
-  OpMute,
-  OpHold,
-  OpTransfer,
-  OpConsult,
-  OpRegister,
-  OpSubscribe,
-  OpRecord,
-  OpPlay,
-  OpPresence,
-  OpInstantMessage,
-  NumOperations
-} Operations;
+  HandleMessages(5);
+
+  puts("Shutting down.\n");
+  // Test shut down and re-initialisation
+  ShutDownFunction(hOPAL);
+
+  puts("Reinitialising.\n");
+  if (!InitialiseOPAL()) {
+    fputs("Could not re-initialise OPAL\n", stderr);
+    return false;
+  }
+
+  if (argc > 3) {
+    if (!DoCall(argv[2], argv[3]))
+      return false;
+  }
+  else if (argc > 2) {
+    if (!DoCall(NULL, argv[2]))
+      return false;
+  }
+
+  HandleMessages(15);
+  return true;
+}
+
+
+bool OpListen(int argc, const char * const * argv)
+{
+  puts("Listening.\n");
+  HandleMessages(120);
+  return true;
+}
+
+
+bool OpCall(int argc, const char * const * argv)
+{
+  if (argc > 3) {
+    if (!DoCall(argv[2], argv[3]))
+      return false;
+  } else {
+    if (!DoCall(NULL, argv[2]))
+      return false;
+  }
+
+  HandleMessages(15);
+  return true;
+}
+
+
+bool OpMute(int argc, const char * const * argv)
+{
+  if (!DoCall(NULL, argv[2]))
+    return false;
+  HandleMessages(15);
+  if (!DoMute(1))
+    return false;
+  HandleMessages(15);
+  if (!DoMute(0))
+    return false;
+  HandleMessages(15);
+  return true;
+}
+
+
+bool OpHold(int argc, const char * const * argv)
+{
+  if (!DoCall(NULL, argv[2]))
+    return false;
+  HandleMessages(15);
+  if (!DoHold())
+    return false;
+  HandleMessages(15);
+  return true;
+}
+
+
+bool OpTransfer(int argc, const char * const * argv)
+{
+  if (!DoCall(NULL, argv[2]))
+    return false;
+  HandleMessages(15);
+  if (!DoTransfer(argv[3]))
+    return false;
+  HandleMessages(15);
+  return true;
+}
+
+
+bool OpConsult(int argc, const char * const * argv)
+{
+  if (!DoCall(NULL, argv[2]))
+    return false;
+  HandleMessages(15);
+  if (!DoHold())
+    return false;
+  HandleMessages(15);
+  if (!DoCall(NULL, argv[3]))
+    return false;
+  HandleMessages(15);
+  if (!DoTransfer(HeldCallToken))
+    return false;
+  HandleMessages(15);
+  return true;
+}
+
+
+typedef bool (*Operation)(int argc, const char * const * argv);
 
 static struct
 {
   const char * m_name;
-  int          m_numArgs;
+  int          m_minArgs;
+  Operation    m_func;
   const char * m_help;
-} Operation []  = {
-  { "shutdown",  2, "" },
-  { "listen",    2, "" },
-  { "call",      3, "<destination-URL> [ <local-URL> ]" },
-  { "mute",      3, "<destination-URL>" },
-  { "hold",      3, "<destination-URL>" },
-  { "transfer",  4, "<destination-URL> <transfer-URL>" },
-  { "consult",   4, "<destination-URL> <transfer-URL>" },
-  { "register",  3, "<address-of-record> [ <pwd> ]" },
-  { "subscribe", 3, "<package> <address-of-record> [ <pwd> ]" },
-  { "record",    3, "<destination-URL> <filename>" },
-  { "play",      3, "<destination-URL> <filename>" },
-  { "presence",  4, "<local-URL> [ <attr>=<value> ... ] <remote-URL> ...\n"
-                    "    attrib one of pwd/host/transport/sub-protocol etc" },
-  { "im",        5, "<from> <to> [ host=<host> ] <msg>" }
+} Operations []  = {
+  { "shutdown",  2, OpShutdown,  "" },
+  { "listen",    2, OpListen,    "" },
+  { "call",      3, OpCall,      "<destination-URL> [ <local-URL> ]" },
+  { "mute",      3, OpMute,      "<destination-URL>" },
+  { "hold",      3, OpHold,      "<destination-URL>" },
+  { "transfer",  4, OpTransfer,  "<destination-URL> <transfer-URL>" },
+  { "consult",   4, OpConsult,   "<destination-URL> <transfer-URL>" },
+  { "register",  3, OpRegister,  "<address-of-record> [ <pwd> ]" },
+  { "subscribe", 3, OpSubscribe, "<package> <address-of-record> [ <pwd> ]" },
+  { "record",    3, OpRecord,    "<destination-URL> <filename>" },
+  { "play",      3, OpPlay,      "<destination-URL> <filename>" },
+  { "presence",  4, OpPresence,  "<local-URL> [ <attr>=<value> ... ] <remote-URL> ...\n"
+                                 "    attrib one of pwd/host/transport/sub-protocol etc" },
+  { "im",        5, OpInstantMsg,"<from> <to> [ host=<host> ] <msg>" }
 };
 
 
-static Operations GetOperation(const char * name)
+static Operation GetOperation(int argc, const char * name)
 {
-  Operations op;
-
-  for (op = OpFirst; op < NumOperations; op++) {
-    if (strcmp(name, Operation[op].m_name) == 0)
-      break;
+  for (size_t op = 0; op < sizeof(Operations)/sizeof(Operations[0]); op++) {
+    if (strcmp(name, Operations[op].m_name) == 0)
+      return argc < Operations[op].m_minArgs ? NULL : Operations[op].m_func;
   }
 
-  return op;
+  return NULL;
 }
 
 
 int main(int argc, const char * const * argv)
 {
-  Operations operation;
-  
-  if (argc < 2 || (operation = GetOperation(argv[1])) == NumOperations || argc < Operation[operation].m_numArgs) {
-    Operations op;
+  Operation operation;
+
+  if (argc < 2 || (operation = GetOperation(argc, argv[1])) == NULL) {
     fputs("usage:\n", stderr);
-    for (op = OpListen; op < NumOperations; op++)
-      fprintf(stderr, "  c_api %s %s\n", Operation[op].m_name, Operation[op].m_help);
-    return 1;
+    for (size_t op = 0; op < sizeof(Operations)/sizeof(Operations[0]); op++)
+      fprintf(stderr, "  c_api %s %s\n", Operations[op].m_name, Operations[op].m_help);
+    return true;
   }
 
   puts("Initialising.\n");
 
   if (!InitialiseOPAL())
-    return 1;
+    return true;
 
-  switch (operation) {
-    case OpShutdown :
-      HandleMessages(5);
-
-      puts("Shutting down.\n");
-      // Test shut down and re-initialisation
-      ShutDownFunction(hOPAL);
-
-      puts("Reinitialising.\n");
-      if (!InitialiseOPAL()) {
-        fputs("Could not re-initialise OPAL\n", stderr);
-        return 1;
-      }
-
-      if (argc > 3) {
-        if (!DoCall(argv[2], argv[3]))
-          break;
-      }
-      else if (argc > 2) {
-        if (!DoCall(NULL, argv[2]))
-          break;
-      }
-      HandleMessages(15);
-      break;
-
-    case OpListen :
-      puts("Listening.\n");
-      HandleMessages(120);
-      break;
-
-    case OpCall :
-      if (argc > 3) {
-        if (!DoCall(argv[2], argv[3]))
-          break;
-      } else {
-        if (!DoCall(NULL, argv[2]))
-          break;
-      }
-      HandleMessages(15);
-      break;
-
-    case OpMute :
-      if (!DoCall(NULL, argv[2]))
-        break;
-      HandleMessages(15);
-      if (!DoMute(1))
-        break;
-      HandleMessages(15);
-      if (!DoMute(0))
-        break;
-      HandleMessages(15);
-      break;
-
-    case OpHold :
-      if (!DoCall(NULL, argv[2]))
-        break;
-      HandleMessages(15);
-      if (!DoHold())
-        break;
-      HandleMessages(15);
-      break;
-
-    case OpTransfer :
-      if (!DoCall(NULL, argv[2]))
-        break;
-      HandleMessages(15);
-      if (!DoTransfer(argv[3]))
-        break;
-      HandleMessages(15);
-      break;
-
-    case OpConsult :
-      if (!DoCall(NULL, argv[2]))
-        break;
-      HandleMessages(15);
-      if (!DoHold())
-        break;
-      HandleMessages(15);
-      if (!DoCall(NULL, argv[3]))
-        break;
-      HandleMessages(15);
-      if (!DoTransfer(HeldCallToken))
-        break;
-      HandleMessages(15);
-      break;
-
-    case OpRegister :
-      if (!DoRegister(argv[2], argv[3]))
-        break;
-      HandleMessages(15);
-      break;
-
-    case OpSubscribe :
-      if (!DoSubscribe(argv[2], argv[3], argv[4]))
-        break;
-      HandleMessages(60);
-      break;
-
-    case OpRecord :
-      if (!DoRecord(argv[2], argv[3]))
-        break;
-      HandleMessages(120);
-      break;
-
-    case OpPlay :
-      if (!DoPlay(argv[2], argv[3]))
-        break;
-      HandleMessages(120);
-      break;
-
-    case OpPresence :
-      if (!DoPresence(argv[2], argc-3, argv+3))
-        break;
-      HandleMessages(5);
-      if (!DoPresenceChange(argv[2], OpalPresenceUnavailable))
-        break;
-      HandleMessages(5);
-      if (!DoPresenceChange(argv[2], OpalPresenceAvailable))
-        break;
-      HandleMessages(5);
-      if (!UndoPresence(argv[2], argc-3, argv+3))
-        break;
-      HandleMessages(60);
-      break;
-
-    case OpInstantMessage :
-      if (!DoSendIM(argv[2], argv[3], argc-4, argv+4))
-        break;
-      HandleMessages(30);
-      break;
-
-    default :
-      break;
-  }
-
-  puts("Exiting.\n");
+  if (operation(argc, argv))
+    puts("Exiting.\n");
+  else
+    puts("Failed, exiting.\n");
 
   ShutDownFunction(hOPAL);
-  return 0;
+  return false;
 }
 
 

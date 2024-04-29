@@ -31,7 +31,7 @@
 #if OPAL_H323
 #if OPAL_H450
 
-#ifdef __GNUC__
+#ifdef P_USE_PRAGMA
 #pragma implementation "h450pdu.h"
 #endif
 

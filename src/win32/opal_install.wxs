@@ -136,7 +136,7 @@
 <?endif?>
 <?if $(var.WxDir) != "" ?>
     <?ifndef WxVer ?>
-        <?define WxVer = "314" ?>
+        <?define WxVer = "32" ?>
     <?endif?>
     <?ifndef WxCustom ?>
         <?define WxCustom = "no" ?>
