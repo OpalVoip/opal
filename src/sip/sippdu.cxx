@@ -60,6 +60,7 @@ static const PConstCaselessString Via("Via");
 static const PConstCaselessString To("To");
 static const PConstCaselessString From("From");
 static const PConstCaselessString CallID("Call-ID");
+static const PConstCaselessString SessionID("Session-ID");  // RFC7329
 static const PConstCaselessString AssertedIdentity("P-Asserted-Identity");
 static const PConstCaselessString PreferredIdentity("P-Preferred-Identity");
 static const PConstCaselessString ReferTo("Refer-To");
@@ -998,6 +999,18 @@ PString SIPMIMEInfo::GetCallID() const
 void SIPMIMEInfo::SetCallID(const PString & v)
 {
   SetAt(CallID,  v);
+}
+
+
+PString SIPMIMEInfo::GetSessionID() const
+{
+  return GetString(SessionID);
+}
+
+
+void SIPMIMEInfo::SetSessionID(const PString & v)
+{
+  SetAt(SessionID,  v);
 }
 
 
@@ -2069,6 +2082,7 @@ void SIP_PDU::InitialiseHeaders(SIPDialogContext & dialog, unsigned cseq)
   m_mime.SetTo(dialog.GetRemoteURI());
   m_mime.SetFrom(dialog.GetLocalURI());
   m_mime.SetCallID(dialog.GetCallID());
+  m_mime.SetSessionID(dialog.GetSessionID());
   m_mime.SetCSeq(PString(cseq != 0 ? cseq : dialog.GetNextCSeq()) & MethodNames[m_method]);
   m_mime.SetMaxForwards(70);
   CalculateVia();
@@ -2093,7 +2107,7 @@ void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 
   // add mandatory fields to response (RFC 2543, 11.2)
   const SIPMIMEInfo & requestMIME = request.GetMIME();
-  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute };
+  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute, SessionID };
   for (PINDEX i = 0; i < PARRAYSIZE(FieldsToCopy); ++i) {
     PString value = requestMIME.Get(FieldsToCopy[i]);
     if (!value.IsEmpty())
@@ -2811,8 +2825,7 @@ void SIP_PDU::SetSDP(SDPSessionDescription * sdp)
 ////////////////////////////////////////////////////////////////////////////////////
 
 SIPDialogContext::SIPDialogContext()
-  : m_callId(SIPTransaction::GenerateCallID())
-  , m_lastSentCSeq(0)
+  : m_lastSentCSeq(0)
   , m_lastReceivedCSeq(0)
   , m_forking(false)
 {
@@ -2821,6 +2834,7 @@ SIPDialogContext::SIPDialogContext()
 
 SIPDialogContext::SIPDialogContext(const SIPMIMEInfo & mime)
   : m_callId(mime.GetCallID())
+  , m_sessionId(mime.GetSessionID())
   , m_requestURI(mime.GetContact())
   , m_localURI(mime.GetTo())
   , m_localTag(m_localURI.SetTag())
@@ -2834,11 +2848,31 @@ SIPDialogContext::SIPDialogContext(const SIPMIMEInfo & mime)
 }
 
 
+void SIPDialogContext::Initialise(const PStringOptions & options)
+{
+  if (m_callId.empty())
+    m_callId = SIPTransaction::GenerateCallID();
+
+#if P_SSL
+  PString secret = options.GetString(OPAL_OPT_SESSION_SECRET);
+  if (!secret.empty())
+    m_sessionId = PMessageDigestSHA1::Encode(m_callId, false);
+#endif //P_SSL
+
+  if (options.Contains(SIP_HEADER_PREFIX"Route")) {
+    SIPMIMEInfo mime;
+    mime.SetRoute(options[SIP_HEADER_PREFIX"Route"]);
+    SetRouteSet(mime.GetRoute());
+  }
+}
+
+
 PString SIPDialogContext::AsString() const
 {
   PStringStream str;
   SIPURL url = m_requestURI;
   url.SetParamVar("call-id",   m_callId);
+  url.SetParamVar("session-id",m_sessionId);
   url.SetParamVar("local-uri", m_localURI.AsQuotedString());
   url.SetParamVar("remote-uri",m_remoteURI.AsQuotedString());
   url.SetParamVar("tx-cseq",   m_lastSentCSeq);
@@ -2864,6 +2898,7 @@ bool SIPDialogContext::FromString(const PString & str)
 
   const PStringToString & params = url.GetParamVars();
   SetCallID(params("call-id"));
+  SetSessionID(params("session-id"));
   SetLocalURI(params("local-uri"));
   SetRemoteURI(params("remote-uri"));
   m_lastSentCSeq = params("tx-cseq").AsUnsigned();
@@ -2927,6 +2962,7 @@ void SIPDialogContext::Update(const SIP_PDU & pdu)
   const SIPMIMEInfo & mime = pdu.GetMIME();
 
   SetCallID(mime.GetCallID());
+  SetSessionID(mime.GetSessionID());
 
   if (m_routeSet.empty() && mime.Has("Record-Route")) {
     // get the route set from the Record-Route response field according to 12.1.2

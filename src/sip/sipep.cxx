@@ -640,6 +640,9 @@ PBoolean SIPEndPoint::GarbageCollection()
 PStringList SIPEndPoint::GetAvailableStringOptions() const
 {
   static char const * const StringOpts[] = {
+  #if P_SSL
+    OPAL_OPT_SESSION_SECRET,
+  #endif // P_SSL
     OPAL_OPT_FORWARD_REFER,
     OPAL_OPT_REFER_SUB,
     OPAL_OPT_NO_REFER_SUB,

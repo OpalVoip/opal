@@ -95,6 +95,7 @@ SIPHandler::SIPHandler(SIP_PDU::Methods method,
   PTRACE_CONTEXT_ID_NEW();
 
   m_dialog.SetCallID(m_callID);
+  m_dialog.Initialise(ep.GetDefaultStringOptions());
 
   SIPURL remoteAddress(params.m_remoteAddress);
 

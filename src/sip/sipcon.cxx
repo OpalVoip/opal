@@ -518,8 +518,7 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
 
   // Check for valid RFC2396 scheme
   if (!PURL::ExtractScheme(remoteParty).IsEmpty()) {
-    m_sentReferTo = remoteParty;
-    m_sentReferTo.Sanitise(SIPURL::RedirectURI);
+    SetSentReferTo(remoteParty);
     PTRACE(3, "Blind transfer of " << *this << " to " << m_sentReferTo << ", referSubMode=" << referSubMode);
     m_consultationTransferToken.MakeEmpty();
     PSafePtr<SIPTransaction> referTransaction = new SIPRefer(*this, m_sentReferTo, m_dialog.GetLocalURI(), referSubMode);
@@ -555,6 +554,27 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
 }
 
 
+void SIPConnection::SetSentReferTo(const PString & party)
+{
+  m_sentReferTo = party;
+
+  /* The following is to compensate for Avaya who send a Contact without a
+  username in the URL and then get upset later in th REFER when we use
+  what they told us to use. They can't do the REFER without a username
+  part, but they never gave us a username to give them. Give me a break!
+  */
+  if (m_remoteProductInfo.name == "Avaya" && m_sentReferTo.GetUserName().IsEmpty())
+    m_sentReferTo.SetUserName("anonymous");
+
+  // As per RFC7329
+  PString id = m_dialog.GetSessionID();
+  if (!id.empty())
+    m_sentReferTo.SetQueryVar("Session-ID", id);
+
+  m_sentReferTo.Sanitise(SIPURL::RedirectURI);
+}
+
+
 bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::ReferSubMode referSubMode, bool useIdentity)
 {
   /* Note that the order of to-tag and remote-tag is counter intuitive. This is because
@@ -566,16 +586,7 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
      GetRemotePartyURL() of the original INVITE, however not everyone gets that right,
      so if the REFER fails, we try again using GetRemoteIdentity() which is a "best
      guess" from several header fields in the INVITE. */
-  m_sentReferTo = useIdentity ? referee.GetRemoteIdentity() : referee.GetRemotePartyURL();
-  m_sentReferTo.Sanitise(SIPURL::RedirectURI);
-
-  /* The following is to compensate for Avaya who send a Contact without a
-     username in the URL and then get upset later in th REFER when we use
-     what they told us to use. They can't do the REFER without a username
-     part, but they never gave us a username to give them. Give me a break!
-   */
-  if (m_remoteProductInfo.name == "Avaya" && m_sentReferTo.GetUserName().IsEmpty())
-    m_sentReferTo.SetUserName("anonymous");
+  SetSentReferTo(useIdentity ? referee.GetRemoteIdentity() : referee.GetRemotePartyURL());
 
   PStringStream id;
   id << referee.GetDialog().GetCallID()
@@ -1304,11 +1315,7 @@ PBoolean SIPConnection::SetUpConnection()
 
   OnApplyStringOptions();
 
-  if (m_stringOptions.Contains(SIP_HEADER_PREFIX"Route")) {
-    SIPMIMEInfo mime;
-    mime.SetRoute(m_stringOptions[SIP_HEADER_PREFIX"Route"]);
-    m_dialog.SetRouteSet(mime.GetRoute());
-  }
+  m_dialog.Initialise(m_stringOptions);
 
   ++m_sdpVersion;
 

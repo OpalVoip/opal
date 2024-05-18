@@ -345,6 +345,9 @@ class SIPMIMEInfo : public PMIMEInfo
     PString GetCallID() const;
     void SetCallID(const PString & v);
 
+    PString GetSessionID() const;
+    void SetSessionID(const PString & v);
+
     SIPURL GetContact() const;
     bool GetContacts(SIPURLList & contacts, unsigned defaultExpires) const;
     void SetContact(const PString & v);
@@ -771,6 +774,8 @@ class SIPDialogContext : public PObject
     SIPDialogContext();
     SIPDialogContext(const SIPMIMEInfo & mime);
 
+    void Initialise(const PStringOptions & options);
+
     PString AsString() const;
     bool FromString(
       const PString & str
@@ -778,6 +783,9 @@ class SIPDialogContext : public PObject
 
     const PString & GetCallID() const { return m_callId; }
     void SetCallID(const PString & id) { m_callId = id; }
+
+    const PString & GetSessionID() const { return m_sessionId; }
+    void SetSessionID(const PString & id) { m_sessionId = id; }
 
     const SIPURL & GetRequestURI() const { return m_requestURI; }
     void SetRequestURI(const SIPURL & url);
@@ -825,6 +833,7 @@ class SIPDialogContext : public PObject
 
   protected:
     PString     m_callId;
+    PString     m_sessionId;
     SIPURL      m_requestURI;
     SIPURL      m_localURI;
     PString     m_localTag;
