@@ -52,6 +52,23 @@
 
 static bool LocateFieldParameter(const PString & fieldValue, const PString & paramName, PINDEX & start, PINDEX & val, PINDEX & end);
 
+static const PConstCaselessString Contact("Contact");
+static const PConstCaselessString Subject("Subject");
+static const PConstCaselessString RecordRoute("Record-Route");
+static const PConstCaselessString CSeq("CSeq");
+static const PConstCaselessString Via("Via");
+static const PConstCaselessString To("To");
+static const PConstCaselessString From("From");
+static const PConstCaselessString CallID("Call-ID");
+static const PConstCaselessString AssertedIdentity("P-Asserted-Identity");
+static const PConstCaselessString PreferredIdentity("P-Preferred-Identity");
+static const PConstCaselessString ReferTo("Refer-To");
+static const PConstCaselessString ReferredBy("Referred-By");
+static const PConstCaselessString Diversion("Diversion");
+static const PConstCaselessString Supported("Supported");
+static const PConstCaselessString Unsupported("Unsupported");
+static const PConstCaselessString Event("Event");
+
 static PConstCaselessString const TagStr("tag");
 static PConstString const TransactionPrefix("z9hG4bK");
 
@@ -185,21 +202,21 @@ ostream & operator<<(ostream & strm, SIP_PDU::StatusCodes status)
 
 static struct {
   char         compact;
-  const char * full;
+  const PCaselessString full;
 } const CompactForms[] = {
-  { 'l', "Content-Length" },
-  { 'c', "Content-Type" },
-  { 'e', "Content-Encoding" },
-  { 'f', "From" },
-  { 'i', "Call-ID" },
-  { 'm', "Contact" },
-  { 's', "Subject" },
-  { 't', "To" },
-  { 'v', "Via" },
-  { 'r', "Refer-To" },
-  { 'b', "Referred-By" },
-  { 'k', "Supported" },
-  { 'o', "Event" }
+  { 'l', PHTTP::ContentLengthTag() },
+  { 'c', PMIMEInfo::ContentTypeTag() },
+  { 'e', PHTTP::ContentEncodingTag() },
+  { 'f', From },
+  { 'i', CallID },
+  { 'm', Contact },
+  { 's', Subject },
+  { 't', To },
+  { 'v', Via },
+  { 'r', ReferTo },
+  { 'b', ReferredBy },
+  { 'k', Supported },
+  { 'o', Event }
 };
 
 
@@ -897,7 +914,7 @@ bool SIPMIMEInfo::InternalAddMIME(const PString & fieldName, const PString & fie
 
 PINDEX SIPMIMEInfo::GetContentLength() const
 {
-  PString len = GetString("Content-Length");
+  PString len = GetString(PHTTP::ContentLengthTag);
   if (len.IsEmpty())
     return 0; //P_MAX_INDEX;
   return len.AsInteger();
@@ -905,7 +922,7 @@ PINDEX SIPMIMEInfo::GetContentLength() const
 
 PBoolean SIPMIMEInfo::IsContentLengthPresent() const
 {
-  return Contains("Content-Length");
+  return Contains(PHTTP::ContentLengthTag);
 }
 
 
@@ -924,68 +941,69 @@ void SIPMIMEInfo::SetContentType(const PString & v)
 
 PCaselessString SIPMIMEInfo::GetContentEncoding() const
 {
-  return GetString("Content-Encoding");
+  return GetString(PHTTP::ContentEncodingTag);
 }
 
 
 void SIPMIMEInfo::SetContentEncoding(const PString & v)
 {
-  SetAt("Content-Encoding",  v);
+  SetAt(PHTTP::ContentEncodingTag,  v);
 }
 
 
 SIPURL SIPMIMEInfo::GetFrom() const
 {
-  return SIPURL(*this, "From");
+  return SIPURL(*this, From);
 }
 
 
 PString SIPMIMEInfo::GetFromTag() const
 {
-  return GetFieldParameter("From", TagStr);
+  return GetFieldParameter(From, TagStr);
 }
 
 
 void SIPMIMEInfo::SetFrom(const SIPURL & uri)
 {
-  SetAt("From", uri.AsQuotedString());
+  SetAt(From, uri.AsQuotedString());
 }
 
 SIPURL SIPMIMEInfo::GetPAssertedIdentity() const
 {
-  return SIPURL(*this, "P-Asserted-Identity");
+  return SIPURL(*this, AssertedIdentity);
 }
 
 void SIPMIMEInfo::SetPAssertedIdentity(const PString & v)
 {
-  SetAt("P-Asserted-Identity", v);
+  SetAt(AssertedIdentity, v);
 }
 
 SIPURL SIPMIMEInfo::GetPPreferredIdentity() const
 {
-  return SIPURL(*this, "P-Preferred-Identity");
+  return SIPURL(*this, PreferredIdentity);
 }
 
 void SIPMIMEInfo::SetPPreferredIdentity(const PString & v)
 {
-  SetAt("P-Preferred-Identity", v);
+  SetAt(PreferredIdentity, v);
 }
+
 
 PString SIPMIMEInfo::GetCallID() const
 {
-  return GetString("Call-ID");
+  return GetString(CallID);
 }
 
 
 void SIPMIMEInfo::SetCallID(const PString & v)
 {
-  SetAt("Call-ID",  v);
+  SetAt(CallID,  v);
 }
 
 
 SIPURL SIPMIMEInfo::GetContact() const
 {
-  SIPURL contact(*this, "Contact");
+  SIPURL contact(*this, Contact);
   PIPAddress ip(contact.GetHostName());
   if (!ip.IsValid() || !(ip.IsAny() || ip.IsBroadcast()))
     return contact;
@@ -997,7 +1015,7 @@ SIPURL SIPMIMEInfo::GetContact() const
 
 bool SIPMIMEInfo::GetContacts(SIPURLList & contacts, unsigned defaultExpires) const
 {
-  if (!contacts.FromString(GetString("Contact"), SIPURL::RegContactURI))
+  if (!contacts.FromString(GetString(Contact), SIPURL::RegContactURI))
     return false;
 
   defaultExpires = GetExpires(defaultExpires);
@@ -1013,50 +1031,50 @@ bool SIPMIMEInfo::GetContacts(SIPURLList & contacts, unsigned defaultExpires) co
 
 void SIPMIMEInfo::SetContact(const PString & v)
 {
-  SetAt("Contact",  v);
+  SetAt(Contact,  v);
 }
 
 
 PString SIPMIMEInfo::GetSubject() const
 {
-  return GetString("Subject");
+  return GetString(Subject);
 }
 
 
 void SIPMIMEInfo::SetSubject(const PString & v)
 {
-  SetAt("Subject",  v);
+  SetAt(Subject,  v);
 }
 
 
 SIPURL SIPMIMEInfo::GetTo() const
 {
-  return SIPURL(*this, "To");
+  return SIPURL(*this, To);
 }
 
 
 PString SIPMIMEInfo::GetToTag() const
 {
-  return GetFieldParameter("To", TagStr);
+  return GetFieldParameter(To, TagStr);
 }
 
 
 void SIPMIMEInfo::SetTo(const SIPURL & uri)
 {
-  SetAt("To", uri.AsQuotedString());
+  SetAt(To, uri.AsQuotedString());
 }
 
 
 PString SIPMIMEInfo::GetVia() const
 {
-  return GetString("Via");
+  return GetString(Via);
 }
 
 
 void SIPMIMEInfo::SetVia(const PString & v)
 {
   if (!v.IsEmpty())
-    SetAt("Via",  v);
+    SetAt(Via,  v);
 }
 
 
@@ -1080,7 +1098,7 @@ void SIPMIMEInfo::SetViaList(const PStringList & v)
       fieldValue << '\n';
     fieldValue << *via;
   }
-  SetAt("Via", fieldValue);
+  SetAt(Via, fieldValue);
 }
 
 
@@ -1117,43 +1135,43 @@ OpalTransportAddress SIPMIMEInfo::GetViaReceivedAddress() const
 
 SIPURL SIPMIMEInfo::GetReferTo() const
 {
-  return SIPURL(*this, "Refer-To");
+  return SIPURL(*this, ReferTo);
 }
 
 
 void SIPMIMEInfo::SetReferTo(const PString & r)
 {
-  SetAt("Refer-To",  r);
+  SetAt(ReferTo,  r);
 }
 
 SIPURL SIPMIMEInfo::GetReferredBy() const
 {
   // If no RFC 3892 header, try Cisco custom header
-  return SIPURL(*this, Contains("Referred-By") ? "Referred-By" : "Diversion");
+  return SIPURL(*this, Contains(ReferredBy) ? ReferredBy : Diversion);
 }
 
 
 void SIPMIMEInfo::SetReferredBy(const PString & r)
 {
-  SetAt("Referred-By",  r);
+  SetAt(ReferredBy,  r);
 }
 
 
 void SIPMIMEInfo::SetContentLength(PINDEX v)
 {
-  SetAt("Content-Length", PString(PString::Unsigned, v));
+  SetAt(PHTTP::ContentLengthTag, PString(PString::Unsigned, v));
 }
 
 
 PString SIPMIMEInfo::GetCSeq() const
 {
-  return GetString("CSeq");       // no compact form
+  return GetString(CSeq);       // no compact form
 }
 
 
 void SIPMIMEInfo::SetCSeq(const PString & v)
 {
-  SetAt("CSeq",  v);            // no compact form
+  SetAt(CSeq,  v);            // no compact form
 }
 
 
@@ -1185,7 +1203,7 @@ void SIPMIMEInfo::SetRoute(const SIPURLList & proxies)
 
 PString SIPMIMEInfo::GetRecordRoute() const
 {
-  return Get("Record-Route");
+  return Get(RecordRoute);
 }
 
 
@@ -1198,9 +1216,9 @@ bool SIPMIMEInfo::GetRecordRoute(SIPURLList & proxies, bool reversed) const
 void SIPMIMEInfo::SetRecordRoute(const PString & v)
 {
   if (v.IsEmpty())
-    Remove("Record-Route");
+    Remove(RecordRoute);
   else
-    SetAt("Record-Route",  v);
+    SetAt(RecordRoute,  v);
 }
 
 
@@ -1249,7 +1267,7 @@ void SIPMIMEInfo::SetAcceptLanguage(const PString & v)
 
 PString SIPMIMEInfo::GetAllow() const
 {
-  return GetString("Allow");     // no compact form
+  return GetString(PHTTP::AllowTag);     // no compact form
 }
 
 
@@ -1269,20 +1287,20 @@ unsigned SIPMIMEInfo::GetAllowBitMask() const
 
 void SIPMIMEInfo::SetAllow(const PString & v)
 {
-  SetAt("Allow", v);   // no compact form
+  SetAt(PHTTP::AllowTag, v);   // no compact form
 }
 
 
 
 PString SIPMIMEInfo::GetDate() const
 {
-  return GetString("Date");      // no compact form
+  return GetString(PHTTP::DateTag);      // no compact form
 }
 
 
 void SIPMIMEInfo::SetDate(const PString & v)
 {
-  SetAt("Date", v);    // no compact form
+  SetAt(PHTTP::DateTag, v);    // no compact form
 }
 
 
@@ -1300,13 +1318,13 @@ void SIPMIMEInfo::SetDate(void) // set to current date
         
 unsigned SIPMIMEInfo::GetExpires(unsigned dflt) const
 {
-  return GetInteger("Expires", dflt);      // no compact form
+  return GetInteger(PHTTP::ExpiresTag, dflt);      // no compact form
 }
 
 
 void SIPMIMEInfo::SetExpires(unsigned v)
 {
-  SetAt("Expires", PString(PString::Unsigned, v));      // no compact form
+  SetAt(PHTTP::ExpiresTag, PString(PString::Unsigned, v));      // no compact form
 }
 
 
@@ -1336,13 +1354,13 @@ void SIPMIMEInfo::SetMinExpires(PINDEX v)
 
 PString SIPMIMEInfo::GetProxyAuthenticate() const
 {
-  return GetString("Proxy-Authenticate");        // no compact form
+  return GetString(PHTTP::ProxyAuthenticateTag);        // no compact form
 }
 
 
 void SIPMIMEInfo::SetProxyAuthenticate(const PString & v)
 {
-  SetAt("Proxy-Authenticate",  v);      // no compact form
+  SetAt(PHTTP::ProxyAuthenticateTag,  v);      // no compact form
 }
 
 
@@ -1415,49 +1433,49 @@ void SIPMIMEInfo::AddRequire(const PString & v)
 
 PStringSet SIPMIMEInfo::GetSupported() const
 {
-  return GetTokenSet("Supported");
+  return GetTokenSet(Supported);
 }
 
 
 void SIPMIMEInfo::SetSupported(const PStringSet & v)
 {
-  SetTokenSet("Supported", v);
+  SetTokenSet(Supported, v);
 }
 
 
 void SIPMIMEInfo::AddSupported(const PString & v)
 {
-  AddTokenSet("Supported", v);
+  AddTokenSet(Supported, v);
 }
 
 
 PStringSet SIPMIMEInfo::GetUnsupported() const
 {
-  return GetTokenSet("Unsupported");
+  return GetTokenSet(Unsupported);
 }
 
 
 void SIPMIMEInfo::SetUnsupported(const PStringSet & v)
 {
-  SetTokenSet("Unsupported",  v);
+  SetTokenSet(Unsupported,  v);
 }
 
 
 void SIPMIMEInfo::AddUnsupported(const PString & v)
 {
-  SetTokenSet("Unsupported",  v);
+  SetTokenSet(Unsupported,  v);
 }
 
 
 PString SIPMIMEInfo::GetEvent() const
 {
-  return GetString("Event");
+  return GetString(Event);
 }
 
 
 void SIPMIMEInfo::SetEvent(const PString & v)
 {
-  SetAt("Event",  v);
+  SetAt(Event,  v);
 }
 
 
@@ -2075,7 +2093,7 @@ void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 
   // add mandatory fields to response (RFC 2543, 11.2)
   const SIPMIMEInfo & requestMIME = request.GetMIME();
-  static const char * FieldsToCopy[] = { "To", "From", "Call-ID", "CSeq", "Via", "Record-Route" };
+  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute };
   for (PINDEX i = 0; i < PARRAYSIZE(FieldsToCopy); ++i) {
     PString value = requestMIME.Get(FieldsToCopy[i]);
     if (!value.IsEmpty())
@@ -4005,7 +4023,7 @@ SIPTransaction * SIPInvite::CreateDuplicate() const
   // Section 8.1.3.5 of RFC3261 tells that the authenticated
   // request SHOULD have the same value of the Call-ID, To and From.
   // For Asterisk this is not merely SHOULD, but SHALL ....
-  newTransaction->GetMIME().Set("From", m_mime.Get("From"));
+  newTransaction->GetMIME().Set(From, m_mime.Get(From));
   return newTransaction;
 }
 
