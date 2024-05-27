@@ -217,6 +217,7 @@ SIPConnection::SIPConnection(const Init & init)
                      (1<<SIP_PDU::Method_ACK   )|
                      (1<<SIP_PDU::Method_CANCEL)|
                      (1<<SIP_PDU::Method_BYE   )) // Minimum set
+  , m_remoteSessionId(0)
   , m_lastReceivedINVITE(NULL)
   , m_delayedAckInviteResponse(NULL)
   , m_delayedAckTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnDelayedAckTimeout)
@@ -565,11 +566,6 @@ void SIPConnection::SetSentReferTo(const PString & party)
   */
   if (m_remoteProductInfo.name == "Avaya" && m_sentReferTo.GetUserName().IsEmpty())
     m_sentReferTo.SetUserName("anonymous");
-
-  // As per RFC7329
-  PString id = m_dialog.GetSessionID();
-  if (!id.empty())
-    m_sentReferTo.SetQueryVar("Session-ID", id);
 
   m_sentReferTo.Sanitise(SIPURL::RedirectURI);
 }
@@ -1605,6 +1601,23 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
 
   m_assertedIdentity = responseMIME.GetPAssertedIdentity();
 
+  // Does remote support RFC7989
+  m_remoteSessionId = responseMIME.GetLocalSessionID();
+  if (statusCode >= 200) {
+    OpalGloballyUniqueID localSessionId = responseMIME.GetRemoteSessionID();
+    if (localSessionId.IsNULL()) {
+      PTRACE(3, "Remote does not support RFC7989 Session-ID");
+      m_remoteSessionId = m_localSessionId = OpalGloballyUniqueID(0);
+    }
+    else if (localSessionId != m_localSessionId) {
+      PTRACE(2, "Remote RFC7989 Session-ID is not ours: " << m_localSessionId);
+      m_remoteSessionId = m_localSessionId = OpalGloballyUniqueID(0);
+    }
+    else {
+      PTRACE(4, "RFC7989 Session-ID: remote=" << m_remoteSessionId << ", local=" << m_localSessionId);
+    }
+  }
+
   {
     SIPURL newRemotePartyID(responseMIME, RemotePartyID);
     if (!newRemotePartyID.IsEmpty()) {
@@ -2348,6 +2361,16 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
   PTRACE_IF(4, !m_ciscoRemotePartyID.IsEmpty(),
             "Old style Remote-Party-ID set to \"" << m_ciscoRemotePartyID << '"');
 
+  // Does remote support RFC7989
+  m_remoteSessionId = mime.GetLocalSessionID();
+  if (m_remoteSessionId.IsNULL()) {
+    PTRACE(3, "Remote does not support RFC7989 Session-ID");
+    m_localSessionId = OpalGloballyUniqueID(0);
+  }
+  else {
+    PTRACE(4, "RFC7989 Session-ID: remote=" << m_remoteSessionId << ", local=" << m_localSessionId);
+  }
+
   UpdateRemoteAddresses();
 
   SetPhase(SetUpPhase);
@@ -2526,7 +2549,15 @@ void SIPConnection::OnReceivedReINVITE(SIP_PDU & request)
   if (!m_sipEndpoint.OnReINVITE(*this, true, sdpText) || !OnSendAnswer(SIP_PDU::Successful_OK, false))
     SendInviteResponse(SIP_PDU::Failure_NotAcceptableHere);
 
-  SIPURL newRemotePartyID(request.GetMIME(), RemotePartyID);
+  const SIPMIMEInfo & mime = request.GetMIME();
+  OpalGloballyUniqueID newRemoteSessionId = mime.GetLocalSessionID();
+  if (!newRemoteSessionId.IsNULL() && newRemoteSessionId != m_remoteSessionId) {
+    PTRACE(3, "Remote Re-INVITE changed RFC7989 Session-ID from "
+           << m_remoteSessionId << " to " << newRemoteSessionId);
+    m_remoteSessionId = newRemoteSessionId;
+  }
+
+  SIPURL newRemotePartyID(mime, RemotePartyID);
   if (newRemotePartyID.IsEmpty())
     UpdateRemoteAddresses();
   else if (m_referOfRemoteState != eNoRemoteRefer) {
@@ -3279,6 +3310,8 @@ void SIPConnection::AdjustInviteResponse(SIP_PDU & response)
   response.SetAllow(GetAllowedMethods());
 
   GetEndPoint().AdjustToRegistration(response, this, m_lastReceivedINVITE->GetTransport());
+
+  mime.SetSessionID(m_localSessionId, m_remoteSessionId);
 
   if (!m_ciscoRemotePartyID.IsEmpty()) {
     SIPURL party(mime.GetContact());

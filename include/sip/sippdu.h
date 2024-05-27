@@ -345,8 +345,9 @@ class SIPMIMEInfo : public PMIMEInfo
     PString GetCallID() const;
     void SetCallID(const PString & v);
 
-    PString GetSessionID() const;
-    void SetSessionID(const PString & v);
+    OpalGloballyUniqueID GetLocalSessionID() const;
+    OpalGloballyUniqueID GetRemoteSessionID() const;
+    void SetSessionID(const OpalGloballyUniqueID & local, const OpalGloballyUniqueID & remote);
 
     SIPURL GetContact() const;
     bool GetContacts(SIPURLList & contacts, unsigned defaultExpires) const;
@@ -784,9 +785,6 @@ class SIPDialogContext : public PObject
     const PString & GetCallID() const { return m_callId; }
     void SetCallID(const PString & id) { m_callId = id; }
 
-    const PString & GetSessionID() const { return m_sessionId; }
-    void SetSessionID(const PString & id) { m_sessionId = id; }
-
     const SIPURL & GetRequestURI() const { return m_requestURI; }
     void SetRequestURI(const SIPURL & url);
 
@@ -833,7 +831,6 @@ class SIPDialogContext : public PObject
 
   protected:
     PString     m_callId;
-    PString     m_sessionId;
     SIPURL      m_requestURI;
     SIPURL      m_localURI;
     PString     m_localTag;
@@ -1275,7 +1272,7 @@ class SIPRegister : public SIPTransaction
       Params()
         : m_registrarAddress(m_remoteAddress)
         , m_compatibility(SIPRegister::e_FullyCompliant)
-        , m_instanceId(NULL)
+        , m_instanceId(0)
       { }
 
       Params(const Params & param)
