@@ -129,6 +129,7 @@ fi
 if $CLEAN; then
     make -C ptlib clean
     make -C opal clean
+    make -C opal/samples/server clean
     rm -f ptlib/include/ptlib_config.h opal/include/opal_config.h
 fi
 
