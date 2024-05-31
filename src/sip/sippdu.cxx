@@ -1030,7 +1030,7 @@ OpalGloballyUniqueID SIPMIMEInfo::GetRemoteSessionID() const
 void SIPMIMEInfo::SetSessionID(const OpalGloballyUniqueID & local, const OpalGloballyUniqueID & remote)
 {
   if (!local.IsNULL())
-    SetAt(SessionID, PSTRSTRM(local <<";remote=" << remote));
+    SetAt(SessionID, PSTRSTRM(hex << local <<";remote=" << remote));
 }
 
 
@@ -2128,7 +2128,7 @@ void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 
   // add mandatory fields to response (RFC 2543, 11.2)
   const SIPMIMEInfo & requestMIME = request.GetMIME();
-  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute, SessionID };
+  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute };
   for (PINDEX i = 0; i < PARRAYSIZE(FieldsToCopy); ++i) {
     PString value = requestMIME.Get(FieldsToCopy[i]);
     if (!value.IsEmpty())
