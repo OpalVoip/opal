@@ -2735,7 +2735,7 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
     if (state != "terminated") {
       PTimeInterval expires(info("expires"));
       if (expires > 0)
-        m_referFailSafeTimer = std::min(expires, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120)));
+        m_referFailSafeTimer = std::min(expires, PTimeInterval(0, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, 180)));
     }
     return;
   }
@@ -3134,7 +3134,7 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
         PTRACE(3, "Transfer accepted, without NOTIFY.");
         m_referOfRemoteState = eNoRemoteRefer;
       }
-      m_referFailSafeTimer = m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120));
+      m_referFailSafeTimer = PTimeInterval(0, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, 180));
       // Do next case
 
     default :
