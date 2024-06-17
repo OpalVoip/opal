@@ -217,6 +217,7 @@ SIPConnection::SIPConnection(const Init & init)
                      (1<<SIP_PDU::Method_ACK   )|
                      (1<<SIP_PDU::Method_CANCEL)|
                      (1<<SIP_PDU::Method_BYE   )) // Minimum set
+  , m_remoteSessionId(0)
   , m_lastReceivedINVITE(NULL)
   , m_delayedAckInviteResponse(NULL)
   , m_delayedAckTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnDelayedAckTimeout)
@@ -518,8 +519,7 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
 
   // Check for valid RFC2396 scheme
   if (!PURL::ExtractScheme(remoteParty).IsEmpty()) {
-    m_sentReferTo = remoteParty;
-    m_sentReferTo.Sanitise(SIPURL::RedirectURI);
+    SetSentReferTo(remoteParty);
     PTRACE(3, "Blind transfer of " << *this << " to " << m_sentReferTo << ", referSubMode=" << referSubMode);
     m_consultationTransferToken.MakeEmpty();
     PSafePtr<SIPTransaction> referTransaction = new SIPRefer(*this, m_sentReferTo, m_dialog.GetLocalURI(), referSubMode);
@@ -555,6 +555,22 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
 }
 
 
+void SIPConnection::SetSentReferTo(const PString & party)
+{
+  m_sentReferTo = party;
+
+  /* The following is to compensate for Avaya who send a Contact without a
+  username in the URL and then get upset later in th REFER when we use
+  what they told us to use. They can't do the REFER without a username
+  part, but they never gave us a username to give them. Give me a break!
+  */
+  if (m_remoteProductInfo.name == "Avaya" && m_sentReferTo.GetUserName().IsEmpty())
+    m_sentReferTo.SetUserName("anonymous");
+
+  m_sentReferTo.Sanitise(SIPURL::RedirectURI);
+}
+
+
 bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::ReferSubMode referSubMode, bool useIdentity)
 {
   /* Note that the order of to-tag and remote-tag is counter intuitive. This is because
@@ -566,16 +582,7 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
      GetRemotePartyURL() of the original INVITE, however not everyone gets that right,
      so if the REFER fails, we try again using GetRemoteIdentity() which is a "best
      guess" from several header fields in the INVITE. */
-  m_sentReferTo = useIdentity ? referee.GetRemoteIdentity() : referee.GetRemotePartyURL();
-  m_sentReferTo.Sanitise(SIPURL::RedirectURI);
-
-  /* The following is to compensate for Avaya who send a Contact without a
-     username in the URL and then get upset later in th REFER when we use
-     what they told us to use. They can't do the REFER without a username
-     part, but they never gave us a username to give them. Give me a break!
-   */
-  if (m_remoteProductInfo.name == "Avaya" && m_sentReferTo.GetUserName().IsEmpty())
-    m_sentReferTo.SetUserName("anonymous");
+  SetSentReferTo(useIdentity ? referee.GetRemoteIdentity() : referee.GetRemotePartyURL());
 
   PStringStream id;
   id << referee.GetDialog().GetCallID()
@@ -1304,11 +1311,7 @@ PBoolean SIPConnection::SetUpConnection()
 
   OnApplyStringOptions();
 
-  if (m_stringOptions.Contains(SIP_HEADER_PREFIX"Route")) {
-    SIPMIMEInfo mime;
-    mime.SetRoute(m_stringOptions[SIP_HEADER_PREFIX"Route"]);
-    m_dialog.SetRouteSet(mime.GetRoute());
-  }
+  m_dialog.Initialise(m_stringOptions);
 
   ++m_sdpVersion;
 
@@ -1593,6 +1596,23 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
   const SIPMIMEInfo & responseMIME = response.GetMIME();
 
   m_assertedIdentity = responseMIME.GetPAssertedIdentity();
+
+  // Does remote support RFC7989
+  m_remoteSessionId = responseMIME.GetLocalSessionID();
+  if (statusCode >= 200) {
+    OpalGloballyUniqueID localSessionId = responseMIME.GetRemoteSessionID();
+    if (localSessionId.IsNULL()) {
+      PTRACE(3, "Remote does not support RFC7989 Session-ID");
+      m_remoteSessionId = m_localSessionId = OpalGloballyUniqueID(0);
+    }
+    else if (localSessionId != m_localSessionId) {
+      PTRACE(2, "Remote RFC7989 Session-ID is not ours: " << m_localSessionId);
+      m_remoteSessionId = m_localSessionId = OpalGloballyUniqueID(0);
+    }
+    else {
+      PTRACE(4, "RFC7989 Session-ID: remote=" << m_remoteSessionId << ", local=" << m_localSessionId);
+    }
+  }
 
   {
     SIPURL newRemotePartyID(responseMIME, RemotePartyID);
@@ -2337,6 +2357,16 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
   PTRACE_IF(4, !m_ciscoRemotePartyID.IsEmpty(),
             "Old style Remote-Party-ID set to \"" << m_ciscoRemotePartyID << '"');
 
+  // Does remote support RFC7989
+  m_remoteSessionId = mime.GetLocalSessionID();
+  if (m_remoteSessionId.IsNULL()) {
+    PTRACE(3, "Remote does not support RFC7989 Session-ID");
+    m_localSessionId = OpalGloballyUniqueID(0);
+  }
+  else {
+    PTRACE(4, "RFC7989 Session-ID: remote=" << m_remoteSessionId << ", local=" << m_localSessionId);
+  }
+
   UpdateRemoteAddresses();
 
   SetPhase(SetUpPhase);
@@ -2515,7 +2545,15 @@ void SIPConnection::OnReceivedReINVITE(SIP_PDU & request)
   if (!m_sipEndpoint.OnReINVITE(*this, true, sdpText) || !OnSendAnswer(SIP_PDU::Successful_OK, false))
     SendInviteResponse(SIP_PDU::Failure_NotAcceptableHere);
 
-  SIPURL newRemotePartyID(request.GetMIME(), RemotePartyID);
+  const SIPMIMEInfo & mime = request.GetMIME();
+  OpalGloballyUniqueID newRemoteSessionId = mime.GetLocalSessionID();
+  if (!newRemoteSessionId.IsNULL() && newRemoteSessionId != m_remoteSessionId) {
+    PTRACE(3, "Remote Re-INVITE changed RFC7989 Session-ID from "
+           << m_remoteSessionId << " to " << newRemoteSessionId);
+    m_remoteSessionId = newRemoteSessionId;
+  }
+
+  SIPURL newRemotePartyID(mime, RemotePartyID);
   if (newRemotePartyID.IsEmpty())
     UpdateRemoteAddresses();
   else if (m_referOfRemoteState != eNoRemoteRefer) {
@@ -2693,7 +2731,7 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
     if (state != "terminated") {
       PTimeInterval expires(info("expires"));
       if (expires > 0)
-        m_referFailSafeTimer = std::min(expires, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120)));
+        m_referFailSafeTimer = std::min(expires, PTimeInterval(0, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, 180)));
     }
     return;
   }
@@ -3092,7 +3130,7 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
         PTRACE(3, "Transfer accepted, without NOTIFY.");
         m_referOfRemoteState = eNoRemoteRefer;
       }
-      m_referFailSafeTimer = m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, PTimeInterval(120));
+      m_referFailSafeTimer = PTimeInterval(0, m_stringOptions.GetVar(OPAL_OPT_MAX_REFER_TIME, 180));
       // Do next case
 
     default :
@@ -3268,6 +3306,8 @@ void SIPConnection::AdjustInviteResponse(SIP_PDU & response)
   response.SetAllow(GetAllowedMethods());
 
   GetEndPoint().AdjustToRegistration(response, this, m_lastReceivedINVITE->GetTransport());
+
+  mime.SetSessionID(m_localSessionId, m_remoteSessionId);
 
   if (!m_ciscoRemotePartyID.IsEmpty()) {
     SIPURL party(mime.GetContact());

@@ -52,6 +52,24 @@
 
 static bool LocateFieldParameter(const PString & fieldValue, const PString & paramName, PINDEX & start, PINDEX & val, PINDEX & end);
 
+static const PConstCaselessString Contact("Contact");
+static const PConstCaselessString Subject("Subject");
+static const PConstCaselessString RecordRoute("Record-Route");
+static const PConstCaselessString CSeq("CSeq");
+static const PConstCaselessString Via("Via");
+static const PConstCaselessString To("To");
+static const PConstCaselessString From("From");
+static const PConstCaselessString CallID("Call-ID");
+static const PConstCaselessString SessionID("Session-ID");  // RFC7989
+static const PConstCaselessString AssertedIdentity("P-Asserted-Identity");
+static const PConstCaselessString PreferredIdentity("P-Preferred-Identity");
+static const PConstCaselessString ReferTo("Refer-To");
+static const PConstCaselessString ReferredBy("Referred-By");
+static const PConstCaselessString Diversion("Diversion");
+static const PConstCaselessString Supported("Supported");
+static const PConstCaselessString Unsupported("Unsupported");
+static const PConstCaselessString Event("Event");
+
 static PConstCaselessString const TagStr("tag");
 static PConstString const TransactionPrefix("z9hG4bK");
 
@@ -89,7 +107,8 @@ ostream & operator<<(ostream & strm, SIP_PDU::Methods method)
 
 PString SIP_PDU::GetStatusCodeDescription(int code)
 {
-  static struct {
+  static struct
+  {
     int code;
     const char * desc;
   } sipErrorDescriptions[] = {
@@ -183,23 +202,24 @@ ostream & operator<<(ostream & strm, SIP_PDU::StatusCodes status)
 }
 
 
-static struct {
+static struct
+{
   char         compact;
-  const char * full;
+  const PCaselessString full;
 } const CompactForms[] = {
-  { 'l', "Content-Length" },
-  { 'c', "Content-Type" },
-  { 'e', "Content-Encoding" },
-  { 'f', "From" },
-  { 'i', "Call-ID" },
-  { 'm', "Contact" },
-  { 's', "Subject" },
-  { 't', "To" },
-  { 'v', "Via" },
-  { 'r', "Refer-To" },
-  { 'b', "Referred-By" },
-  { 'k', "Supported" },
-  { 'o', "Event" }
+  { 'l', PHTTP::ContentLengthTag() },
+  { 'c', PMIMEInfo::ContentTypeTag() },
+  { 'e', PHTTP::ContentEncodingTag() },
+  { 'f', From },
+  { 'i', CallID },
+  { 'm', Contact },
+  { 's', Subject },
+  { 't', To },
+  { 'v', Via },
+  { 'r', ReferTo },
+  { 'b', ReferredBy },
+  { 'k', Supported },
+  { 'o', Event }
 };
 
 
@@ -207,7 +227,10 @@ static struct {
 
 const WORD SIPURL::DefaultPort = 5060;
 const WORD SIPURL::DefaultSecurePort = 5061;
-const PCaselessString & SIPURL::TransportKey() { static PConstCaselessString const s("transport"); return s; }
+const PCaselessString & SIPURL::TransportKey()
+{
+  static PConstCaselessString const s("transport"); return s;
+}
 
 SIPURL::SIPURL()
 {
@@ -239,7 +262,7 @@ SIPURL::SIPURL(const PString & name,
 {
   if (strncmp(name, "sip:", 4) == 0 || strncmp(name, "sips:", 5) == 0)
     Parse(name);
-  else if (address.IsEmpty() && (name.Find('$') != P_MAX_INDEX)) 
+  else if (address.IsEmpty() && (name.Find('$') != P_MAX_INDEX))
     ParseAsAddress(PString::Empty(), name, listenerPort, scheme);
   else
     ParseAsAddress(name, address, listenerPort, scheme);
@@ -266,11 +289,11 @@ void SIPURL::ParseAsAddress(const PString & name,
 
   PCaselessString actualScheme = scheme;
   if (actualScheme.IsEmpty()) {
-#if OPAL_PTLIB_SSL
+  #if OPAL_PTLIB_SSL
     if (proto == OpalTransportAddress::TlsPrefix())
       actualScheme = "sips";
     else
-#endif
+    #endif
       actualScheme = "sip";
   }
 
@@ -282,13 +305,13 @@ void SIPURL::ParseAsAddress(const PString & name,
     defaultProto = OpalTransportAddress::UdpPrefix();
   }
   else {
-#if OPAL_PTLIB_SSL
+  #if OPAL_PTLIB_SSL
     defaultPort = SIPURL::DefaultSecurePort;
     defaultProto = OpalTransportAddress::TlsPrefix();
-#else
+  #else
     PTRACE(1, "Cannot use sips if do not have TLS");
     return;
-#endif
+  #endif
   }
 
   if (port == 0)
@@ -424,7 +447,7 @@ PBoolean SIPURL::ReallyInternalParse(bool fromHeader, const char * cstr, const c
     for (PStringToString::iterator it = m_paramVars.begin(); it != m_paramVars.end(); ++it) {
       PINDEX pos = it->second.FindLast('\n');
       if (pos != P_MAX_INDEX &&
-            (it->first == "user" || it->first == "ttl" || it->first == "method" || it->first == TransportKey())) {
+          (it->first == "user" || it->first == "ttl" || it->first == "method" || it->first == TransportKey())) {
         it->second.Delete(0, pos+1);
         Recalculate();
       }
@@ -587,7 +610,8 @@ void SIPURL::Sanitise(UsageContext context)
   PINDEX i;
 
   // RFC3261, 19.1.1 Table 1
-  static struct {
+  static struct
+  {
     const char * name;
     unsigned     contexts;
   } const SanitaryFields[] = {
@@ -629,17 +653,17 @@ void SIPURL::Sanitise(UsageContext context)
   WORD defPort = GetDefaultPort();
 
   switch (context) {
-    case RequestURI :
+    case RequestURI:
       SetDisplayName(PString::Empty());
       break;
 
-    case ToURI :
-    case FromURI :
+    case ToURI:
+    case FromURI:
       // Port not allowed for To or From, RFC3261, 19.1.1
       m_portSupplied = false;
       break;
 
-    case RegContactURI :
+    case RegContactURI:
       /* Strict application of RFC3261, 19.1.1 does not require this, but
          there are some interop problems with registrars where the ports
          presence/absence is not handled correctly. There is a distinction
@@ -659,7 +683,7 @@ void SIPURL::Sanitise(UsageContext context)
       }
       break;
 
-    case RegisterURI :
+    case RegisterURI:
       m_username.MakeEmpty();
       m_password.MakeEmpty();
 
@@ -725,10 +749,10 @@ bool SIPURLList::FromString(const PString & str, SIPURL::UsageContext context, b
 
     bool inQuote = false;
     PINDEX startURI = 0;
-    
+
     for (PINDEX pos = 0; pos < line.GetLength(); ++pos) {
       switch (line[pos]) {
-        case '"' :
+        case '"':
           if (inQuote) {
             if (line[pos-1] != '\\')
               inQuote = false;
@@ -737,12 +761,12 @@ bool SIPURLList::FromString(const PString & str, SIPURL::UsageContext context, b
             inQuote = true;
           continue;
 
-        case ',' :
+        case ',':
           if (inQuote)
             continue;
           break;
 
-        default :
+        default:
           if (pos < line.GetLength()-1)
             continue;
           ++pos;
@@ -897,7 +921,7 @@ bool SIPMIMEInfo::InternalAddMIME(const PString & fieldName, const PString & fie
 
 PINDEX SIPMIMEInfo::GetContentLength() const
 {
-  PString len = GetString("Content-Length");
+  PString len = GetString(PHTTP::ContentLengthTag);
   if (len.IsEmpty())
     return 0; //P_MAX_INDEX;
   return len.AsInteger();
@@ -905,7 +929,7 @@ PINDEX SIPMIMEInfo::GetContentLength() const
 
 PBoolean SIPMIMEInfo::IsContentLengthPresent() const
 {
-  return Contains("Content-Length");
+  return Contains(PHTTP::ContentLengthTag);
 }
 
 
@@ -918,74 +942,101 @@ PCaselessString SIPMIMEInfo::GetContentType(bool includeParameters) const
 
 void SIPMIMEInfo::SetContentType(const PString & v)
 {
-  SetAt(PMIMEInfo::ContentTypeTag,  v);
+  SetAt(PMIMEInfo::ContentTypeTag, v);
 }
 
 
 PCaselessString SIPMIMEInfo::GetContentEncoding() const
 {
-  return GetString("Content-Encoding");
+  return GetString(PHTTP::ContentEncodingTag);
 }
 
 
 void SIPMIMEInfo::SetContentEncoding(const PString & v)
 {
-  SetAt("Content-Encoding",  v);
+  SetAt(PHTTP::ContentEncodingTag, v);
 }
 
 
 SIPURL SIPMIMEInfo::GetFrom() const
 {
-  return SIPURL(*this, "From");
+  return SIPURL(*this, From);
 }
 
 
 PString SIPMIMEInfo::GetFromTag() const
 {
-  return GetFieldParameter("From", TagStr);
+  return GetFieldParameter(From, TagStr);
 }
 
 
 void SIPMIMEInfo::SetFrom(const SIPURL & uri)
 {
-  SetAt("From", uri.AsQuotedString());
+  SetAt(From, uri.AsQuotedString());
 }
 
 SIPURL SIPMIMEInfo::GetPAssertedIdentity() const
 {
-  return SIPURL(*this, "P-Asserted-Identity");
+  return SIPURL(*this, AssertedIdentity);
 }
 
 void SIPMIMEInfo::SetPAssertedIdentity(const PString & v)
 {
-  SetAt("P-Asserted-Identity", v);
+  SetAt(AssertedIdentity, v);
 }
 
 SIPURL SIPMIMEInfo::GetPPreferredIdentity() const
 {
-  return SIPURL(*this, "P-Preferred-Identity");
+  return SIPURL(*this, PreferredIdentity);
 }
 
 void SIPMIMEInfo::SetPPreferredIdentity(const PString & v)
 {
-  SetAt("P-Preferred-Identity", v);
+  SetAt(PreferredIdentity, v);
 }
+
 
 PString SIPMIMEInfo::GetCallID() const
 {
-  return GetString("Call-ID");
+  return GetString(CallID);
 }
 
 
 void SIPMIMEInfo::SetCallID(const PString & v)
 {
-  SetAt("Call-ID",  v);
+  SetAt(CallID, v);
+}
+
+
+OpalGloballyUniqueID SIPMIMEInfo::GetLocalSessionID() const
+{
+  const PString str = GetString(SessionID);
+  return str.Left(str.Find(';'));
+}
+
+
+OpalGloballyUniqueID SIPMIMEInfo::GetRemoteSessionID() const
+{
+  static const PConstString remote(";remote=");
+  const PString str = GetString(SessionID);
+  PINDEX pos = str.Find(remote);
+  if (pos == P_MAX_INDEX)
+    return NULL;
+  pos += remote.length();
+  return str.Mid(pos, str.Find(';', pos)-pos);
+}
+
+
+void SIPMIMEInfo::SetSessionID(const OpalGloballyUniqueID & local, const OpalGloballyUniqueID & remote)
+{
+  if (!local.IsNULL())
+    SetAt(SessionID, PSTRSTRM(hex << local <<";remote=" << remote));
 }
 
 
 SIPURL SIPMIMEInfo::GetContact() const
 {
-  SIPURL contact(*this, "Contact");
+  SIPURL contact(*this, Contact);
   PIPAddress ip(contact.GetHostName());
   if (!ip.IsValid() || !(ip.IsAny() || ip.IsBroadcast()))
     return contact;
@@ -997,7 +1048,7 @@ SIPURL SIPMIMEInfo::GetContact() const
 
 bool SIPMIMEInfo::GetContacts(SIPURLList & contacts, unsigned defaultExpires) const
 {
-  if (!contacts.FromString(GetString("Contact"), SIPURL::RegContactURI))
+  if (!contacts.FromString(GetString(Contact), SIPURL::RegContactURI))
     return false;
 
   defaultExpires = GetExpires(defaultExpires);
@@ -1013,50 +1064,50 @@ bool SIPMIMEInfo::GetContacts(SIPURLList & contacts, unsigned defaultExpires) co
 
 void SIPMIMEInfo::SetContact(const PString & v)
 {
-  SetAt("Contact",  v);
+  SetAt(Contact, v);
 }
 
 
 PString SIPMIMEInfo::GetSubject() const
 {
-  return GetString("Subject");
+  return GetString(Subject);
 }
 
 
 void SIPMIMEInfo::SetSubject(const PString & v)
 {
-  SetAt("Subject",  v);
+  SetAt(Subject, v);
 }
 
 
 SIPURL SIPMIMEInfo::GetTo() const
 {
-  return SIPURL(*this, "To");
+  return SIPURL(*this, To);
 }
 
 
 PString SIPMIMEInfo::GetToTag() const
 {
-  return GetFieldParameter("To", TagStr);
+  return GetFieldParameter(To, TagStr);
 }
 
 
 void SIPMIMEInfo::SetTo(const SIPURL & uri)
 {
-  SetAt("To", uri.AsQuotedString());
+  SetAt(To, uri.AsQuotedString());
 }
 
 
 PString SIPMIMEInfo::GetVia() const
 {
-  return GetString("Via");
+  return GetString(Via);
 }
 
 
 void SIPMIMEInfo::SetVia(const PString & v)
 {
   if (!v.IsEmpty())
-    SetAt("Via",  v);
+    SetAt(Via, v);
 }
 
 
@@ -1080,7 +1131,7 @@ void SIPMIMEInfo::SetViaList(const PStringList & v)
       fieldValue << '\n';
     fieldValue << *via;
   }
-  SetAt("Via", fieldValue);
+  SetAt(Via, fieldValue);
 }
 
 
@@ -1107,7 +1158,7 @@ OpalTransportAddress SIPMIMEInfo::GetViaReceivedAddress() const
   WORD port = (WORD)via(val, end).AsUnsigned();
   if (port == 0)
     return OpalTransportAddress();
-  
+
   if (LocateFieldParameter(via, "received", start, val, end) && val < end)
     return OpalTransportAddress(via(val, end), port, OpalTransportAddress::UdpPrefix());
 
@@ -1117,43 +1168,43 @@ OpalTransportAddress SIPMIMEInfo::GetViaReceivedAddress() const
 
 SIPURL SIPMIMEInfo::GetReferTo() const
 {
-  return SIPURL(*this, "Refer-To");
+  return SIPURL(*this, ReferTo);
 }
 
 
 void SIPMIMEInfo::SetReferTo(const PString & r)
 {
-  SetAt("Refer-To",  r);
+  SetAt(ReferTo, r);
 }
 
 SIPURL SIPMIMEInfo::GetReferredBy() const
 {
   // If no RFC 3892 header, try Cisco custom header
-  return SIPURL(*this, Contains("Referred-By") ? "Referred-By" : "Diversion");
+  return SIPURL(*this, Contains(ReferredBy) ? ReferredBy : Diversion);
 }
 
 
 void SIPMIMEInfo::SetReferredBy(const PString & r)
 {
-  SetAt("Referred-By",  r);
+  SetAt(ReferredBy, r);
 }
 
 
 void SIPMIMEInfo::SetContentLength(PINDEX v)
 {
-  SetAt("Content-Length", PString(PString::Unsigned, v));
+  SetAt(PHTTP::ContentLengthTag, PString(PString::Unsigned, v));
 }
 
 
 PString SIPMIMEInfo::GetCSeq() const
 {
-  return GetString("CSeq");       // no compact form
+  return GetString(CSeq);       // no compact form
 }
 
 
 void SIPMIMEInfo::SetCSeq(const PString & v)
 {
-  SetAt("CSeq",  v);            // no compact form
+  SetAt(CSeq, v);            // no compact form
 }
 
 
@@ -1172,7 +1223,7 @@ bool SIPMIMEInfo::GetRoute(SIPURLList & proxies) const
 void SIPMIMEInfo::SetRoute(const PString & v)
 {
   if (!v.IsEmpty())
-    SetAt("Route",  v);
+    SetAt("Route", v);
 }
 
 
@@ -1185,7 +1236,7 @@ void SIPMIMEInfo::SetRoute(const SIPURLList & proxies)
 
 PString SIPMIMEInfo::GetRecordRoute() const
 {
-  return Get("Record-Route");
+  return Get(RecordRoute);
 }
 
 
@@ -1198,9 +1249,9 @@ bool SIPMIMEInfo::GetRecordRoute(SIPURLList & proxies, bool reversed) const
 void SIPMIMEInfo::SetRecordRoute(const PString & v)
 {
   if (v.IsEmpty())
-    Remove("Record-Route");
+    Remove(RecordRoute);
   else
-    SetAt("Record-Route",  v);
+    SetAt(RecordRoute, v);
 }
 
 
@@ -1249,7 +1300,7 @@ void SIPMIMEInfo::SetAcceptLanguage(const PString & v)
 
 PString SIPMIMEInfo::GetAllow() const
 {
-  return GetString("Allow");     // no compact form
+  return GetString(PHTTP::AllowTag);     // no compact form
 }
 
 
@@ -1269,44 +1320,44 @@ unsigned SIPMIMEInfo::GetAllowBitMask() const
 
 void SIPMIMEInfo::SetAllow(const PString & v)
 {
-  SetAt("Allow", v);   // no compact form
+  SetAt(PHTTP::AllowTag, v);   // no compact form
 }
 
 
 
 PString SIPMIMEInfo::GetDate() const
 {
-  return GetString("Date");      // no compact form
+  return GetString(PHTTP::DateTag);      // no compact form
 }
 
 
 void SIPMIMEInfo::SetDate(const PString & v)
 {
-  SetAt("Date", v);    // no compact form
+  SetAt(PHTTP::DateTag, v);    // no compact form
 }
 
 
 void SIPMIMEInfo::SetDate(const PTime & t)
 {
-  SetDate(t.AsString(PTime::RFC1123, PTime::GMT)) ;
+  SetDate(t.AsString(PTime::RFC1123, PTime::GMT));
 }
 
 
 void SIPMIMEInfo::SetDate(void) // set to current date
 {
-  SetDate(PTime()) ;
+  SetDate(PTime());
 }
 
-        
+
 unsigned SIPMIMEInfo::GetExpires(unsigned dflt) const
 {
-  return GetInteger("Expires", dflt);      // no compact form
+  return GetInteger(PHTTP::ExpiresTag, dflt);      // no compact form
 }
 
 
 void SIPMIMEInfo::SetExpires(unsigned v)
 {
-  SetAt("Expires", PString(PString::Unsigned, v));      // no compact form
+  SetAt(PHTTP::ExpiresTag, PString(PString::Unsigned, v));      // no compact form
 }
 
 
@@ -1330,19 +1381,19 @@ unsigned SIPMIMEInfo::GetMinExpires() const
 
 void SIPMIMEInfo::SetMinExpires(PINDEX v)
 {
-  SetAt("Min-Expires",  PString(PString::Unsigned, v)); // no compact form
+  SetAt("Min-Expires", PString(PString::Unsigned, v)); // no compact form
 }
 
 
 PString SIPMIMEInfo::GetProxyAuthenticate() const
 {
-  return GetString("Proxy-Authenticate");        // no compact form
+  return GetString(PHTTP::ProxyAuthenticateTag);        // no compact form
 }
 
 
 void SIPMIMEInfo::SetProxyAuthenticate(const PString & v)
 {
-  SetAt("Proxy-Authenticate",  v);      // no compact form
+  SetAt(PHTTP::ProxyAuthenticateTag, v);      // no compact form
 }
 
 
@@ -1366,11 +1417,11 @@ void SIPMIMEInfo::AddTokenSet(const char * field, const PString & token)
   else {
     PString existing = GetString(field);
     if (existing.IsEmpty())
-      SetAt(field,  token);
+      SetAt(field, token);
     else {
       existing += ',';
       existing += token;
-      SetAt(field,  existing);
+      SetAt(field, existing);
     }
   }
 }
@@ -1390,7 +1441,7 @@ void SIPMIMEInfo::SetTokenSet(const char * field, const PStringSet & tokens)
         outputSeparator = true;
       strm << *it;
     }
-    SetAt(field,  strm);
+    SetAt(field, strm);
   }
 }
 
@@ -1415,49 +1466,49 @@ void SIPMIMEInfo::AddRequire(const PString & v)
 
 PStringSet SIPMIMEInfo::GetSupported() const
 {
-  return GetTokenSet("Supported");
+  return GetTokenSet(Supported);
 }
 
 
 void SIPMIMEInfo::SetSupported(const PStringSet & v)
 {
-  SetTokenSet("Supported", v);
+  SetTokenSet(Supported, v);
 }
 
 
 void SIPMIMEInfo::AddSupported(const PString & v)
 {
-  AddTokenSet("Supported", v);
+  AddTokenSet(Supported, v);
 }
 
 
 PStringSet SIPMIMEInfo::GetUnsupported() const
 {
-  return GetTokenSet("Unsupported");
+  return GetTokenSet(Unsupported);
 }
 
 
 void SIPMIMEInfo::SetUnsupported(const PStringSet & v)
 {
-  SetTokenSet("Unsupported",  v);
+  SetTokenSet(Unsupported, v);
 }
 
 
 void SIPMIMEInfo::AddUnsupported(const PString & v)
 {
-  SetTokenSet("Unsupported",  v);
+  SetTokenSet(Unsupported, v);
 }
 
 
 PString SIPMIMEInfo::GetEvent() const
 {
-  return GetString("Event");
+  return GetString(Event);
 }
 
 
 void SIPMIMEInfo::SetEvent(const PString & v)
 {
-  SetAt("Event",  v);
+  SetAt(Event, v);
 }
 
 
@@ -1469,7 +1520,7 @@ PCaselessString SIPMIMEInfo::GetSubscriptionState(PStringToString & info) const
 
 void SIPMIMEInfo::SetSubscriptionState(const PString & v)
 {
-  SetAt("Subscription-State",  v);     // no compact form
+  SetAt("Subscription-State", v);     // no compact form
 }
 
 
@@ -1481,7 +1532,7 @@ PString SIPMIMEInfo::GetUserAgent() const
 
 void SIPMIMEInfo::SetUserAgent(const PString & v)
 {
-  SetAt("User-Agent",  v);     // no compact form
+  SetAt("User-Agent", v);     // no compact form
 }
 
 
@@ -1493,7 +1544,7 @@ PString SIPMIMEInfo::GetOrganization() const
 
 void SIPMIMEInfo::SetOrganization(const PString & v)
 {
-  SetAt("Organization",  v);     // no compact form
+  SetAt("Organization", v);     // no compact form
 }
 
 
@@ -1558,9 +1609,9 @@ void SIPMIMEInfo::GetProductInfo(OpalProductInfo & info) const
   info.vendor = GetOrganization();
   info.comments = str.Mid(endSecondToken+1).Trim();
   PTRACE(4, "Product Info: name=\"" << info.name << "\","
-                      " version=\"" << info.version << "\","
-                       " vendor=\"" << info.vendor << "\","
-                     " comments=\"" << info.comments << '"');
+         " version=\"" << info.version << "\","
+         " vendor=\"" << info.vendor << "\","
+         " comments=\"" << info.comments << '"');
 }
 
 
@@ -1611,7 +1662,7 @@ PString SIPMIMEInfo::GetWWWAuthenticate() const
 
 void SIPMIMEInfo::SetWWWAuthenticate(const PString & v)
 {
-  SetAt("WWW-Authenticate",  v);        // no compact form
+  SetAt("WWW-Authenticate", v);        // no compact form
 }
 
 PString SIPMIMEInfo::GetSIPIfMatch() const
@@ -1621,7 +1672,7 @@ PString SIPMIMEInfo::GetSIPIfMatch() const
 
 void SIPMIMEInfo::SetSIPIfMatch(const PString & v)
 {
-  SetAt("SIP-If-Match",  v);        // no compact form
+  SetAt("SIP-If-Match", v);        // no compact form
 }
 
 PString SIPMIMEInfo::GetSIPETag() const
@@ -1631,7 +1682,7 @@ PString SIPMIMEInfo::GetSIPETag() const
 
 void SIPMIMEInfo::SetSIPETag(const PString & v)
 {
-  SetAt("SIP-ETag",  v);        // no compact form
+  SetAt("SIP-ETag", v);        // no compact form
 }
 
 
@@ -1782,52 +1833,53 @@ PString SIPAuthenticator::GetMethod()
 
 class SIPNTLMAuthentication : public PHTTPClientAuthentication
 {
-  public: 
-    SIPNTLMAuthentication();
+public:
+  SIPNTLMAuthentication();
 
-    virtual Comparison Compare(
-      const PObject & other
-    ) const;
+  virtual Comparison Compare(
+    const PObject & other
+  ) const;
 
-    PBoolean Parse(
-      const PString & auth,
-      PBoolean proxy
-    );
+  PBoolean Parse(
+    const PString & auth,
+    PBoolean proxy
+  );
 
-    PBoolean Authorise(
-      SIP_PDU & pdu
-    ) const;
+  PBoolean Authorise(
+    SIP_PDU & pdu
+  ) const;
 
-    struct Type1MessageHdr {
-       BYTE     protocol[8];     // 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0'
-       BYTE     type;            // 0x01
-       BYTE     _zero1[3];
-       WORD     flags;           // 0xb203
-       BYTE     _zero2[2];
+  struct Type1MessageHdr
+  {
+    BYTE     protocol[8];     // 'N', 'T', 'L', 'M', 'S', 'S', 'P', '\0'
+    BYTE     type;            // 0x01
+    BYTE     _zero1[3];
+    WORD     flags;           // 0xb203
+    BYTE     _zero2[2];
 
-       PUInt16l dom_len;         // domain string length
-       PUInt16l dom_len2;        // domain string length
-       PUInt16l dom_off;         // domain string offset
-       BYTE     _zero3[2];
+    PUInt16l dom_len;         // domain string length
+    PUInt16l dom_len2;        // domain string length
+    PUInt16l dom_off;         // domain string offset
+    BYTE     _zero3[2];
 
-       PUInt16l host_len;        // host string length
-       PUInt16l host_len2;       // host string length
-       PUInt16l host_off;        // host string offset (always 0x20)
-       BYTE     _zero4[2];
+    PUInt16l host_len;        // host string length
+    PUInt16l host_len2;       // host string length
+    PUInt16l host_off;        // host string offset (always 0x20)
+    BYTE     _zero4[2];
 
-       BYTE     hostAndDomain;   // host string and domain (ASCII)
-    };
+    BYTE     hostAndDomain;   // host string and domain (ASCII)
+  };
 
-    void ConstructType1Message(PBYTEArray & message) const;
+  void ConstructType1Message(PBYTEArray & message) const;
 
-  public:
-    PString domainName;
-    PString hostName;
+public:
+  PString domainName;
+  PString hostName;
 };
 
 SIPNTLMAuthentication::SIPNTLMAuthentication()
 {
-  hostName   = "Hostname";
+  hostName = "Hostname";
   domainName = "Domain";
 }
 
@@ -1878,7 +1930,7 @@ void SIPNTLMAuthentication::ConstructType1Message(PBYTEArray & buffer) const
   memcpy(hostPtr, hostName.c_str(), hdr->host_len);
 
   hdr->dom_off = PUInt16l((WORD)(hdr->host_off + hdr->host_len));
-  hdr->dom_len = hdr->dom_len2  = PUInt16l((WORD)domainName.GetLength());
+  hdr->dom_len = hdr->dom_len2 = PUInt16l((WORD)domainName.GetLength());
   memcpy(hostPtr + hdr->dom_len - hdr->host_len, domainName.c_str(), hdr->host_len2);
 }
 
@@ -1897,7 +1949,7 @@ SIP_PDU::SIP_PDU(Methods meth, const OpalTransportPtr & transport, const PString
 }
 
 
-SIP_PDU::SIP_PDU(const SIP_PDU & request,  StatusCodes code, const SDPSessionDescription * sdp)
+SIP_PDU::SIP_PDU(const SIP_PDU & request, StatusCodes code, const SDPSessionDescription * sdp)
   : m_method(NumMethods)
   , m_statusCode(code)
   , m_transactionID(request.GetTransactionID())
@@ -2061,6 +2113,7 @@ void SIP_PDU::InitialiseHeaders(SIPDialogContext & dialog, unsigned cseq)
 void SIP_PDU::InitialiseHeaders(SIPConnection & connection, unsigned cseq)
 {
   InitialiseHeaders(connection.GetDialog(), cseq);
+  m_mime.SetSessionID(connection.GetLocalSessionId(), connection.GetRemoteSessionId());
   connection.GetEndPoint().AdjustToRegistration(*this, &connection);
 }
 
@@ -2075,7 +2128,7 @@ void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 
   // add mandatory fields to response (RFC 2543, 11.2)
   const SIPMIMEInfo & requestMIME = request.GetMIME();
-  static const char * FieldsToCopy[] = { "To", "From", "Call-ID", "CSeq", "Via", "Record-Route" };
+  static const PConstCaselessString FieldsToCopy[] = { To, From, CallID, CSeq, Via, RecordRoute };
   for (PINDEX i = 0; i < PARRAYSIZE(FieldsToCopy); ++i) {
     PString value = requestMIME.Get(FieldsToCopy[i]);
     if (!value.IsEmpty())
@@ -2161,15 +2214,15 @@ bool SIP_PDU::SetRoute(const SIPURL & proxy)
 void SIP_PDU::SetAllow(unsigned bitmask)
 {
   PStringStream str;
-  
-  for (Methods method = Method_INVITE ; method < SIP_PDU::NumMethods ; method = (Methods)(method+1)) {
+
+  for (Methods method = Method_INVITE; method < SIP_PDU::NumMethods; method = (Methods)(method+1)) {
     if ((bitmask&(1<<method))) {
       if (!str.IsEmpty())
         str << ',';
       str << method;
     }
   }
-  
+
   m_mime.SetAllow(str);
 }
 
@@ -2245,7 +2298,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
     }
 
     PTRACE(2, "Invalid datagram from " << m_transport->GetLastReceivedAddress() << " on " << *m_transport <<
-              " - " << pdu.GetSize() << " bytes:\n" << hex << setprecision(2) << pdu << dec);
+           " - " << pdu.GetSize() << " bytes:\n" << hex << setprecision(2) << pdu << dec);
     return Local_IllegalDatagram;
   }
 
@@ -2392,7 +2445,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
   }
   else {
     // parse the method, URI and version
-    PStringArray cmds = cmd.Tokenise( ' ', false);
+    PStringArray cmds = cmd.Tokenise(' ', false);
     if (cmds.GetSize() < 3) {
       PTRACE(2, "Bad Request-Line \"" << cmd << "\" received" << transportName);
       return SIP_PDU::Failure_BadRequest;
@@ -2466,7 +2519,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
     m_transactionID = SIPMIMEInfo::ExtractFieldParameter(m_mime.GetFirstVia(), "branch");
     if (m_transactionID.NumCompare(TransactionPrefix) != EqualTo) {
       PTRACE(2, "Transaction " << m_mime.GetCSeq() << " has "
-              << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
+             << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
 
       SIPURL to(m_mime.GetTo());
       to.Sanitise(SIPURL::ToURI);
@@ -2499,8 +2552,8 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
 
     if (m_transport != NULL)
       trace << "received: rem=" << m_transport->GetLastReceivedAddress()
-            << ",local=" << m_transport->GetLocalAddress()
-            << ",if=" << m_transport->GetLastReceivedInterface();
+      << ",local=" << m_transport->GetLocalAddress()
+      << ",if=" << m_transport->GetLastReceivedInterface();
 
     if (!m_transactionID.empty())
       trace << ",id=" << m_transactionID;
@@ -2547,8 +2600,8 @@ bool SIP_PDU::Send()
   for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
     OpalTransportAddress addr = m_responseAddresses[index];
     PTRACE(4, "Trying response address #" << index << ' ' << addr << ","
-              " canDoReliable=" << boolalpha << canDoReliable << ","
-              " requireReliable=" << requireReliable);
+           " canDoReliable=" << boolalpha << canDoReliable << ","
+           " requireReliable=" << requireReliable);
 
     if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
       continue;
@@ -2566,11 +2619,11 @@ bool SIP_PDU::Send()
       case Successful_OK:
         return true;
 
-      case Failure_MessageTooLarge :
+      case Failure_MessageTooLarge:
         requireReliable = true;
         break;
 
-      default :
+      default:
         break;
     }
   }
@@ -2626,9 +2679,9 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
     }
 
     trace << '(' << pduLen << " bytes) to: "
-             "rem=" << m_transport->GetRemoteAddress() << ","
-             "local=" << m_transport->GetLocalAddress() << ","
-             "if=" << m_transport->GetInterface();
+      "rem=" << m_transport->GetRemoteAddress() << ","
+      "local=" << m_transport->GetLocalAddress() << ","
+      "if=" << m_transport->GetInterface();
 
     if (PTrace::CanTrace(4)) {
       trace << '\n';
@@ -2646,8 +2699,8 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
     return Successful_OK;
 
   PTRACE(1, "PDU (id=" << GetTransactionID() << ")"
-            " write to transport " << m_transport << ' ' << *m_transport <<
-            " failed: " << m_transport->GetErrorText(PChannel::LastWriteError));
+         " write to transport " << m_transport << ' ' << *m_transport <<
+         " failed: " << m_transport->GetErrorText(PChannel::LastWriteError));
   return Local_TransportError;
 }
 
@@ -2793,8 +2846,7 @@ void SIP_PDU::SetSDP(SDPSessionDescription * sdp)
 ////////////////////////////////////////////////////////////////////////////////////
 
 SIPDialogContext::SIPDialogContext()
-  : m_callId(SIPTransaction::GenerateCallID())
-  , m_lastSentCSeq(0)
+  : m_lastSentCSeq(0)
   , m_lastReceivedCSeq(0)
   , m_forking(false)
 {
@@ -2816,15 +2868,28 @@ SIPDialogContext::SIPDialogContext(const SIPMIMEInfo & mime)
 }
 
 
+void SIPDialogContext::Initialise(const PStringOptions & options)
+{
+  if (m_callId.empty())
+    m_callId = SIPTransaction::GenerateCallID();
+
+  if (options.Contains(SIP_HEADER_PREFIX"Route")) {
+    SIPMIMEInfo mime;
+    mime.SetRoute(options[SIP_HEADER_PREFIX"Route"]);
+    SetRouteSet(mime.GetRoute());
+  }
+}
+
+
 PString SIPDialogContext::AsString() const
 {
   PStringStream str;
   SIPURL url = m_requestURI;
-  url.SetParamVar("call-id",   m_callId);
+  url.SetParamVar("call-id", m_callId);
   url.SetParamVar("local-uri", m_localURI.AsQuotedString());
-  url.SetParamVar("remote-uri",m_remoteURI.AsQuotedString());
-  url.SetParamVar("tx-cseq",   m_lastSentCSeq);
-  url.SetParamVar("rx-cseq",   m_lastReceivedCSeq);
+  url.SetParamVar("remote-uri", m_remoteURI.AsQuotedString());
+  url.SetParamVar("tx-cseq", m_lastSentCSeq);
+  url.SetParamVar("rx-cseq", m_lastReceivedCSeq);
   url.SetParamVar("interface", m_interface);
 
   unsigned index = 0;
@@ -2891,7 +2956,7 @@ void SIPDialogContext::SetProxy(const SIPURL & proxy, bool addToRouteSet)
   if (!proxy.IsEmpty()) {
     PTRACE(3, "Outbound proxy for dialog set to " << proxy);
 
-    m_proxy = proxy;  
+    m_proxy = proxy;
 
     // Default routeSet if there is a proxy
     if (addToRouteSet && m_routeSet.empty()) {
@@ -3121,11 +3186,11 @@ void SIPTransactionOwner::OnReceivedResponse(SIPTransaction & transaction, SIP_P
 
   // Handling of specific responses
   switch (response.GetStatusCode()) {
-    case SIP_PDU::Failure_UnAuthorised :
-    case SIP_PDU::Failure_ProxyAuthenticationRequired :
+    case SIP_PDU::Failure_UnAuthorised:
+    case SIP_PDU::Failure_ProxyAuthenticationRequired:
       break;
 
-    default :
+    default:
       m_authenticateErrors = 0;
   }
 }
@@ -3250,7 +3315,7 @@ SIP_PDU::StatusCodes SIPTransactionOwner::HandleAuthentication(const SIP_PDU & r
     if (proxy.IsEmpty())
       proxy = GetProxy();
     if (!proxy.IsEmpty()) {
-      PTRACE (3, "No auth info for realm \"" << realm << "\", using proxy auth");
+      PTRACE(3, "No auth info for realm \"" << realm << "\", using proxy auth");
       authId = proxy.GetUserName();
       password = proxy.GetPassword();
     }
@@ -3276,9 +3341,9 @@ SIP_PDU::StatusCodes SIPTransactionOwner::HandleAuthentication(const SIP_PDU & r
   }
 
   PTRACE(4, (m_authentication != NULL ? "Upd" : "Cre") << "ating"
-            " authentication credentials of user \"" << authId << "\" for realm \"" << realm << '"');
+         " authentication credentials of user \"" << authId << "\" for realm \"" << realm << '"');
 
-  // switch authentication schemes
+// switch authentication schemes
   delete m_authentication;
   m_authentication = newAuthentication;
   ++m_authenticateErrors;
@@ -3427,7 +3492,7 @@ bool SIPTransaction::Start()
 
     // Use the transactions transport to send the request
     switch (status) {
-      case Successful_OK :
+      case Successful_OK:
         if (!m_transport->IsReliable())
           m_retryTimer = m_retryTimeoutMin;
         if (m_method == Method_INVITE)
@@ -3438,7 +3503,7 @@ bool SIPTransaction::Start()
         PTRACE(4, "Transaction timers set: retry=" << m_retryTimer << ", completion=" << m_completionTimer);
         return true;
 
-      case Failure_MessageTooLarge : // Can only occur if UDP && canDoTCP
+      case Failure_MessageTooLarge: // Can only occur if UDP && canDoTCP
         // switch to TCP as per RFC3261 18.1.1
         if (m_owner->SwitchTransportProto("tcp", this) != Successful_OK) {
           // Could not connect using TCP, go back to UDP and send it regardless of size
@@ -3452,7 +3517,7 @@ bool SIPTransaction::Start()
         m_pduSizeOK = false;
         break;
 
-      default :
+      default:
         SetTerminated(Terminated_TransportError);
         return false;
     }
@@ -3675,29 +3740,29 @@ void SIPTransaction::OnTimeout()
     return;
 
   switch (m_state) {
-    case Trying :
+    case Trying:
       // Sent initial command and got nothin'
       SetTerminated(Terminated_Timeout);
       break;
 
-    case Proceeding :
+    case Proceeding:
       /* Got a 100 response and then nothing, give up with a CANCEL
           just in case the other side is still there, and in particular
           in the case of an INVITE where nobody answers */
       Cancel();
       break;
 
-    case Cancelling :
+    case Cancelling:
       // We cancelled and finished waiting for retries
       SetTerminated(Terminated_Cancelled);
       break;
 
-    case Completed :
+    case Completed:
       // We completed and finished waiting for retries
       SetTerminated(Terminated_Success);
       break;
 
-    default :
+    default:
       // Already terminated in some way
       break;
   }
@@ -3725,7 +3790,7 @@ void SIPTransaction::SetTerminated(States newState)
   m_owner->m_transactions.Remove(this);
 
   if (m_state >= Terminated_Success) {
-    PTRACE_IF(3, newState != Terminated_Success, "Tried to set state " << newState 
+    PTRACE_IF(3, newState != Terminated_Success, "Tried to set state " << newState
               << " for " << GetMethod() << " transaction id=" << GetTransactionID()
               << " but already terminated ( " << m_state << ')');
     return;
@@ -3738,21 +3803,21 @@ void SIPTransaction::SetTerminated(States newState)
   // Transaction failed, tell the endpoint
   if (m_state > Terminated_Success) {
     switch (m_state) {
-      case Terminated_Timeout :
+      case Terminated_Timeout:
       case Terminated_RetriesExceeded:
         m_statusCode = m_pduSizeOK ? SIP_PDU::Local_Timeout : SIP_PDU::Failure_MessageTooLarge;
         break;
 
-      case Terminated_TransportError :
+      case Terminated_TransportError:
         m_statusCode = SIP_PDU::Local_TransportError;
         break;
 
-      case Terminated_Aborted :
-      case Terminated_Cancelled :
+      case Terminated_Aborted:
+      case Terminated_Cancelled:
         m_statusCode = SIP_PDU::Failure_RequestTerminated;
         break;
 
-      default :// Prevent GNU warning
+      default:// Prevent GNU warning
         break;
     }
 
@@ -3888,21 +3953,21 @@ bool SIPParameters::Normalise(const PString & defaultUser, const PTimeInterval &
 ostream & operator<<(ostream & strm, const SIPParameters & params)
 {
   strm << "          aor=" << params.m_addressOfRecord << "\n"
-          "       remote=" << params.m_remoteAddress << "\n"
-          "        local=" << params.m_localAddress << "\n"
-          "      contact=" << params.m_contactAddress << "\n"
-          "        proxy=" << params.m_proxyAddress << "\n"
-          "       authID=" << params.m_authID << "\n"
-          "        realm=" << params.m_realm << "\n"
-          "       expire=" << params.m_expire << "\n"
-          "      restore=" << params.m_restoreTime << "\n"
-          "     minRetry=";
+    "       remote=" << params.m_remoteAddress << "\n"
+    "        local=" << params.m_localAddress << "\n"
+    "      contact=" << params.m_contactAddress << "\n"
+    "        proxy=" << params.m_proxyAddress << "\n"
+    "       authID=" << params.m_authID << "\n"
+    "        realm=" << params.m_realm << "\n"
+    "       expire=" << params.m_expire << "\n"
+    "      restore=" << params.m_restoreTime << "\n"
+    "     minRetry=";
   if (params.m_minRetryTime != PMaxTimeInterval)
     strm << params.m_minRetryTime;
   else
     strm << "default";
   strm << "\n"
-          "     maxRetry=";
+    "     maxRetry=";
   if (params.m_maxRetryTime != PMaxTimeInterval)
     strm << params.m_maxRetryTime;
   else
@@ -3916,19 +3981,22 @@ ostream & operator<<(ostream & strm, const SIPParameters & params)
 
 class SIPTransactionOwnerDummy : public PSafeObject, public SIPTransactionOwner
 {
-  public:
-    SIPTransactionOwnerDummy(SIPEndPoint & endpoint, const SIPURL & targetURI)
-      : P_DISABLE_MSVC_WARNINGS(4355, SIPTransactionOwner(*this, endpoint))
-    {
-      m_dialog.SetRequestURI(targetURI);
-    }
-    SIPTransactionOwnerDummy(SIPEndPoint & endpoint, const SIPDialogContext & context)
-      : P_DISABLE_MSVC_WARNINGS(4355, SIPTransactionOwner(*this, endpoint))
-    {
-      m_dialog = context;
-    }
+public:
+  SIPTransactionOwnerDummy(SIPEndPoint & endpoint, const SIPURL & targetURI)
+    : P_DISABLE_MSVC_WARNINGS(4355, SIPTransactionOwner(*this, endpoint))
+  {
+    m_dialog.SetRequestURI(targetURI);
+  }
+  SIPTransactionOwnerDummy(SIPEndPoint & endpoint, const SIPDialogContext & context)
+    : P_DISABLE_MSVC_WARNINGS(4355, SIPTransactionOwner(*this, endpoint))
+  {
+    m_dialog = context;
+  }
 
-    virtual PString GetAuthID() const { return PString::Empty(); }
+  virtual PString GetAuthID() const
+  {
+    return PString::Empty();
+  }
 };
 
 
@@ -4005,7 +4073,7 @@ SIPTransaction * SIPInvite::CreateDuplicate() const
   // Section 8.1.3.5 of RFC3261 tells that the authenticated
   // request SHOULD have the same value of the Call-ID, To and From.
   // For Asterisk this is not merely SHOULD, but SHALL ....
-  newTransaction->GetMIME().Set("From", m_mime.Get("From"));
+  newTransaction->GetMIME().Set(From, m_mime.Get(From));
   return newTransaction;
 }
 
@@ -4127,7 +4195,7 @@ SIPTransaction * SIPRegister::CreateDuplicate() const
 ostream & operator<<(ostream & strm, const SIPRegister::Params & params)
 {
   return strm << (const SIPParameters &)params << "\n"
-                 "compatibility=" << params.m_compatibility;
+    "compatibility=" << params.m_compatibility;
 }
 #endif
 
@@ -4407,7 +4475,7 @@ SIPRefer::SIPRefer(SIPConnection & connection,
 
   m_mime.SetReferTo(referTo.AsQuotedString());
 
-  if(!referredBy.IsEmpty()) {
+  if (!referredBy.IsEmpty()) {
     SIPURL adjustedReferredBy = referredBy;
     adjustedReferredBy.Sanitise(SIPURL::RequestURI);
     m_mime.SetReferredBy(adjustedReferredBy.AsQuotedString());
@@ -4416,8 +4484,8 @@ SIPRefer::SIPRefer(SIPConnection & connection,
   /* Allow for not including RFC4488 fields at all, as some brain dead endpoints,
     *cough*Cisco*cough*, don't like the field and fail to process the REFER */
   if (subMode != e_NoSubMode) {
-	  m_mime.SetBoolean("Refer-Sub", subMode == e_EnableSubMode);
-	  m_mime.AddSupported("norefersub");
+    m_mime.SetBoolean("Refer-Sub", subMode == e_EnableSubMode);
+    m_mime.AddSupported("norefersub");
   }
 }
 
@@ -4555,7 +4623,7 @@ SIPTransaction * SIPInfo::CreateDuplicate() const
 
 /////////////////////////////////////////////////////////////////////////
 
-SIPPing::SIPPing(SIPTransactionOwner & owner, OpalTransport & transport,const SIPURL & address)
+SIPPing::SIPPing(SIPTransactionOwner & owner, OpalTransport & transport, const SIPURL & address)
   : SIPTransaction(Method_PING, &owner, &transport)
 {
   InitialiseHeaders(address,

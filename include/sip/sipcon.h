@@ -685,6 +685,8 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual PString GetMediaInterface() override;
     virtual OpalTransportAddress GetRemoteMediaAddress() override;
 
+    const OpalGloballyUniqueID & GetLocalSessionId() const { return m_localSessionId; }
+    const OpalGloballyUniqueID & GetRemoteSessionId() const { return m_remoteSessionId; }
 
   protected:
     virtual bool GarbageCollection() override;
@@ -753,6 +755,8 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     SIPURL                m_remoteIdentity;
     SIPURL                m_contactAddress;
     SIPURL                m_ciscoRemotePartyID;
+    OpalGloballyUniqueID  m_localSessionId; // RFC7989
+    OpalGloballyUniqueID  m_remoteSessionId;
     PMultiPartList        m_multiPartMIME;
 
     SIP_PDU             * m_lastReceivedINVITE;
@@ -802,6 +806,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       eReferNotifyConfirmed
     } m_referOfRemoteState;
     PString m_consultationTransferToken;
+    void SetSentReferTo(const PString & party);
     bool ConsultationTransfer(SIPConnection & referee, SIPRefer::ReferSubMode referSubMode, bool useIdentity);
 
     int SetRemoteMediaFormatsFromPDU(SIP_PDU & pdu);

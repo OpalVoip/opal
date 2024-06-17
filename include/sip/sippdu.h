@@ -345,6 +345,10 @@ class SIPMIMEInfo : public PMIMEInfo
     PString GetCallID() const;
     void SetCallID(const PString & v);
 
+    OpalGloballyUniqueID GetLocalSessionID() const;
+    OpalGloballyUniqueID GetRemoteSessionID() const;
+    void SetSessionID(const OpalGloballyUniqueID & local, const OpalGloballyUniqueID & remote);
+
     SIPURL GetContact() const;
     bool GetContacts(SIPURLList & contacts, unsigned defaultExpires) const;
     void SetContact(const PString & v);
@@ -770,6 +774,8 @@ class SIPDialogContext : public PObject
   public:
     SIPDialogContext();
     SIPDialogContext(const SIPMIMEInfo & mime);
+
+    void Initialise(const PStringOptions & options);
 
     PString AsString() const;
     bool FromString(
@@ -1266,7 +1272,7 @@ class SIPRegister : public SIPTransaction
       Params()
         : m_registrarAddress(m_remoteAddress)
         , m_compatibility(SIPRegister::e_FullyCompliant)
-        , m_instanceId(NULL)
+        , m_instanceId(0)
       { }
 
       Params(const Params & param)

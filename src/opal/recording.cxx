@@ -470,6 +470,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
             " id=" << strmId << ","
             " track=" << trackId);
 
+  mixer->StartPushThread();
   return mixer->AddStream(strmId);
 }
 
