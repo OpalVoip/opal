@@ -635,7 +635,7 @@ class OpalRawMediaStream : public OpalMediaStream
 
        The default behaviour simply sets the isOpen variable to true.
       */
-    virtual PBoolean Open();
+    virtual PBoolean Open() override;
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the PChannel object.
@@ -675,7 +675,7 @@ class OpalRawMediaStream : public OpalMediaStream
   protected:
     virtual void InternalClose() override;
     virtual bool InternalWriteChannel(const BYTE * data, PINDEX length, PINDEX & written);
-    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init);
+    virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
 
     PChannel * m_channel;
     bool       m_autoDelete;
