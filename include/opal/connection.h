@@ -572,6 +572,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       public:
         StringOptions() { }
         StringOptions(const PString & str) : PStringOptions(str) { }
+        StringOptions(const StringOptions & opts, StringOptions * overrides);
 
         /** Extract the parameters that start with "OPAL-XXX" from the URL and
             insert into the string options dictionary. The parameters are
@@ -1977,7 +1978,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /// Set the string options associated with this connection.
     void SetStringOptions(
       const StringOptions & options,
-      bool overwrite
+      bool overwrite = true,
+      bool apply = true
     );
 
     /// Call back for connection to act on changed string options
