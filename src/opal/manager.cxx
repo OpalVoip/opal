@@ -918,11 +918,7 @@ PBoolean OpalManager::OnIncomingConnection(OpalConnection & connection, unsigned
     }
   }
 
-  OpalConnection::StringOptions mergedOptions = connection.GetStringOptions();
-  if (stringOptions != NULL) {
-    for (PStringToString::iterator it = stringOptions->begin(); it != stringOptions->end(); ++it)
-      mergedOptions.SetAt(it->first, it->second);
-  }
+  OpalConnection::StringOptions mergedOptions(connection.GetStringOptions(), stringOptions);
 
 #if OPAL_HAS_IM
   /* If A-Party is not "im" and it only has im media formats, then direct
@@ -2320,11 +2316,7 @@ bool OpalManager::StopRecording(const PString & callToken)
 
 void OpalManager::OnApplyStringOptions(OpalConnection &, OpalConnection::StringOptions & stringOptions)
 {
-  for (OpalConnection::StringOptions::iterator it  = m_defaultConnectionOptions.begin();
-                                               it != m_defaultConnectionOptions.end(); ++it) {
-    if (!stringOptions.Contains(it->first))
-      stringOptions.SetAt(it->first, it->second);
-  }
+  stringOptions.Merge(m_defaultConnectionOptions, PStringToString::e_MergeIgnore);
 }
 
 

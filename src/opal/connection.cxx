@@ -201,6 +201,7 @@ OpalConnection::OpalConnection(OpalCall & call,
 #if OPAL_PTLIB_DTMF
   , m_dtmfSendNotifier(PCREATE_NOTIFIER(OnSendInBandDTMF))
 #endif
+  , m_stringOptions(ep.GetDefaultStringOptions(), stringOptions)
 #if OPAL_HAS_MIXER
   , m_recordAudioNotifier(PCREATE_NOTIFIER(OnRecordAudio))
 #if OPAL_VIDEO
@@ -213,11 +214,6 @@ OpalConnection::OpalConnection(OpalCall & call,
   PTRACE(3, "Created connection " << *this << " ptr=" << this);
 
   m_ownerCall.InternalAddConnection(this);
-
-  m_stringOptions = ep.GetDefaultStringOptions();
-  m_stringOptions.MakeUnique();
-  if (stringOptions != NULL)
-    m_stringOptions.Merge(*stringOptions, PStringOptions::e_MergeOverwrite);
 
 #if OPAL_PTLIB_DTMF
   switch (options&DetectInBandDTMFOptionMask) {
@@ -1805,8 +1801,10 @@ void OpalConnection::SetPhase(Phases phaseToSet)
 }
 
 
-void OpalConnection::SetStringOptions(const StringOptions & options, bool overwrite)
+void OpalConnection::SetStringOptions(const StringOptions & options, bool overwrite, bool apply)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   if (overwrite) {
     m_stringOptions = options;
     m_stringOptions.MakeUnique();
@@ -1817,12 +1815,15 @@ void OpalConnection::SetStringOptions(const StringOptions & options, bool overwr
     m_stringOptions.Merge(options, PStringOptions::e_MergeOverwrite);
   }
 
-  OnApplyStringOptions();
+  if (apply)
+    OnApplyStringOptions();
 }
 
 
 void OpalConnection::OnApplyStringOptions()
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   m_endpoint.GetManager().OnApplyStringOptions(*this, m_stringOptions);
 
 #if PTRACING
@@ -1839,68 +1840,62 @@ void OpalConnection::OnApplyStringOptions()
   }
 #endif
 
-  if (LockReadWrite()) {
-    PCaselessString str;
+  PCaselessString str = m_stringOptions(IsOriginating() ? OPAL_OPT_CALLING_PARTY_NAME : OPAL_OPT_CALLED_PARTY_NAME);
+  if (!str.IsEmpty())
+    SetLocalPartyName(str);
 
-    str = m_stringOptions(IsOriginating() ? OPAL_OPT_CALLING_PARTY_NAME : OPAL_OPT_CALLED_PARTY_NAME);
-    if (!str.IsEmpty())
-      SetLocalPartyName(str);
+  // Allow for explicitly haveing empty string for display name
+  str = IsOriginating() ? OPAL_OPT_CALLING_DISPLAY_NAME : OPAL_OPT_CALLED_DISPLAY_NAME;
+  if (m_stringOptions.Contains(str))
+    SetDisplayName(m_stringOptions[str]);
 
-    // Allow for explicitly haveing empty string for display name
-    str = IsOriginating() ? OPAL_OPT_CALLING_DISPLAY_NAME : OPAL_OPT_CALLED_DISPLAY_NAME;
-    if (m_stringOptions.Contains(str))
-      SetDisplayName(m_stringOptions[str]);
-
-    str = m_stringOptions(OPAL_OPT_USER_INPUT_MODE);
-    if (str == "RFC2833")
-      SetSendUserInputMode(SendUserInputAsRFC2833);
-    else if (str == "String")
-      SetSendUserInputMode(SendUserInputAsString);
-    else if (str == "Tone")
-      SetSendUserInputMode(SendUserInputAsTone);
-    else if (str == "Q.931")
-      SetSendUserInputMode(SendUserInputAsQ931);
+  str = m_stringOptions(OPAL_OPT_USER_INPUT_MODE);
+  if (str == "RFC2833")
+    SetSendUserInputMode(SendUserInputAsRFC2833);
+  else if (str == "String")
+    SetSendUserInputMode(SendUserInputAsString);
+  else if (str == "Tone")
+    SetSendUserInputMode(SendUserInputAsTone);
+  else if (str == "Q.931")
+    SetSendUserInputMode(SendUserInputAsQ931);
 #if OPAL_PTLIB_DTMF
-    else if (str == "InBand") {
-      SetSendUserInputMode(SendUserInputInBand);
-      m_sendInBandDTMF = true;
-    }
+  else if (str == "InBand") {
+    SetSendUserInputMode(SendUserInputInBand);
+    m_sendInBandDTMF = true;
+  }
 #endif
 
 #if OPAL_PTLIB_DTMF
-    m_sendInBandDTMF   = m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_INBAND_DTMF, m_sendInBandDTMF);
-    m_detectInBandDTMF = m_stringOptions.GetBoolean(OPAL_OPT_DETECT_INBAND_DTMF, m_detectInBandDTMF);
-    m_sendInBandDTMF   = m_stringOptions.GetBoolean(OPAL_OPT_SEND_INBAND_DTMF,   m_sendInBandDTMF);
+  m_sendInBandDTMF   = m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_INBAND_DTMF, m_sendInBandDTMF);
+  m_detectInBandDTMF = m_stringOptions.GetBoolean(OPAL_OPT_DETECT_INBAND_DTMF, m_detectInBandDTMF);
+  m_sendInBandDTMF   = m_stringOptions.GetBoolean(OPAL_OPT_SEND_INBAND_DTMF,   m_sendInBandDTMF);
 
-    m_dtmfScaleMultiplier = m_stringOptions.GetInteger(OPAL_OPT_DTMF_MULT, m_dtmfScaleMultiplier);
-    m_dtmfScaleDivisor    = m_stringOptions.GetInteger(OPAL_OPT_DTMF_DIV,  m_dtmfScaleDivisor);
+  m_dtmfScaleMultiplier = m_stringOptions.GetInteger(OPAL_OPT_DTMF_MULT, m_dtmfScaleMultiplier);
+  m_dtmfScaleDivisor    = m_stringOptions.GetInteger(OPAL_OPT_DTMF_DIV,  m_dtmfScaleDivisor);
 #endif
 
-    m_autoStartInfo.Add(m_stringOptions(OPAL_OPT_AUTO_START));
+  m_autoStartInfo.Add(m_stringOptions(OPAL_OPT_AUTO_START));
 
-    if (m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_JITTER))
-      SetAudioJitterDelay(0, 0);
-    else
-      SetAudioJitterDelay(m_stringOptions.GetInteger(OPAL_OPT_MIN_JITTER, GetMinAudioJitterDelay()),
-                          m_stringOptions.GetInteger(OPAL_OPT_MAX_JITTER, GetMaxAudioJitterDelay()));
+  if (m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_JITTER))
+    SetAudioJitterDelay(0, 0);
+  else
+    SetAudioJitterDelay(m_stringOptions.GetInteger(OPAL_OPT_MIN_JITTER, GetMinAudioJitterDelay()),
+                        m_stringOptions.GetInteger(OPAL_OPT_MAX_JITTER, GetMaxAudioJitterDelay()));
 
 #if OPAL_HAS_MIXER
-    if (m_stringOptions.Contains(OPAL_OPT_RECORD_AUDIO))
-      m_recordingFilename = m_stringOptions(OPAL_OPT_RECORD_AUDIO);
+  if (m_stringOptions.Contains(OPAL_OPT_RECORD_AUDIO))
+    m_recordingFilename = m_stringOptions(OPAL_OPT_RECORD_AUDIO);
 #endif
 
-    str = m_stringOptions(OPAL_OPT_ALERTING_TYPE);
-    if (!str.IsEmpty())
-      SetAlertingType(str);
+  str = m_stringOptions(OPAL_OPT_ALERTING_TYPE);
+  if (!str.IsEmpty())
+    SetAlertingType(str);
 
-    if (m_silenceDetector != NULL && !(str = m_stringOptions(OPAL_OPT_SILENCE_DETECT_MODE)).IsEmpty()) {
-      OpalSilenceDetector::Params params;
-      m_silenceDetector->GetParameters(params);
-      params.FromString(str);
-      m_silenceDetector->SetParameters(params);
-    }
-
-    UnlockReadWrite();
+  if (m_silenceDetector != NULL && !(str = m_stringOptions(OPAL_OPT_SILENCE_DETECT_MODE)).IsEmpty()) {
+    OpalSilenceDetector::Params params;
+    m_silenceDetector->GetParameters(params);
+    params.FromString(str);
+    m_silenceDetector->SetParameters(params);
   }
 }
 
@@ -2035,6 +2030,14 @@ OpalMediaType::AutoStartMode OpalConnection::GetAutoStart(const OpalMediaType & 
   char buf[100];
   snprintf(buf, sizeof(buf), "%u", ssrc);
   return m_autoStartInfo.GetAutoStart(mediaType, buf);
+}
+
+
+OpalConnection::StringOptions::StringOptions(const StringOptions & opts, StringOptions * overrides)
+{
+  Merge(opts, PStringToString::e_MergeOverwrite);
+  if (overrides)
+    Merge(*overrides, PStringToString::e_MergeOverwrite);
 }
 
 
