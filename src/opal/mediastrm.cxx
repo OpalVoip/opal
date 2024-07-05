@@ -959,8 +959,13 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        m_timestamp < m_expectedTimestamp || // Timestamp went backwards
       (m_timestamp - m_expectedTimestamp) > 600000U*m_timeUnits) // More than 10 minutes
   {
-    // If first packet, allow for leading silence since we opened
-    m_expectedTimestamp = m_expectedTimestamp != 0 ? m_timestamp : (m_timestamp - realDelta);
+    if (m_expectedTimestamp != 0)
+      m_expectedTimestamp = m_timestamp;
+    else {
+      // If first packet, allow for leading silence since we opened
+      PTRACE(4, "First audio packet: real-delta=" << realDelta << ", ts=" << m_timestamp);
+      m_expectedTimestamp = m_timestamp - realDelta;
+    }
   }
   else {
     /* If the indicated delta timestamp is significantly less than the elapsed
@@ -970,8 +975,10 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        The heristic used is if indicated delay is under 120ms but actual is 
        over 500ms, then we don't truct the indicated timstamp */
     RTP_Timestamp delta = m_timestamp - m_expectedTimestamp;
-    if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits)
+    if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits) {
+      PTRACE(4, "Unexpected audio packet delay: ts-delta=" << delta << ", real-delta=" << realDelta);
       m_expectedTimestamp -= realDelta;
+    }
 
     // If current timestamp later than expected, need to pad with silence.
     while (m_timestamp > m_expectedTimestamp) {
