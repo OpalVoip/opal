@@ -575,10 +575,6 @@ class OpalPresentityWithCommandThread : public OpalPresentity
 
   /**@name Overrides from OpalPresentity */
   //@{
-    /**Close the presentity.
-      */
-    virtual bool Close() override;
-
     /** Lowlevel function to send a command to the presentity handler.
         All commands are asynchronous. They will usually initiate an action
         for which an indication (callback) will give a result.
@@ -595,17 +591,14 @@ class OpalPresentityWithCommandThread : public OpalPresentity
     ) override;
   //@}
 
-  protected:
     struct WorkItem
     {
-      OpalPresentity & m_owner;
+      PSafePtr<OpalPresentity> m_owner;
       OpalPresentityCommand * m_command;
-      WorkItem(OpalPresentityWithCommandThread & owner, OpalPresentityCommand * command);
+      WorkItem(OpalPresentityWithCommandThread * owner, OpalPresentityCommand * command);
       ~WorkItem();
       void Work();
     };
-
-    PQueuedThreadPool<WorkItem> m_threadPool;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

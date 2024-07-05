@@ -2108,6 +2108,8 @@ class OpalManager : public PObject, public OpalCertificateInfo
 
 #if OPAL_HAS_PRESENCE
     PSafeDictionary<PString, OpalPresentity> m_presentities;
+    PQueuedThreadPool<OpalPresentityWithCommandThread::WorkItem> m_presenceThreadPool;
+    friend bool OpalPresentityWithCommandThread::SendCommand(OpalPresentityCommand * cmd);
 #endif // OPAL_HAS_PRESENCE
 
     atomic<PINDEX> m_clearingAllCallsCount;

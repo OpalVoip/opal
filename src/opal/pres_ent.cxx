@@ -567,7 +567,6 @@ OPAL_PRESENTITY_COMMAND(OpalSendMessageToCommand, OpalPresentity, Internal_SendM
 /////////////////////////////////////////////////////////////////////////////
 
 OpalPresentityWithCommandThread::OpalPresentityWithCommandThread()
-  : m_threadPool(4, 0, "Presence")
 {
 }
 
@@ -575,7 +574,6 @@ OpalPresentityWithCommandThread::OpalPresentityWithCommandThread()
 OpalPresentityWithCommandThread::OpalPresentityWithCommandThread(
                            const OpalPresentityWithCommandThread & other)
   : OpalPresentity(other)
-  , m_threadPool()
 {
 }
 
@@ -586,17 +584,12 @@ OpalPresentityWithCommandThread::~OpalPresentityWithCommandThread()
 }
 
 
-bool OpalPresentityWithCommandThread::Close()
-{
-  m_threadPool.Shutdown();
-  return OpalPresentity::Close();
-}
-
-
 bool OpalPresentityWithCommandThread::SendCommand(OpalPresentityCommand * cmd)
 {
-  WorkItem * item = new WorkItem(*this, cmd);
-  if (m_threadPool.AddWork(item))
+  char group[10];
+  snprintf(group, sizeof(group), "%p", this);
+  WorkItem * item = new WorkItem(this, cmd);
+  if (m_manager->m_presenceThreadPool.AddWork(item, group))
     return true;
 
   delete item;
@@ -604,7 +597,7 @@ bool OpalPresentityWithCommandThread::SendCommand(OpalPresentityCommand * cmd)
 }
 
 
-OpalPresentityWithCommandThread::WorkItem::WorkItem(OpalPresentityWithCommandThread & owner, OpalPresentityCommand * command)
+OpalPresentityWithCommandThread::WorkItem::WorkItem(OpalPresentityWithCommandThread * owner, OpalPresentityCommand * command)
   : m_owner(owner)
   , m_command(command)
 {
@@ -618,7 +611,7 @@ OpalPresentityWithCommandThread::WorkItem::~WorkItem()
 
 
 void OpalPresentityWithCommandThread::WorkItem::Work() {
-  m_command->Process(m_owner);
+  m_command->Process(*m_owner);
 }
 
 #endif // OPAL_HAS_PRESENCE
