@@ -811,7 +811,7 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
   if (firstThread) {
     // Clear all the currently active calls
     for (CallDict::iterator call = m_activeCalls.begin(); call != m_activeCalls.end(); ++call)
-      call->Clear(reason);
+      call->second->Clear(reason);
   }
 
   if (!wait)
