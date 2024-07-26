@@ -2109,7 +2109,6 @@ class OpalManager : public PObject, public OpalCertificateInfo
 #if OPAL_HAS_PRESENCE
     typedef PSafeDictionary<PString, OpalPresentity> PresentityDict;
     PresentityDict m_presentities;
-    PSafeDictionary<PString, OpalPresentity> m_presentities;
     PQueuedThreadPool<OpalPresentityWithCommandThread::WorkItem> m_presenceThreadPool;
     friend bool OpalPresentityWithCommandThread::SendCommand(OpalPresentityCommand * cmd);
 #endif // OPAL_HAS_PRESENCE
