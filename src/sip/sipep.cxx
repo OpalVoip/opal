@@ -1418,7 +1418,10 @@ bool SIPEndPoint::OnReceivedMESSAGE(SIP_PDU & request)
 
 bool SIPEndPoint::OnReceivedOPTIONS(SIP_PDU & request)
 {
-  SIPResponse * response = new SIPResponse(*this, request, SIP_PDU::Successful_OK);
+  SIPResponse * response = new SIPResponse(*this, request,
+                                           request.GetMIME().GetTo().GetTag().IsEmpty()
+                                               ? SIP_PDU::Successful_OK
+                                               : SIP_PDU::Failure_TransactionDoesNotExist);
   response->Send();
   return true;
 }
