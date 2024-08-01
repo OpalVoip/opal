@@ -257,6 +257,8 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
           A filename for an existing WAV file.
           A two letter country code, or the full country name.
           A tone specification as per PTones class.
+
+       An empty string will disable playing of any ring back tones.
       */
     bool SetLocalRingbackTone(
       const PString & tone    ///< Tone specification string
