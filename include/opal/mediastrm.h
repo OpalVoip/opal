@@ -676,6 +676,7 @@ class OpalRawMediaStream : public OpalMediaStream
     virtual void InternalClose() override;
     virtual bool InternalWriteChannel(const BYTE * data, PINDEX length, PINDEX & written);
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
+    void InternalCalculateAudioLevel(const BYTE * data, PINDEX length);
 
     PChannel * m_channel;
     bool       m_autoDelete;
@@ -689,6 +690,10 @@ class OpalRawMediaStream : public OpalMediaStream
     PBYTEArray       m_silence;
 
     OpalSilenceDetector::CalculateDB m_dbCalculator;
+#if PTRACING
+    OpalSilenceDetector::CalculateDB m_dbCalculatorTrace;
+    PTime m_dbTraceTime;
+#endif
     PDECLARE_MUTEX(m_dbCalculatorMutex);
 };
 
