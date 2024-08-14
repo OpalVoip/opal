@@ -894,9 +894,7 @@ PBoolean OpalRawMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & lengt
       return false;
     }
 
-    m_dbCalculatorMutex.Wait();
-    m_dbCalculator.Accumulate(buffer, lastReadCount);
-    m_dbCalculatorMutex.Signal();
+    InternalCalculateAudioLevel(buffer, lastReadCount);
 
     m_timestamp += lastReadCount / PCM16Size;
     buffer += lastReadCount;
@@ -1005,9 +1003,7 @@ bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length
   written = m_channel->GetLastWriteCount();
   m_expectedTimestamp += written/PCM16Size;
 
-  m_dbCalculatorMutex.Wait();
-  m_dbCalculator.Accumulate(buffer, written);
-  m_dbCalculatorMutex.Signal();
+  InternalCalculateAudioLevel(buffer, written);
   return true;
 }
 
@@ -1057,6 +1053,26 @@ int OpalRawMediaStream::GetAudioLevelDB()
   return m_dbCalculator.Finalise();
 }
 
+
+void OpalRawMediaStream::InternalCalculateAudioLevel(const BYTE * data, PINDEX length)
+{
+  PWaitAndSignal mutex(m_dbCalculatorMutex);
+
+  m_dbCalculator.Accumulate(data, length);
+
+#if PTRACING
+  static unsigned const TraceLevel = 3;
+  if (PTrace::CanTrace(TraceLevel)) {
+    m_dbCalculatorTrace.Accumulate(data, length);
+
+    static PTimeInterval const TracePeriod(0, 10);
+    if (m_dbTraceTime.GetElapsed() > TracePeriod) {
+      m_dbTraceTime.SetCurrentTime();
+      PTRACE_BEGIN(TraceLevel) << "Average audio level: " << m_dbCalculatorTrace.Finalise() << "dB" << PTrace::End;
+    }
+  }
+#endif // PTRACING
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

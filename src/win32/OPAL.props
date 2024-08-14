@@ -3,28 +3,41 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <OpalGitRootDir Condition="'$(OpalGitRootDir)' == ''">$(ProjectDir)..\..</OpalGitRootDir>
-    <EXTERNALDIR Condition="'$(EXTERNALDIR)' == ''">$(ProjectDir)..\..\..\external</EXTERNALDIR>
-    <OPENSSL32DIR Condition="'$(OPENSSL32DIR)' == ''">$(MSBuildProgramFiles32)\OpenSSL-Win32</OPENSSL32DIR>
-    <OPENSSL64DIR Condition="'$(OPENSSL64DIR)' == ''">$(ProgramW6432)\OpenSSL-Win64\</OPENSSL64DIR>
-    <LUA32DIR Condition="'$(LUA32DIR)' == ''">$(EXTERNALDIR)\Lua-win32</LUA32DIR>
-    <LUA64DIR Condition="'$(LUA64DIR)' == ''">$(EXTERNALDIR)\Lua-win64</LUA64DIR>
-    <V8_DIR Condition="'$(V8_DIR)' == ''">$(EXTERNALDIR)\v8</V8_DIR>
-    <FFMPEG32DIR Condition="'$(FFMPEG32DIR)' == ''">$(EXTERNALDIR)\ffmpeg-win32-dev</FFMPEG32DIR>
-    <FFMPEG64DIR Condition="'$(FFMPEG64DIR)' == ''">$(EXTERNALDIR)\ffmpeg-win64-dev</FFMPEG64DIR>
-    <OPENH264VER Condition="'$(OPENH264VER)' == ''">2.3.1</OPENH264VER>
-    <JPEG32DIR Condition="'$(JPEG32DIR)' == ''">$(EXTERNALDIR)\libjpeg-turbo</JPEG32DIR>
-    <JPEG64DIR Condition="'$(JPEG64DIR)' == ''">$(EXTERNALDIR)\libjpeg-turbo64</JPEG64DIR>
-    <AWSDIR Condition="'$(AWSDIR)' == ''">$(EXTERNALDIR)\aws-sdk-cpp</AWSDIR>
-    <AWS32DBGDIR Condition="'$(AWS32DBGDIR)' == ''">$(AWSDIR)\out\install\x32-Debug\bin</AWS32DBGDIR>
-    <AWS64DBGDIR Condition="'$(AWS64DBGDIR)' == ''">$(AWSDIR)\out\install\x64-Debug\bin</AWS64DBGDIR>
-    <AWS32RELDIR Condition="'$(AWS32RELDIR)' == ''">$(AWSDIR)\out\install\x32-Release\bin</AWS32RELDIR>
-    <AWS64RELDIR Condition="'$(AWS64RELDIR)' == ''">$(AWSDIR)\out\install\x64-Release\bin</AWS64RELDIR>
+    <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\external')">$(ProjectDir)..\..\external</EXTERNALDIR>
+    <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\external')">$(ProjectDir)..\..\..\external</EXTERNALDIR>
+    <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\..\external')">$(ProjectDir)..\..\..\..\external</EXTERNALDIR>
+    <VCPKG32DIR Condition="'$(VCPKG32DIR)' == '' AND Exists('$(EXTERNALDIR)\vcpkg\installed\x86-windows')">$(EXTERNALDIR)\vcpkg\installed\x86-windows</VCPKG32DIR>
+    <VCPKG64DIR Condition="'$(VCPKG64DIR)' == '' AND Exists('$(EXTERNALDIR)\vcpkg\installed\x64-windows')">$(EXTERNALDIR)\vcpkg\installed\x64-windows</VCPKG64DIR>
+    <OPENSSL32DIR Condition="'$(OPENSSL32DIR)' == '' AND Exists('$(MSBuildProgramFiles32)\OpenSSL-Win32')">$(MSBuildProgramFiles32)\OpenSSL-Win32</OPENSSL32DIR>
+    <OPENSSL32DIR Condition="'$(OPENSSL32DIR)' == '' AND Exists('$(VCPKG32DIR)\bin\libssl-3-x86.dll')">$(VCPKG32DIR)</OPENSSL32DIR>
+    <OPENSSL64DIR Condition="'$(OPENSSL64DIR)' == '' AND Exists('$(ProgramW6432)\OpenSSL-Win64')">$(ProgramW6432)\OpenSSL-Win64\</OPENSSL64DIR>
+    <OPENSSL64DIR Condition="'$(OPENSSL64DIR)' == '' AND Exists('$(VCPKG64DIR)\bin\libssl-3-x64.dll')">$(VCPKG64DIR)</OPENSSL64DIR>
+    <LUA32DIR Condition="'$(LUA32DIR)' == '' AND Exists('$(EXTERNALDIR)\Lua-win32')">$(EXTERNALDIR)\Lua-win32</LUA32DIR>
+    <LUA32DIR Condition="'$(LUA32DIR)' == '' AND Exists('$(VCPKG32DIR)\bin\lua.dll')">$(VCPKG32DIR)</LUA32DIR>
+    <LUA64DIR Condition="'$(LUA64DIR)' == '' AND Exists('$(EXTERNALDIR)\Lua-win64')">$(EXTERNALDIR)\Lua-win64</LUA64DIR>
+    <LUA64DIR Condition="'$(LUA64DIR)' == '' AND Exists('$(VCPKG64DIR)\bin\lua.dll')">$(VCPKG64DIR)</LUA64DIR>
+    <V8_DIR Condition="'$(V8_DIR)' == '' AND Exists('$(EXTERNALDIR)\v8')">$(EXTERNALDIR)\v8</V8_DIR>
+    <FFMPEG32DIR Condition="'$(FFMPEG32DIR)' == '' AND Exists('$(EXTERNALDIR)\ffmpeg-win32-dev')">$(EXTERNALDIR)\ffmpeg-win32-dev</FFMPEG32DIR>
+    <FFMPEG32DIR Condition="'$(FFMPEG32DIR)' == '' AND Exists('$(VCPKG32DIR)\include\libavcodec')">$(VCPKG32DIR)</FFMPEG32DIR>
+    <FFMPEG64DIR Condition="'$(FFMPEG64DIR)' == '' AND Exists('$(EXTERNALDIR)\ffmpeg-win64-dev')">$(EXTERNALDIR)\ffmpeg-win64-dev</FFMPEG64DIR>
+    <FFMPEG64DIR Condition="'$(FFMPEG64DIR)' == '' AND Exists('$(VCPKG64DIR)\include\libavcodec')">$(VCPKG64DIR)</FFMPEG64DIR>
+    <JPEG32DIR Condition="'$(JPEG32DIR)' == '' AND Exists('$(EXTERNALDIR)\libjpeg-turbo')">$(EXTERNALDIR)\libjpeg-turbo</JPEG32DIR>
+    <JPEG32DIR Condition="'$(JPEG32DIR)' == '' AND Exists('$(VCPKG32DIR)\bin\jpeg62.dll')">$(VCPKG32DIR)</JPEG32DIR>
+    <JPEG64DIR Condition="'$(JPEG64DIR)' == '' AND Exists('$(EXTERNALDIR)\libjpeg-turbo')">$(EXTERNALDIR)\libjpeg-turbo64</JPEG64DIR>
+    <JPEG64DIR Condition="'$(JPEG32DIR)' == '' AND Exists('$(VCPKG64DIR)\bin\jpeg62.dll')">$(VCPKG64DIR)</JPEG64DIR>
+    <AWSDIR Condition="'$(AWSDIR)' == '' AND Exists('$(EXTERNALDIR)\aws-sdk-cpp\out')">$(EXTERNALDIR)\aws-sdk-cpp\out</AWSDIR>
+    <AWSDIR Condition="'$(AWSDIR)' == '' AND Exists('$(EXTERNALDIR)\aws-sdk-cpp\build')">$(EXTERNALDIR)\aws-sdk-cpp\build</AWSDIR>
+    <AWS32DBGDIR Condition="'$(AWS32DBGDIR)' == ''">$(AWSDIR)\install\x32-Debug\bin</AWS32DBGDIR>
+    <AWS64DBGDIR Condition="'$(AWS64DBGDIR)' == ''">$(AWSDIR)\install\x64-Debug\bin</AWS64DBGDIR>
+    <AWS32RELDIR Condition="'$(AWS32RELDIR)' == ''">$(AWSDIR)\install\x32-Release\bin</AWS32RELDIR>
+    <AWS64RELDIR Condition="'$(AWS64RELDIR)' == ''">$(AWSDIR)\install\x64-Release\bin</AWS64RELDIR>
     <WXDIR Condition="'$(WXDIR)' == ''">$(EXTERNALDIR)\wxWidgets</WXDIR>
+    <OPENH264VER Condition="'$(OPENH264VER)' == ''">2.3.1</OPENH264VER>
     <VPXDIR Condition="'$(VPXDIR)' == ''">$(ProjectDir)..\..\..\external\vpx-vp8</VPXDIR>
     <SPANDSPDIR Condition="'$(SPANDSPDIR)' == ''">$(ProjectDir)..\..\..\external\spandsp-0.0.6</SPANDSPDIR>
     <PTLIBDIR Condition="'$(PTLIBDIR)' == ''">$(ProjectDir)..\..\..\PTLib</PTLIBDIR>
-    <LIB32PATH>$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB32PATH>
-    <LIB64PATH>$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB64PATH>
+    <LIB32PATH>$(VCPKG32DIR)\bin;$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB32PATH>
+    <LIB64PATH>$(VCPKG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB64PATH>
     <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\$(Platform)\$(Configuration)
 PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
@@ -37,6 +50,14 @@ PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
     </BuildMacro>
     <BuildMacro Include="EXTERNALDIR">
       <Value>$(EXTERNALDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VCPKG32DIR">
+      <Value>$(VCPKG32DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VCPKG64DIR">
+      <Value>$(VCPKG64DIR)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="OPENSSL32DIR">
@@ -68,7 +89,7 @@ PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="OPENH264VER">
-      <Value>$(OPENH264VERs)</Value>
+      <Value>$(OPENH264VER)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="JPEG32DIR">

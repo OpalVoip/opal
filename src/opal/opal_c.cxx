@@ -2960,6 +2960,10 @@ void OpalManager_C::OnUserInputTone(OpalConnection & connection, char tone, int 
     PostMessage(message);
   }
 
+  P_INSTRUMENTED_LOCK_READ_WRITE2(lock, connection);
+  if (!lock.IsLocked())
+    return;
+
   OpalConnection::StringOptions options;
   options.SetBoolean(AllowOnUserInputString, false);
   connection.SetStringOptions(options, false, false);

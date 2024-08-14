@@ -450,7 +450,7 @@ void OpalManager::ShutDownEndpoints()
   PTRACE(3, "Shutting down manager.");
 
   // Clear any pending calls, set flag so no calls can be received before endpoints removed
-  InternalClearAllCalls(OpalConnection::EndedByLocalUser, true, m_clearingAllCallsCount++ == 0);
+  InternalClearAllCalls(OpalConnection::EndedByLocalUser, true);
 
 #if OPAL_HAS_PRESENCE
   // Remove (and unsubscribe) all the presentities
@@ -474,8 +474,6 @@ void OpalManager::ShutDownEndpoints()
   m_endpointMap.clear();
   m_endpointList.RemoveAll();
   m_endpointsMutex.EndWrite();
-
-  --m_clearingAllCallsCount; // Allow for endpoints to be added again.
 
 #if OPAL_SCRIPT
   if (m_script != NULL)
@@ -796,18 +794,20 @@ PBoolean OpalManager::ClearCallSynchronous(const PString & token,
 
 void OpalManager::ClearAllCalls(OpalConnection::CallEndReason reason, PBoolean wait)
 {
-  InternalClearAllCalls(reason, wait, m_clearingAllCallsCount++ == 0);
-  --m_clearingAllCallsCount;
+  InternalClearAllCalls(reason, wait);
 }
 
 
-void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bool wait, bool firstThread)
+void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bool wait)
 {
   if (m_garbageCollector == NULL)
     return;
 
-  PTRACE(3, "Clearing all calls " << (wait ? "and waiting" : "asynchronously")
-                      << ", " << (firstThread ? "primary" : "secondary") << " thread.");
+  bool firstThread = m_clearingAllCallsCount++ == 0;
+
+  PTRACE(3, "Clearing " << m_activeCalls.GetSize() << " calls "
+         << (wait ? "and waiting" : "asynchronously")
+         << ", " << (firstThread ? "primary" : "secondary") << " thread.");
 
   if (firstThread) {
     // Clear all the currently active calls
@@ -815,26 +815,27 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
       call->second->Clear(reason);
   }
 
-  if (!wait)
-    return;
-  
+  if (wait) {
   /* This is done this way as PSyncPoint only works for one thread at a time,
       all subsequent threads will wait on the mutex for the first one to be
       released from the PSyncPoint wait. */
-  m_clearingAllCallsMutex.Wait();
-  bool cleared = firstThread && m_allCallsCleared.Wait(PTimeInterval(0,m_activeCalls.GetSize()*2,1));
-  m_clearingAllCallsMutex.Signal();
-  PAssert(cleared, "All calls not cleared in a timely manner");
+    m_clearingAllCallsMutex.Wait();
+    bool cleared = m_activeCalls.IsEmpty() || m_allCallsCleared.Wait(PTimeInterval(0, m_activeCalls.GetSize()*2, 1));
+    m_clearingAllCallsMutex.Signal();
 
+    if (cleared)
+      PTRACE(3, "All calls cleared.");
+    else {
+      PAssert(!firstThread, "All calls not cleared in a timely manner");
 #if PTRACING
-  if (cleared)
-    PTRACE(3, "All calls cleared.");
-  else {
     // Probably a circular reference, try and give some clues.
-    PSafeObject::m_traceDetailLevel = 3;
-    GarbageCollection();
-  }
+      PSafeObject::m_traceDetailLevel = 3;
+      GarbageCollection();
 #endif // PTRACING
+    }
+  }
+
+  --m_clearingAllCallsCount;
 }
 
 
@@ -2245,21 +2246,17 @@ void OpalManager::GarbageCollection()
   m_presentities.DeleteObjectsToBeRemoved();
 #endif // OPAL_HAS_PRESENCE
 
-  bool allCleared = m_activeCalls.DeleteObjectsToBeRemoved();
-
   m_endpointsMutex.StartRead();
 
   static PTimeInterval const SkipTime(0, 1);
   if (m_garbageCollectChangeTime.GetElapsed() > SkipTime) {
-    for (PList<OpalEndPoint>::iterator ep = m_endpointList.begin(); ep != m_endpointList.end(); ++ep) {
-      if (!ep->GarbageCollection())
-        allCleared = false;
-    }
+    for (PList<OpalEndPoint>::iterator ep = m_endpointList.begin(); ep != m_endpointList.end(); ++ep)
+      ep->GarbageCollection();
   }
 
   m_endpointsMutex.EndRead();
 
-  if (allCleared && m_clearingAllCallsCount != 0)
+  if (m_clearingAllCallsCount != 0 && m_activeCalls.DeleteObjectsToBeRemoved())
     m_allCallsCleared.Signal();
 }
 

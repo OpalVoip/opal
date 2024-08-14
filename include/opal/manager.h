@@ -2116,7 +2116,7 @@ class OpalManager : public PObject, public OpalCertificateInfo
     atomic<PINDEX> m_clearingAllCallsCount;
     PDECLARE_MUTEX(m_clearingAllCallsMutex);
     PSyncPoint     m_allCallsCleared;
-    void InternalClearAllCalls(OpalConnection::CallEndReason reason, bool wait, bool first);
+    void InternalClearAllCalls(OpalConnection::CallEndReason reason, bool wait);
 
     PThread    * m_garbageCollector;
     PSyncPoint   m_garbageCollectExit;

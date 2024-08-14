@@ -1940,7 +1940,7 @@ bool OpalTransportTLS::IsAuthenticated(const PString & domain) const
   PString common = subject.GetCommonName();
   PString alt = cert.GetSubjectAltName();
   PString checkName = alt.IsEmpty() ? common : alt;
-  if (domain == checkName) {
+  if (domain == checkName || (checkName.starts_with("*.") && (domain.Right(checkName.length()-1) *= checkName.Mid(1)))) {
     PTRACE(3, "Peer certificate: common=\"" << common << "\", alt=\"" << alt << "\", subject=\"" << subject << '"');
     return true;
   }

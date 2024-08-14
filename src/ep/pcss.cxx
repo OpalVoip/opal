@@ -336,8 +336,10 @@ PBoolean OpalPCSSEndPoint::OnShowUserInput(const OpalPCSSConnection &, const PSt
 
 bool OpalPCSSEndPoint::SetLocalRingbackTone(const PString & tone)
 {
-  if (tone.IsEmpty())
-    return false;
+  if (tone.IsEmpty()) {
+    m_localRingbackTone.MakeEmpty();
+    return true;
+  }
 
 #if P_WAVFILE
   PWAVFile wavFile(tone, PFile::ReadOnly);
