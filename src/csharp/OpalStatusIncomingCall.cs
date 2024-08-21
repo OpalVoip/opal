@@ -218,6 +218,16 @@ public class OpalStatusIncomingCall : global::System.IDisposable {
     } 
   }
 
+  public uint privacy {
+    set {
+      OPALPINVOKE.OpalStatusIncomingCall_privacy_set(swigCPtr, value);
+    } 
+    get {
+      uint ret = OPALPINVOKE.OpalStatusIncomingCall_privacy_get(swigCPtr);
+      return ret;
+    } 
+  }
+
   public OpalStatusIncomingCall() : this(OPALPINVOKE.new_OpalStatusIncomingCall(), true) {
   }
 
