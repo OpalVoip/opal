@@ -347,7 +347,7 @@ SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OPAL_1C_1API_1VERSION_1ge
   
   (void)jenv;
   (void)jcls;
-  result = (int)(44);
+  result = (int)(45);
   jresult = (jint)result; 
   return jresult;
 }
@@ -4577,6 +4577,34 @@ SWIGEXPORT jstring JNICALL Java_org_opalvoip_opal_OPALJNI_OpalStatusIncomingCall
 }
 
 
+SWIGEXPORT void JNICALL Java_org_opalvoip_opal_OPALJNI_OpalStatusIncomingCall_1privacy_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  OpalStatusIncomingCall *arg1 = (OpalStatusIncomingCall *) 0 ;
+  unsigned int arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(OpalStatusIncomingCall **)&jarg1; 
+  arg2 = (unsigned int)jarg2; 
+  if (arg1) (arg1)->m_privacy = arg2;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_org_opalvoip_opal_OPALJNI_OpalStatusIncomingCall_1privacy_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  OpalStatusIncomingCall *arg1 = (OpalStatusIncomingCall *) 0 ;
+  unsigned int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(OpalStatusIncomingCall **)&jarg1; 
+  result = (unsigned int) ((arg1)->m_privacy);
+  jresult = (jlong)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT jlong JNICALL Java_org_opalvoip_opal_OPALJNI_new_1OpalStatusIncomingCall(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   OpalStatusIncomingCall *result = 0 ;
@@ -4596,6 +4624,90 @@ SWIGEXPORT void JNICALL Java_org_opalvoip_opal_OPALJNI_delete_1OpalStatusIncomin
   (void)jcls;
   arg1 = *(OpalStatusIncomingCall **)&jarg1; 
   delete arg1;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyNone_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyNone;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyName_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyName;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyNumber_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyNumber;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyIdentity_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyIdentity;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyAddress_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyAddress;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyHeader_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyHeader;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalPrivacyNetwork_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  OpalPrivacyModes result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (OpalPrivacyModes)OpalPrivacyNetwork;
+  jresult = (jint)result; 
+  return jresult;
 }
 
 

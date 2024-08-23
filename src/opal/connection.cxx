@@ -1734,6 +1734,12 @@ PString OpalConnection::GetSupportedFeatures() const
 }
 
 
+OpalConnection::PrivacyTypes OpalConnection::GetPrivacyTypes() const
+{
+  return NoPrivacy;
+}
+
+
 bool OpalConnection::GetConferenceState(OpalConferenceState *) const
 {
   return false;

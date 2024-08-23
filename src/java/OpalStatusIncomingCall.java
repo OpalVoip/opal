@@ -178,6 +178,14 @@ public class OpalStatusIncomingCall {
     return OPALJNI.OpalStatusIncomingCall_supportedFeatures_get(swigCPtr, this);
   }
 
+  public void setPrivacy(long value) {
+    OPALJNI.OpalStatusIncomingCall_privacy_set(swigCPtr, this, value);
+  }
+
+  public long getPrivacy() {
+    return OPALJNI.OpalStatusIncomingCall_privacy_get(swigCPtr, this);
+  }
+
   public OpalStatusIncomingCall() {
     this(OPALJNI.new_OpalStatusIncomingCall(), true);
   }

@@ -271,7 +271,12 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
       */
     virtual PString GetSupportedFeatures() const override;
 
-    /**Initiate the transfer of an existing call (connection) to a new remote 
+    /** Get the privacy types for information that should not be propagated
+        outside of the stack.
+      */
+    virtual PrivacyTypes GetPrivacyTypes() const;
+
+    /**Initiate the transfer of an existing call (connection) to a new remote
        party.
 
        A REFER command is sent to the remote endpoint to cause it to move the
@@ -732,6 +737,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     );
 
     void UpdateRemoteAddresses();
+    void InternalSetPrivacyTypes(const SIPMIMEInfo & mime);
 
     void NotifyDialogState(
       SIPDialogNotification::States state,
@@ -758,6 +764,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     OpalGloballyUniqueID  m_localSessionId; // RFC7989
     OpalGloballyUniqueID  m_remoteSessionId;
     PMultiPartList        m_multiPartMIME;
+    PrivacyTypes          m_receivedPrivacyTypes;
 
     SIP_PDU             * m_lastReceivedINVITE;
     SIP_PDU             * m_delayedAckInviteResponse;

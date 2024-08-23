@@ -1386,6 +1386,8 @@ void OpalManager_C::SendIncomingCallInfo(const OpalConnection & connection)
     message.SetMIME(message->m_param.m_incomingCall.m_extraCount,
                     message->m_param.m_incomingCall.m_extras,
                     network->GetExtraCallInfo());
+  if (m_apiVersion >= 45)
+    message->m_param.m_incomingCall.m_privacy = network->GetPrivacyTypes().AsBits();
 
   PTRACE(4, "OpalIndIncomingCall: token=\""  << message->m_param.m_incomingCall.m_callToken << "\"\n"
             "  Local  - URL=\"" << message->m_param.m_incomingCall.m_localAddress << "\"\n"

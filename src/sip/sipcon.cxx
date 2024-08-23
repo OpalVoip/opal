@@ -1398,6 +1398,12 @@ PString SIPConnection::GetSupportedFeatures() const
 }
 
 
+OpalConnection::PrivacyTypes SIPConnection::GetPrivacyTypes() const
+{
+  return m_receivedPrivacyTypes;
+}
+
+
 bool SIPConnection::AllowMusicOnHold() const
 {
   for (PMultiPartList::const_iterator it = m_multiPartMIME.begin(); it != m_multiPartMIME.end(); ++it) {
@@ -1637,6 +1643,8 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
       }
     }
   }
+
+  InternalSetPrivacyTypes(responseMIME); // Should be done after m_ciscoRemotePartyID is set
 
   // Update internal variables on remote part names/number/address
   UpdateRemoteAddresses();
@@ -1897,6 +1905,41 @@ void SIPConnection::UpdateRemoteAddresses()
   m_ownerCall.SetPartyNames();
 
   m_identifier = m_dialog.GetCallID();
+}
+
+
+void SIPConnection::InternalSetPrivacyTypes(const SIPMIMEInfo & mime)
+{
+  PStringArray tokens = mime.GetString("Privacy").Tokenise(';', false);
+  if (tokens.empty()) {
+    PCaselessString privacy = m_ciscoRemotePartyID.GetFieldParameters().GetString("privacy");
+    if (privacy == "full")
+      m_receivedPrivacyTypes = PrivateName|PrivateNumber|PrivateAddress|PrivateIdentity;
+    else if (privacy == "name")
+      m_receivedPrivacyTypes = PrivateName;
+    else if (privacy == "uri")
+      m_receivedPrivacyTypes = PrivateNumber|PrivateAddress|PrivateIdentity;
+    else
+      m_receivedPrivacyTypes = NoPrivacy;
+  }
+  else {
+    m_receivedPrivacyTypes = NoPrivacy;
+    for (PStringArray::iterator it = tokens.begin(); it != tokens.end(); ++it) {
+      PCaselessString token = *it;
+      if (token == "id")
+        m_receivedPrivacyTypes |= PrivateIdentity;
+      else if (token == "user")
+        m_receivedPrivacyTypes |= PrivateName|PrivateNumber|PrivateAddress;
+      else if (token == "header")
+        m_receivedPrivacyTypes |= PrivateHeader;
+      else if (token == "session")
+        m_receivedPrivacyTypes |= PrivateNetwork;
+      else if (token == "none") {
+        m_receivedPrivacyTypes = NoPrivacy;
+        break;
+      }
+    }
+  }
 }
 
 
@@ -2356,6 +2399,8 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
   m_ciscoRemotePartyID = SIPURL(mime, RemotePartyID);
   PTRACE_IF(4, !m_ciscoRemotePartyID.IsEmpty(),
             "Old style Remote-Party-ID set to \"" << m_ciscoRemotePartyID << '"');
+
+  InternalSetPrivacyTypes(mime); // Should be done after m_ciscoRemotePartyID is set
 
   // Does remote support RFC7989
   m_remoteSessionId = mime.GetLocalSessionID();

@@ -335,7 +335,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_OPAL_C_API_VERSION_get() {
   int jresult ;
   int result;
   
-  result = (int)(44);
+  result = (int)(45);
   jresult = result; 
   return jresult;
 }
@@ -3579,6 +3579,28 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_OpalStatusIncomingCall_supportedFeatures_ge
   arg1 = (OpalStatusIncomingCall *)jarg1; 
   result = (char *) ((arg1)->m_supportedFeatures);
   jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalStatusIncomingCall_privacy_set(void * jarg1, unsigned int jarg2) {
+  OpalStatusIncomingCall *arg1 = (OpalStatusIncomingCall *) 0 ;
+  unsigned int arg2 ;
+  
+  arg1 = (OpalStatusIncomingCall *)jarg1; 
+  arg2 = (unsigned int)jarg2; 
+  if (arg1) (arg1)->m_privacy = arg2;
+}
+
+
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_OpalStatusIncomingCall_privacy_get(void * jarg1) {
+  unsigned int jresult ;
+  OpalStatusIncomingCall *arg1 = (OpalStatusIncomingCall *) 0 ;
+  unsigned int result;
+  
+  arg1 = (OpalStatusIncomingCall *)jarg1; 
+  result = (unsigned int) ((arg1)->m_privacy);
+  jresult = result; 
   return jresult;
 }
 

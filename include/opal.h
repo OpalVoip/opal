@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 44
+#define OPAL_C_API_VERSION 45
 
 
 ///////////////////////////////////////
@@ -1269,7 +1269,28 @@ typedef struct OpalStatusIncomingCall {
                                         For H.323 it would be things like "H.460.18" etc. Note:
                                         NULL indicagtes not supported by C API version, while empty
                                         string indicates supported but no features indicated. */
+  unsigned m_privacy; /**< This is a bit mask of information in this message that should be
+                           kept private. For example, not showing information to end users or
+                           kept in logs. The bits are provided in OpalPrivacyModes. */
 } OpalStatusIncomingCall;
+
+
+/** Privacy modes for the OpalStatusIncomingCall structure.
+ * This indicates which fields in the OpalStatusIncomingCall structure are private.
+ * The term "private" means that the information should not be passed onward. For
+ * example, not showing information to end users or kept in logs.
+ */
+typedef enum OpalPrivacyModes
+{
+  OpalPrivacyNone     = 0x0000,  /**< No privacy is requested. */
+  OpalPrivacyName     = 0x0001,  /**< m_remoteDisplayName is private. */
+  OpalPrivacyNumber   = 0x0002,  /**< m_remotePartyNumber is private. */
+  OpalPrivacyIdentity = 0x0004,  /**< m_remoteIdentity is private. */
+  OpalPrivacyAddress  = 0x0008,  /**< m_remoteAddress is private. */
+  OpalPrivacyHeader   = 0x0010,  /**< All headers in m_extras are private. */
+  OpalPrivacyNetwork  = 0x0020   /**< Any hostnames or IP addresses in m_remoteAddress or
+                                      headers in m_extras are private. */
+} OpalPrivacyModes;
 
 
 /**Incoming call response parameters for OpalCmdAlerting and OpalCmdAnswerCall messages.

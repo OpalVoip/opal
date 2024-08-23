@@ -1928,6 +1928,25 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     virtual PString GetSupportedFeatures() const;
 
+    /** Privacy types for information that should not be propagated outside of
+        the stack.
+      */
+    P_DECLARE_BITWISE_ENUM(PrivacyTypes, 6, (
+      NoPrivacy,
+      PrivateName,      ///< GetRemotePartyName() is private.
+      PrivateNumber,    ///< GetRemotePartyNumber() is private.
+      PrivateIdentity,  ///< GetRemoteIdentity() is private.
+      PrivateAddress,   ///< GetRemoteAddress() is private.
+      PrivateHeader,    ///< All headers in GetExtraCallInfo() are private.
+      PrivateNetwork    /**< Any hostnames or IP addresses in GetRemoteAddress() or
+                             the headers in GetExtraCallInfo() are private. */
+    ));
+
+    /** Get the privacy types for information that should not be propagated
+        outside of the stack.
+      */
+    virtual PrivacyTypes GetPrivacyTypes() const;
+
     /**Get the audio jitter parameters.
     */
     const OpalJitterBuffer::Params & GetJitterParameters() const { return m_jitterParams; }

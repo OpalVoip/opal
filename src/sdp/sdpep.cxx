@@ -380,9 +380,11 @@ bool OpalSDPConnection::OnReceivedSDP(const SDPSessionDescription & sdp)
   if (!SetActiveMediaFormats(sdp.GetMediaFormats()))
     return false;
 
-  // Remember the initial set of media formats remote has told us about
-  if (m_sdpVersionFromRemote == UINT_MAX || m_remoteFormatList.IsEmpty())
-    SetRemoteMediaFormats(m_activeFormatList);
+  // Merge received media formats into remote list of formats we have
+  // already been told about, if any.
+  OpalMediaFormatList newRemoteFormats = m_activeFormatList;
+  newRemoteFormats += m_remoteFormatList;
+  SetRemoteMediaFormats(newRemoteFormats);
 
   m_sdpVersionFromRemote = sdp.GetOwnerVersion();
   return true;
