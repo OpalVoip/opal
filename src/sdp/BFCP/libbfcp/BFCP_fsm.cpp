@@ -7,16 +7,16 @@ BFCP_fsm::~BFCP_fsm(void)
 
 void BFCP_fsm::setName(const char* p_name ){
     if ( p_name ) {
-        strncpy( m_name , p_name , BFCP_STRING_SIZE ) ; 
+        strncpy( m_name , p_name , sizeof(m_name) - 1 ) ; 
     }
     else
-        memset ( m_name , 0 , BFCP_STRING_SIZE );
+        memset ( m_name , 0 , sizeof(m_name));
 }
 
 BFCP_fsm::BFCP_fsm()
 {    
     m_bfcpFsmSt = BFCP_ACT_INITIALIZED ;
-    memset ( m_name , 0 , BFCP_STRING_SIZE );
+    memset ( m_name , 0 , sizeof(m_name));
         
     // By default init for particpant 
     st_BFCP_fsm BFCPStateMachine[BFCP_ACT_LAST][BFCP_ACT_LAST] = 
@@ -755,6 +755,6 @@ void BFCP_fsm::InitFsmEvent( st_BFCP_fsm_event * p_fsm_evt, e_BFCP_ACT p_state, 
         p_fsm_evt->BeneficiaryID = p_bfcp_evt->BeneficiaryID ;
         p_fsm_evt->i_parm = p_bfcp_evt->i_parm ;
         p_fsm_evt->pt_param = p_bfcp_evt->pt_param ;
-        strncpy(p_fsm_evt->c_param ,p_bfcp_evt->c_param , sizeof(p_fsm_evt->c_param) );
+        memcpy(p_fsm_evt->c_param, p_bfcp_evt->c_param, sizeof(p_fsm_evt->c_param));
     }
 }
