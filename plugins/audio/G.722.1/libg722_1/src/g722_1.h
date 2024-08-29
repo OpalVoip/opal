@@ -14,7 +14,7 @@
 #if !defined(_G722_1_H_)
 #define _G722_1_H_
 
-#define G722_1_USE_FIXED_POINT 1
+#undef G722_1_USE_FIXED_POINT
 
 #include <stdlib.h>
 #include <string.h>

@@ -77,13 +77,23 @@ if $BOOTSTRAP; then
     fi
 
     if which apt > /dev/null 2> /dev/null; then
-    	sudo apt install \
+	if [ $(lsb_release --release --short) \< "22.04" ]; then
+    	    sudo apt install \
     		g++ git make autoconf libpcap-dev libexpat-dev libssl1.0-dev \
     		libsasl2-dev libldap-dev unixodbc-dev liblua5.3-dev libv8-dev \
     		libncurses-dev libsdl2-dev libavformat-dev libswscale-dev \
     		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgsm1-dev \
     		libspeex-dev libopus-dev libavcodec-dev libx264-dev libvpx-dev \
-    		libtheora-dev libspandsp-dev capiutils dahdi festival-dev
+    		libtheora-dev libspandsp-dev capiutils dahdi festival-dev libsrtp2-dev
+	else
+    	    sudo apt install \
+    		g++ git make autoconf libpcap-dev libexpat1-dev libssl-dev \
+    		libsasl2-dev libldap-dev unixodbc-dev liblua5.3-dev libnode-dev \
+    		libncurses-dev libsdl2-dev libavformat-dev libswscale-dev \
+    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgsm1-dev \
+    		libspeex-dev libopus-dev libavcodec-dev libx264-dev libvpx-dev \
+    		libtheora-dev libspandsp-dev dahdi festival-dev libsrtp2-dev
+	fi
     elif which yum > /dev/null 2> /dev/null; then
         sudo yum-config-manager --enable epel
     	sudo yum install \
