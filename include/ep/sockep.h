@@ -41,6 +41,9 @@ class OpalSocketConnection;
 
 #define OPAL_SOCK_PREFIX "sock"
 
+#define OPAL_OPT_SOCK_EP_CONNECT_TIMEOUT "connect-timeout"
+#define OPAL_OPT_SOCK_EP_WRITE_TIMEOUT   "write-timeout"
+
 #define OPAL_OPT_SOCK_EP_AUDIO_IP    "audio-ip"
 #define OPAL_OPT_SOCK_EP_AUDIO_PORT  "audio-port"
 #define OPAL_OPT_SOCK_EP_AUDIO_PROTO "audio-proto"

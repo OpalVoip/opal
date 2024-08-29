@@ -151,9 +151,14 @@ bool OpalSockConnection::OpenMediaSockets()
   if (!OpenMediaSocket(m_audioSocket, OPAL_OPT_SOCK_EP_AUDIO_IP, OPAL_OPT_SOCK_EP_AUDIO_PORT, OPAL_OPT_SOCK_EP_AUDIO_PROTO))
     return false;
 
+  static const PTimeInterval DefaultWriteTimeout(0, 4);
+  const PTimeInterval writeTimeout(m_stringOptions.GetVar(OPAL_OPT_SOCK_EP_WRITE_TIMEOUT, DefaultWriteTimeout));
+  m_audioSocket->SetWriteTimeout(writeTimeout);
+
 #if OPAL_VIDEO
   if (!OpenMediaSocket(m_videoSocket, OPAL_OPT_SOCK_EP_VIDEO_IP, OPAL_OPT_SOCK_EP_VIDEO_PORT, OPAL_OPT_SOCK_EP_VIDEO_PROTO))
     return false;
+  m_videoSocket->SetWriteTimeout(writeTimeout);
 #endif
 
   PTRACE(3, "Opened media sockets.");
@@ -191,8 +196,11 @@ bool OpalSockConnection::OpenMediaSocket(PIPSocket * & socket,
     return false;
   }
 
+  static const PTimeInterval DefaultConnectTimeout(0, 8);
+  socket->SetReadTimeout(m_stringOptions.GetVar(OPAL_OPT_SOCK_EP_CONNECT_TIMEOUT, DefaultConnectTimeout));
   socket->SetPort((uint16_t)port);
   if (socket->Connect(addr)) {
+    socket->SetReadTimeout(PMaxTimeInterval);
     PTRACE(3, "Connected to media socket: \"" << socket->GetPeerAddress() << '"');
     return true;
   }
