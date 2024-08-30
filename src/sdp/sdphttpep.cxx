@@ -125,6 +125,8 @@ OpalSDPHTTPConnection * OpalSDPHTTPEndPoint::CreateConnection(OpalCall & call,
 
 bool OpalSDPHTTPEndPoint::OnReceivedHTTP(PHTTPRequest & request)
 {
+  PTRACE(4, "Received request: " << request.GetCommandName() << ' ' << request.GetURL());
+
   PSafePtr<OpalSDPHTTPConnection> connection;
 
   const PStringToString & parameters = request.url.GetQueryVars();
@@ -338,7 +340,11 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     return request.OnError(PHTTP::BadGateway, "Could not set up secondary connection");
 
   PTRACE(3, "Awaiting SetConnected on " << *this);
-  m_connected.Wait();
+  static const PTimeInterval connectTimeout(0, 0, 1);
+  if (!m_connected.Wait(connectTimeout)) {
+    PTRACE(1, "Timed out waiting for SetConnected on " << *this);
+    return request.OnError(PHTTP::ServiceUnavailable, "Timed out waiting for connection");
+  }
 
   delete m_offerSDP;
   m_offerSDP = NULL;
