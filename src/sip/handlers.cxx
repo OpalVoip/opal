@@ -2631,7 +2631,8 @@ PSafePtr<SIPHandler> SIPHandlers::FindSIPHandlerByAuthRealm(const PString & auth
   // look for a match to realm without users
   for (iterator it = begin(); it != end(); ++it) {
     PSafePtr<SIPHandler> handler = it->second;
-    if (  handler->GetRealm() == authRealm &&
+    if (  handler != NULL &&
+          handler->GetRealm() == authRealm &&
           handler.SetSafetyMode(PSafeReadOnly) &&
          !handler->GetAuthID().IsEmpty() &&
          !handler->GetPassword().IsEmpty() &&
@@ -2673,6 +2674,9 @@ PSafePtr<SIPHandler> SIPHandlers::FindSIPHandlerByDomain(const PString & name, S
 {
   for (iterator it = begin(); it != end(); ++it) {
     PSafePtr<SIPHandler> handler = it->second;
+    if (handler == NULL)
+      continue;
+
     SIPEndPoint & ep(handler->GetEndPoint());
     const SIPURL & aor(handler->GetAddressOfRecord());
 
