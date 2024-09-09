@@ -1910,7 +1910,7 @@ bool OpalVideoStreamMixer::OnMixed(RTP_DataFrame * & output)
 
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
-    if (stream->IsPaused())
+    if (stream == NULL || stream->IsPaused())
       continue;
 
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
