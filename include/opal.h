@@ -21,7 +21,7 @@
  *
  * The Initial Developer of the Original Code is Vox Lucida (Robert Jongbloed)
  *
- * This code was initially written with the assisance of funding from
+ * This code was initially written with the assistance of funding from
  * Stonevoice. http://www.stonevoice.com.
  *
  * Contributor(s): ______________________________________.
@@ -50,7 +50,7 @@ extern "C" {
     using Windows LoadLibrary() or Unix dlopen() at run time. You may look at the
     sample code in opal/samples/c_api/main.c for an example of how to do late binding.
 
-    Late binding also allows for easier integration of OPAL fucntionality to
+    Late binding also allows for easier integration of OPAL functionality to
     interpreted languages such as Java, Perl etc. Systems like "swig" may be used to
     produce interface files for such languages.
 
@@ -110,7 +110,7 @@ typedef struct OpalMessage OpalMessage;
                                            to add/remove option where X is one of:
             <table>
             <tr><td>block    <td>PTrace::Block constructs in output
-            <tr><td>time     <td>time since prgram start
+            <tr><td>time     <td>time since program start
             <tr><td>date     <td>date and time
             <tr><td>gmt      <td>Date/time is in UTC
             <tr><td>thread   <td>thread name and identifier
@@ -122,13 +122,13 @@ typedef struct OpalMessage OpalMessage;
             <tr><td>hour     <td>rotate output file hourly
             <tr><td>minute   <td>rotate output file every minute
             <tr><td>append   <td>append to output file, otherwise overwrites
-                             &lt;perm&gt; <td>file permission similar to unix chmod,
+                             &lt;perm&gt; <td>file permission similar to Unix chmod,
                              but starts with +/- and only has one combination at a
                              time, e.g. +uw is user write, +or is other read, etc
             </table>
         <tr><td>-c or --config "dir"  <td>Configuration file or directory.
         <tr><td>-p or --plugin "dir"  <td>Plugin module directory.
-        <tr><td>-m or --manaufacturer "str" <td>Manufacturer name for application.
+        <tr><td>-m or --manufacturer "str" <td>Manufacturer name for application.
         <tr><td>-n or --name "str"    <td>Product name for application.
         <tr><td>-M or --major X       <td>Major version number.
         <tr><td>-N or --minor X       <td>Minor version number.
@@ -267,13 +267,13 @@ typedef OpalMessage * (OPAL_EXPORT *OpalGetMessageFunction)(OpalHandle opal, uns
 
     Within the command message, generally a NULL or empty string, or zero value
     for integral types, indicates the particular parameter is to be ignored.
-    Documentation on individiual messages will indicate which are mandatory.
+    Documentation on individual messages will indicate which are mandatory.
     
     The return value is another message which will have a type of
     OpalIndCommandError if an error occurs. The OpalMessage::m_commandError field
     will contain a string indicating the error that occurred.
 
-    If successful, the the type of the message is the same as the command type.
+    If successful, the type of the message is the same as the command type.
     The message fields in the return will generally be set to the previous value
     for the field, where relevant. For example in the OpalCmdSetGeneralParameters
     command the OpalParamGeneral::m_natServer would contain the STUN server name
@@ -320,7 +320,7 @@ typedef OpalMessage * (OPAL_EXPORT *OpalSendMessageFunction)(OpalHandle opal, co
 
 ///////////////////////////////////////
 
-/** Free memeory in message the OPAL system has sent. The parameter must be
+/** Free memory in message the OPAL system has sent. The parameter must be
     the message returned by OpalGetMessage() or OpalSendMessage().
   */
 extern void OPAL_EXPORT OpalFreeMessage(OpalMessage * message);
@@ -410,7 +410,7 @@ typedef enum OpalMessageType {
                                     at any time after listeners are set up via the OpalCmdSetProtocolParameters
                                     command. See the OpalStatusIncomingCall structure for more information. */
   OpalCmdAnswerCall,            /**<Answer call command. After a OpalIndIncomingCall is returned by the
-                                    OpalGetMessage() function, an application maye indicate that the call is
+                                    OpalGetMessage() function, an application may indicate that the call is
                                     to be answered with this message. The OpalMessage m_callToken field is
                                     set to the token returned in OpalIndIncomingCall. */
   OpalCmdClearCall,             /**<Hang Up call command. After a OpalCmdSetUpCall command is executed or a
@@ -423,7 +423,7 @@ typedef enum OpalMessageType {
                                     telephone is "ringing". See the OpalParamSetUpCall structure for more
                                     information. */
   OpalIndEstablished,           /**<Call is established indication. This message is returned in the
-                                    OpalGetMessage() function when the remote or local endpont has "answered"
+                                    OpalGetMessage() function when the remote or local endpoint has "answered"
                                     the call and there is media flowing. See the  OpalParamSetUpCall
                                     structure for more information. */
   OpalIndUserInput,             /**<User input indication. This message is returned in the OpalGetMessage()
@@ -484,7 +484,7 @@ typedef enum OpalMessageType {
                                     OpalPresenceStatus structure for more information. */
   OpalCmdSetLocalPresence,      /**<Set, and publish, the local presence state. See the OpalPresenceStatus
                                     structure for more information. */
-  OpalIndPresenceChange,        /**<Indicates a change the the presence state for a given presentity. This
+  OpalIndPresenceChange,        /**<Indicates a change to the presence state for a given presentity. This
                                     message is returned in the OpalGetMessage() function. See the
                                     OpalPresenceStatus structure for more information. */
   OpalCmdSendIM,                /**<Send an Instant Message. See the OpalInstantMessage structure for more
@@ -510,7 +510,7 @@ typedef enum OpalSilenceDetectMode {
   OpalSilenceDetectNoChange,  /**< No change to the silence detect mode. */
   OpalSilenceDetectDisabled,  /**< Indicate silence detect is disabled */
   OpalSilenceDetectFixed,     /**< Indicate silence detect uses a fixed threshold */
-  OpalSilenceDetectAdaptive   /**< Indicate silence detect uses an adaptive threashold */
+  OpalSilenceDetectAdaptive   /**< Indicate silence detect uses an adaptive threshold */
 } OpalSilenceDetectMode;
 
 
@@ -525,14 +525,14 @@ typedef enum OpalEchoCancelMode {
 
 
 /** Function for reading/writing media data.
-    The m_mediaReadData and m_mediaWriteData memebers of OpalParamGeneral are
+    The m_mediaReadData and m_mediaWriteData members of OpalParamGeneral are
     the mechanism by which an application can be sent the raw media for a
     call.
     
     This requires the inclusion of the OPAL_PREFIX_LOCAL ("local") or
     OPAL_PREFIX_PCSS ("pc") in the OpalInitialise() call. If the latter is
     used the m_pcssMediaOverride in OpalParamGeneral must also be set for the
-    specific media you wish th callback to apply to. For the local endpoint
+    specific media you wish the callback to apply to. For the local endpoint
     all media is sent to the callback.
 
     Note that incoming calls are sent to the local endpoints in order they are
@@ -542,7 +542,7 @@ typedef enum OpalEchoCancelMode {
 
     The "write" function, which is taking data from a remote and providing it
     to the "C" application for writing, should not be assumed to have a one to
-    one correspondence with RTP packets. The OPAL jiter buffer may insert
+    one correspondence with RTP packets. The OPAL jitter buffer may insert
     "silence" data for missing or too late packets. In this case the function
     is called with the size parameter equal to zero. It is up to the
     application what it does in that circumstance.
@@ -552,14 +552,14 @@ typedef enum OpalEchoCancelMode {
     pixel data.
 
     Note that this function will be called in the context of different threads
-    so the user must take care of any mutex and synchonisation issues.
+    so the user must take care of any mutex and synchronisation issues.
 
     Returns size of data actually read or written, or -1 if there is an error
     and the media stream should be shut down.
  */
 typedef int (*OpalMediaDataFunction)(
   const char * token,   /**< Call token for media data as returned by OpalIndIncomingCall.
-                             This may be used to discriminate between individiual calls. */
+                             This may be used to discriminate between individual calls. */
   const char * stream,  /**< Stream identifier for media data. This may be used to
                              discriminate between media streams within a call, applicable
                              if there can be more than one stream of a particular format,
@@ -579,7 +579,7 @@ typedef int (*OpalMediaDataFunction)(
     to the GetMessage(). A non-zero value will pass the message on.
 
     Note that this function will be called in the context of different threads
-    so the user must take care of any mutex and synchonisation issues. If the
+    so the user must take care of any mutex and synchronisation issues. If the
     user subsequently uses the GetMessage() then the message will have been
     serialised so that there are no multi-threading issues.
 
@@ -596,7 +596,7 @@ typedef int (*OpalMessageAvailableFunction)(
    This is used by the OpalCmdSetGeneralParameters command in the
    OpalParamGeneral structure.
 
-   This controls if the whole RTP data frame or just the paylaod part
+   This controls if the whole RTP data frame or just the payload part
    is passed to the read/write function.
 
    Default is OpalMediaDataPayloadOnly.
@@ -624,7 +624,7 @@ typedef enum OpalMediaDataType {
    correct operation of the OPAL jitter buffer is dependent on it not being
    drained too fast by the "write" function.
 
-   If marked as asynchroous then the OPAL stack itself will take care of the
+   If marked as asynchronous then the OPAL stack itself will take care of the
    timing and things like read/write to a disk file will work correctly.
   */
 typedef enum OpalMediaTiming {
@@ -654,16 +654,16 @@ typedef enum OpalMediaTiming {
       response = OpalSendMessage(hOPAL, &command);
       </code>
 
-   For m_mediaOrder and m_mediaMask, each '\n' seperated sub-string in the
+   For m_mediaOrder and m_mediaMask, each '\n' separated sub-string in the
    array is checked using a simple wildcard matching algorithm.
 
-   The '*' character indicates substrings, for example: "G.711*" would remove
+   The '*' character indicates sub-strings, for example: "G.711*" would remove
    "G.711-uLaw-64k" and "G.711-ALaw-64k".
 
    The '@' character indicates a type of media format, so say "\@video" would
    remove all video codecs.
 
-   The '!' character indicates a negative test. That is the entres that do NOT
+   The '!' character indicates a negative test. That is the entries that do NOT
    match the string are removed. The string after the '!' may contain '*' and
    '@' characters.
 
@@ -709,7 +709,7 @@ typedef struct OpalParamGeneral {
                                            no change is made, but if "" then all media is prevented from
                                            auto-starting.  */
   const char * m_natMethod;           /**< A list of Network Address Translation methods to use, in
-                                           priority order, separaeted by '\n'. For backward compatibility,
+                                           priority order, separated by '\n'. For backward compatibility,
                                            if this is an empty string and m_natServer is not empty, then
                                            only "STUN" is assumed, and if this is a host name or IP
                                            address, then a "Fixed" NAT router is used. */
@@ -752,13 +752,13 @@ typedef struct OpalParamGeneral {
                                            is RTP timestamp units (8000Hz). */
   unsigned     m_silenceDeadband;     /**< Time silence is required before audio is transmission is stopped.
                                            This is is RTP timestamp units (8000Hz). */
-  unsigned     m_silenceAdaptPeriod;  /**< Window for adapting the silence threashold. This applies if
+  unsigned     m_silenceAdaptPeriod;  /**< Window for adapting the silence threshold. This applies if
                                            m_silenceDetectMode is adaptive (3). This is is RTP timestamp
                                            units (8000Hz). */
-  OpalEchoCancelMode m_echoCancellation; /**< Accoustic Echo Cancellation control. 0=no change, 1=disabled,
+  OpalEchoCancelMode m_echoCancellation; /**< Acoustic Echo Cancellation control. 0=no change, 1=disabled,
                                               2=enabled. */
   unsigned     m_audioBuffers;        /**< Set the number of hardware sound buffers to use.
-                                           Note the largest of m_audioBuffers and m_audioBufferTime/frametime
+                                           Note the largest of m_audioBuffers and m_audioBufferTime/frame-time
                                            will be used. */
   OpalMediaDataFunction m_mediaReadData;   /**< Callback function for reading raw media data. See
                                                 OpalMediaDataFunction for more information. */
@@ -781,7 +781,7 @@ typedef struct OpalParamGeneral {
                                              </code>
                                            */
   unsigned     m_audioBufferTime;     /**< Set the hardware sound buffers to use in milliseconds.
-                                           Note the largest of m_audioBuffers and m_audioBufferTime/frametime
+                                           Note the largest of m_audioBuffers and m_audioBufferTime/frame-time
                                            will be used. */
   unsigned m_manualAlerting;          /**< Indicate that an "alerting" message is automatically (value=1)
                                            or manually (value=2) sent to the remote on receipt of an
@@ -820,7 +820,7 @@ typedef struct OpalParamGeneral {
                                            be a filename or a PEM format certificate as a string. Note, an empty
                                            string "" is a valid value, and only NULL can be used for "no change". */
   unsigned m_autoCreateCertificate;   /**< Indicate a self signed certificate should be generated automatically
-                                           if the certicalte and private key files are not found at the locations
+                                           if the certificate and private key files are not found at the locations
                                            indicated (value=1), or that only the file/value indicated in above
                                            fields is used exclusively (value=2). */
   const char * m_traceLogOptions;     /**< Set trace logging options as described in the OpalInitialise function. */
@@ -849,11 +849,11 @@ typedef struct OpalProductDescription {
                                            equivalent of the m_vendor string above and  used to identify the
                                            software which can be very useful for solving interoperability
                                            issues. Very rarely used. */
-  unsigned     m_manufacturerCode;    /**< Manuacturer code for the name space in which the vendor or
+  unsigned     m_manufacturerCode;    /**< Manufacturer code for the name space in which the vendor or
                                            manufacturer is identified. This is the part of the H.221
                                            equivalent of the m_vendor string above and  used to identify the
                                            software which can be very useful for solving interoperability
-                                           issues. e.g. 61 is for Equivalance and was allocated by the
+                                           issues. e.g. 61 is for Equivalence and was allocated by the
                                            Australian Communications Authority, Oct 2000. */
 } OpalProductDescription;
 
@@ -908,7 +908,7 @@ typedef struct OpalParamProtocol {
 
                                            If the prefix is OPAL_PREFIX_GST, then this is a '\n' separated
                                            list of mappings for media formats to GStreamer elements. Each
-                                           mapping consists of five fields separated by the '\t' chacracter.
+                                           mapping consists of five fields separated by the '\t' character.
                                            The fields are media format, encoder, decoder, RTP packetiser
                                            and RTP depacketiser. e.g.
                                               "G.722.2\tamrwbenc\tamrwbdec\trtpamrpay\trtpamrdepay"
@@ -934,7 +934,7 @@ typedef struct OpalParamProtocol {
                                               "name1=description1\nname2=description2\n" */
   unsigned m_maxSizeUDP;              /**< Maximum size of signalling UDP packet. */
   const char * m_protocolMessageIdentifiers; /**< List of \n separated regular expressions (extended variant, and
-                                                  with ignore case enabled) for protocol message identifers, that
+                                                  with ignore case enabled) for protocol message identifiers, that
                                                   OPAL will return a OpalIndProtocolMessage for. */
   const char * m_caFiles;             /**< File or directory containing Certificate Authority root certificates
                                            to validate remotes in TLS connections, e.g. sips or h323s. Note,
@@ -1039,7 +1039,7 @@ typedef struct OpalParamRegistration {
                                      or empty then the value provided in the OpalParamProtocol::m_userName
                                      field of the OpalCmdSetProtocolParameters command is used. Note
                                      that for SIP the default value will have "@" and the
-                                     OpalParamRegistration::m_hostName field apepnded to it to create
+                                     OpalParamRegistration::m_hostName field appended to it to create
                                      and Address-Of_Record. */
   const char * m_hostName;      /**< Host or domain name for server. For SIP this cannot be NULL.
                                      For H.323 a NULL value indicates that a broadcast discovery is
@@ -1083,7 +1083,7 @@ typedef enum OpalRegistrationStates {
                                  OpalStatusRegistration structure will contain more details. */
   OpalRegisterRetrying,     /**< Registrar/Gatekeeper has gone offline and a failed retry
                                  has been executed. */
-  OpalRegisterRestored,     /**< Registration has been restored after a succesfull retry. */
+  OpalRegisterRestored,     /**< Registration has been restored after a successful retry. */
 } OpalRegistrationStates;
 
 
@@ -1093,13 +1093,13 @@ typedef enum OpalRegistrationStates {
 typedef struct OpalStatusRegistration {
   const char * m_protocol;    /**< Protocol prefix for registration. Currently must be "h323" or
                                    "sip", is never NULL. */
-  const char * m_serverName;  /**< Nmae of the registration server. The exact format is protocol
+  const char * m_serverName;  /**< Name of the registration server. The exact format is protocol
                                    specific but generally contains the host or domain name, e.g.
                                    "GkId@gatekeeper.voxgratia.org" or "sip.voxgratia.org". */
   const char * m_error;       /**< Error message for registration. If any error in the initial
                                    registration or any subsequent registration update occurs, then
                                    this contains a string indicating the type of error. If no
-                                   error occured then this will be NULL. */
+                                   error occurred then this will be NULL. */
   OpalRegistrationStates m_status; /**< Status of registration, see enum for details. */
   OpalProductDescription m_product; /**< Product description data */
 } OpalStatusRegistration;
@@ -1267,7 +1267,7 @@ typedef struct OpalStatusIncomingCall {
                                         This is protocol dependent, for example, it corresponds to
                                         the values of the "Supported" header in an incoming INVITE.
                                         For H.323 it would be things like "H.460.18" etc. Note:
-                                        NULL indicagtes not supported by C API version, while empty
+                                        NULL indicates not supported by C API version, while empty
                                         string indicates supported but no features indicated. */
   unsigned m_privacy; /**< This is a bit mask of information in this message that should be
                            kept private. For example, not showing information to end users or
@@ -1354,7 +1354,7 @@ typedef struct OpalStatusMediaStream {
                                       is dependent on the stream type and may be ignored. Also, a
                                       percentage of zero does not indicate muting, it indicates no
                                       change in volume. Use -1, to mute. */
-  const char    * m_watermark;   /**< For a video transmit meda stream, this indicates a secondary
+  const char    * m_watermark;   /**< For a video transmit media stream, this indicates a secondary
                                       video source device place on lower right corner. It would
                                       typically be a .BMP or .JPG file, but theoretically could be
                                       any video source device, including another camera. */
@@ -1403,7 +1403,7 @@ typedef struct OpalStatusMessageWaiting {
   */
 typedef enum OpalLineAppearanceStates {
   OpalLineTerminated,  /**< Line has ended a call. */
-  OpalLineTrying,      /**< Line has been siezed. */
+  OpalLineTrying,      /**< Line has been seized. */
   OpalLineProceeding,  /**< Line is trying to make a call. */
   OpalLineRinging,     /**< Line is ringing. */
   OpalLineConnected,   /**< Line is connected. */
@@ -1457,7 +1457,7 @@ typedef enum OpalPresenceStates {
 
    For OpalCmdAuthorisePresence, m_entity is the local presentity, m_target is
    the remote presentity asking for permission to view the local presentities
-   status. The m_state is used to deny acces (OpalPresenceForbidden), deny
+   status. The m_state is used to deny access (OpalPresenceForbidden), deny
    access politely (OpalPresenceUnavailable) or permit access
    (OpalPresenceAvailable). While this is usually called in response to an
    OpalIndPresenceChange with m_state == OpalPresenceAuthRequest, it can also
@@ -1489,13 +1489,13 @@ typedef struct OpalPresenceStatus {
   OpalPresenceStates m_state;     /**<The new state of the target entity. */
   const char *       m_activities;/**<The optional activities, if m_state is OpalPresenceAvailable
                                       or OpalPresenceUnavailable. Typically something like
-                                      "Busy" or "Away". This can be a '\n' seaparated
+                                      "Busy" or "Away". This can be a '\n' separated
                                       list of simultaneous activities. */
   const char *       m_note;      /**<Additional "note" that may be attached to the state
-                                      change, e.g. "I want to be frends with you". If
+                                      change, e.g. "I want to be friends with you". If
                                       m_state is OpalPresenceError, then this may contain
                                       extra information on the error. */
-  const char *       m_infoType;  ///< MIME tyupe for m_infoData, e.g. application/pidf+xml
+  const char *       m_infoType;  ///< MIME type for m_infoData, e.g. application/pidf+xml
   const char *       m_infoData;  ///< Raw information as provided by underlying protocol, e.g. XML.
 } OpalPresenceStatus;
 
@@ -1514,7 +1514,7 @@ typedef struct OpalInstantMessage {
   const char *  m_host;      /**<Optional host/proxy. If blank then it is
                                 derived from the m_to address. */
   const char *  m_conversationId; /**<Conversation identifier. This may be
-                                provided by the caller if athe conversation
+                                provided by the caller if the conversation
                                 exists. If starting a new conversation, leave
                                 empty and OpalCmdSendIM will return it. */
   const char *  m_textBody;  /**<Simple text body, if present. This will always
@@ -1524,7 +1524,7 @@ typedef struct OpalInstantMessage {
   const char ** m_mimeType;  /**<MIME type for each body, e.g. "text/html" */
   const char ** m_bodies;    /**<Body data for each MIME type. Deprecated in favour
                                 of m_bodyData which supports binary data. */
-  unsigned      m_messageId; /**<Identifer for this message. This can be used
+  unsigned      m_messageId; /**<Identifier for this message. This can be used
                                  to match a message sent with OpalCmdSendIM with
                                  the disposition in OpalIndSentIM. It is not set
                                  by the user, and is returned by OpalCmdSendIM. */
@@ -1642,7 +1642,7 @@ typedef struct OpalStatusIVR {
 typedef struct OpalProtocolMessage {
   const char * m_protocol;   ///< Protocol this message is from, e.g. "sip".
   const char * m_callToken;  ///< Call token for context of the message.
-  const char * m_identifier; ///< Protocol specific indentifier for what this message is about.
+  const char * m_identifier; ///< Protocol specific identifier for what this message is about.
   const void * m_payload;    ///< Extra protocol and identifier specific data.
   unsigned     m_size;       ///< Size of the above data.
   unsigned     m_extraCount; /**<Count of extra information items in m_extras. This fields contains any
@@ -1697,13 +1697,13 @@ typedef enum OpalCallEndReason {
     OpalCallEndedByDurationLimit,          ///< Call cleared due to an enforced duration limit
     OpalCallEndedByInvalidConferenceID,    ///< Call cleared due to invalid conference ID
     OpalCallEndedByNoDialTone,             ///< Call cleared due to missing dial tone
-    OpalCallEndedByNoRingBackTone,         ///< Call cleared due to missing ringback tone
+    OpalCallEndedByNoRingBackTone,         ///< Call cleared due to missing ring back tone
     OpalCallEndedByOutOfService,           ///< Call cleared because the line is out of service, 
     OpalCallEndedByAcceptingCallWaiting,   ///< Call cleared because another call is answered
     OpalCallEndedByGkAdmissionFailed,      ///< Call cleared because gatekeeper admission request failed.
     OpalCallEndedByMediaFailed,            ///< Call cleared due to loss of media flow.
     OpalCallEndedByCallCompletedElsewhere, ///< Call cleared because it was answered by another extension.
-    OpalCallEndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
+    OpalCallEndedByCertificateAuthority,   ///< When using TLS, the remote certificate was not authenticated
     OpalCallEndedByIllegalAddress,         ///< Destination Address  format was incorrect format
     OpalCallEndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
     OpalCallEndedByMediaTransportFail      ///< End call due to media transport failure, typically ICE error
@@ -1877,7 +1877,7 @@ private:
 class OpalContext
 {
   public:
-    /// Construct an unintialised OPAL context.
+    /// Construct an uninitialised OPAL context.
     OpalContext();
 
     /// Destroy the OPAL context, calls ShutDown().
