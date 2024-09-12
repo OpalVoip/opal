@@ -214,7 +214,7 @@ RTP_SyncSourceId OpalRTPSession::OnSyncSourceCollision(RTP_SyncSourceId oldSSRC)
 
   SyncSourceMap::iterator it = m_SSRC.find(oldSSRC);
   if (it == m_SSRC.end()) {
-    PTRACE(2, *this << "non-existant collision on SSRC " << RTP_TRACE_SRC(oldSSRC));
+    PTRACE(2, *this << "non-existent collision on SSRC " << RTP_TRACE_SRC(oldSSRC));
     return 0;
   }
 
@@ -392,7 +392,7 @@ bool OpalRTPSession::GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSou
     PTRACE(3, *this << "cannot find info for previous " << dir << " default SSRC=" << RTP_TRACE_SRC(ssrc));
   }
 
-  // No default, find one, prefereably one in use
+  // No default, find one, preferably one in use
   RTP_SyncSourceId firstInDirection = 0;
   RTP_SyncSourceId firstWithPackets = 0;
   for (it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
@@ -727,7 +727,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
 
   /* For audio we do not do statistics on start of talk burst as that
       could be a substantial time and is not useful, so we only calculate
-      when the marker bit os off.
+      when the marker bit is off.
 
       For video we measure jitter between whole video frames which is
       normally indicated by the marker bit being on, but this is unreliable,
@@ -1087,7 +1087,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
 
   // We are receiving retransmissions in this SSRC, so don't do things like
   // extracting header extension data, as that will be handled when
-  // OnReceiveRetransmit() execute this functiona gain on the primary SSRC
+  // OnReceiveRetransmit() execute this function again on the primary SSRC
   if (IsRtx())
     return OnReceiveRetransmit(frame, now);
 
@@ -3311,7 +3311,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendTemporalSpatialTradeOff(un
     P_INSTRUMENTED_LOCK_READ_ONLY(return e_AbortTransport);
 
     if (!(m_feedback&OpalMediaFormat::e_TSTR)) {
-      PTRACE(3, *this << "remote not capable of Temporal/Spatial Tradeoff (TSTR)");
+      PTRACE(3, *this << "remote not capable of Temporal/Spatial Trade Off (TSTR)");
       return e_IgnorePacket;
     }
 
@@ -3634,7 +3634,7 @@ void OpalRTPSession::SetSinglePortTx(bool singlePortTx)
 #ifdef IP_PMTUDISC_DO
   /* We cannot do MTU if only have one local socket (m_singlePortRx true) and
      we need to send to two different remote ports (m_singlePortTx false) as
-     the MTU discovery rquiresw a socket connect() which prevents sendto()
+     the MTU discovery requires a socket connect() which prevents sendto()
      from working as desired. */
   transport->SetDiscoverMTU((m_singlePortRx && !m_singlePortTx) ? -1 : IP_PMTUDISC_DO);
 #endif
@@ -3791,7 +3791,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::WriteData(RTP_DataFrame & fram
 {
   /* Note, copy to local safe pointer before the lock, so if is closed and
      destroyed via this pointer going out of scope, we avoid a deadlock as
-     it is dstroyed after the lock is released. */
+     it is destroyed after the lock is released. */
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
   if (transport == NULL) {
     PTRACE(2, *this << "could not write data frame, no transport");
@@ -3846,7 +3846,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::WriteControl(RTP_ControlFrame 
 {
   /* Note, copy to local safe pointer before the lock, so if is closed and
      destroyed via this pointer going out of scope, we avoid a deadlock as
-     it is dstroyed after the lock is released. */
+     it is destroyed after the lock is released. */
   OpalMediaTransportPtr transport = m_transport;
   if (transport == NULL) {
     PTRACE(2, *this << "could not write control frame, no transport");

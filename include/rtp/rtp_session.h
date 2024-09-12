@@ -61,7 +61,7 @@ class RTP_MetricsReport;
    values are handled.
       "any" = Allow any SSRC to be received,
       "first" = Accept first incoming SSRC, and ignore all others,
-      "preset" = Accept only those values explcitly preset by AddSyncSource()
+      "preset" = Accept only those values explicitly preset by AddSyncSource()
    Default "any".
   */
 #define OPAL_OPT_RTP_ALLOW_SSRC "RTP-Allow-SSRC"
@@ -96,7 +96,7 @@ class RTP_MetricsReport;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-/**This class is for encpsulating the IETF Real Time Protocol interface.
+/**This class is for encapsulating the IETF Real Time Protocol interface.
    This embodies an "RTP Session" as defined by RFC7656.
  */
 class OpalRTPSession : public OpalMediaSession
@@ -158,7 +158,7 @@ class OpalRTPSession : public OpalMediaSession
      */
     RTP_SyncSourceId GetControlSyncSource() const { return IsAudio() ? 0xfa17fa17 : 1; }
 
-    /** Add a syncronisation source.
+    /** Add a synchronisation source.
         If no call is made to this function, then the first sent/received
         RTP_DataFrame packet will set the SSRC for the session.
         if \p id is zero then a new random SSRC is generated.
@@ -186,7 +186,7 @@ class OpalRTPSession : public OpalMediaSession
       */
     RTP_SyncSourceId EnableSyncSourceRtx(
       RTP_SyncSourceId primarySSRC,      ///< Primary SSRC of data that can be retransmitted
-      RTP_DataFrame::PayloadTypes rtxPT, ///< Payload type of retramitted packet
+      RTP_DataFrame::PayloadTypes rtxPT, ///< Payload type of retransmitted packet
       RTP_SyncSourceId rtxSSRC           ///< SSRC of re-transmitted data, 0 indicates allocate new one
     );
 
@@ -195,14 +195,14 @@ class OpalRTPSession : public OpalMediaSession
       */
     void FinaliseSyncSourceRtx(
       RTP_DataFrame::PayloadTypes primaryPT, ///< Payload type of primary sync source
-      RTP_DataFrame::PayloadTypes rtxPT,     ///< Payload type of retransmiitted packet
+      RTP_DataFrame::PayloadTypes rtxPT,     ///< Payload type of retransmitted packet
       OpalRTPSession::Direction dir          ///< Media direction
     );
 
 
     enum SendReceiveStatus {
       e_IgnorePacket = -1,
-      e_AbortTransport, // Abort is zero so equvalent to false
+      e_AbortTransport, // Abort is zero so equivalent to false
       e_ProcessPacket
     };
 
@@ -246,7 +246,7 @@ class OpalRTPSession : public OpalMediaSession
       const PIPSocketAddressAndPort * remote = NULL  ///< Alternate address to transmit control frame
     );
 
-    /**Get the local host name as used in SDES packes.
+    /**Get the local host name as used in SDES packets.
       */
     virtual PString GetLocalHostName();
 
@@ -271,7 +271,7 @@ class OpalRTPSession : public OpalMediaSession
     #define PCREATE_RTPDataNotifier(fn)       PCREATE_NOTIFIER2(fn, OpalRTPSession::Data &)
 
     /** Set the notifier for received RTP data.
-        Note an SSRC of zero usually means first SSRC, in this case it measn all SSRC's
+        Note an SSRC of zero usually means first SSRC, in this case it means all SSRC's
       */
     void AddDataNotifier(
       unsigned priority,
@@ -384,10 +384,10 @@ class OpalRTPSession : public OpalMediaSession
       vector<FecLevel> m_level;
     };
 
-    /// Get the RFC 2198 redundent data payload type
+    /// Get the RFC 2198 redundant data payload type
     RTP_DataFrame::PayloadTypes GetRedundencyPayloadType() const { return m_redundencyPayloadType; }
 
-    /// Set the RFC 2198 redundent data payload type
+    /// Set the RFC 2198 redundant data payload type
     void SetRedundencyPayloadType(RTP_DataFrame::PayloadTypes pt) { m_redundencyPayloadType = pt; }
 
     /// Get the RFC 5109 Uneven Level Protection Forward Error Correction payload type
@@ -399,7 +399,7 @@ class OpalRTPSession : public OpalMediaSession
     /// Get the RFC 5109 transmit level (number of packets that can be lost)
     unsigned GetUlpFecSendLevel() const { return m_ulpFecSendLevel; }
 
-    /// Set the RFC 2198 redundent data payload type
+    /// Set the RFC 2198 redundant data payload type
     void SetUlpFecSendLevel(unsigned level) { m_ulpFecSendLevel = level; }
 #endif // OPAL_RTP_FEC
 
@@ -429,7 +429,7 @@ class OpalRTPSession : public OpalMediaSession
     */
     void SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
 
-    /**Find the SSRC for the  the BUNDLE media id (mid).
+    /**Find the SSRC for the BUNDLE media id (mid).
        See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     */
     RTP_SyncSourceId FindBundleMediaId(const PString & id, Direction dir);
