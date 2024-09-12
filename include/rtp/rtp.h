@@ -258,7 +258,7 @@ class RTP_ControlFrame : public PBYTEArray
 #endif
 
 
-    enum DescriptionTypes {
+    P_DECLARE_TRACED_ENUM(DescriptionTypes,
       e_END,
       e_CNAME,
       e_NAME,
@@ -274,9 +274,8 @@ class RTP_ControlFrame : public PBYTEArray
       e_RtpStreamId,         // https://www.iana.org/go/draft-ietf-avtext-rid
       e_RepairedRtpStreamId, // https://www.iana.org/go/draft-ietf-avtext-rid
       e_CCID,                // https://www.iana.org/go/draft-ietf-clue-rtp-mapping
-      e_MID,                 // https://www.iana.org/go/draft-ietf-mmusic-sdp-bundle-negotiation
-      NumDescriptionTypes
-    };
+      e_MID                  // https://www.iana.org/go/draft-ietf-mmusic-sdp-bundle-negotiation
+    );
 
     struct SourceDescription {
       PUInt32b src;       /* first SSRC/CSRC */

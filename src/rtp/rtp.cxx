@@ -727,19 +727,10 @@ void RTP_DelayLastReceiverReport::PrintOn(ostream & strm) const
 
 void RTP_SourceDescription::PrintOn(ostream & strm) const
 {
-  static const char * const DescriptionNames[RTP_ControlFrame::NumDescriptionTypes] = {
-    "END", "CNAME", "NAME", "EMAIL", "PHONE", "LOC", "TOOL", "NOTE", "PRIV"
-  };
-
   strm << "\n  SSRC=" << RTP_TRACE_SRC(sourceIdentifier);
   for (POrdinalToString::const_iterator it = items.begin(); it != items.end(); ++it) {
-    unsigned typeNum = it->first;
-    strm << "\n    item[" << typeNum << "]: type=";
-    if (typeNum < PARRAYSIZE(DescriptionNames))
-      strm << DescriptionNames[typeNum];
-    else
-      strm << typeNum;
-    strm << " data=\"" << it->second << '"';
+    PString type = RTP_ControlFrame::DescriptionTypesToString(RTP_ControlFrame::DescriptionTypes((unsigned)it->first));
+    strm << "\n    " << type.Replace("e_", "") << '=' << it->second.ToLiteral();
   }
 }
 #endif // PTRACING
