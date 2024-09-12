@@ -230,6 +230,8 @@ RTP_SyncSourceId OpalRTPSession::OnSyncSourceCollision(RTP_SyncSourceId oldSSRC)
   PTRACE(3, *this << "collision on SSRC " << RTP_TRACE_SRC(oldSSRC) << " changing to " << RTP_TRACE_SRC(newSSRC));
   m_SSRC[newSSRC] = it->second;
   m_SSRC.erase(it);
+  if (m_defaultSSRC[e_Sender] == oldSSRC)
+    m_defaultSSRC[e_Sender] = newSSRC;
   return newSSRC;
 }
 
