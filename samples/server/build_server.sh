@@ -4,7 +4,6 @@ set -e
 
 MINOR_VERSION=20
 INSTALLDIR=/usr/local
-export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 
 USAGE=true
 BOOTSTRAP=false
@@ -79,30 +78,44 @@ if $BOOTSTRAP; then
     if which apt > /dev/null 2> /dev/null; then
 	if [ $(lsb_release --release --short) \< "22.04" ]; then
     	    sudo apt install \
-    		g++ git make autoconf libpcap-dev libexpat-dev libssl1.0-dev \
-    		libsasl2-dev libldap-dev unixodbc-dev liblua5.3-dev libv8-dev \
-    		libncurses-dev libsdl2-dev libavformat-dev libswscale-dev \
-    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgsm1-dev \
-    		libspeex-dev libopus-dev libavcodec-dev libx264-dev libvpx-dev \
-    		libtheora-dev libspandsp-dev capiutils dahdi festival-dev libsrtp2-dev
+    		g++ git make autoconf swig \
+                libncurses-dev libpcap-dev libexpat-dev libssl1.0-dev \
+                libsasl2-dev libldap-dev unixodbc-dev libsdl2-dev \
+                liblua5.3-dev libv8-dev \
+                libavcodec-dev libavformat-dev libswscale-dev \
+    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    		libgsm1-dev libspeex-dev libopus-dev \
+                libx264-dev libvpx-dev \ libtheora-dev libspandsp-dev \
+                capiutils dahdi festival-dev libsrtp2-dev
 	else
     	    sudo apt install \
-    		g++ git make autoconf libpcap-dev libexpat1-dev libssl-dev \
-    		libsasl2-dev libldap-dev unixodbc-dev liblua5.3-dev libnode-dev \
-    		libncurses-dev libsdl2-dev libavformat-dev libswscale-dev \
-    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgsm1-dev \
-    		libspeex-dev libopus-dev libavcodec-dev libx264-dev libvpx-dev \
-    		libtheora-dev libspandsp-dev dahdi festival-dev libsrtp2-dev
+    		g++ git make autoconf swig \
+                libncurses-dev libpcap-dev libexpat1-dev libssl-dev \
+                libsasl2-dev libldap-dev unixodbc-dev libsdl2-dev \
+                liblua5.3-dev libnode-dev \
+    		libavcodec-dev libavformat-dev libswscale-dev \
+    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+                libgsm1-dev libspeex-dev libopus-dev \
+                libx264-dev libvpx-dev libtheora-dev libspandsp-dev \
+                dahdi festival-dev libsrtp2-dev
 	fi
     elif which yum > /dev/null 2> /dev/null; then
         sudo yum-config-manager --enable epel
     	sudo yum install \
-    		gcc-c++ git make autoconf libpcap-devel expat-devel openssl-devel \
-    		cyrus-sasl-devel openldap-devel unixODBC-devel lua-devel v8-devel \
-    		ncurses-devel SDL2-devel libavformat-devel libswscale-devel \
-    		gstreamer1.0-devel gstreamer-plugins-base1.0-devel gsm-devel \
-    		speex-devel opus-devel avcodec-devel x264-devel libvpx-devel \
-    		theora-devel libspandsp-devel capiutils dahdi festival-devel
+    		gcc-c++ git make autoconf \
+                ncurses-devel libpcap-devel expat-devel openssl-devel \
+                cyrus-sasl-devel openldap-devel unixODBC-devel SDL2-devel \
+                lua-devel v8-devel \
+    		avcodec-devel libavformat-devel libswscale-devel \
+    		gstreamer1.0-devel gstreamer-plugins-base1.0-devel \
+                gsm-devel speex-devel opus-devel \
+                x264-devel libvpx-devel theora-devel libspandsp-devel \
+                capiutils dahdi festival-devel libsrtp
+    elif which brew > /dev/null 2> /dev/null; then
+        brew install \
+    		autoconf libpcap expat openssl@3 cyrus-sasl openldap unixodbc \
+                ffmpeg gstreamer libgsm speex opus x264 libvpx theora spandsp \
+                lua v8 sdl2
     else
     	echo "What OS is this? No apt or yum!"
     	exit 1
@@ -134,6 +147,9 @@ fi
 if $NO_INSTALL; then
     export PTLIBDIR=`pwd`/ptlib
     export OPALDIR=`pwd`/opal
+    export PKG_CONFIG_PATH=$PTLIBDIR:$OPALDIR
+else
+    export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 fi
 
 if $CLEAN; then
