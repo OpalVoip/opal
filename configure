@@ -8472,6 +8472,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lsrtp2" >&6;}
       LIBS="-lsrtp2 $LIBS"
 
 
+
+                           SRTP_LIBS=-lsrtp2
+
                            usable=yes
 
 else case e in #(
@@ -8503,6 +8506,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for SRTP protocol support" >&5
 printf "%s\n" "$as_me: Using internal source for SRTP protocol support" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for SRTP protocol support: SRTP_CFLAGS=$SRTP_CFLAGS SRTP_LIBS=$SRTP_LIBS" >&5
+printf "%s\n" "$as_me: Using system for SRTP protocol support: SRTP_CFLAGS=$SRTP_CFLAGS SRTP_LIBS=$SRTP_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -8826,6 +8835,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -lzrtpi -lbn" >&6;}
       LIBS="-lzrtpi -lbn $LIBS"
 
+
+
+                           ZRTP_LIBS=-lzrtpi -lbn
 
                            usable=yes
 
@@ -9159,6 +9171,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lspeexdsp" >&6;}
       LIBS="-lspeexdsp $LIBS"
 
 
+
+                           SPEEXDSP_LIBS=-lspeexdsp
+
                            usable=yes
 
 else case e in #(
@@ -9190,6 +9205,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for Speex DSP support" >&5
 printf "%s\n" "$as_me: Using internal source for Speex DSP support" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for Speex DSP support: SPEEXDSP_CFLAGS=$SPEEXDSP_CFLAGS SPEEXDSP_LIBS=$SPEEXDSP_LIBS" >&5
+printf "%s\n" "$as_me: Using system for Speex DSP support: SPEEXDSP_CFLAGS=$SPEEXDSP_CFLAGS SPEEXDSP_LIBS=$SPEEXDSP_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -9613,6 +9634,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lcapi" >&6;}
       LIBS="-lcapi $LIBS"
 
 
+
+                           CAPI_LIBS=-lcapi
+
                            usable=yes
 
 else case e in #(
@@ -9989,6 +10013,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -ljdk" >&6;}
       LIBS="-ljdk $LIBS"
 
+
+
+                           JAVA_LIBS=-ljdk
 
                            usable=yes
 
@@ -10374,6 +10401,10 @@ printf "%s\n" "$as_me: Adding CPPFLAGS: \`ruby -e 'puts $:.join(\" -I\")'\`" >&6
 printf "%s\n" "$as_me: Adding LIBS: -lruby" >&6;}
       LIBS="-lruby $LIBS"
 
+
+                           RUBY_CFLAGS=`ruby -e 'puts $:.join(" -I")'`
+
+                           RUBY_LIBS=-lruby
 
                            usable=yes
 
@@ -12576,6 +12607,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -ltonezone" >&6;}
       LIBS="-ltonezone $LIBS"
 
+
+
+                           DAHDI_LIBS=-ltonezone
 
                            usable=yes
 

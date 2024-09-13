@@ -43,6 +43,8 @@ LOCAL_SOURCES := $(SRCDIR)/gsm_create.c \
 
 LOCAL_CPPFLAGS = -I$(CURDIR)/inc -DWAV49 -DNeedFunctionPrototypes=1
 
+PLUGIN_LIBS = $(GSM_LIBS)
+
 INSTALL_DIR = $(AUD_PLUGIN_DIR)
 include $(dir $(lastword $(MAKEFILE_LIST)))../../plugin_inc.mak
 
