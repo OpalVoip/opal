@@ -8866,6 +8866,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lgsm" >&6;}
       LIBS="-lgsm $LIBS"
 
 
+
+                           GSM_LIBS=-lgsm
+
                            usable=yes
 
 else case e in #(
@@ -8897,6 +8900,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for GSM 06.10 audio codec" >&5
 printf "%s\n" "$as_me: Using internal source for GSM 06.10 audio codec" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for GSM 06.10 audio codec: GSM_CFLAGS=$GSM_CFLAGS GSM_LIBS=$GSM_LIBS" >&5
+printf "%s\n" "$as_me: Using system for GSM 06.10 audio codec: GSM_CFLAGS=$GSM_CFLAGS GSM_LIBS=$GSM_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -9243,6 +9252,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lilbc" >&6;}
       LIBS="-lilbc $LIBS"
 
 
+
+                           ILBC_LIBS=-lilbc
+
                            usable=yes
 
 else case e in #(
@@ -9274,6 +9286,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for iLBC audio codec" >&5
 printf "%s\n" "$as_me: Using internal source for iLBC audio codec" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for iLBC audio codec: ILBC_CFLAGS=$ILBC_CFLAGS ILBC_LIBS=$ILBC_LIBS" >&5
+printf "%s\n" "$as_me: Using system for iLBC audio codec: ILBC_CFLAGS=$ILBC_CFLAGS ILBC_LIBS=$ILBC_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -9623,6 +9641,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lspeex" >&6;}
       LIBS="-lspeex $LIBS"
 
 
+
+                           SPEEX_LIBS=-lspeex
+
                            usable=yes
 
 else case e in #(
@@ -9654,6 +9675,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for Speex audio codec" >&5
 printf "%s\n" "$as_me: Using internal source for Speex audio codec" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for Speex audio codec: SPEEX_CFLAGS=$SPEEX_CFLAGS SPEEX_LIBS=$SPEEX_LIBS" >&5
+printf "%s\n" "$as_me: Using system for Speex audio codec: SPEEX_CFLAGS=$SPEEX_CFLAGS SPEEX_LIBS=$SPEEX_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -9984,6 +10011,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -lsamplerate" >&6;}
       LIBS="-lsamplerate $LIBS"
 
+
+
+                           SBC_LIBS=-lsamplerate
 
                            usable=yes
 
@@ -10621,6 +10651,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lopus" >&6;}
       LIBS="-lopus $LIBS"
 
 
+
+                           OPUS_LIBS=-lopus
+
                            usable=yes
 
 else case e in #(
@@ -10652,6 +10685,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for Opus Interactive Audio Codec" >&5
 printf "%s\n" "$as_me: Using internal source for Opus Interactive Audio Codec" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for Opus Interactive Audio Codec: OPUS_CFLAGS=$OPUS_CFLAGS OPUS_LIBS=$OPUS_LIBS" >&5
+printf "%s\n" "$as_me: Using system for Opus Interactive Audio Codec: OPUS_CFLAGS=$OPUS_CFLAGS OPUS_LIBS=$OPUS_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -11042,6 +11081,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lavutil" >&6;}
       LIBS="-lavutil $LIBS"
 
 
+
+                           LIBAVUTIL_LIBS=-lavutil
+
                            usable=yes
 
 else case e in #(
@@ -11340,6 +11382,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lswresample" >&6;}
       LIBS="-lswresample $LIBS"
 
 
+
+                           LIBSWRESAMPLE_LIBS=-lswresample
+
                            usable=yes
 
 else case e in #(
@@ -11637,6 +11682,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -lavcodec" >&6;}
       LIBS="-lavcodec $LIBS"
 
+
+
+                           LIBAVCODEC_LIBS=-lavcodec
 
                            usable=yes
 
@@ -12230,6 +12278,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lx264" >&6;}
       LIBS="-lx264 $LIBS"
 
 
+
+                           X264_LIBS=-lx264
+
                            usable=yes
 
 else case e in #(
@@ -12655,6 +12706,10 @@ printf "%s\n" "$as_me: Adding LIBS: -lopenh264 -lpthread
     $LIBS"
 
 
+
+                           OPENH264_LIBS=-lopenh264 -lpthread
+
+
                            usable=yes
 
 else case e in #(
@@ -12686,6 +12741,12 @@ then :
                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using internal source for Cisco Open H.264 video codec" >&5
 printf "%s\n" "$as_me: Using internal source for Cisco Open H.264 video codec" >&6;}
 
+else case e in #(
+  e)
+               { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using system for Cisco Open H.264 video codec: OPENH264_CFLAGS=$OPENH264_CFLAGS OPENH264_LIBS=$OPENH264_LIBS" >&5
+printf "%s\n" "$as_me: Using system for Cisco Open H.264 video codec: OPENH264_CFLAGS=$OPENH264_CFLAGS OPENH264_LIBS=$OPENH264_LIBS" >&6;}
+             ;;
+esac
 fi
 
 
@@ -13024,6 +13085,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -lvpx" >&6;}
       LIBS="-lvpx $LIBS"
 
+
+
+                           VP8_LIBS=-lvpx
 
                            usable=yes
 
@@ -13372,6 +13436,9 @@ printf "%s\n" "$as_me: Adding LIBS: -ltheora -logg" >&6;}
       LIBS="-ltheora -logg $LIBS"
 
 
+
+                           THEORA_LIBS=-ltheora -logg
+
                            usable=yes
 
 else case e in #(
@@ -13715,6 +13782,9 @@ printf "%s\n" "$as_me: Adding LIBS: -lvpb" >&6;}
       LIBS="-lvpb $LIBS"
 
 
+
+                           VPB_LIBS=-lvpb
+
                            usable=yes
 
 else case e in #(
@@ -14057,6 +14127,9 @@ then :
 printf "%s\n" "$as_me: Adding LIBS: -lspandsp" >&6;}
       LIBS="-lspandsp $LIBS"
 
+
+
+                           SPANDSP_LIBS=-lspandsp
 
                            usable=yes
 

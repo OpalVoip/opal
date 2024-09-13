@@ -223,6 +223,8 @@ AC_DEFUN([MY_MODULE_OPTION],[
                         [$8],
                         [
                            MY_ADD_FLAGS([$6], [$5])
+                           AC_SUBST($1[_CFLAGS], $5)
+                           AC_SUBST($1[_LIBS], $6)
                            usable=yes
                         ],
                         [usable=no]
@@ -247,6 +249,9 @@ AC_DEFUN([MY_MODULE_OPTION],[
                $1[_CFLAGS]=
                $1[_LIBS]=
                AC_MSG_NOTICE(Using internal source for $3)
+            ],
+            [
+               AC_MSG_NOTICE(Using system for $3: $1[_CFLAGS]=$[$1[_CFLAGS]] $1[_LIBS]=$[$1[_LIBS]])
             ])
          ])
       ])
