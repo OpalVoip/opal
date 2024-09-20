@@ -299,7 +299,7 @@ class OpalMediaCryptoKeyInfo : public PObject
     OpalMediaCryptoKeyInfo(const OpalMediaCryptoSuite & cryptoSuite) : m_cryptoSuite(cryptoSuite) { }
 
   public:
-    virtual ~OpalMediaCryptoKeyInfo() { }
+    virtual void PrintOn(ostream & strm) const override;
 
     virtual bool IsValid() const = 0;
     virtual void Randomise() = 0;

@@ -227,7 +227,8 @@ RTP_SyncSourceId OpalRTPSession::OnSyncSourceCollision(RTP_SyncSourceId oldSSRC)
   it->second->m_firstPacketTime.SetCurrentTime(); // Make sure certain header extensions are resent
 
   RTP_SyncSourceId newSSRC = transport->NewSyncSource(GetSessionID());
-  PTRACE(3, *this << "collision on SSRC " << RTP_TRACE_SRC(oldSSRC) << " changing to " << RTP_TRACE_SRC(newSSRC));
+  PTRACE(3, *this << "collision on SSRC " << RTP_TRACE_SRC(oldSSRC) << " changing to " << RTP_TRACE_SRC(newSSRC)
+                  << (m_defaultSSRC[e_Sender] == oldSSRC ? " (new default)" : ""));
   m_SSRC[newSSRC] = it->second;
   m_SSRC.erase(it);
   if (m_defaultSSRC[e_Sender] == oldSSRC)
