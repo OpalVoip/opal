@@ -525,6 +525,14 @@ void OpalMediaStatistics::ToJSON(PJSON::Object & json) const
 
 /////////////////////////////////////////////////////////////////////////////
 
+void OpalMediaCryptoKeyInfo::PrintOn(ostream & strm) const
+{
+  strm << '{' << m_cryptoSuite << " Info:" << ToString() << '}';
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+
 const PCaselessString & OpalMediaCryptoSuite::ClearText() { static const PConstCaselessString s("Clear"); return s; }
 
 void OpalMediaCryptoSuite::PrintOn(ostream & strm) const

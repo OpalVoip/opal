@@ -546,8 +546,8 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
       PTRACE(3, *this << "crypto key for " << dir << " already set.");
       return true;
     }
-    PTRACE(3, *this << "changing crypto keys from \"" << m_keyInfo[dir]->GetCryptoSuite() << "\""
-                       " to \"" << keyInfo.GetCryptoSuite() << "\" for " << dir);
+    PTRACE(3, *this << "changing crypto keys from " << *m_keyInfo[dir]
+                    << " to " << keyInfo << " for " << dir);
     delete m_keyInfo[dir];
 
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
@@ -561,7 +561,7 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
     }
   }
   else {
-    PTRACE(3, *this << "setting crypto keys (" << keyInfo.GetCryptoSuite() << ") for " << dir);
+    PTRACE(3, *this << "setting crypto keys " << keyInfo << " for " << dir);
   }
 
   m_keyInfo[dir] = new OpalSRTPKeyInfo(*srtpKeyInfo);
@@ -612,6 +612,22 @@ RTP_SyncSourceId OpalSRTPSession::AddSyncSource(RTP_SyncSourceId ssrc, Direction
 
   RemoveSyncSource(ssrc PTRACE_PARAM(, "Could not add SRTP stream"));
   return 0;
+}
+
+RTP_SyncSourceId OpalSRTPSession::OnSyncSourceCollision(RTP_SyncSourceId ssrc)
+{
+  // Already locked on entry
+
+  RTP_SyncSourceId newSSRC = OpalRTPSession::OnSyncSourceCollision(ssrc);
+  if (newSSRC == 0 || !AddStreamToSRTP(newSSRC, e_Sender))
+    return 0;
+
+  if (m_addedStream.erase(ssrc) > 0) {
+    srtp_remove_stream(m_context, ssrc);
+    PTRACE(4, *this << "removed SRTP stream for collision SSRC=" << RTP_TRACE_SRC(ssrc));
+  }
+
+  return newSSRC;
 }
 
 

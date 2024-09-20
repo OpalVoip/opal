@@ -138,6 +138,7 @@ class OpalSRTPSession : public OpalRTPSession
 
     virtual bool Open(const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
     virtual RTP_SyncSourceId AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname = NULL) override;
+    virtual RTP_SyncSourceId OnSyncSourceCollision(RTP_SyncSourceId ssrc) override;
 
     virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now) override;
     virtual SendReceiveStatus OnSendControl(RTP_ControlFrame & frame, const PTime & now) override;
