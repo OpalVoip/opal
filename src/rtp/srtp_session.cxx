@@ -602,11 +602,6 @@ RTP_SyncSourceId OpalSRTPSession::AddSyncSource(RTP_SyncSourceId ssrc, Direction
 
   P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
-  if (m_keyInfo[dir] == NULL) {
-    PTRACE(3, *this << "could not add SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc) << ", no " << dir << " key (yet)");
-    return ssrc;
-  }
-
   if (AddStreamToSRTP(ssrc, dir))
     return ssrc;
 
@@ -638,6 +633,11 @@ bool OpalSRTPSession::AddStreamToSRTP(RTP_SyncSourceId ssrc, Direction dir)
   if (m_addedStream.find(ssrc) != m_addedStream.end()) {
     PTRACE(4, *this << "already have " << dir << " SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc));
     return true;
+  }
+
+  if (m_keyInfo[dir] == NULL) {
+    PTRACE(3, *this << "could not add SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc) << ", no " << dir << " key (yet)");
+    return true; // Not an error, just not ready yet
   }
 
   // Get policy, create blank one if needed
