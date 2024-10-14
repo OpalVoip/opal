@@ -2148,6 +2148,7 @@ void SIPConnection::OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & r
           info.SetAt("result", "failed");
           info.SetAt("party", "A");
           info.SetAt("code", psprintf("%u", response.GetStatusCode()));
+          info.SetAt("reason", GetCallEndReasonFromResponse(response.GetStatusCode()).AsInteger());
           OnTransferNotify(info, this);
         }
         else if (response.GetStatusCode() >= 200) {
@@ -2613,6 +2614,7 @@ void SIPConnection::OnReceivedReINVITE(SIP_PDU & request)
     if (m_ciscoRemotePartyID == newRemotePartyID) {
       // We did a REFER but remote address did not change party-ID
       info.SetAt("result", "failed");
+      info.SetAt("reason", CallEndReason(EndedByNoUser).AsInteger());
     }
     else {
       // We did a REFER and remote address did change party-ID
