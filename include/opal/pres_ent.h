@@ -594,9 +594,8 @@ class OpalPresentityWithCommandThread : public OpalPresentity
     struct WorkItem
     {
       PSafePtr<OpalPresentity> m_owner;
-      OpalPresentityCommand * m_command;
+      PAutoPtr<OpalPresentityCommand> m_command;
       WorkItem(OpalPresentityWithCommandThread * owner, OpalPresentityCommand * command);
-      ~WorkItem();
       void Work();
     };
 };
@@ -605,7 +604,9 @@ class OpalPresentityWithCommandThread : public OpalPresentity
 
 /**Abstract class for all OpelPresentity commands.
   */
-class OpalPresentityCommand {
+class OpalPresentityCommand : public PObject
+{
+    PCLASSINFO(OpalPresentityCommand, PObject);
   public:
     OpalPresentityCommand(bool responseNeeded = false) 
       : m_sequence(0)

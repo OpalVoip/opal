@@ -604,14 +604,12 @@ OpalPresentityWithCommandThread::WorkItem::WorkItem(OpalPresentityWithCommandThr
 }
 
 
-OpalPresentityWithCommandThread::WorkItem::~WorkItem()
+void OpalPresentityWithCommandThread::WorkItem::Work()
 {
-  delete m_command;
-}
-
-
-void OpalPresentityWithCommandThread::WorkItem::Work() {
+  PTRACE_CONTEXT_ID_PUSH_THREAD(m_owner);
+  PTRACE(4, PTraceModule(), "Processing: " << *m_command);
   m_command->Process(*m_owner);
+  PTRACE(4, PTraceModule(), "Processed: " << *m_command);
 }
 
 #endif // OPAL_HAS_PRESENCE
