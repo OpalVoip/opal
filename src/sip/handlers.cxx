@@ -548,6 +548,11 @@ void SIPHandler::OnExpireTimeout()
         return;
       break;
 
+    case Unsubscribing:
+      PTRACE(2, "Timed out waiting for unsubscribe completion");
+      SetState(Unsubscribed);
+      return;
+
     case Unavailable :
       PTRACE(2, "Starting " << GetMethod() << " for offline retry");
       if (SendRequest(Restoring))
@@ -1119,15 +1124,20 @@ void SIPSubscribeHandler::UpdateParameters(const SIPSubscribe::Params & params)
 
 void SIPSubscribeHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response)
 {
+  m_dialog.Update(response);
+
+  /* When unsubscribing we co-opt the expire timer as a fail safe in case we
+     never receive the NOTIFY(terminated) message. */
+  if (GetState() == Unsubscribing)
+    m_expireTimer = m_sipEndpoint.GetNonInviteTimeout();
+  else {
   /* An "expire" parameter in the Contact header has no semantics
    * for SUBSCRIBE. RFC3265, 3.1.1.
    * An answer can only shorten the expires time.
    */
-  SetExpire(response.GetMIME().GetExpires(m_originalExpireTime));
-  m_dialog.Update(response);
-
-  if (GetState() != Unsubscribing)
+    SetExpire(response.GetMIME().GetExpires(m_originalExpireTime));
     SIPHandler::OnReceivedOK(transaction, response);
+  }
 }
 
 
