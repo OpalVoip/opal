@@ -315,6 +315,7 @@
     <ClInclude Include="precompile.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="build_server.sh" />
     <None Include="main_menu.vxml" />
     <None Include="messages.bin" />
     <None Include="opalsrv.ico" />

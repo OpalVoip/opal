@@ -96,8 +96,8 @@ if $BOOTSTRAP; then
     		libavcodec-dev libavformat-dev libswscale-dev \
     		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
                 libgsm1-dev libspeex-dev libopus-dev \
-                libx264-dev libvpx-dev libtheora-dev libspandsp-dev \
-                dahdi festival-dev libsrtp2-dev
+                libx264-dev libopenh264-dev libvpx-dev libtheora-dev \
+                libspandsp-dev libsrtp2-dev dahdi festival-dev
 	fi
     elif which yum > /dev/null 2> /dev/null; then
         sudo yum-config-manager --enable epel
