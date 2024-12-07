@@ -604,15 +604,19 @@ class OpalPresentityWithCommandThread : public OpalPresentity
 
 /**Abstract class for all OpelPresentity commands.
   */
-class OpalPresentityCommand : public PObject
+class OpalPresentityCommand
 {
-    PCLASSINFO(OpalPresentityCommand, PObject);
   public:
     OpalPresentityCommand(bool responseNeeded = false) 
       : m_sequence(0)
       , m_responseNeeded(responseNeeded)
     { }
     virtual ~OpalPresentityCommand() { }
+
+    friend ostream & operator<<(ostream & strm, const OpalPresentityCommand & cmd)
+    {
+      return strm << typeid(const_cast<OpalPresentityCommand &>(cmd)).name();
+    }
 
     /**Function to process the command.
        This typically calls functions on the concrete OpalPresentity class.

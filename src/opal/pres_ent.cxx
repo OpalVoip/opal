@@ -607,9 +607,9 @@ OpalPresentityWithCommandThread::WorkItem::WorkItem(OpalPresentityWithCommandThr
 void OpalPresentityWithCommandThread::WorkItem::Work()
 {
   PTRACE_CONTEXT_ID_PUSH_THREAD(m_owner);
-  PTRACE(4, PTraceModule(), "Processing: " << *m_command);
+  PTRACE(4, NULL, PTraceModule(), "Processing: " << *m_command);
   m_command->Process(*m_owner);
-  PTRACE(4, PTraceModule(), "Processed: " << *m_command);
+  PTRACE(4, NULL, PTraceModule(), "Processed: " << *m_command);
 }
 
 #endif // OPAL_HAS_PRESENCE
