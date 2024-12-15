@@ -274,7 +274,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     /** Get the privacy types for information that should not be propagated
         outside of the stack.
       */
-    virtual PrivacyTypes GetPrivacyTypes() const;
+    virtual PrivacyTypes GetPrivacyTypes() const override;
 
     /**Initiate the transfer of an existing call (connection) to a new remote
        party.

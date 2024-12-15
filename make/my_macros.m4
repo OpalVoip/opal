@@ -368,7 +368,7 @@ AC_DEFUN([MY_OUTPUT_SUMMARY],[
 
 dnl ##################################################################
 
-dnl Now the common stuff, checks for stuffwe always use
+dnl Now the common stuff, checks for stuff we always use
 
 PKG_PROG_PKG_CONFIG()
 AS_VAR_SET_IF([PKG_CONFIG], , AC_MSG_ERROR(pkg-config is required, 1))
@@ -402,6 +402,7 @@ AS_CASE([$enable_ios],
       AC_MSG_ERROR([Unknown iOS variant ${enable_ios} - use either iphone or simulator])
 )
 
+AC_MSG_NOTICE([Platform: $target_os release $target_release on $target_cpu])
 
 dnl Set up compiler by platform
 oldCFLAGS="$CFLAGS"
@@ -467,12 +468,13 @@ AC_SUBST(STATICLIBEXT, "a")
 AC_SUBST(DEBUGINFOEXT, "debug")
 AC_SUBST(ARFLAGS, "rc")
 
-
-dnl Check for latest and greatest
-AC_SUBST(CPLUSPLUS_STD,"-std=c++03")
+dnl Check for latest and greatest, minimum of C++11
+AC_SUBST(CPLUSPLUS_STD,"-std=c++11")
 AC_ARG_ENABLE(cpp11, AS_HELP_STRING([--enable-cpp11],[Enable C++11 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++11"))
 AC_ARG_ENABLE(cpp14, AS_HELP_STRING([--enable-cpp14],[Enable C++14 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++14"))
 AC_ARG_ENABLE(cpp17, AS_HELP_STRING([--enable-cpp17],[Enable C++17 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++17"))
+AC_ARG_ENABLE(cpp20, AS_HELP_STRING([--enable-cpp20],[Enable C++20 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++20"))
+AC_ARG_ENABLE(cpp23, AS_HELP_STRING([--enable-cpp23],[Enable C++23 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++23"))
 
 
 case "$target_os" in
@@ -508,9 +510,13 @@ case "$target_os" in
    ;;
 
    darwin* )
+      AC_MSG_CHECKING("checking Darwin configuration")
       target_os=Darwin
       target_release=`xcodebuild -showsdks | sed -n 's/.* macosx\(.*\)/\1/p' | sort | tail -n 1`
-      AS_VAR_SET_IF([target_release], , AC_MSG_ERROR([Unable to determine iOS release number]))
+      if test -z $target_release ; then
+        AC_MSG_ERROR([cannot get OSX target release using 'xcodebuild -showsdks'. Please reinstall XCode command line tools])
+      fi
+      AS_VAR_SET_IF([target_release],, AC_MSG_ERROR([Unable to determine iOS release number]))
       AS_VAR_IF([target_cpu],[arm],[target_cpu=arm64])
 
       CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS"

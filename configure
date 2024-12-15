@@ -844,6 +844,8 @@ enable_ios
 enable_cpp11
 enable_cpp14
 enable_cpp17
+enable_cpp20
+enable_cpp23
 enable_graviton2
 enable_force32
 enable_deprecated
@@ -1565,6 +1567,8 @@ Optional Features:
   --enable-cpp11          Enable C++11 build
   --enable-cpp14          Enable C++14 build
   --enable-cpp17          Enable C++17 build
+  --enable-cpp20          Enable C++20 build
+  --enable-cpp23          Enable C++23 build
   --enable-graviton2      Optimise compiler for Graviton2 processor
   --enable-force32        Force 32-bit x86 build
   --enable-deprecated     Generate compiler warnings about deprecated
@@ -3734,6 +3738,8 @@ case $enable_ios in #(
  ;;
 esac
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Platform: $target_os release $target_release on $target_cpu" >&5
+printf "%s\n" "$as_me: Platform: $target_os release $target_release on $target_cpu" >&6;}
 
 oldCFLAGS="$CFLAGS"
 oldCXXFLAGS="$CXXFLAGS"
@@ -6385,8 +6391,7 @@ DEBUGINFOEXT="debug"
 ARFLAGS="rc"
 
 
-
-CPLUSPLUS_STD="-std=c++03"
+CPLUSPLUS_STD="-std=c++11"
 
 # Check whether --enable-cpp11 was given.
 if test ${enable_cpp11+y}
@@ -6406,6 +6411,20 @@ fi
 if test ${enable_cpp17+y}
 then :
   enableval=$enable_cpp17; CPLUSPLUS_STD="-std=c++17"
+
+fi
+
+# Check whether --enable-cpp20 was given.
+if test ${enable_cpp20+y}
+then :
+  enableval=$enable_cpp20; CPLUSPLUS_STD="-std=c++20"
+
+fi
+
+# Check whether --enable-cpp23 was given.
+if test ${enable_cpp23+y}
+then :
+  enableval=$enable_cpp23; CPLUSPLUS_STD="-std=c++23"
 
 fi
 
@@ -6449,8 +6468,13 @@ fi
    ;;
 
    darwin* )
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking \"checking Darwin configuration\"" >&5
+printf %s "checking \"checking Darwin configuration\"... " >&6; }
       target_os=Darwin
       target_release=`xcodebuild -showsdks | sed -n 's/.* macosx\(.*\)/\1/p' | sort | tail -n 1`
+      if test -z $target_release ; then
+        as_fn_error $? "cannot get OSX target release using 'xcodebuild -showsdks'. Please reinstall XCode command line tools" "$LINENO" 5
+      fi
       if test ${target_release+y}
 then :
 
