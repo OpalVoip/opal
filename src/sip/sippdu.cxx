@@ -1909,7 +1909,7 @@ PBoolean SIPNTLMAuthentication::Authorise(SIP_PDU & pdu) const
 {
   PBYTEArray type1;
   ConstructType1Message(type1);
-  pdu.GetMIME().SetAt(isProxy ? "Proxy-Authorization" : "Authorization", AsHex(type1));
+  pdu.GetMIME().SetAt(IsProxy() ? "Proxy-Authorization" : "Authorization", AsHex(type1));
 
   return false;
 }
