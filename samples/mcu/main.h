@@ -40,6 +40,31 @@ struct MyMixerNodeInfo : public OpalMixerNodeInfo
 };
 
 
+#if OPAL_VIDEO
+
+class MyVideoMixer : public OpalVideoStreamMixer
+{
+  PCLASSINFO(MyVideoMixer, OpalVideoStreamMixer)
+public:
+  MyVideoMixer(OpalMixerNode & node);
+
+  virtual bool GetMixPosition(
+    const PString & id,
+    bool firstStream,
+    MixPosition & pos
+  ) override;
+
+  typedef std::list<PSafePtr<OpalConnection>> OrderedConnections;
+
+private:
+  OrderedConnections m_order;
+  typedef std::map<PString, MixPosition> MixPositions;
+  MixPositions m_positions;
+};
+
+#endif // OPAL_VIDEO
+
+
 class MyMixerConnection : public OpalMixerConnection
 {
     PCLASSINFO(MyMixerConnection, OpalMixerConnection);
@@ -92,6 +117,10 @@ class MyMixerEndPoint : public OpalMixerEndPoint
     bool CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount);
 
     MyManager & m_manager;
+
+#if OPAL_VIDEO
+    virtual OpalVideoStreamMixer * CreateVideoMixer(OpalMixerNode & node) override;
+#endif // OPAL_VIDEO
 };
 
 

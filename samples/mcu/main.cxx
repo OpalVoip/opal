@@ -288,9 +288,9 @@ void MyMixerEndPoint::CmdConfListen(PCLI::Arguments & args, P_INT_PTR)
   if (!CmdConfXXX(args, node, 1))
     return;
 
-  for (PINDEX i = 0; i < node->GetConnectionCount(); ++i) {
-    PSafePtr<OpalConnection> connection = node->GetConnection(i, PSafeReadOnly);
-    if (connection && connection->GetCall().GetPartyB().NumCompare("pc:") == EqualTo) {
+  PSafeArray<OpalConnection> connections = node->GetConnections();
+  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
+    if (connection->GetCall().GetPartyB().NumCompare("pc:") == EqualTo) {
       connection->Release();
       args.GetContext() << "Stopped listening to conference " << *node << endl;
       return;
@@ -312,9 +312,9 @@ void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
   if (!CmdConfXXX(args, node, 2))
     return;
 
-  for (PINDEX i = 0; i < node->GetConnectionCount(); ++i) {
-    PSafePtr<OpalConnection> connection = node->GetConnection(i, PSafeReadOnly);
-    if (connection && connection->GetCall().GetPartyB().NumCompare("ivr:") == EqualTo)
+  PSafeArray<OpalConnection> connections = node->GetConnections();
+  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
+    if (connection->GetCall().GetPartyB().NumCompare("ivr:") == EqualTo)
       connection->Release();
   }
 
@@ -400,12 +400,11 @@ void MyMixerEndPoint::CmdMemberList(PCLI::Arguments & args, P_INT_PTR)
     return;
 
   ostream & out = args.GetContext();
-  for (PINDEX i = 0; i < node->GetConnectionCount(); ++i) {
-    PSafePtr<OpalConnection> connection = node->GetConnection(i, PSafeReadOnly);
-    if (connection)
-      out << connection->GetToken() << ' '
-          << connection->GetRemotePartyURL() << " \""
-          << connection->GetRemotePartyName() << '"' << '\n';
+  PSafeArray<OpalConnection> connections = node->GetConnections();
+  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
+    out << connection->GetToken() << ' '
+        << connection->GetRemotePartyURL() << " \""
+        << connection->GetRemotePartyName() << '"' << '\n';
   }
   out.flush();
 }
@@ -427,9 +426,9 @@ void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
     return;
 
   PCaselessString name = args[1];
-  for (PINDEX i = 0; i < node->GetConnectionCount(); ++i) {
-    PSafePtr<OpalConnection> connection = node->GetConnection(i, PSafeReadOnly);
-    if (connection && name == connection->GetRemotePartyName()) {
+  PSafeArray<OpalConnection> connections = node->GetConnections();
+  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
+    if (name == connection->GetRemotePartyName()) {
       connection->ClearCall();
       args.GetContext() << "Removed member using name \"" << name << '"' << endl;
       return;
@@ -476,6 +475,102 @@ bool MyMixerConnection::SendUserInputString(const PString & value)
 
   return OpalMixerConnection::SendUserInputString(value);
 }
+
+#if OPAL_VIDEO
+
+OpalVideoStreamMixer * MyMixerEndPoint::CreateVideoMixer(OpalMixerNode & node)
+{
+  return new MyVideoMixer(node);
+}
+
+
+MyVideoMixer::MyVideoMixer(OpalMixerNode & node)
+  : OpalVideoStreamMixer(node)
+{
+}
+
+
+#if PTRACING
+ostream & operator<<(ostream & strm, const MyVideoMixer::OrderedConnections & connections)
+{
+  bool comma = false;
+  for (MyVideoMixer::OrderedConnections::const_iterator connection = connections.begin();
+       connection != connections.end(); ++connection)
+  {
+    if (comma)
+      strm << ", ";
+    else
+      comma = true;
+    strm << *connection;
+  }
+  return strm;
+}
+#endif
+
+
+bool MyVideoMixer::GetMixPosition(const PString & id, bool firstStream, MixPosition & pos)
+{
+  if (m_style != eUser)
+    return OpalVideoStreamMixer::GetMixPosition(id, firstStream, pos);
+
+  if (firstStream) {
+#if PTRACING
+    bool changed = false;
+#endif
+
+    // Calculate all the positions on first stream. First we need to maintain
+    // an order of connections based on last active speaker.
+    PSafeArray<OpalConnection> connections = m_node.GetConnections();
+    for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
+      if (std::find(m_order.begin(), m_order.end(), &*connection) == m_order.end()) {
+        m_order.push_back(&*connection);
+#if PTRACING
+        changed = true;
+#endif
+      }
+    }
+
+    PString activeSpeaker = m_node.GetActiveSpeakerURL();
+    if ((*m_order.begin())->GetRemotePartyURL() != activeSpeaker) {
+      for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ++connection) {
+        if ((*connection)->GetRemotePartyURL() == activeSpeaker) {
+          m_order.push_front(*connection);
+          m_order.erase(connection);
+#if PTRACING
+          changed = true;
+#endif
+          break;
+        }
+      }
+    }
+
+    PTRACE(3, "Order of connections changed: " << m_order);
+
+    // Now calculate positions for each video stream based on the above order
+    m_positions.clear();
+    for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ++connection) {
+      OpalMediaStreamPtr videoStream = (*connection)->GetMediaStream(OpalMediaType::Video(), false);
+      if (videoStream == NULL)
+        continue;
+
+      // We use the base class function to calculate the position in a simple NxN grid
+      if (!OpalVideoMixer::GetMixPosition(PString::Empty(),
+                                          connection == m_order.begin(),
+                                          m_positions[videoStream->GetID()]))
+        break;
+    }
+  }
+
+  // Return the pre-calculated positions as the mixer asks for each stream to position
+  MixPositions::const_iterator it = m_positions.find(id);
+  if (it == m_positions.end())
+    return false;
+
+  pos = it->second;
+  return true;
+}
+
+#endif // OPAL_VIDEO
 
 #else
 

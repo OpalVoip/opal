@@ -164,7 +164,6 @@ class OpalBaseMixer : public PSmartObject
 
   protected:
     struct Stream : public PObject {
-      virtual ~Stream() { }
       virtual void QueuePacket(const RTP_DataFrame & rtp) = 0;
       std::queue<RTP_DataFrame> m_queue;
     };
@@ -206,7 +205,8 @@ class OpalAudioMixer : public OpalBaseMixer
       bool stereo = false,    ///< Indicate stero or mixed mono mode
       unsigned sampleRate = OpalMediaFormat::AudioClockRate, ///< Sample rate for audio, default 8kHz
       bool pushThread = true, ///< Indicate push thread is to be used
-      unsigned period = 10    ///< Period for push/pull of audio from mixer in milliseconds
+      unsigned period = 10,   ///< Period for push/pull of audio from mixer in milliseconds
+      const PTimeInterval & activeSpakerDeadband = 0 ///< Period for active speaker detection
     );
 
     ~OpalAudioMixer() { StopPushThread(); }
@@ -254,23 +254,23 @@ class OpalAudioMixer : public OpalBaseMixer
     struct AudioStream : public Stream
     {
       AudioStream(OpalAudioMixer & mixer);
-      ~AudioStream();
 
       virtual void QueuePacket(const RTP_DataFrame & rtp);
       const short * GetAudioDataPtr();
 
       OpalAudioMixer   & m_mixer;
-      OpalJitterBuffer * m_jitter;
+      PAutoPtr<OpalJitterBuffer> m_jitter;
       unsigned           m_nextTimestamp;
       PShortArray        m_cacheSamples;
       size_t             m_samplesUsed;
+      OpalSilenceDetector::CalculateDB m_dbCalculator;
     };
 
     virtual Stream * CreateStream() override;
     virtual bool MixStreams(RTP_DataFrame & frame) override;
     virtual size_t GetOutputSize() const override;
 
-    void PreMixStreams();
+    bool PreMixStreams(); // Return value is active speaker changed
     void MixStereo(RTP_DataFrame & frame);
     void MixAdditive(RTP_DataFrame & frame, const short * audioToSubtract);
 
@@ -281,6 +281,10 @@ class OpalAudioMixer : public OpalBaseMixer
     AudioStream    * m_left;
     AudioStream    * m_right;
     std::vector<int> m_mixedAudio;
+
+    Key_T         m_activeSpeakerKey;
+    PTimeInterval m_activeSpeakerDeadband;
+    PTimeInterval m_activeSpeakerTime;
 };
 
 
@@ -317,6 +321,7 @@ class OpalVideoMixer : public OpalBaseMixer
                                  ratio. e.g. for CIF inputs, output would be 352x576. */
       eGrid,                /**< Standard 2x2, 3x3, 4x4 grid pattern. Size of grid is
                                  dependent on the number of video streams. */
+      eActiveSpeaker,       /**< Active speaker is full size, all others are suppressed. */
       eUser                 /**< User defined */
     };
 
@@ -357,12 +362,23 @@ class OpalVideoMixer : public OpalBaseMixer
       unsigned height   ///< new height
     );
 
-  protected:
+    /** Get the current active speaker for eActiveSpeaker mode.
+      */
+    virtual Key_T GetActiveSpeaker() const;
+
+    struct MixPosition
+    {
+      MixPosition() : x(0), y(0), w(0), h(0) { }
+      MixPosition(unsigned _x, unsigned _y, unsigned _w, unsigned _h) : x(_x), y(_y), w(_w), h(_h) { }
+      unsigned x, y, w, h;
+    };
+
+protected:
     struct VideoStream : public Stream
     {
       VideoStream(OpalVideoMixer & mixer);
       virtual void QueuePacket(const RTP_DataFrame & rtp);
-      void InsertVideoFrame(unsigned x, unsigned y, unsigned w, unsigned h);
+      void InsertVideoFrame(const MixPosition & pos);
 
       OpalVideoMixer & m_mixer;
     };
@@ -374,9 +390,12 @@ class OpalVideoMixer : public OpalBaseMixer
     virtual size_t GetOutputSize() const override;
 
     virtual bool MixVideo();
-    virtual bool StartMix(unsigned & x, unsigned & y, unsigned & w, unsigned & h, unsigned & left);
-    virtual bool NextMix(unsigned & x, unsigned & y, unsigned & w, unsigned & h, unsigned & left);
-    void InsertVideoFrame(const StreamMap_T::iterator & it, unsigned x, unsigned y, unsigned w, unsigned h);
+
+    virtual bool GetMixPosition(
+      const PString & id,
+      bool firstStream,
+      MixPosition & pos
+    );
 
   protected:
     Styles     m_style;
@@ -385,6 +404,11 @@ class OpalVideoMixer : public OpalBaseMixer
 
     PBYTEArray m_frameStore;
     size_t     m_lastStreamCount;
+
+    unsigned   m_mixLeftStartPosition;
+
+  P_REMOVE_VIRTUAL(bool,StartMix(unsigned&,unsigned&,unsigned&,unsigned&,unsigned&),false);
+  P_REMOVE_VIRTUAL(bool,NextMix(unsigned&,unsigned&,unsigned&,unsigned&,unsigned&),false);
 };
 
 #endif // OPAL_VIDEO
@@ -395,7 +419,7 @@ class OpalVideoMixer : public OpalBaseMixer
 
 /**Base class for OpalMixerNode options.
    The user may derive from this class, making sure they implement the Clone()
-   funciton, to add extra options for use by their OpalMixerNode derived class.
+   function, to add extra options for use by their OpalMixerNode derived class.
   */
 struct OpalMixerNodeInfo
 {
@@ -412,6 +436,7 @@ struct OpalMixerNodeInfo
     , m_rate(15)
 #endif
     , m_mediaPassThru(false)
+    , m_activeSpeakerDeadband(0, 2) // Default to 2 seconds
   { }
 
   virtual ~OpalMixerNodeInfo() { }
@@ -431,6 +456,8 @@ struct OpalMixerNodeInfo
 #endif
   bool     m_mediaPassThru;       /**< Enable media pass through to optimise mixer node
                                        with precisely two attached connections. */
+
+  PTimeInterval m_activeSpeakerDeadband; ///< Dead band time for active speaker switching
 
   PString m_displayText;          ///< Human readable text for conference name
   PString m_subject;              ///< Subject for conference
@@ -557,11 +584,11 @@ class OpalMixerNodeManager
     );
 
     /// Create the instance of the audio mixer
-    virtual OpalAudioStreamMixer * CreateAudioMixer(const OpalMixerNodeInfo & info);
+    virtual OpalAudioStreamMixer * CreateAudioMixer(OpalMixerNode & node);
 
 #if OPAL_VIDEO
     /// Create the instance of the video mixer
-    virtual OpalVideoStreamMixer * CreateVideoMixer(const OpalMixerNodeInfo & info);
+    virtual OpalVideoStreamMixer * CreateVideoMixer(OpalMixerNode & node);
 #endif
 
     /// Get manager
@@ -570,8 +597,8 @@ class OpalMixerNodeManager
 
   protected:
     OpalManager & m_manager;
-    typedef PSafeDictionary<PGloballyUniqueID, OpalMixerNode> NodesByUID;
-    NodesByUID m_nodesByUID;
+    typedef PSafeDictionary<PGloballyUniqueID, OpalMixerNode> NodesByGUID;
+    NodesByGUID m_nodesByGUID;
     typedef PSafeDictionary<PString, OpalMixerNode> NodesByName;
     NodesByName m_nodesByName;
 };
@@ -1039,12 +1066,14 @@ class OpalMixerMediaStream : public OpalMediaStream
 class OpalMediaStreamMixer
 {
   public:
-    OpalMediaStreamMixer();
+    OpalMediaStreamMixer(OpalMixerNode & node);
     void Append(const PSafePtr<OpalMixerMediaStream> & stream);
     void Remove(const PSafePtr<OpalMixerMediaStream> & stream) { m_outputStreams.RemoveAt(stream->GetID()); }
     void CloseOne(const PSafePtr<OpalMixerMediaStream> & stream);
 
   protected:
+    OpalMixerNode & m_node;
+
     typedef PSafeDictionary<PString, OpalMixerMediaStream> StreamDict;
     StreamDict m_outputStreams;
 };
@@ -1056,7 +1085,7 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
 {
     PCLASSINFO(OpalAudioStreamMixer, OpalAudioMixer);
   public:
-    OpalAudioStreamMixer(const OpalMixerNodeInfo & info);
+    OpalAudioStreamMixer(OpalMixerNode & node);
     ~OpalAudioStreamMixer();
 
     virtual bool OnPush() override;
@@ -1064,15 +1093,16 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
   protected:
     struct CachedAudio
     {
-      CachedAudio();
-      ~CachedAudio();
-      enum
-      {
+      CachedAudio()
+        : m_state(Collecting)
+      { }
+
+      enum {
         Collecting, Collected, Completed
       } m_state;
-      RTP_DataFrame    m_raw;
-      RTP_DataFrame    m_encoded;
-      OpalTranscoder * m_transcoder;
+      RTP_DataFrame m_raw;
+      RTP_DataFrame m_encoded;
+      PAutoPtr<OpalTranscoder> m_transcoder;
     };
     std::map<PString, CachedAudio> m_cache;
 
@@ -1100,11 +1130,12 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
 {
     PCLASSINFO(OpalVideoStreamMixer, OpalVideoMixer);
   public:
-    OpalVideoStreamMixer(const OpalMixerNodeInfo & info);
+    OpalVideoStreamMixer(OpalMixerNode & node);
     ~OpalVideoStreamMixer();
 
     virtual bool SetFrameRate(unsigned rate) override;
     virtual bool OnMixed(RTP_DataFrame * & output) override;
+    virtual Key_T GetActiveSpeaker() const override;
 
   protected:
     typedef PDictionary<PString, OpalTranscoder> TranscoderMap;
@@ -1214,7 +1245,7 @@ class OpalMixerNode : public PSafeObject
        is directly a part of. If the connection type does not embody a
        conference then false is returned.
 
-       The \p state parameter, if non-NULL, is illed with the state of the
+       The \p state parameter, if non-NULL, is filled with the state of the
        conference. When NULL, this just indicates that the connection is
        part of a conference with the return value.
 
@@ -1249,30 +1280,23 @@ class OpalMixerNode : public PSafeObject
     );
 
     /**Get count of connections.
-       Note that as this value can change ata any moent, it is really not
+       Note that as this value can change at any moment, it is really not
        that useful and should definitely not be used for enumeration of the
        connections.
       */
     PINDEX GetConnectionCount() const { return m_connections.GetSize(); }
 
-    /**Get first connection in the connections list as type.
+    /**Get connections in the mixer node
       */
-    template <class Subclass>
-    PSafePtr<Subclass> GetConnectionAs(
-      PINDEX idx,
-      PSafetyMode mode = PSafeReference
-    ) const { return m_connections.GetAt(idx, mode); }
+    PSafeArray<OpalConnection> GetConnections() const { return m_connections; }
 
-    /**Get first connection in the connections list.
+    /**Get connections in the mixer node
       */
-    PSafePtr<OpalConnection> GetConnection(
-      PINDEX idx,
-      PSafetyMode mode = PSafeReference
-    ) const { return m_connections.GetAt(idx, mode); }
+    PSafePtr<OpalConnection> GetConnectionFromStreamId(const PString & id) const;
 
     /**Get the raw audio accumulation buffer.
      */
-    const OpalMixerNodeInfo & GetNodeInfo() { return *m_info; }
+    const OpalMixerNodeInfo & GetNodeInfo() const { return *m_info; }
 
     /**Get the creation time of the node.
      */
@@ -1285,29 +1309,47 @@ class OpalMixerNode : public PSafeObject
        disconnected.
       */
     void SetOwnerConnection(
-      const PString & connectionIdentifier
-    ) { m_ownerConnection = connectionIdentifier; }
+      const PString & connectionIdentifier  // Connection for owner of the node
+    );
+
+    /** Set the active speaker stream identifier.
+      */
+    virtual void SetActiveSpeaker(
+      const PString & streamId    /// OpalMediaStream identifier for active speaker
+    );
+
+    /** Get the active speaker stream identifier.
+      */
+    PString GetActiveSpeakerStreamId() const;
+
+    /** Get the active speaker connection URL.
+      */
+    PString GetActiveSpeakerURL() const;
   //@}
 
   protected:
-    OpalMixerNodeManager & m_manager;
-    PGloballyUniqueID      m_guid;
-    PStringSet             m_names;
-    OpalMixerNodeInfo    * m_info;
-    PTime                  m_creationTime;
-    atomic<bool>           m_shuttingDown;
+    OpalMixerNodeManager  & m_manager;
+    const PGloballyUniqueID m_guid;
+    PStringSet              m_names;
+    const PTime             m_creationTime;
+    atomic<bool>            m_shuttingDown;
+
+    const PAutoPtr<OpalMixerNodeInfo> m_info;
 
     PSafeArray<OpalConnection> m_connections;
     PString                    m_ownerConnection;
 
-    OpalAudioStreamMixer * m_audioMixer;
+    PAutoPtr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO
-    typedef std::map<OpalVideoFormat::ContentRole, OpalVideoStreamMixer *> VideoMixerMap;
+    typedef std::map<OpalVideoFormat::ContentRole, PAutoPtr<OpalVideoStreamMixer>> VideoMixerMap;
     VideoMixerMap m_videoMixers;
 #endif // OPAL_VIDEO
 
     typedef std::map<PString, OpalBaseMixer *> MixerByIdMap;
     MixerByIdMap m_mixerById;
+
+    PString m_activeSpeakerStreamId;
+    PString m_activeSpeakerURL;
 };
 
 

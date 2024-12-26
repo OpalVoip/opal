@@ -72,6 +72,7 @@ public:
     : m_active(true)
     , m_locked(false)
     , m_maxUsers(0)
+    , m_activeSpeaker(-1)
   { }
 
   enum ChangeType {
@@ -79,6 +80,7 @@ public:
     Destroyed,
     UserAdded,
     UserRemoved,
+    ActiveSpeakerChanged,
     NumChangeTypes
   };
   friend ostream & operator<<(ostream & strm, ChangeType type);
@@ -116,7 +118,9 @@ public:
     PStringSet m_roles;           ///< Role for user, e.g. "participant".
   };
   typedef std::vector<User> Users;
-  Users m_users;
+  Users m_users;                  ///< All users in the conference
+  int m_activeSpeaker;            /**< Index into m_users for active speaker,
+                                       -1 indicates no active speaker */
 
 #if P_EXPAT
   /** Optional XML as per RFC 4575 "application/conference-info+xml".
