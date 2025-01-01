@@ -1148,7 +1148,7 @@ void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patc
       m_filterMediaFormat = mediaFormat;
 
       if (isSource && m_silenceDetector != NULL) {
-        m_silenceDetector->SetParameters(m_endpoint.GetManager().GetSilenceDetectParams(), mediaFormat.GetClockRate());
+        m_silenceDetector->SetParameters(m_silenceDetector->GetParameters(), mediaFormat.GetClockRate());
         patch.AddFilter(m_silenceDetector->GetReceiveHandler(), mediaFormat);
         PTRACE(4, "Added silence detect filter on connection " << *this << ", patch " << patch);
       }

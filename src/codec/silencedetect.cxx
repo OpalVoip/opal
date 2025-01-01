@@ -155,8 +155,7 @@ public:
 
     switch (m_owner.m_params.m_mode) {
       case NoSilenceDetection :
-        m_lastResult = VoiceActive;
-        m_levelThreshold = INT_MAX;
+        m_levelThreshold = MaxAudioLevel;
         break;
 
       case FixedSilenceDetection :
@@ -183,7 +182,7 @@ public:
 
   void Reset()
   {
-    m_lastResult = VoiceInactive;
+    m_lastResult = m_owner.m_params.m_mode != NoSilenceDetection ? VoiceInactive : VoiceActive;
     m_initialiseThreshold = m_initialiseTimestamps = true;
     m_shortTerm.Reset();
     m_longTerm.Reset();

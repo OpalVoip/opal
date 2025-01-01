@@ -100,9 +100,19 @@ class PURL;
 #define OPAL_OPT_RECORD_AUDIO         "Record-Audio"          ///< String option to start recording to a file for call
 #define OPAL_OPT_REMOVE_CODEC         "Remove-Codec"          ///< String option to remove codecs for this call
 
-/**OpalConnection::StringOption key to an enum indicating that silence
-   detection on the sound recording is to be executed.
-   Default false.
+/**OpalConnection::StringOption key to parameters for silence detection on the
+   sound recording is to be executed. It consists of comma separated integers
+   for:
+      mode
+      threshold
+      signalDeadband
+      silenceDeadband
+      adaptivePeriod
+      shortTermPeriod
+      longTermPeriod
+    See OpalSilenceDetector for more info.
+
+   Default empty string, so uses defaults for all parameters.
   */
 #define OPAL_OPT_SILENCE_DETECT_MODE  "Silence-Detect"
 
@@ -1763,7 +1773,10 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     /**Determine if remote presentation of Caller-ID is to be blocked.
        Applies to an outgoing call to a "network" based endpoint type.
-       Corresponds to Q.931 Calling-Party-Number Information Elementin H.323.
+
+       Corresponds to Q.931 Calling-Party-Number Information Element
+       in H.323.
+
        Will remove display name for SIP.
       */
     virtual bool IsPresentationBlocked() const;
