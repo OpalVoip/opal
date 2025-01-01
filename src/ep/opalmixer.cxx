@@ -914,7 +914,7 @@ PSafePtr<OpalConnection> OpalMixerEndPoint::MakeConnection(OpalCall & call,
     OpalMixerNodeInfo * info = FindNodeInfo(name);
     if (info == NULL)
       info = m_adHocNodeInfo.get();
-      node = AddNode(*info);
+    node = AddNode(*info);
   }
 
   if (node == NULL) {

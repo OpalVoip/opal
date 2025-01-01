@@ -500,9 +500,9 @@ int OpalSilenceDetector::CalculateDB::Finalise()
 
   /* Ensure that the calculated level is within the minimum and maximum range
      permitted. */
-  if (db < MinAudioLevel)
+  if (db < double(MinAudioLevel))
     return MinAudioLevel;
-  if (db > MaxAudioLevel)
+  if (db > double(MaxAudioLevel))
     return MaxAudioLevel;
   return (int)rint(db);
 }
