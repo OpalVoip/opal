@@ -1150,6 +1150,11 @@ void OpalCall::SetPartyNames()
       if (!dest.IsEmpty() && dest != "*")
         m_partyB = connectionA->GetCalledPartyURL();
     }
+    else {
+      connectionA->CopyPartyNames(*connectionB);
+      connectionB->CopyPartyNames(*connectionA);
+    }
+
     if (m_partyB.IsEmpty())
       m_partyB = connectionB->GetLocalPartyURL();
     m_nameB = connectionB->GetDisplayName();

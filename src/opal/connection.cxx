@@ -1683,7 +1683,7 @@ PString OpalConnection::GetRemotePartyURL() const
   if (!m_remotePartyName.IsEmpty())
     return MakeURL(GetPrefixName(), m_remotePartyName);
 
-  return MakeURL(GetPrefixName(), "*");
+  return MakeURL(GetPrefixName(), "id=" + GetIdentifier());
 }
 
 
@@ -1693,19 +1693,32 @@ PString OpalConnection::GetCalledPartyURL()
 }
 
 
+static void CopyIfNotEmpty(PString & to, const PString & from)
+{
+  if (to.empty() && !from.empty())
+    to = from;
+}
+
 void OpalConnection::CopyPartyNames(const OpalConnection & other)
 {
   if (IsNetworkConnection()) {
     SetLocalPartyName(m_endpoint.StripPrefixName(other.GetEndPoint().StripPrefixName(other.GetRemoteIdentity())));
     m_displayName = other.GetRemotePartyName();
   }
-  else {
+  else if (other.IsNetworkConnection()) {
     m_remotePartyName = other.GetRemotePartyName();
     m_remotePartyNumber = other.GetRemotePartyNumber();
     m_remotePartyURL = other.GetRemotePartyURL();
     m_calledPartyName = other.GetCalledPartyName();
     m_calledPartyNumber = other.GetCalledPartyNumber();
     m_remoteProductInfo = other.GetRemoteProductInfo();
+  }
+  else {
+    CopyIfNotEmpty(m_remotePartyName, other.GetRemotePartyName());
+    CopyIfNotEmpty(m_remotePartyNumber, other.GetRemotePartyNumber());
+    CopyIfNotEmpty(m_remotePartyURL, other.GetRemotePartyURL());
+    CopyIfNotEmpty(m_calledPartyName, other.GetCalledPartyName());
+    CopyIfNotEmpty(m_calledPartyNumber, other.GetCalledPartyNumber());
   }
 }
 
