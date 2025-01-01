@@ -1265,8 +1265,8 @@ bool OpalMixerMediaStream::CheckMixedVideoSize(unsigned width, unsigned height)
 OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
                              const OpalMixerNodeInfo & info)
   : m_manager(manager)
-  , m_info(info.Clone())
   , m_shuttingDown(false)
+  , m_info(info.Clone())
   , m_audioMixer(manager.CreateAudioMixer(*this))
 {
   PTRACE_CONTEXT_ID_NEW();
