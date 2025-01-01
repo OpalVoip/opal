@@ -839,9 +839,7 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
   PSYSTEMLOG(Info, "Configuring MCU");
   {
     OpalMixerEndPoint * mcuEP = FindEndPointAs<OpalMixerEndPoint>(OPAL_PREFIX_MIXER);
-    OpalMixerNodeInfo adHoc;
-    if (mcuEP->GetAdHocNodeInfo() != NULL)
-      adHoc = *mcuEP->GetAdHocNodeInfo();
+    OpalMixerNodeInfoDefault adHoc = mcuEP->GetAdHocNodeInfo();
     adHoc.m_mediaPassThru = rsrc->AddBooleanField(ConfMediaPassThruKey, adHoc.m_mediaPassThru, "Conference media pass though optimisation");
 
 #if OPAL_VIDEO

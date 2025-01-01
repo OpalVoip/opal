@@ -75,14 +75,13 @@ public:
     , m_activeSpeaker(-1)
   { }
 
-  enum ChangeType {
+  P_DECLARE_TRACED_ENUM(ChangeType,
     Created,
     Destroyed,
     UserAdded,
     UserRemoved,
-    ActiveSpeakerChanged,
-    NumChangeTypes
-  };
+    ActiveSpeakerChanged
+  );
   friend ostream & operator<<(ostream & strm, ChangeType type);
 
   PString  m_internalURI;         ///< Internal URI, e.g. mcu:5e6f7347-dcd6-e011-9853-0026b9b946a5
@@ -611,7 +610,7 @@ class OpalManager : public PObject, public OpalCertificateInfo
                  destination had a valid protocol, eg h323:fred.com, then
                  the entire string is replaced not just the <da> part.
 
-         <db>    Same as <da>, but without the special condtion.
+         <db>    Same as <da>, but without the special condition.
 
          <du>    Copy the "user" part of the "b_party" string. This is
                  essentially the component after the : and before the '@', or

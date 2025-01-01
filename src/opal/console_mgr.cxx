@@ -1107,7 +1107,7 @@ bool OpalConsoleLineEndPoint::Initialise(PArgList & args, bool verbose, const PS
   OpalManagerConsole::LockedStream lockedOutput(m_console);
   ostream & output = lockedOutput;
 
-  // If we have LIDs speficied in command line, load them
+  // If we have LIDs specified in command line, load them
   if (args.HasOption("no-lid")) {
     if (verbose)
       output << "PSTN disabled.\n";
@@ -1918,7 +1918,7 @@ bool OpalConsoleMixerEndPoint::Initialise(PArgList & args, bool verbose, const P
     return true;
   }
 
-  OpalMixerNodeInfo adHoc;
+  OpalMixerNodeInfoDefault adHoc;
 #if OPAL_VIDEO
   adHoc.m_audioOnly = args.HasOption("audio-only");
 #endif

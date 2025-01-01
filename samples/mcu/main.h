@@ -34,6 +34,7 @@ class MyMixerEndPoint;
 
 struct MyMixerNodeInfo : public OpalMixerNodeInfo
 {
+  MyMixerNodeInfo(const PArgList & args, const char * name = NULL);
   virtual OpalMixerNodeInfo * Clone() const { return new MyMixerNodeInfo(*this); }
 
   PString m_moderatorPIN;
@@ -47,6 +48,7 @@ class MyVideoMixer : public OpalVideoStreamMixer
   PCLASSINFO(MyVideoMixer, OpalVideoStreamMixer)
 public:
   MyVideoMixer(OpalMixerNode & node);
+  ~MyVideoMixer() { StopPushThreadOnDestruction(); }
 
   virtual bool GetMixPosition(
     const PString & id,
@@ -101,7 +103,7 @@ class MyMixerEndPoint : public OpalMixerEndPoint
     ) override;
 
     virtual OpalMixerNode * CreateNode(
-      OpalMixerNodeInfo * info ///< Initial info for node
+      const OpalMixerNodeInfo & info ///< Initial info for node
     ) override;
 
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfAdd);
@@ -109,18 +111,22 @@ class MyMixerEndPoint : public OpalMixerEndPoint
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfRemove);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfRecord);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfPlay);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfListen);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfMonitor);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberAdd);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberList);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberRemove);
 
     bool CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount);
 
-    MyManager & m_manager;
-
 #if OPAL_VIDEO
     virtual OpalVideoStreamMixer * CreateVideoMixer(OpalMixerNode & node) override;
 #endif // OPAL_VIDEO
+
+  private:
+    MyManager & m_manager;
+    PString m_monitorToken;
+
+  friend bool MyMixerConnection::SendUserInputString(const PString & value);
 };
 
 

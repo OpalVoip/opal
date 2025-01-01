@@ -148,12 +148,6 @@ class OpalBaseMixer : public PSmartObject
       */
     virtual bool OnPush();
 
-    /**Stop the push thread.
-       This will wait for th epush thread to terminate, so care must be taken
-       to avoid deadlocks when calling.
-      */
-    void StopPushThread(bool lock = true);
-
     /**Get the period for mixing in milliseconds.
       */
     unsigned GetPeriodMS() const { return m_periodMS; }
@@ -174,6 +168,7 @@ class OpalBaseMixer : public PSmartObject
     virtual size_t GetOutputSize() const = 0;
 
     void PushThreadMain();
+    void StopPushThreadOnDestruction();
 
     bool      m_pushThread;      // true if to use a thread to push data out
     unsigned  m_periodMS;        // Mixing interval in milliseconds
@@ -202,14 +197,14 @@ class OpalAudioMixer : public OpalBaseMixer
     PCLASSINFO(OpalAudioMixer, OpalBaseMixer);
   public:
     OpalAudioMixer(
-      bool stereo = false,    ///< Indicate stero or mixed mono mode
+      bool stereo = false,    ///< Indicate stereo or mixed mono mode
       unsigned sampleRate = OpalMediaFormat::AudioClockRate, ///< Sample rate for audio, default 8kHz
       bool pushThread = true, ///< Indicate push thread is to be used
       unsigned period = 10,   ///< Period for push/pull of audio from mixer in milliseconds
       const PTimeInterval & activeSpakerDeadband = 0 ///< Period for active speaker detection
     );
 
-    ~OpalAudioMixer() { StopPushThread(); }
+    ~OpalAudioMixer() { StopPushThreadOnDestruction(); }
 
     /** Remove an input stream from mixer.
       */
@@ -333,7 +328,7 @@ class OpalVideoMixer : public OpalBaseMixer
       bool pushThread = true  ///< A push thread is to be created
     );
 
-    ~OpalVideoMixer() { StopPushThread(); }
+    ~OpalVideoMixer() { StopPushThreadOnDestruction(); }
 
     /**Get output video frame width.
       */
@@ -441,7 +436,8 @@ struct OpalMixerNodeInfo
 
   virtual ~OpalMixerNodeInfo() { }
 
-  virtual OpalMixerNodeInfo * Clone() const { return new OpalMixerNodeInfo(*this); }
+  // Make sure derived classes implement this function
+  virtual OpalMixerNodeInfo * Clone() const = 0;
 
   PString  m_name;                ///< Name for mixer node.
   bool     m_closeOnEmpty;        ///< Mixer node is removed when last participant exits
@@ -465,6 +461,16 @@ struct OpalMixerNodeInfo
   PString m_keywords;             ///< Space separated list of keywords for conference
 };
 
+struct OpalMixerNodeInfoDefault : public OpalMixerNodeInfo
+{
+  OpalMixerNodeInfoDefault(const char * name = NULL)
+    : OpalMixerNodeInfo(name)
+  { }
+  OpalMixerNodeInfoDefault(const OpalMixerNodeInfo& other)
+    : OpalMixerNodeInfo(other)
+  { }
+  virtual OpalMixerNodeInfo * Clone() const { return new OpalMixerNodeInfoDefault(*this); }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -512,7 +518,7 @@ class OpalMixerNodeManager
        owned by the node. NULL can be passed if defaults are to be used.
       */
     virtual OpalMixerNode * CreateNode(
-      OpalMixerNodeInfo * info ///< Initial info for node
+      const OpalMixerNodeInfo & info ///< Initial info for node
     );
 
     /**Add a new node.
@@ -521,12 +527,12 @@ class OpalMixerNodeManager
        Calls CreateNode.
       */
     virtual PSafePtr<OpalMixerNode> AddNode(
-      OpalMixerNodeInfo * info ///< Initial info for node
+      const OpalMixerNodeInfo & info ///< Initial info for node
     );
 
     /**Add an existing node.
       */
-    void AddNode(OpalMixerNode * node);
+    PSafePtr<OpalMixerNode> AddExistingNode(OpalMixerNode * node);
 
     /**Get the nodes.
       */
@@ -674,7 +680,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        continuing to occur in a new background thread.
 
        If false is returned then the connection could not be established. For
-       example if a PSTN endpoint is used and the assiciated line is engaged
+       example if a PSTN endpoint is used and the associated line is engaged
        then it may return immediately. Returning a non-NULL value does not
        mean that the connection will succeed, only that an attempt is being
        made.
@@ -739,7 +745,10 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     );
 
     /**Get Node Info for the given alias name.
-       Default behaviour returns a clone of m_adHocNodeInfo.
+       The pointer returned is not transferred to the caller, so should not be
+       a clone or new instance.
+
+       Default behaviour returns NULL, and m_adHocNodeInfo is used.
       */
     virtual OpalMixerNodeInfo * FindNodeInfo(
       const PString & name
@@ -754,7 +763,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        could use.
 
        Note if NULL, then ad hoc nodes are not created and incoming
-       connections are refused. A user must expicitly call AddNode() to create
+       connections are refused. A user must explicitly call AddNode() to create
        a name that can be connected to.
 
        The version that takes a reference will utilise the Clone() function
@@ -763,9 +772,6 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     void SetAdHocNodeInfo(
       const OpalMixerNodeInfo & info
     );
-    void SetAdHocNodeInfo(
-      OpalMixerNodeInfo * info
-    );
 
     /**Get default ad hoc mode information.
        The pointer returned from this function is passed to the CreateNode()
@@ -773,12 +779,12 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        of OpalMixerNode could use.
 
        Note if NULL, then ad hoc nodes are not created and incoming
-       connections are refused. A user must expicitly call AddNode() to create
+       connections are refused. A user must explicitly call AddNode() to create
        a name that can be connected to.
 
-       Default bahaviour returns member variable m_adHocNodeInfo.
+       Default behaviour returns member variable m_adHocNodeInfo.
       */
-    OpalMixerNodeInfo * GetAdHocNodeInfo() { return m_adHocNodeInfo; }
+    const OpalMixerNodeInfo & GetAdHocNodeInfo() { return *m_adHocNodeInfo; }
 
     /**Set factory node information.
        If an incoming connections destination address is the info->m_name,
@@ -791,7 +797,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
        could use.
 
        Note if NULL, then factory nodes are not created and incoming
-       connections are refused. A user must expicitly call AddNode() to create
+       connections are refused. A user must explicitly call AddNode() to create
        a name that can be connected to.
 
        The version that takes a reference will utilise the Clone() function
@@ -800,12 +806,9 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     void SetFactoryNodeInfo(
       const OpalMixerNodeInfo & info
     );
-    void SetFactoryNodeInfo(
-      OpalMixerNodeInfo * info
-    );
 
     /**Generate a new name when a factory generated node is created.
-       The default is to append a monitonic increasing integer to the factory
+       The default is to append a monotonic increasing integer to the factory
        name.
       */
     virtual PString GetNewFactoryName();
@@ -818,10 +821,10 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     virtual PString CreateInternalURI(const PGloballyUniqueID & guid) override;
     virtual void OnNodeStatusChanged(const OpalMixerNode & node, OpalConferenceState::ChangeType change) override;
 
-    OpalMixerNodeInfo  * m_adHocNodeInfo;
-    OpalMixerNodeInfo  * m_factoryNodeInfo;
+    PAutoPtr<OpalMixerNodeInfo> m_adHocNodeInfo;
+    PAutoPtr<OpalMixerNodeInfo> m_factoryNodeInfo;
     PDECLARE_MUTEX(m_infoMutex); // For above two fields
-    atomic<uint32_t>     m_factoryIndex;
+    atomic<uint32_t> m_factoryIndex;
 };
 
 
@@ -839,7 +842,7 @@ class OpalMixerConnection : public OpalLocalConnection
      */
     OpalMixerConnection(
       PSafePtr<OpalMixerNode> node, ///<  Node the connection is in
-      OpalCall & call,              ///<  Owner calll for connection
+      OpalCall & call,              ///<  Owner call for connection
       OpalMixerEndPoint & endpoint, ///<  Owner endpoint for connection
       void * userData,              ///<  Arbitrary data to pass to connection
       unsigned options = 0,         ///< Option bit map to be passed to connection
@@ -890,7 +893,7 @@ class OpalMixerConnection : public OpalLocalConnection
 
        Note that media streams may be created internally to the underlying
        protocol. This function is not the only way a stream can come into
-       existance.
+       existence.
 
        The default behaviour is pure.
      */
@@ -925,13 +928,13 @@ class OpalMixerConnection : public OpalLocalConnection
        function.
 
        A duration of zero indicates that no duration is to be indicated.
-       A non-zero logical channel indicates that the tone is to be syncronised
+       A non-zero logical channel indicates that the tone is to be synchronised
        with the logical channel at the rtpTimestamp value specified.
 
        The tone parameter must be one of "0123456789#*ABCD!" where '!'
        indicates a hook flash. If tone is a ' ' character then a
        signalUpdate PDU is sent that updates the last tone indication
-       sent. See the H.245 specifcation for more details on this.
+       sent. See the H.245 specification for more details on this.
 
        The default behaviour sends the tone using RFC2833.
       */
@@ -945,7 +948,7 @@ class OpalMixerConnection : public OpalLocalConnection
        is directly a part of. If the connection type does not embody a
        conference then false is returned.
 
-       The \p state parameter, if non-NULL, is illed with the state of the
+       The \p state parameter, if non-NULL, is filled with the state of the
        conference. When NULL, this just indicates that the connection is
        part of a conference with the return value.
 
@@ -969,7 +972,7 @@ class OpalMixerConnection : public OpalLocalConnection
       */
     bool GetListenOnly() const { return m_listenOnly; }
 
-    /**Get the node that this connection is being mxied in.
+    /**Get the node that this connection is being mixed in.
       */
     PSafePtr<OpalMixerNode> GetNode() const { return m_node; }
   //@}
@@ -1086,7 +1089,7 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
     PCLASSINFO(OpalAudioStreamMixer, OpalAudioMixer);
   public:
     OpalAudioStreamMixer(OpalMixerNode & node);
-    ~OpalAudioStreamMixer();
+    ~OpalAudioStreamMixer() { StopPushThreadOnDestruction(); }
 
     virtual bool OnPush() override;
 
@@ -1131,7 +1134,7 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     PCLASSINFO(OpalVideoStreamMixer, OpalVideoMixer);
   public:
     OpalVideoStreamMixer(OpalMixerNode & node);
-    ~OpalVideoStreamMixer();
+    ~OpalVideoStreamMixer() { StopPushThreadOnDestruction(); }
 
     virtual bool SetFrameRate(unsigned rate) override;
     virtual bool OnMixed(RTP_DataFrame * & output) override;
@@ -1157,7 +1160,7 @@ class OpalMixerNode : public PSafeObject
      */
     OpalMixerNode(
       OpalMixerNodeManager & manager, ///< Manager for this node
-      OpalMixerNodeInfo * info        ///< Configuration information
+      const OpalMixerNodeInfo & info  ///< Configuration information
     );
 
     /**Destroy node.

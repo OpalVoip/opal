@@ -141,19 +141,6 @@ OPAL_REGISTER_RFC2435_JPEG();
 
 /////////////////////////////////////////////////////////////////////////////
 
-ostream & operator<<(ostream & strm, OpalConferenceState::ChangeType type)
-{
-  static const char * const Names[] = { "Created", "Destroyed", "UserAdded", "UserRemoved" };
-  if (type >= 0 && type < PARRAYSIZE(Names))
-    strm << Names[type];
-  else
-    strm << '<' << (unsigned)type << '>';
-  return strm;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-
 static const PProcess::VersionInfo MyVersion = { MAJOR_VERSION, MINOR_VERSION, PProcess::BUILD_TYPE, PATCH_VERSION, OEM_VERSION, 0, GIT_COMMIT };
 
 void OpalGetVersion(PProcess::VersionInfo version)
@@ -622,7 +609,7 @@ bool OpalManager::SetUpConference(OpalCall & call, const char * mixerURI, const 
 
   PSafePtr<OpalMixerNode> node = mixerEP->FindNode(mixerNode);
   if (node == NULL) {
-    node = mixerEP->AddNode(new OpalMixerNodeInfo(mixerNode));
+    node = mixerEP->AddNode(OpalMixerNodeInfoDefault(mixerNode));
     PTRACE(3, "Created mixer node \"" << mixerNode << '"');
   }
 
@@ -1356,7 +1343,7 @@ PBoolean OpalManager::CreateVideoInputDevice(const OpalConnection & connection,
   // Make copy so we can adjust the size
   OpalVideoFormat::ContentRole role = mediaFormat.GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
   PVideoDevice::OpenArgs args = m_videoInputDevice[role];
-  PTRACE(3, "Using " << role << " video device \"" << args.deviceName << "\" for " << *this);
+  PTRACE(3, "Using " << role << " video device \"" << args.deviceName << "\" for " << connection);
   mediaFormat.AdjustVideoArgs(args);
   return CreateVideoInputDevice(connection, args, device, autoDelete);
 }
@@ -1400,11 +1387,11 @@ PBoolean OpalManager::CreateVideoOutputDevice(const OpalConnection & connection,
       start += 7;
       PINDEX end = args.deviceName.Find('"', start + 7) - 1;
       if (start == end)
-        args.deviceName.Splice(connection.GetRemotePartyName(), start, 0);
+        args.deviceName.Splice(connection.GetDisplayName(), start, 0);
       else if (args.deviceName(start, end) == "Video Output")
-        args.deviceName.Splice(connection.GetRemotePartyName(), start, 13);
+        args.deviceName.Splice(connection.GetDisplayName(), start, 13);
       else if ((start = args.deviceName.Find("%REMOTE%")) < end)
-        args.deviceName.Splice(connection.GetRemotePartyName(), start, 8);
+        args.deviceName.Splice(connection.GetDisplayName(), start, 8);
     }
   }
 
@@ -1564,7 +1551,9 @@ bool OpalManager::GetConferenceStates(OpalConferenceStates & states, const PStri
 }
 
 
-void OpalManager::OnConferenceStatusChanged(OpalEndPoint & endpoint, const PString & uri, OpalConferenceState::ChangeType change)
+void OpalManager::OnConferenceStatusChanged(OpalEndPoint & endpoint,
+                                            const PString & uri,
+                                            OpalConferenceState::ChangeType change)
 {
   PTRACE(4, "OnConferenceStatusChanged(" << endpoint << ",\"" << uri << "\"," << change << ')');
 

@@ -104,7 +104,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
 
     struct Mixer : public OpalAudioMixer
     {
-      ~Mixer() { StopPushThread(); }
+      ~Mixer() { StopPushThread(true, true); }
 
       virtual bool OnMixed(RTP_DataFrame * & output);
 

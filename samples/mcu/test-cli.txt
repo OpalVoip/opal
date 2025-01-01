@@ -1,0 +1,11 @@
+conf add test
+delay 1
+member add test pc:NullAudio|NullAudio;OPAL-Video-Preview-Device=Null;OPAL-Video-Input-Device=Fake/Text:one;OPAL-Called-Display-Name=One
+delay 1
+member add test pc:NullAudio|NullAudio;OPAL-Video-Preview-Device=Null;OPAL-Video-Input-Device=Fake/Text:two;OPAL-Called-Display-Name=Two
+delay 1
+member add test pc:NullAudio|Tones:440:0.5/880:1.0;OPAL-Video-Preview-Device=Null;OPAL-Video-Input-Device=Fake/Text:three;OPAL-Called-Display-Name=Three;OPAL-Silence-Detect=NoSilenceDetection
+delay 3
+conf monitor test
+delay 30
+conf remove test

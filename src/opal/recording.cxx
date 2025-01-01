@@ -181,7 +181,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       ) : OpalAudioMixer(stereo, sampleRate, pushThread)
         , m_manager(manager)
       { }
-      ~AudioMixer() { StopPushThread(); }
+      ~AudioMixer() { StopPushThreadOnDestruction(); }
       virtual bool OnMixed(RTP_DataFrame * & output) { return m_manager.OnMixedAudio(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
@@ -208,7 +208,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       ) : OpalVideoMixer(style, width, height, rate, pushThread)
         , m_manager(manager)
       { }
-      ~VideoMixer() { StopPushThread(); }
+      ~VideoMixer() { StopPushThreadOnDestruction(); }
       virtual bool OnMixed(RTP_DataFrame * & output) { return m_manager.OnMixedVideo(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
