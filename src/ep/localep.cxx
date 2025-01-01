@@ -73,6 +73,21 @@ OpalLocalEndPoint::~OpalLocalEndPoint()
 }
 
 
+PStringList OpalLocalEndPoint::GetAvailableStringOptions() const
+{
+  static const char * const StringOpts[] = {
+      OPAL_OPT_EXPLICIT_ALERTING,
+      OPAL_OPT_VIDEO_INPUT_DEVICE,
+      OPAL_OPT_VIDEO_INPUT_DRIVER,
+      OPAL_OPT_VIDEO_OUTPUT_DEVICE,
+      OPAL_OPT_VIDEO_OUTPUT_DRIVER,
+      OPAL_OPT_VIDEO_PREVIEW_DEVICE,
+      OPAL_OPT_VIDEO_PREVIEW_DRIVER
+  };
+
+  return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
+}
+
 OpalMediaFormatList OpalLocalEndPoint::GetMediaFormats() const
 {
   return m_manager.GetCommonMediaFormats(false, true);
@@ -235,7 +250,17 @@ bool OpalLocalEndPoint::CreateVideoInputDevice(const OpalConnection & connection
                                                PVideoInputDevice * & device,
                                                bool & autoDelete)
 {
-  return m_manager.CreateVideoInputDevice(connection, mediaFormat, device, autoDelete);
+  const OpalConnection::StringOptions & options = connection.GetStringOptions();
+
+  PVideoDevice::OpenArgs args;
+  args.deviceName = options(OPAL_OPT_VIDEO_INPUT_DEVICE);
+  if (args.deviceName.empty())
+    return m_manager.CreateVideoInputDevice(connection, mediaFormat, device, autoDelete);
+
+  PTRACE(3, "Using video device \"" << args.deviceName << "\" for " << *this);
+  args.driverName = options(OPAL_OPT_VIDEO_INPUT_DRIVER);
+  mediaFormat.AdjustVideoArgs(args);
+  return m_manager.CreateVideoInputDevice(connection, args, device, autoDelete);
 }
 
 
@@ -245,7 +270,17 @@ bool OpalLocalEndPoint::CreateVideoOutputDevice(const OpalConnection & connectio
                                                 PVideoOutputDevice * & device,
                                                 bool & autoDelete)
 {
-  return m_manager.CreateVideoOutputDevice(connection, mediaFormat, preview, device, autoDelete);
+  const OpalConnection::StringOptions & options = connection.GetStringOptions();
+
+  PVideoDevice::OpenArgs args;
+  args.deviceName = options(preview ? OPAL_OPT_VIDEO_PREVIEW_DEVICE :OPAL_OPT_VIDEO_OUTPUT_DEVICE);
+  if (args.deviceName.empty())
+    return m_manager.CreateVideoOutputDevice(connection, mediaFormat, preview, device, autoDelete);
+
+  PTRACE(3, "Using video device \"" << args.deviceName << "\" for " << *this);
+  args.driverName = options(OPAL_OPT_VIDEO_INPUT_DRIVER);
+  mediaFormat.AdjustVideoArgs(args);
+  return m_manager.CreateVideoOutputDevice(connection, args, device, autoDelete);
 }
 
 #endif // OPAL_VIDEO

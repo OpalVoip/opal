@@ -46,17 +46,77 @@ class OpalFarEndCameraControl;
 
 /**Indicate how to handle Alerting for incoming calls.
    If false, when an incoming call is answered, and an Alerting has not yet been
-   sent to the remote, one is sent to assure the sequence, maximimising
+   sent to the remote, one is sent to assure the sequence, maximising
    interoperability. However, this can sometimes have undesirable side effects,
-   so provision is made to prevent thos transmission, and it is only sent if
+   so provision is made to prevent that transmission, and it is only sent if
    explicitly indicated.
 
    Defaults to false.
 */
 #define OPAL_OPT_EXPLICIT_ALERTING "Explicit-Alerting"
 
+/**Indicate video input device to use
+    This is a string option that indicates the video input device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoInputDevice()
+    function to supply the video input for the connection.
 
-/** Local EndPoint.
+    Defaults to empty string, which in turn means
+    OpalManager::CreateVideoInputDevice() will be used.
+  */
+#define OPAL_OPT_VIDEO_INPUT_DEVICE "Video-Input-Device"
+
+/**Indicate video input driver to use
+    This is a string option that indicates the video driver device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoInputDevice()
+    function to supply the video input for the connection.
+
+    Defaults to empty string, which in turn means the default for
+    OPAL_OPT_VIDEO_INPUT_DEVICE will be used.
+  */
+#define OPAL_OPT_VIDEO_INPUT_DRIVER "Video-Input-Driver"
+
+/**Indicate video output device to use
+    This is a string option that indicates the video output device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoOutputDevice()
+    function to supply the video output for the connection.
+
+    Defaults to empty string, which in turn means
+    OpalManager::CreateVideoOutputDevice() will be used.
+  */
+#define OPAL_OPT_VIDEO_OUTPUT_DEVICE "Video-Output-Device"
+
+/**Indicate video output driver to use
+    This is a string option that indicates the video driver device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoOutputDevice()
+    function to supply the video output for the connection.
+
+    Defaults to empty string, which in turn means the default for
+    OPAL_OPT_VIDEO_OUTPUT_DEVICE will be used.
+  */
+#define OPAL_OPT_VIDEO_OUTPUT_DRIVER "Video-Output-Driver"
+
+/**Indicate video preview device to use
+    This is a string option that indicates the video preview device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoOutputDevice()
+    function to supply the video preview for the connection.
+
+    Defaults to empty string, which in turn means
+    OpalManager::CreateVideoOutputDevice() will be used.
+  */
+#define OPAL_OPT_VIDEO_PREVIEW_DEVICE "Video-Preview-Device"
+
+/**Indicate video preview driver to use
+    This is a string option that indicates the video driver device to use for the
+    connection. This is used by the OpalLocalEndPoint::CreateVideoOutputDevice()
+    function to supply the video preview for the connection.
+
+    Defaults to empty string, which in turn means the default for
+    OPAL_OPT_VIDEO_PREVIEW_DEVICE will be used.
+  */
+#define OPAL_OPT_VIDEO_PREVIEW_DRIVER "Video-Preview-Driver"
+
+
+  /** Local EndPoint.
     This class represents an endpoint on the local machine that can receive
     media via virtual functions.
  */
@@ -111,6 +171,10 @@ class OpalLocalEndPoint : public OpalEndPoint
 
   /**@name Overrides from OpalEndPoint */
   //@{
+    /** Get available string option names.
+      */
+    virtual PStringList GetAvailableStringOptions() const;
+
     /**Get the data formats this endpoint is capable of operating.
        This provides a list of media data format names that may be used by an
        OpalMediaStream may be created by a connection from this endpoint.
