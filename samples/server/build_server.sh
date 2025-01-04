@@ -11,6 +11,7 @@ UPDATE=false
 RESTART=false
 NO_INSTALL=false
 CLEAN=false
+BRANCH=""
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
@@ -26,9 +27,15 @@ while [ -n "$1" ]; do
     	"--no-install" )
     		NO_INSTALL=true
     	;;
+
     	"--clean" )
     		CLEAN=true
     	;;
+
+        "--branch" )
+            shift
+            BRANCH="$1"
+        ;;
 
     	"bootstrap" )
     		USAGE=false
@@ -54,9 +61,14 @@ if $USAGE; then
 	          --restart     Restart OPAL server daemon after install
 	          --no-install  Do not install - local build only
 	          --clean       Clean before build, including configuration
+              --branch <b>  Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
 	          bootstrap     Do full OS install of pre-requisites and fresh download
 	          update        Do git update and rebuild
 	          buildonly     Only do build, do not do git update
+
+    if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
+    SourceForge account, and ssh used instead of https. Note, certificates must be
+    set up for your local account to access SourceForge for this to work.
 	EOM
     exit 1
 fi
@@ -128,17 +140,25 @@ if $BOOTSTRAP; then
     fi
 
     echo "========================================================================"
-    git clone -b v2_$MINOR_VERSION $GIT_PATH/ptlib
+    git clone -b ${BRANCH:-v2_$MINOR_VERSION} $GIT_PATH/ptlib
+    cd ptlib
+    git status
+    cd ..
     echo "========================================================================"
-    git clone -b v3_$MINOR_VERSION $GIT_PATH/opal
+    git clone -b ${BRANCH:-v3_$MINOR_VERSION} $GIT_PATH/opal
+    cd opal
+    git status
+    cd ..
 fi
 
 if $UPDATE; then
     cd ptlib
     echo "========================================================================"
+    [ -n "$BRANCH" ] && git checkout "$BRANCH"
     git pull --rebase
     echo "========================================================================"
     cd ../opal
+    [ -n "$BRANCH" ] && git checkout "$BRANCH"
     git pull --rebase
     echo "========================================================================"
     cd ..
@@ -165,6 +185,7 @@ if $BOOTSTRAP; then
     cd ptlib
     make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
     git checkout configure
+    rm -f configure~
     cd ..
 fi
 
@@ -177,7 +198,8 @@ if $BOOTSTRAP; then
     echo "Configuring OPAL to install to $INSTALLDIR"
     cd opal
     make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
-    git checkout configure plugins/configure
+    git checkout configure plugins/configure src/csharp/* src/java/*
+    rm -f configure~ plugins/configure~
     cd ..
 fi
 
@@ -191,9 +213,20 @@ echo "----------------------------------------"
 $NO_INSTALL || sudo -E make -C opal/samples/server install
 echo "========================================================================"
 
+if $BOOTSTRAP; then
+    echo "Cleaning up"
+    cd ptlib
+    git reset --hard
+    cd ../opal
+    git reset --hard
+    cd ..
+    echo "========================================================================"
+fi
+
 if $RESTART; then
     /opt/opalsrv/bin/stop.sh
     /opt/opalsrv/bin/start.sh
+    echo "========================================================================"
 fi
 
 echo "Done"
