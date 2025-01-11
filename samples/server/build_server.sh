@@ -12,44 +12,49 @@ RESTART=false
 NO_INSTALL=false
 CLEAN=false
 BRANCH=""
+MINIMAL=false
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
     case "$1" in
-    	"--debug" )
-    		MAKE_TARGET="all"
-    	;;
+        "--debug" )
+            MAKE_TARGET="all"
+        ;;
 
-    	"--restart" )
-    		RESTART=true
-    	;;
+        "--restart" )
+            RESTART=true
+        ;;
 
-    	"--no-install" )
-    		NO_INSTALL=true
-    	;;
+        "--no-install" )
+            NO_INSTALL=true
+        ;;
 
-    	"--clean" )
-    		CLEAN=true
-    	;;
+        "--clean" )
+            CLEAN=true
+        ;;
 
         "--branch" )
             shift
             BRANCH="$1"
         ;;
 
-    	"bootstrap" )
-    		USAGE=false
-    		BOOTSTRAP=true
-    	;;
+        "--minimal" )
+            MINIMAL=true
+        ;;
 
-    	"update" )
-    		USAGE=false
-		UPDATE=true
-    	;;
+        "bootstrap" )
+            USAGE=false
+            BOOTSTRAP=true
+        ;;
 
-    	"buildonly" )
-    		USAGE=false
-    	;;
+        "update" )
+            USAGE=false
+            UPDATE=true
+        ;;
+
+        "buildonly" )
+            USAGE=false
+        ;;
     esac
     shift
 done
@@ -62,13 +67,14 @@ if $USAGE; then
 	          --no-install  Do not install - local build only
 	          --clean       Clean before build, including configuration
               --branch <b>  Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
+              --minimal     For bootstrap, do minimal install of packages
 	          bootstrap     Do full OS install of pre-requisites and fresh download
 	          update        Do git update and rebuild
 	          buildonly     Only do build, do not do git update
 
-    if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
-    SourceForge account, and ssh used instead of https. Note, certificates must be
-    set up for your local account to access SourceForge for this to work.
+	if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
+	SourceForge account, and ssh used instead of https. Note, certificates must be
+	set up for your local account to access SourceForge for this to work.
 	EOM
     exit 1
 fi
@@ -88,49 +94,57 @@ if $BOOTSTRAP; then
     fi
 
     if which apt > /dev/null 2> /dev/null; then
-	if [ $(lsb_release --release --short) \< "22.04" ]; then
-    	    sudo apt install \
-    		g++ git make autoconf swig \
+        if $MINIMAL; then
+            sudo apt install \
+                g++ git make autoconf libexpat-dev libssl-dev libsrtp2-dev
+        elif [ $(lsb_release --release --short) \< "22.04" ]; then
+            sudo apt install --ignore-missing \
+                g++ git make autoconf swig \
                 libncurses-dev libpcap-dev libexpat-dev libssl1.0-dev \
                 libsasl2-dev libldap-dev unixodbc-dev libsdl2-dev \
                 liblua5.3-dev libv8-dev \
                 libavcodec-dev libavformat-dev libswscale-dev \
-    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-    		libgsm1-dev libspeex-dev libopus-dev \
-                libx264-dev libvpx-dev \ libtheora-dev libspandsp-dev \
+                libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+                libgsm1-dev libspeex-dev libopus-dev \
+                libx264-dev libvpx-dev libtheora-dev libspandsp-dev \
                 capiutils dahdi festival-dev libsrtp2-dev
-	else
-    	    sudo apt install \
-    		g++ git make autoconf swig \
+        else
+            sudo apt install --ignore-missing \
+                g++ git make autoconf swig \
                 libncurses-dev libpcap-dev libexpat1-dev libssl-dev \
                 libsasl2-dev libldap-dev unixodbc-dev libsdl2-dev \
                 liblua5.3-dev libnode-dev \
-    		libavcodec-dev libavformat-dev libswscale-dev \
-    		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+                libavcodec-dev libavformat-dev libswscale-dev \
+                libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
                 libgsm1-dev libspeex-dev libopus-dev \
                 libx264-dev libopenh264-dev libvpx-dev libtheora-dev \
                 libspandsp-dev libsrtp2-dev dahdi festival-dev
-	fi
+        fi
     elif which yum > /dev/null 2> /dev/null; then
-        sudo yum-config-manager --enable epel
-    	sudo yum install \
-    		gcc-c++ git make autoconf \
+        if $MINIMAL; then
+            sudo yumm install \
+                gcc-g++ git make autoconf expat-dev openssl-dev libsrtp
+        else
+            sudo yum-config-manager --enable epel
+            sudo yum install \
+                gcc-c++ git make autoconf \
                 ncurses-devel libpcap-devel expat-devel openssl-devel \
                 cyrus-sasl-devel openldap-devel unixODBC-devel SDL2-devel \
                 lua-devel v8-devel \
-    		avcodec-devel libavformat-devel libswscale-devel \
-    		gstreamer1.0-devel gstreamer-plugins-base1.0-devel \
+                avcodec-devel libavformat-devel libswscale-devel \
+                gstreamer1.0-devel gstreamer-plugins-base1.0-devel \
                 gsm-devel speex-devel opus-devel \
                 x264-devel libvpx-devel theora-devel libspandsp-devel \
                 capiutils dahdi festival-devel libsrtp
+        fi
     elif which brew > /dev/null 2> /dev/null; then
         brew install \
-    		autoconf libpcap expat openssl@3 cyrus-sasl openldap unixodbc \
-                ffmpeg gstreamer libgsm speex opus x264 libvpx theora spandsp \
-                lua v8 sdl2
+            autoconf libpcap expat openssl@3 cyrus-sasl openldap unixodbc \
+            ffmpeg gstreamer libgsm speex opus x264 libvpx theora spandsp \
+            lua v8 sdl2
     else
-    	echo "What OS is this? No apt or yum!"
-    	exit 1
+        echo "What OS is this? No apt or yum!"
+        exit 1
     fi
 
     if [ -n "$SOURCEFORGE_USERNAME" ]; then
