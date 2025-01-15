@@ -65,6 +65,7 @@ PString MyManager::GetArgumentSpec() const
          "e-switch-on-ced. Switch to T.38 on receipt of CED tone as caller.\n"
          "X-switch-time: Set fail safe T.38 switch time in seconds.\n"
          "T-timeout: Set timeout to wait for fax rx/tx to complete in seconds.\n"
+         "n-no-exit. Do not exit when call is cleared.\n"
          "q-quiet. Only output error conditions.\n"
 #if OPAL_STATISTICS
          "v-verbose. Output statistics during fax operation\n"
@@ -126,7 +127,8 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
   if (quiet)
     output.rdbuf(NULL);
 
-  if (!OpalManagerConsole::Initialise(args, !quiet, prefix + ":" + args[0] + ";receive"))
+  PString tiff = args[0];
+  if (!OpalManagerConsole::Initialise(args, !quiet, prefix + ":" + tiff + ";receive"))
     return false;
 
   output << "Fax Mode: ";
@@ -179,12 +181,12 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
   SetDefaultConnectionOptions(stringOptions);
 
   m_showProgress = args.HasOption('v');
+  m_exitWhenCallCleared = !args.HasOption('n');
 
   // Wait for call to come in and finish (default one year)
   m_competionTimeout = PTimeInterval(args.GetOptionString('T', "365:0:0:0"));
   output << "Completion timeout is " << m_competionTimeout.AsString(0, PTimeInterval::IncludeDays) << '\n';
 
-  PString tiff = args[0];
   if (args.GetCount() == 1) {
     output << "Receive directory: " << faxEP->GetDefaultDirectory() << "\n"
             "\n"
@@ -282,7 +284,7 @@ void MyManager::OnClearedCall(OpalCall & call)
       *LockedOutput() << "Call error: " << OpalConnection::GetCallEndReasonText(call.GetCallEndReason());
   }
 
-  if (GetCallCount() == 1) {
+  if (m_exitWhenCallCleared && GetCallCount() == 1) {
     PTRACE(3, "Fax", "Last call cleared, exiting application.");
     EndRun();
   }
