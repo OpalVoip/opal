@@ -32,6 +32,10 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
+    MyManager()
+      : m_showProgress(false)
+      , m_exitWhenCallCleared(true)
+    { }
     virtual PString GetArgumentSpec() const override;
     virtual void Usage(ostream & strm, const PArgList & args) override;
     virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
@@ -41,6 +45,7 @@ class MyManager : public OpalManagerConsole
   private:
     PSimpleTimer m_competionTimeout;
     bool         m_showProgress;
+    bool         m_exitWhenCallCleared;
 };
 
 
