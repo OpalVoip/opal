@@ -1796,6 +1796,46 @@ void OpalMediaStreamMixer::CloseOne(const PSafePtr<OpalMixerMediaStream> & strea
 
 ///////////////////////////////////////////////////////////////////////////////
 
+OpalAudioStreamMixer::CachedAudio::CachedAudio()
+  : m_state(Collecting)
+  , m_transcoder(NULL)
+{
+}
+
+
+OpalAudioStreamMixer::CachedAudio::CachedAudio(const CachedAudio & other)
+  : m_state(other.m_state)
+  , m_raw(other.m_raw)
+  , m_encoded(other.m_encoded)
+  , m_transcoder(NULL)
+{
+  m_raw.MakeUnique();
+  m_encoded.MakeUnique();
+}
+
+
+#if __cplusplus >= 201103L
+OpalAudioStreamMixer::CachedAudio::CachedAudio(CachedAudio && other)
+  : m_state(other.m_state)
+  , m_raw(other.m_raw)
+  , m_encoded(other.m_encoded)
+  , m_transcoder(other.m_transcoder)
+{
+  other.m_transcoder = NULL;
+  other.m_raw = RTP_DataFrame();
+  other.m_encoded = RTP_DataFrame();
+}
+#endif
+
+
+OpalAudioStreamMixer::CachedAudio::~CachedAudio()
+{
+  delete m_transcoder;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 OpalAudioStreamMixer::OpalAudioStreamMixer(OpalMixerNode & node)
   : OpalAudioMixer(false, node.GetNodeInfo().m_sampleRate, true, 10, node.GetNodeInfo().m_activeSpeakerDeadband)
   , OpalMediaStreamMixer(node)
@@ -1859,7 +1899,7 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
   }
 
   if (cache.m_transcoder == NULL) {
-    cache.m_transcoder.reset(OpalTranscoder::Create(OpalPCM16, mediaFormat));
+    cache.m_transcoder = OpalTranscoder::Create(OpalPCM16, mediaFormat);
     if (cache.m_transcoder == NULL) {
       PTRACE(2, "Could not create transcoder to "
              << mediaFormat << " for stream id " << stream->GetID());

@@ -1096,16 +1096,21 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
   protected:
     struct CachedAudio
     {
-      CachedAudio()
-        : m_state(Collecting)
-      { }
+      CachedAudio();
+      CachedAudio(const CachedAudio & other);
+      void operator=(const CachedAudio &) { PAssertAlways(PLogicError); }
+#if __cplusplus >= 201103L
+      CachedAudio(CachedAudio && other);
+      void operator=(CachedAudio &&) { PAssertAlways(PLogicError); }
+#endif
+      ~CachedAudio();
 
       enum {
         Collecting, Collected, Completed
       } m_state;
       RTP_DataFrame m_raw;
       RTP_DataFrame m_encoded;
-      PAutoPtr<OpalTranscoder> m_transcoder;
+      OpalTranscoder * m_transcoder;
     };
     std::map<PString, CachedAudio> m_cache;
 
