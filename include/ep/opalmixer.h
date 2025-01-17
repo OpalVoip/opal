@@ -1347,13 +1347,13 @@ class OpalMixerNode : public PSafeObject
     PSafeArray<OpalConnection> m_connections;
     PString                    m_ownerConnection;
 
-    PAutoPtr<OpalAudioStreamMixer> m_audioMixer;
+    PSmartPtr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO
-    typedef std::map<OpalVideoFormat::ContentRole, PAutoPtr<OpalVideoStreamMixer>> VideoMixerMap;
+    typedef std::map<OpalVideoFormat::ContentRole, PSmartPtr<OpalVideoStreamMixer>> VideoMixerMap;
     VideoMixerMap m_videoMixers;
 #endif // OPAL_VIDEO
 
-    typedef std::map<PString, OpalBaseMixer *> MixerByIdMap;
+    typedef std::map<PString, PSmartPtr<OpalBaseMixer>> MixerByIdMap;
     MixerByIdMap m_mixerById;
 
     PString m_activeSpeakerStreamId;
