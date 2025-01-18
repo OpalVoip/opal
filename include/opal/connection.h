@@ -172,11 +172,11 @@ class PURL;
 \section secOverview Overview 
 This page of the documentation is designed to provide an understanding of the
 use of the OpalConnection class in the OPAL library. From the description, you
-will be able to add your own voip protocol to OPAL, and utilise the features
+will be able to add your own VoIP protocol to OPAL, and utilise the features
 provided by the existing class structure. 
 
 Key to understanding the OpalConnection class is that this class is
-responsible for supervising the call signaling and media control for one call.
+responsible for supervising the call signalling and media control for one call.
 
 There will be one descendant of this OpalConnection class created for each
 protocol that is supported.
@@ -190,7 +190,7 @@ through these phases as a call progresses. Even the OpalPCSSConnection, which
 is the connection of PCM audio to/from the sound card, will (at some time) be
 in each of the available phases.
 
-To illustrate the meaning of the phases, we will descibe a very simple voip
+To illustrate the meaning of the phases, we will describe a very simple VoIP
 protocol. This example protocol will also be used to show when the different
 callbacks happen, and when the phases are changed at either endpoint of the
 call. 
@@ -229,7 +229,7 @@ handled by the OpalConnection descendant. For IAX2, where media negotiation is
 an integral part of setting up the call, the IAX2Connection does media
 negotiation. However, for SIP, there are SDPBandwidth, SDPMediaDescription,
 SDPMediaFormat, SDPSessionDescription classes for handling media
-negotiation. For the case of a pstn gateway using ISDN, there is no media
+negotiation. For the case of a PSTN gateway using ISDN, there is no media
 negotiation.  It always uses G.711 and the same "port" (the B channel).
 
 
@@ -251,7 +251,7 @@ The different phases are.
 
   \li OpalConnection::EstablishedPhase - we are "connected", there is agreement on the media
                             type, network ports, media can flow. This is the condition that
-                            contitutes a call being "ready to use".
+                            constitutes a call being "ready to use".
 
   \li OpalConnection::ReleasingPhase - Either side (L or R) has said
                         "hangup". The media streams are in the process of
@@ -278,7 +278,7 @@ events are generated in the OpalConnection class, which are usually passed back 
 OpalEndPoint, then to the OpalManager, and usually on to the OpalCall class.
 
 Consequently, if a descendant of the OpalManager has been created, the
-application will have access to to notification on when the phase of a call
+application will have access to notification on when the phase of a call
 has changed. Applications may create descendants of the H323Connection and
 SIPConnection to get protocol specific information about call progress.
 
@@ -297,15 +297,15 @@ OpalConnection, OpalCall and Manager classes.
      negotiations as to media etc, sets the phase to
      OpalConnection::SetUpPhase, and invoke OpalCall::OnSetUp(). Note that it
      is only partyA which invokes OpalCall::OnSetUp(). Then, for the other
-     OpalConnection instance in this voip call, the methods
+     OpalConnection instance in this VoIP call, the methods
      OpalConnection::SetUpConnection and OpalConnection::OnSetUpConnection are
      invoked. The OpalConnection::OnSetUpConnection then invokes
      OpalEndPoint::OnSetUpConnection(). 
 
-\li The recipient of an incoming voip call (R from example above) will go
+\li The recipient of an incoming VoIP call (R from example above) will go
      straight from OpalConnection::UninitialisedPhase to
      OpalConnection::AlertingPhase, on receipt of the INVITE/Hello packet. The
-     initiator of a voip call (L from example above) moves to
+     initiator of a VoIP call (L from example above) moves to
      OpalConnection::AlertingPhase on receiving a notice the call has not been
      immediately rejected.
 
@@ -326,7 +326,7 @@ OpalConnection, OpalCall and Manager classes.
     common behaviour is abstracted to OpalConnection, OpalMediaFormat etc
     as possible, but the details must reside in the OpalConnection.
 
-\li When the signaling is completed, and the call is accepted at R, both L and R
+\li When the signalling is completed, and the call is accepted at R, both L and R
      will move to the OpalConnection::ConnectedPhase, and invoke
      OpalConnection::OnConnected.  which invokes OpalEndPoint::OnConnected,
      which invokes OpalManager::OnConnected, which invokes
@@ -350,7 +350,7 @@ OpalConnection, OpalCall and Manager classes.
      OpalConnection instances in the call, and starts the media streams on the
      calling connection. The OpalCall::OnEstablished method then checks that
      all OpalConnection instances in this call are marked as
-     Established. Fininally, the OpalCall::OnEstablishedCall method is
+     Established. Finally, the OpalCall::OnEstablishedCall method is
      invoked, which then invokes OpalManager::OnEstablishedCall. The
      OpalManager::OnEstablishedCall method is empty, but if an application
      overrides this method, the application will get notification of when a
@@ -374,10 +374,10 @@ OpalConnection, OpalCall and Manager classes.
     control) have fully terminated.
 */
 
-/** Class for carying vendor/product information.
+/** Class for carrying vendor/product information.
     This consists of a vendor, a product name, a product version and addition
     comments. Some of these fields may not be present as there is very little
-    standardisation in protocols and implementions.
+    standardisation in protocols and implementation.
   */
 class OpalProductInfo
 {
@@ -450,17 +450,17 @@ struct OpalConnectionInfo
    A connection is part of a call, and will be "owned" by an OpalCall object.
    It is also attached to the creator endpoint to do any protocol specific
    management of the connection. However the deletion of the connection is
-   done by a special thread in the OpalManager class. A connnection should
+   done by a special thread in the OpalManager class. A connection should
    never be deleted directly.
 
    The connection is also in charge of creating media streams. It may do this
-   in respose to an explicit call to OpenMediaStream or implicitly due to
+   in response to an explicit call to OpenMediaStream or implicitly due to
    requests in the underlying protocol.
 
    When media streams are created they must make requests for bandwidth which
    is managed by the connection.
  */
-class OpalConnection : public PSafeObject, protected OpalConnectionInfo
+class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfiling::HighWaterMark<OpalConnection>
 {
     PCLASSINFO(OpalConnection, PSafeObject);
   public:
@@ -496,13 +496,13 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       EndedByDurationLimit,          ///< Call cleared due to an enforced duration limit
       EndedByInvalidConferenceID,    ///< Call cleared due to invalid conference ID
       EndedByNoDialTone,             ///< Call cleared due to missing dial tone
-      EndedByNoRingBackTone,         ///< Call cleared due to missing ringback tone
+      EndedByNoRingBackTone,         ///< Call cleared due to missing ring-back tone
       EndedByOutOfService,           ///< Call cleared because the line is out of service, 
       EndedByAcceptingCallWaiting,   ///< Call cleared because another call is answered
       EndedByGkAdmissionFailed,      ///< Call cleared because gatekeeper admission request failed.
       EndedByMediaFailed,            ///< Call cleared due to loss of media flow.
       EndedByCallCompletedElsewhere, ///< Call cleared because it was answered by another extension.
-      EndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
+      EndedByCertificateAuthority,   ///< When using TLS, the remote certificate was not authenticated
       EndedByIllegalAddress,         ///< Destination Address  format was incorrect format
       EndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
       EndedByMediaTransportFail,     ///< End call due to media transport failure, typically ICE error
@@ -607,7 +607,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Create a new connection.
      */
     OpalConnection(
-      OpalCall & call,                         ///<  Owner calll for connection
+      OpalCall & call,                         ///<  Owner call for connection
       OpalEndPoint & endpoint,                 ///<  Owner endpoint for connection
       const PString & token,                   ///<  Token to identify the connection
       unsigned options = 0,                    ///< Option bit map to be passed to connection
@@ -618,7 +618,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
      */
     ~OpalConnection();
 
-    /// Get the connection ifnormation about this connection.
+    /// Get the connection information about this connection.
     const OpalConnectionInfo & GetConnectionInfo() const { return *this; }
   //@}
 
@@ -826,7 +826,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        example in H.323 it sends a SETUP, in SIP it sends an INVITE etc.
 
        The default behaviour calls OnIncomingConnection() and OpalCall::OnSetUp()
-       if it is first conenction in the call.
+       if it is first connection in the call.
       */
     virtual PBoolean SetUpConnection();
 
@@ -872,7 +872,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        AnswerCallDeferred or AnswerCallPending state, then this function is
        used to indicate to that endpoint that an alert is in progress. This is
        usually due to another connection which is in the call (the B party)
-       has received an OnAlerting() indicating that its remoteendpoint is
+       has received an OnAlerting() indicating that its remote endpoint is
        "ringing".
 
        The default behaviour simply returns true.
@@ -891,7 +891,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        example the user pressing an "Answer call" button.
 
        If AnswerCallDenied is returned the connection is aborted and the
-       connetion specific end call PDU is sent. If AnswerCallNow is returned 
+       connection specific end call PDU is sent. If AnswerCallNow is returned 
        then the connection proceeding, Finally if AnswerCallPending is returned then the
        protocol negotiations are paused until the AnsweringCall() function is
        called.
@@ -1057,12 +1057,12 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     /**Forward incoming call to specified address.
        This would typically be called from within the OnIncomingCall()
-       function when an application wishes to redirct an unwanted incoming
+       function when an application wishes to redirect an unwanted incoming
        call.
 
        The return value is true if the call is to be forwarded, false
        otherwise. Note that if the call is forwarded the current connection is
-       cleared with teh ended call code of EndedByCallForwarded.
+       cleared with the ended call code of EndedByCallForwarded.
       */
     virtual PBoolean ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
@@ -1122,7 +1122,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        Default behaviour returns zero indicating that this connection type
        does not care what the session ID is, and the other connection in the
-       call should be asked. If neither care, then teh default of the media
+       call should be asked. If neither care, then the default of the media
        type is used.
       */
     virtual unsigned GetNextSessionID(
@@ -1136,10 +1136,10 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     virtual bool RequireSymmetricMediaStreams() const;
 
     /** Indicate whether a particular media type can auto-start.
-        This is typically used for things like video or fax to contol if on
-        initial connection, that media type is opened straight away. Streams
-        of that type may be opened later, during the call, by using the
-        OpalCall::OpenSourceMediaStreams() function.
+        This is typically used for things like video or fax, to control on
+        initial connection, that the media type is opened straight away.
+        Streams of that type may be opened later, during the call, by using
+        the OpalCall::OpenSourceMediaStreams() function.
       */
     virtual OpalMediaType::AutoStartMode GetAutoStart(
       const OpalMediaType & mediaType  ///< media type to check
@@ -1244,7 +1244,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        Note that media streams may be created internally to the underlying
        protocol. This function is not the only way a stream can come into
-       existance.
+       existence.
      */
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
@@ -1276,7 +1276,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     /**Get a media stream.
        Locates a stream given a media type. The source flag may be used to
-       distinguish which stream durection to return.
+       distinguish which stream direction to return.
 
        If mediaType is empty (i.e. OpalMediaType()), then the first
        source/sink stream of any type, session or id is returned.
@@ -1293,7 +1293,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     PSafeArray<OpalMediaStream> GetMediaStreams() const;
 
 #if OPAL_STATISTICS
-    /// Get media statistics of the type, and of the specifed direction.
+    /// Get media statistics of the type, and of the specified direction.
     bool GetStatistics(
       const OpalMediaType & mediaType,    ///<  Media type to search for.
       bool source,                        ///<  Indicates the direction of stream.
@@ -1367,8 +1367,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        condition is detected. For example clear the call.
 
        The \p source indicates if the media is in a source OpalMediaStream of
-       the conenction, for example on RTP connections (SIP/H.323) true
-       indicates incoming media, fals indicates transmitted media.
+       the connection, for example on RTP connections (SIP/H.323) true
+       indicates incoming media, false indicates transmitted media.
 
        The SetNoMediaTimeout() can be used to set the default time for a
        source stream (e.g. received RTP) to call this function.
@@ -1387,7 +1387,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     bool AllMediaFailed() const;
 
     /** Callback for media commands.
-        Executes OnMediaCommand ont he other connection in call.
+        Executes OnMediaCommand on the other connection in call.
 
        @returns true if command is handled.
       */
@@ -1403,7 +1403,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     virtual bool ExecuteMediaCommand(
       const OpalMediaCommand & command, ///< Media command to be executed
-      bool aync = false                 ///< Execute asyncronously, in another pooled thread
+      bool aync = false                 ///< Execute asynchronously, in another pooled thread
     ) const;
 
     /**Get transports for the media session on the connection.
@@ -1427,7 +1427,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     virtual PBoolean SetAudioVolume(
       PBoolean source,        ///< true for source (microphone), false for sink (speaker)
-      unsigned percentage     ///< Gain, 0=silent, 100=maximun
+      unsigned percentage     ///< Gain, 0=silent, 100=maximum
     );
 
     /**Get the volume (gain) for the audio media channel.
@@ -1435,7 +1435,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     virtual PBoolean GetAudioVolume(
       PBoolean source,       ///< true for source (microphone), false for sink (speaker)
-      unsigned & percentage  ///< Gain, 0=silent, 100=maximun
+      unsigned & percentage  ///< Gain, 0=silent, 100=maximum
     );
 
     /**Set the mute state for the audio media channel.
@@ -1549,7 +1549,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        The \p tone parameter must be one of "0123456789#*ABCD!" where '!'
        indicates a hook flash. If tone is a ' ' character then a
        signalUpdate PDU is sent that updates the last tone indication
-       sent. See the H.245 specifcation for more details on this.
+       sent. See the H.245 specification for more details on this.
 
        A \p duration of zero indicates that a default duration (90ms) is to be
        used.
@@ -1561,7 +1561,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       unsigned duration = 0   ///<  Duration of tone in milliseconds
     );
 
-    /**Call back for remote enpoint has sent user input as a string.
+    /**Call back for remote endpoint has sent user input as a string.
        This will be called irrespective of the source (H.245 string, H.245
        signal or RFC2833).
 
@@ -1572,7 +1572,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     );
     void OnUserInputStringCallback(PString value) { OnUserInputString(value); }
 
-    /**Call back for remote enpoint has sent user input.
+    /**Call back for remote endpoint has sent user input.
        If \p duration is zero then this indicates the beginning of the tone.
        If \p duration is greater than zero then it indicates the end of the
        tone output and how long the tone had run.
@@ -1615,12 +1615,12 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Read a sequence of user indications with timeouts.
       */
     virtual PString ReadUserInput(
-      const char * terminators = "YX#\r\n", ///<  Characters that can terminte input
+      const char * terminators = "YX#\r\n", ///<  Characters that can terminate input
       unsigned lastDigitTimeout = 4,      ///<  Timeout on last digit in string
       unsigned firstDigitTimeout = 30     ///<  Timeout on receiving any digits
     );
 
-    /**Play a prompt to the connection before rading user indication string.
+    /**Play a prompt to the connection before reading user indication string.
 
        For example the LID connection would play a dial tone.
 
@@ -1672,7 +1672,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        Default behaviour returns true.
       */
     virtual bool OnChangedPresentationRole(
-      const PString & newChairURI,   ///< URI for new confernce chair
+      const PString & newChairURI,   ///< URI for new conference chair
       bool request                   ///< Indicates change is requested
     );
 
@@ -1773,10 +1773,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     /**Determine if remote presentation of Caller-ID is to be blocked.
        Applies to an outgoing call to a "network" based endpoint type.
-
-       Corresponds to Q.931 Calling-Party-Number Information Element
-       in H.323.
-
+       Corresponds to Q.931 Calling-Party-Number Information Element in H.323.
        Will remove display name for SIP.
       */
     virtual bool IsPresentationBlocked() const;
@@ -1789,7 +1786,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     void SetRemotePartyName(const PString & name) { m_remotePartyName = name; }
 
-    /**Get the remote party number, if there was one one.
+    /**Get the remote party number, if there was one.
        If the remote party has indicated an E.1164 number as one of its aliases
        or some other field such as Q.931 Calling-Party-Number, then this function
        will return that number.
@@ -1825,7 +1822,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     P_DEPRECATED const PString GetRemotePartyCallbackURL() const { return GetRemotePartyURL(); }
 
     /**Get the remote application description. This is for backward
-       compatibility and has been supercedded by GeREmoteProductInfo();
+       compatibility and has been superseded by GeRemoteProductInfo();
       */
     PCaselessString GetRemoteApplication() const { return m_remoteProductInfo.AsString(); }
 
@@ -1850,7 +1847,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Get the called alias name (for incoming calls). This is useful for gateway
        applications where the destination name may not be the same as the local name.
 
-       Note that if the called party is anm E.164 address and there are no alternative
+       Note that if the called party is an E.164 address and there are no alternative
        names, such as aliases in H.323, then this field will be empty.
       */
     const PString & GetCalledPartyName() const { return m_calledPartyName; }
@@ -1858,7 +1855,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Set the called alias name (for incoming calls). This is useful for gateway
        applications where the destination name may not be the same as the local name.
 
-       Note that if the called party is anm E.164 address and there are no alternative
+       Note that if the called party is an E.164 address and there are no alternative
        names, such as aliases in H.323, then this field will be empty.
       */
     void SetCalledPartyName(const PString & name) { m_calledPartyName = name; }
@@ -1871,7 +1868,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     const PString & GetCalledPartyNumber() const { return m_calledPartyNumber; }
 
-    /**Get the fulll URL being indicated by the remote for incoming calls. This may
+    /**Get the full URL being indicated by the remote for incoming calls. This may
        not have any relation to the local name of the endpoint.
 
        The default behaviour returns GetDestinationAddress() normalised to a URL.
@@ -1998,7 +1995,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Get the maximum transmitted RTP payload size.
        This function allows a user to override the value returned on a
        connection by connection basis, for example knowing the connection is
-       on a LAN with ethernet MTU the payload size could be increased.
+       on a LAN with Ethernet MTU the payload size could be increased.
 
        Defaults to the value returned by the OpalManager function of the same
        name.

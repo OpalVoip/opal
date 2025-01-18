@@ -56,7 +56,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & fmt, unsigned _sessionID, PBoolean isSourceStream)
+OpalMediaStream::OpalMediaStream(OpalConnection & conn,
+                                 const OpalMediaFormat & fmt,
+                                 unsigned _sessionID,
+                                 bool isSourceStream)
   : m_connection(conn)
   , m_sessionID(_sessionID)
   , m_syncSource(0)
@@ -816,8 +819,9 @@ const unsigned PCM16Size = 2;
 OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       PBoolean isSource,
-                                       PChannel * chan, PBoolean autoDelete)
+                                       bool isSource,
+                                       PChannel * chan,
+                                       bool autoDelete)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , m_channel(chan)
   , m_autoDelete(autoDelete)
@@ -1082,9 +1086,9 @@ void OpalRawMediaStream::InternalCalculateAudioLevel(const BYTE * data, PINDEX l
 OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
                                          const OpalMediaFormat & mediaFormat,
                                          unsigned sessionID,
-                                         PBoolean isSource,
+                                         bool isSource,
                                          PFile * file,
-                                         PBoolean autoDel)
+                                         bool autoDel)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, file, autoDel)
   , OpalMediaStreamPacing(mediaFormat)
 {
@@ -1095,7 +1099,7 @@ OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
 OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
                                          const OpalMediaFormat & mediaFormat,
                                          unsigned sessionID,
-                                         PBoolean isSource,
+                                         bool isSource,
                                          const PFilePath & path)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource,
                        new PFile(path, isSource ? PFile::ReadOnly : PFile::WriteOnly),
@@ -1141,11 +1145,11 @@ PBoolean OpalFileMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX
 OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
                                            const OpalMediaFormat & mediaFormat,
                                            unsigned sessionID,
-                                           PBoolean isSource,
+                                           bool isSource,
                                            PINDEX buffers,
                                            unsigned bufferTime,
                                            PSoundChannel * channel,
-                                           PBoolean autoDel)
+                                           bool autoDel)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, channel, autoDel)
   , m_soundChannelBuffers(buffers)
   , m_soundChannelBufferTime(bufferTime)
@@ -1156,7 +1160,7 @@ OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
 OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
                                            const OpalMediaFormat & mediaFormat,
                                            unsigned sessionID,
-                                           PBoolean isSource,
+                                           bool isSource,
                                            PINDEX buffers,
                                            unsigned bufferTime,
                                            const PString & deviceName)
@@ -1256,8 +1260,8 @@ OpalVideoMediaStream::OpalVideoMediaStream(OpalConnection & conn,
                                            unsigned sessionID,
                                            PVideoInputDevice * in,
                                            PVideoOutputDevice * out,
-                                           PBoolean delIn,
-                                           PBoolean delOut)
+                                           bool delIn,
+                                           bool delOut)
   : OpalMediaStream(conn, mediaFormat, sessionID, in != NULL)
   , m_inputDevice(in)
   , m_watermarkDevice(NULL)
@@ -1609,7 +1613,7 @@ void OpalVideoMediaStream::ApplyWatermark(unsigned frameWidth, unsigned frameHei
 OpalUDPMediaStream::OpalUDPMediaStream(OpalConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       PBoolean isSource,
+                                       bool isSource,
                                        OpalTransportUDP & transport)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , udpTransport(transport)
