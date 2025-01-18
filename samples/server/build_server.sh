@@ -13,6 +13,7 @@ NO_INSTALL=false
 CLEAN=false
 BRANCH=""
 MINIMAL=false
+CONFIG_PARMS=""
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
@@ -23,6 +24,11 @@ while [ -n "$1" ]; do
 
         "--restart" )
             RESTART=true
+        ;;
+
+        "--install" )
+            shift
+            INSTALLDIR="$1"
         ;;
 
         "--no-install" )
@@ -45,32 +51,72 @@ while [ -n "$1" ]; do
         "bootstrap" )
             USAGE=false
             BOOTSTRAP=true
+            CLEAN=false
+            shift
+            break
         ;;
 
         "update" )
             USAGE=false
             UPDATE=true
+            shift
+            break
         ;;
 
         "buildonly" )
             USAGE=false
+            shift
+            break
         ;;
     esac
     shift
 done
 
+
+function ask() {
+    read -p "$1 (y/N)? "
+    if [ "$REPLY" != "Y" -a "$REPLY" != "y" ]; then
+        echo "Aborted"
+        exit
+    fi
+}
+
+
+function clone() {
+    echo "========================================================================"
+    git clone -b ${BRANCH:-v2_$MINOR_VERSION} $GIT_PATH/$1
+    cd $1
+    git status
+    cd ..
+}
+
+
+function pull() {
+    cd $1
+    echo "========================================================================"
+    if [ -n "$(git status --short --untracked-files=no)" ]; then
+        ask "$1 changed, reset --hard"
+        git reset --hard
+    fi
+    [ -n "$BRANCH" ] && git checkout "$BRANCH"
+    git pull --rebase
+    cd ..
+}
+
+
 if $USAGE; then
     cat <<-EOM
-	usage: `basename $0` [ options] { bootstrap | update | buildonly }
-	          --debug       Include debug version
-	          --restart     Restart OPAL server daemon after install
-	          --no-install  Do not install - local build only
-	          --clean       Clean before build, including configuration
-              --branch <b>  Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
-              --minimal     For bootstrap, do minimal install of packages
-	          bootstrap     Do full OS install of pre-requisites and fresh download
-	          update        Do git update and rebuild
-	          buildonly     Only do build, do not do git update
+	usage: `basename $0` [ options] { bootstrap | update | buildonly } [ <config-options> ... ]
+	          --debug        Include debug version
+	          --restart      Restart OPAL server daemon after install
+	          --install <d>  Set install directory
+	          --no-install   Do not install - local build only
+	          --clean        Clean before build, including configuration
+              --branch <b>   Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
+              --minimal      For bootstrap, do minimal install of packages
+	          bootstrap      Do full OS install of pre-requisites and fresh download
+	          update         Do git update and rebuild
+	          buildonly      Only do build, do not do git update
 
 	if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
 	SourceForge account, and ssh used instead of https. Note, certificates must be
@@ -86,10 +132,7 @@ fi
 
 if $BOOTSTRAP; then
     if [ -d ptlib -o -d opal ]; then
-        read -p "PTLib/OPAL already present, delete? "
-        if [ "$REPLY" != "Y" -a "$REPLY" != "y" ]; then
-            exit
-        fi
+        ask "PTLib/OPAL already present, delete"
         rm -rf ptlib opal
     fi
 
@@ -153,29 +196,13 @@ if $BOOTSTRAP; then
         GIT_PATH=git://git.code.sf.net/p/opalvoip
     fi
 
-    echo "========================================================================"
-    git clone -b ${BRANCH:-v2_$MINOR_VERSION} $GIT_PATH/ptlib
-    cd ptlib
-    git status
-    cd ..
-    echo "========================================================================"
-    git clone -b ${BRANCH:-v3_$MINOR_VERSION} $GIT_PATH/opal
-    cd opal
-    git status
-    cd ..
+    clone ptlib
+    clone opal
 fi
 
 if $UPDATE; then
-    cd ptlib
-    echo "========================================================================"
-    [ -n "$BRANCH" ] && git checkout "$BRANCH"
-    git pull --rebase
-    echo "========================================================================"
-    cd ../opal
-    [ -n "$BRANCH" ] && git checkout "$BRANCH"
-    git pull --rebase
-    echo "========================================================================"
-    cd ..
+    pull ptlib
+    pull opal
 fi
 
 if $NO_INSTALL; then
@@ -186,32 +213,34 @@ else
     export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 fi
 
+if $BOOTSTRAP || [ $# -gt 0 ] ; then
+    echo "========================================================================"
+    echo "Configuring PTLib to install to $INSTALLDIR"
+    cd ptlib
+    make "CONFIG_PARMS=--prefix=$INSTALLDIR $@" config
+    git checkout configure
+    rm -f configure~
+    cd ..
+fi
+
 if $CLEAN; then
+    echo "========================================================================"
     make -C ptlib clean
     make -C opal clean
     make -C opal/samples/server clean
     rm -f ptlib/include/ptlib_config.h opal/include/opal_config.h
 fi
 
-if $BOOTSTRAP; then
-    echo "========================================================================"
-    echo "Configuring PTLib to install to $INSTALLDIR"
-    cd ptlib
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
-    git checkout configure
-    rm -f configure~
-    cd ..
-fi
-
+echo "========================================================================"
 make -C ptlib $MAKE_TARGET
 echo "----------------------------------------"
 $NO_INSTALL || sudo -E make -C ptlib install
 
-if $BOOTSTRAP; then
+if $BOOTSTRAP || [ $# -gt 0 ]; then
     echo "========================================================================"
     echo "Configuring OPAL to install to $INSTALLDIR"
     cd opal
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
+    make "CONFIG_PARMS=--prefix=$INSTALLDIR $@" config
     git checkout configure plugins/configure src/csharp/* src/java/*
     rm -f configure~ plugins/configure~
     cd ..
