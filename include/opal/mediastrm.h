@@ -59,12 +59,12 @@ typedef PSafePtr<OpalMediaPatch, PSafePtrMultiThreaded> OpalMediaPatchPtr;
 This page of the documentation is designed to provide an understanding of the
 use of the OpalMediaStream class in the OPAL library. 
 
-A voip call that is handled in OPAL consists of two instances of the
+A VoIP call that is handled in OPAL consists of two instances of the
 OpalConnection class (or derivative) plus instances of the
 OpalMediaStream class (or derivatives). Consequently, for handling a
 H.323 call which is directed to the PC speaker/microphone, there will
 H323Connection and a PCSSConnection. OPAL requires that media can be
-transferred between these two clases. To transfer the media, OPAL uses
+transferred between these two classes. To transfer the media, OPAL uses
 the OpalMediaStream.
 
 Key to understanding the OpalMediaStream class is that this class is
@@ -104,11 +104,11 @@ direction.
 */
 
 /**This class describes a media stream as used in the OPAL system. A media
-   stream is the channel through which media data is trasferred between OPAL
+   stream is the channel through which media data is transferred between OPAL
    entities. For example, data being sent to an RTP session over a network
    would be through a media stream.
   */
-class OpalMediaStream : public PSafeObject
+class OpalMediaStream : public PSafeObject, PProfiling::HighWaterMark<OpalMediaStream>
 {
     PCLASSINFO(OpalMediaStream, PSafeObject);
   protected:
@@ -256,7 +256,7 @@ class OpalMediaStream : public PSafeObject
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
-       RTP_DataFrame and and sets the internal timestamp and marker from the
+       RTP_DataFrame and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
     virtual PBoolean WritePacket(
@@ -276,7 +276,7 @@ class OpalMediaStream : public PSafeObject
 
     /**Write raw media data to the sink media stream.
        The default behaviour calls WritePacket() on the data portion of the
-       RTP_DataFrame and and sets the internal timestamp and marker from the
+       RTP_DataFrame and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
     virtual PBoolean WriteData(
@@ -801,7 +801,7 @@ class OpalAudioMediaStream : public OpalRawMediaStream
     /**Set the data size in bytes that is expected to be used. Some media
        streams can make use of this information to perform optimisations.
 
-       The defafault simply sets teh member variable defaultDataSize.
+       The default simply sets the member variable defaultDataSize.
       */
     virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
@@ -876,7 +876,7 @@ class OpalVideoMediaStream : public OpalMediaStream
 
     /**Write raw media data to the sink media stream.
        The default behaviour calls WritePacket() on the data portion of the
-       RTP_DataFrame and and sets the internal timestamp and marker from the
+       RTP_DataFrame and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
     virtual PBoolean WriteData(

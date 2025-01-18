@@ -785,7 +785,7 @@ class OpalListenerUDP : public OpalListenerIP
    A "transport" is an object that allows the transfer and processing of data
    from one entity to another.
  */
-class OpalTransport : public PSafeObject
+class OpalTransport : public PSafeObject, PProfiling::HighWaterMark<OpalTransport>
 {
     PCLASSINFO(OpalTransport, PSafeObject);
   protected:

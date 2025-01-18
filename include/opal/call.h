@@ -90,7 +90,7 @@ struct OpalCallStatistics
    In a conference situation, one OpalCall would manage lots of
    H323Connection/SIPConnection classes.
  */
-class OpalCall : public PSafeObject, protected OpalCallStatistics
+class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::HighWaterMark<OpalCall>
 {
     PCLASSINFO(OpalCall, PSafeObject);
   public:
@@ -123,7 +123,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
 
   /**@name Basic operations */
   //@{
-    /**Indicate tha all connections in call are connected and media is going.
+    /**Indicate that all connections in call are connected and media is going.
       */
     PBoolean IsEstablished() const { return m_isEstablished; }
 
@@ -137,7 +137,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       */
     virtual void OnEstablishedCall();
 
-    /**Get the call clearand reason for this connection shutting down.
+    /**Get the call clearance reason for this connection shutting down.
        Note that this function is only generally useful in the
        OpalEndPoint::OnClearedCall() function. This is due to the
        connection not being cleared before that, and the object not even
@@ -191,7 +191,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       OpalConnection & connection   ///< New connection just created
     );
 
-    /**Call back for SetUp conenction.
+    /**Call back for SetUp connection.
 
        The default behaviour is to call SetUpConnection() on all the other
        connections in the call.
@@ -215,7 +215,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        The default behaviour does nothing.
      */
     virtual void OnProceeding(
-      OpalConnection & connection   ///<  Connection that is proceeeding
+      OpalConnection & connection   ///<  Connection that is proceeding
     );
 
     /**Call back for remote party being alerted.
@@ -247,7 +247,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        example the user pressing an "Answer call" button.
 
        If AnswerCallDenied is returned the connection is aborted and the
-       connetion specific end call PDU is sent. If AnswerCallNow is returned 
+       connection specific end call PDU is sent. If AnswerCallNow is returned 
        then the connection proceeding, Finally if AnswerCallPending is returned then the
        protocol negotiations are paused until the AnsweringCall() function is
        called.
@@ -392,7 +392,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        <b>not</b> released in this case.
 
        If there is a protocol change, e.g. "pc:" to "t38:", then 'connection'
-       is completely released, all media streams to the second conection in
+       is completely released, all media streams to the second connection in
        the call (if any) are severed and a new connection established and new
        media streams started.
 
@@ -416,7 +416,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
     /**Get the media formats of the connections in call.
        This returns the intersection of all the media formats available in
        connections in the call, not including the parameter. It is in
-       esence the "local" media formats available to the connection.
+       essence the "local" media formats available to the connection.
 
        This will also add to the list all media formats for which there are
        transcoders registered.
@@ -463,7 +463,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
 
     /**Select media format pair from the source/destination list.
 
-       Default behavour calls OpalTranscoder::SelectFormats().
+       Default behaviour calls OpalTranscoder::SelectFormats().
       */
     virtual bool SelectMediaFormats(
       const OpalMediaType & mediaType,        ///< Media type for selection.
@@ -518,7 +518,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       const PString & value         ///<  String value of indication
     );
 
-    /**Call back for remote enpoint has sent user input as tones.
+    /**Call back for remote endpoint has sent user input as tones.
        If \p duration is zero then this indicates the beginning of the tone.
        If \p duration is greater than zero then it indicates the end of the
        tone output and how long the tone had run.
@@ -567,7 +567,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
     /**Set the B party for a call.
        This is used when we wish to make two outgoing calls and bridge them.
        When the OnConnected() call back occurs for the first outgoing call
-       (the A-Party) then this variable ised to make teh second outgoing call.
+       (the A-Party) then this variable is used to make the second outgoing call.
       */
     void SetPartyB(
       const PString & b
