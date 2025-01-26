@@ -2247,7 +2247,7 @@ void OpalManager::GarbageCollection()
 
   m_endpointsMutex.EndRead();
 
-  if (m_clearingAllCallsCount != 0 && m_activeCalls.DeleteObjectsToBeRemoved())
+  if (m_activeCalls.DeleteObjectsToBeRemoved() && m_clearingAllCallsCount != 0)
     m_allCallsCleared.Signal();
 }
 
