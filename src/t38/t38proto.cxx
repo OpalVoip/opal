@@ -330,6 +330,16 @@ bool OpalFaxSession::WriteUDPTL()
     PTRACE(2, "Write failed, data socket not open");
     return false;
   }
+#if PTRACING
+  if (PTrace::CanTrace(5)) {
+    PPER_Stream per(m_sentPacket->m_primary_ifp_packet);
+    T38_IFPPacket decodedIFP;
+    decodedIFP.Decode(per);
+    ostream & trace = PTRACE_BEGIN(5);
+    trace << "Decoded transmitted IFP:\n  " << setprecision(2) << decodedIFP;
+    trace << PTrace::End;
+  }
+#endif
 
   PPER_Stream rawData;
   m_sentPacket->Encode(rawData);
@@ -346,6 +356,17 @@ bool OpalFaxSession::WriteUDPTL()
 
 void OpalFaxSession::SetFrameFromIFP(RTP_DataFrame & frame, const PASN_OctetString & ifp, unsigned sequenceNumber)
 {
+#if PTRACING
+  if (PTrace::CanTrace(5)) {
+    PPER_Stream per(ifp);
+    T38_IFPPacket decodedIFP;
+    decodedIFP.Decode(per);
+    ostream & trace = PTRACE_BEGIN(5);
+    trace << "Decoded received IFP:\n  " << setprecision(2) << decodedIFP;
+    trace << PTrace::End;
+  }
+#endif
+
   frame.SetPayload(ifp, ifp.GetDataLength());
   frame.SetSequenceNumber((WORD)(sequenceNumber & 0xffff));
   if (m_secondaryPacket <= 0)
@@ -441,7 +462,7 @@ bool OpalFaxSession::ReadData(RTP_DataFrame & frame)
   m_awaitingGoodPacket = false;
   m_consecutiveBadPackets = 0;
 
-  PTRACE(5, "Decoded packet:\n  " << setprecision(2) << *m_receivedPacket);
+  PTRACE(5, "Decoded received packet:\n  " << setprecision(2) << *m_receivedPacket);
 
   int missing = m_receivedPacket->m_seq_number - m_expectedSequenceNumber;
   if (missing > 0 && m_receivedPacket->m_error_recovery.GetTag() == T38_UDPTLPacket_error_recovery::e_secondary_ifp_packets) {
