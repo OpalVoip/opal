@@ -1,17 +1,18 @@
 @echo off
 
 set PLATFORM=x64
-set CONFIGURATION=Release
+set CONFIGURATION=Debug
 set PTLIBPLUGINDIR=..\..\bin\plugins\%PLATFORM%\%CONFIGURATION%
-if "%PATH:..\..\..\ptlib\lib=nothing%"=="%PATH%" PATH=%PTLIBPLUGINDIR%;..\..\lib;..\..\..\ptlib\lib;%EXTERNALDIR%\Lua-win64;%EXTERNALDIR%\ffmpeg-win64-dev\bin;%EXTERNALDIR%\aws-sdk-cpp\out\install\x64-Debug\bin;C:\Program Files\OpenSSL-Win64\bin;%PATH%
+if "%PATH:..\..\..\ptlib\lib=nothing%"=="%PATH%" PATH=%PTLIBPLUGINDIR%;..\..\lib;..\..\..\ptlib\lib;%VCPKG_ROOT%\installed\%PLATFORM%-windows\bin;%EXTERNALDIR%\Lua-win64;%EXTERNALDIR%\ffmpeg-win64-dev\bin;%EXTERNALDIR%\aws-sdk-cpp\build\install\x64-Debug\bin;C:\Program Files\OpenSSL-Win64\bin;%PATH%
 set FAXOPAL="..\..\bin\Fax Application\%PLATFORM%\%CONFIGURATION%\faxopal.exe"
 if not exist %FAXOPAL% (
-	echo "No executable available for faxopal: %FAXOPAL%"
+	echo No executable available for faxopal: %FAXOPAL%
 	exit /b 1
 )
 %FAXOPAL% >nul
 if %errorlevel% neq 1 (
-	echo "Cannot run executable: %FAXOPAL%"
+	echo Cannot run executable: %FAXOPAL%
+	path
 	exit /b 1
 )
 
