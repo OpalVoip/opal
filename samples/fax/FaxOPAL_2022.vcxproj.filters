@@ -9,6 +9,9 @@
       <UniqueIdentifier>{ddaa47fe-14e4-4052-a5db-522581bfcc20}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="Script Files">
+      <UniqueIdentifier>{222f8b9d-3ce9-41f4-af2e-cc7ef79fe3a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cxx">
@@ -25,5 +28,16 @@
     <ClInclude Include="precompile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="test.sh">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="test_all.bat">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="test_fax.bat">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
