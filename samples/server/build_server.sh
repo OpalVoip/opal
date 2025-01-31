@@ -112,12 +112,12 @@ if $USAGE; then
 	          --install <d>  Set install directory
 	          --no-install   Do not install - local build only
 	          --clean        Clean before build, including configuration
-              --branch <b>   Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
-              --minimal      For bootstrap, do minimal install of packages
+	          --branch <b>   Git branch to check out, defaults to v2_$MINOR_VERSION/v3_$MINOR_VERSION
+	          --minimal      For bootstrap, do minimal install of packages
 	          bootstrap      Do full OS install of pre-requisites and fresh download
 	          update         Do git update and rebuild
 	          buildonly      Only do build, do not do git update
-
+	
 	if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
 	SourceForge account, and ssh used instead of https. Note, certificates must be
 	set up for your local account to access SourceForge for this to work.
