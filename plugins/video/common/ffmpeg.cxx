@@ -43,6 +43,7 @@
 
 #include <stdio.h>
 #include <iomanip>
+#include <string>
 
 #ifndef PLUGIN_CODEC_DLL_EXPORTS
 #include "plugin_config.h"
@@ -89,6 +90,14 @@ static void logCallbackFFMPEG(void * avcl, int severity, const char* fmt , va_li
     static_cast<FFMPEGCodec *>(static_cast<AVCodecContext *>(avcl)->opaque)->ErrorCallback(level, buffer);
   else
     PTRACE(level, "FFMPEG", buffer);
+}
+
+std::string av_error_string(int errnum)
+{
+  char buffer[512];
+  if (av_strerror(errnum, buffer, sizeof(buffer)) != 0)
+    return "Unknown error";
+  return buffer;
 }
 #endif
 
@@ -155,6 +164,25 @@ FFMPEGCodec::~FFMPEGCodec()
 }
 
 
+void FFMPEGCodec::LogAllCodecs(const AVMediaType type)
+{
+  void * context = NULL;
+  for (;;) {
+    const AVCodec* codec = av_codec_iterate(&context);
+    if (!codec)
+      break;
+
+    if (type == codec->type) {
+      PTRACE(1, m_prefix, codec->id << " \"" << codec->name << "\" \"" << codec->long_name << '"');
+      if (codec->profiles) {
+        for (const AVProfile* profile = codec->profiles; profile->profile != FF_PROFILE_UNKNOWN && profile->name; ++profile)
+          PTRACE(2, m_prefix, "  Profiles: " << profile->profile << "\" \"" << profile->name << '"');
+      }
+    }
+  }
+}
+
+
 bool FFMPEGCodec::InitContext()
 {
   if (m_fullFrame == NULL) {
@@ -183,6 +211,7 @@ bool FFMPEGCodec::InitContext()
   }
 
   m_picture->format = m_context->pix_fmt = AV_PIX_FMT_YUV420P;
+  m_picture->quality = 1;
   m_context->workaround_bugs = FF_BUG_AUTODETECT;
 
   // debugging flags
@@ -196,7 +225,7 @@ bool FFMPEGCodec::InitContext()
 #endif
 
   m_context->opaque = this;
-  return true;
+  return SetResolution(352, 288);
 }
 
 
@@ -210,15 +239,30 @@ static void StaticRTPCallBack(AVCodecContext * ctx, void * data, int size, int n
 }
 #endif
 
+bool FFMPEGCodec::InitEncoder(const char * name)
+{
+  if (InternalInitEncoder(avcodec_find_encoder_by_name(name)))
+    return true;
+
+  PTRACE(4, m_prefix, "Could not find encoder: " << name);
+  return false;
+}
+
 bool FFMPEGCodec::InitEncoder(AVCodecID codecId)
 {
-  PTRACE(5, m_prefix, "Initialising encoder");
+  if (InternalInitEncoder(avcodec_find_encoder(codecId)))
+    return true;
 
-  m_codec = avcodec_find_encoder(codecId);
-  if (m_codec == NULL) {
-    PTRACE(1, m_prefix, "Codec not found for encoder");
+  PTRACE(2, m_prefix, "FFMPEG does not support encoder: " << codecId);
+  return false;
+}
+
+bool FFMPEGCodec::InternalInitEncoder(const AVCodec * codec)
+{
+  if (codec == NULL)
     return false;
-  }
+
+  m_codec = codec;
 
   if (!InitContext())
     return false;
@@ -250,17 +294,36 @@ bool FFMPEGCodec::InitEncoder(AVCodecID codecId)
 }
 
 
+bool FFMPEGCodec::InitDecoder(const char * name)
+{
+  if (InternalInitDecoder(avcodec_find_decoder_by_name(name)))
+    return true;
+
+  PTRACE(5, m_prefix, "Could not find decoder: " << name);
+  return false;
+}
+
+
 bool FFMPEGCodec::InitDecoder(AVCodecID codecId)
 {
-  if ((m_codec = avcodec_find_decoder(codecId)) == NULL) {
-    PTRACE(1, m_prefix, "Codec not found for decoder");
+  PTRACE(5, m_prefix, "Initialising decoder: " << codecId);
+  if (InternalInitDecoder(avcodec_find_decoder(codecId)))
+    return true;
+
+  PTRACE(5, m_prefix, "FFMPEG does not support decoder: " << codecId);
+  return false;
+}
+
+
+bool FFMPEGCodec::InternalInitDecoder(const AVCodec * codec)
+{
+  if (codec == NULL)
     return false;
-  }
+
+  m_codec = codec;
 
   if (!InitContext())
     return false;
-
-  m_picture->quality = -1;
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53, 0, 0)
   m_context->error_recognition = FF_ER_AGGRESSIVE;
@@ -289,7 +352,7 @@ bool FFMPEGCodec::OpenCodec()
   g_avcodec_mutex.Signal();
 
   if (result < 0) {
-    PTRACE(1, m_prefix, "Failed to open codec \"" << m_codec->long_name << '"');
+    PTRACE(1, m_prefix, "Failed to open codec \"" << m_codec->long_name << "\" - " << av_error_string(result));
     return false;
   }
 
@@ -352,7 +415,7 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
     m_picture->data[2] = (uint8_t *)(m_alignedYUV[2] = av_malloc(sz));
   }
 
-  if (!m_fullFrame->SetSize(width*height*m_context->bit_rate/10000)) {
+  if (!m_fullFrame->SetSize(width*height*2)) {
     PTRACE(1, m_prefix, "Frame handler SetResolution failed");
     return false;
   }
@@ -422,17 +485,14 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
 #endif
 
   m_fullFrame->SetMaxPayloadSize(maxRTPSize);
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
-  m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
-#else
-  av_dict_set_int(&m_options, "mb_info", m_fullFrame->GetMaxPayloadSize(), 0);
-#endif
 
   m_context->qmax = tsto;
   if (m_context->qmax <= m_context->qmin)
     m_context->qmax = m_context->qmin+1;
 
   m_context->gop_size = keyFramePeriod;
+  m_context->max_b_frames = 0;
+  m_context->refs = 3;
 
   // Dump info
   PTRACE(5, m_prefix, "Size is " << m_context->width << "x" << m_context->height);
@@ -521,7 +581,8 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   if (m_picture->key_frame || m_fullFrame->IsIntraFrame())
     flags |= PluginCodec_ReturnCoderIFrame;
 
-  return m_fullFrame->GetPacket(out, flags);
+  m_fullFrame->GetPacket(out, flags);
+  return true;
 }
 
 
@@ -570,7 +631,7 @@ bool FFMPEGCodec::EncodeVideoFrame()
   for (;;) {
     int result = avcodec_receive_packet(m_context, &m_packet);
     PTRACE(5, m_prefix, "avcodec_receive_packet: result=" << result << ", size=" << m_packet.size);
-    if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
+    if (result == AVERROR(EAGAIN))
       break;
 
     if (result != 0) {

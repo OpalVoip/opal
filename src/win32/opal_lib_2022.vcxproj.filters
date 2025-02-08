@@ -798,6 +798,12 @@
     <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpsrv\bfcp_user_list.cpp">
       <Filter>Source Files\SDP\libBFCP</Filter>
     </ClCompile>
+    <ClCompile Include="..\codec\h265mf_inc.cxx">
+      <Filter>Source Files\Codec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\codec\h265mf.cxx">
+      <Filter>Source Files\Codec</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\codec\echocancel.h">
@@ -1729,6 +1735,7 @@
     <None Include="..\java\java_swig_wrapper.inc">
       <Filter>Source Files\SWIG\Java Files</Filter>
     </None>
+    <None Include="..\..\plugins\configure.ac" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="opal.natvis" />

@@ -313,6 +313,9 @@
     <ProjectReference Include="..\..\plugins\video\H.263-1998\h263_2022.vcxproj">
       <Project>{e75af717-c8a6-40e7-82cb-80d67ce01611}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\plugins\video\H.265-FFMPEG\h265-FFMPEG_2022.vcxproj">
+      <Project>{d3fdc0a6-a9f4-4d78-8f3f-64a45ddcd070}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\plugins\video\MPEG4-ffmpeg\mpeg_2022.vcxproj">
       <Project>{d96e9539-b594-4c4b-8782-33a54d990f5f}</Project>
     </ProjectReference>

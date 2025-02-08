@@ -1805,6 +1805,7 @@ extern const OpalMediaFormat & GetOpalT38_RTP();
 #define OpalH264       GetOpalH264_MODE1()
 #define OpalH264_MODE0 GetOpalH264_MODE0()
 #define OpalH264_MODE1 GetOpalH264_MODE1()
+#define OpalH265       GetOpalH265()
 #define OpalMPEG4      GetOpalMPEG4()
 #define OpalVP8        GetOpalVP8()
 #endif

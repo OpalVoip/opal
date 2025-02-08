@@ -104,6 +104,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "plugins\fax\fax_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.264 (x264)", "C:\Work\stable_win\opal\plugins\video\x264\h264-x264_2022.vcxproj", "{4D3EE295-5953-498D-AEDF-9C8792AB5723}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.263-1998 (FFMPEG)", "plugins\video\H.265-FFMPEG\h265-FFMPEG_2022.vcxproj", "{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -577,6 +579,18 @@ Global
 		{4D3EE295-5953-498D-AEDF-9C8792AB5723}.No Trace|x64.ActiveCfg = Release (licensed)|x64
 		{4D3EE295-5953-498D-AEDF-9C8792AB5723}.Release|Win32.ActiveCfg = Release (licensed)|Win32
 		{4D3EE295-5953-498D-AEDF-9C8792AB5723}.Release|x64.ActiveCfg = Release (licensed)|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Debug|Win32.Build.0 = Debug|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Debug|x64.ActiveCfg = Debug|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Debug|x64.Build.0 = Debug|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.No Trace|Win32.ActiveCfg = Debug|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.No Trace|Win32.Build.0 = Debug|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.No Trace|x64.ActiveCfg = Debug|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.No Trace|x64.Build.0 = Debug|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Release|Win32.ActiveCfg = Release|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Release|Win32.Build.0 = Release|Win32
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Release|x64.ActiveCfg = Release|x64
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -625,6 +639,7 @@ Global
 		{632F45C3-3F07-4BEE-8E38-733C7156084C} = {9EE2B1FD-0468-4A9D-A83F-71CF3FEFBEA9}
 		{2DC64A78-365E-4836-9659-807E41F42A69} = {632F45C3-3F07-4BEE-8E38-733C7156084C}
 		{4D3EE295-5953-498D-AEDF-9C8792AB5723} = {E128E4D9-DF0E-433C-9F99-4CB3E95F2168}
+		{D3FDC0A6-A9F4-4D78-8F3F-64A45DDCD070} = {E128E4D9-DF0E-433C-9F99-4CB3E95F2168}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {572B41B8-BFCF-4757-AA78-2B96BB5A7D76}

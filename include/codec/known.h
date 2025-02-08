@@ -108,6 +108,7 @@
 #define OPAL_H264_MODE1     "H.264-1"
 #define OPAL_H264_High      "H.264-High"
 #define OPAL_H264_Flash     "H.264-F"
+#define OPAL_H265           "H.265"
 #define OPAL_MPEG4          "MPEG4"
 #define OPAL_VP8            "VP8-WebM"
 

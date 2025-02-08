@@ -82,6 +82,7 @@ static const char * const DefaultMediaFormatOrder[] = {
   OPAL_G711_ULAW_64K,
   OPAL_G711_ALAW_64K,
 #if OPAL_VIDEO
+  OPAL_H265,
   OPAL_H264_High,   // High profile
   OPAL_H264_MODE1,  // Packetisation mode 1
   OPAL_H264_MODE0,  // Packetisation mode 0

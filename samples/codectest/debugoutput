@@ -1,0 +1,2 @@
+codectest version 1.0.0 [debug] by OPAL Audio/Video Codec Tester on Windows 10 (v10.0.22631-x64) with PTLib (v2.21alpha0 (git:75e5945522ad87ca6b9be991a32214eaee282349)) at 2025/1/26 16:19:35.828, level=4, to "debugoutput"
+  4:17.472	        codectest:34220	     osutils.cxx(2637)	PTLib   	Could not create startup factory SetTraceLevel
