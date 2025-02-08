@@ -450,6 +450,7 @@ MY_OUTPUT_SUMMARY(
    [            H.263/H.263+ (ffmpeg)], HAVE_H263,
    [                    VideoLAN x264], HAVE_X264,
    [                   Cisco OpenH264], HAVE_OPENH264,
+   [                   H.265 (ffmpeg)], HAVE_H265,
    [                              VP8], HAVE_VP8,
    [                           THEORA], HAVE_THEORA,
    [                     MPEG4 Part 2], HAVE_MPEG4,
