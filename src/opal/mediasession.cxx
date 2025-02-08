@@ -239,6 +239,18 @@ OpalMediaStatistics::OpalMediaStatistics()
 }
 
 
+OpalMediaStatistics::OpalMediaStatistics(const OpalMediaStatistics & other)
+  : PObject(other)
+  , OpalCodecStatistics(other)
+  , OpalNetworkStatistics(other)
+  , OpalVideoStatistics(other)
+#if OPAL_FAX
+  , OpalFaxStatistics(other)
+  , m_fax(*this) // Backward compatibility
+#endif
+{ }
+
+
 OpalMediaStatistics & OpalMediaStatistics::operator=(const OpalMediaStatistics & other)
 {
   // Copy everything but m_updateInfo

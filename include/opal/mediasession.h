@@ -225,6 +225,10 @@ class OpalMediaStatistics : public PObject
     PCLASSINFO(OpalMediaStatistics, PObject);
   public:
     OpalMediaStatistics();
+    OpalMediaStatistics(const OpalMediaStatistics & other);
+#if _cplusplus >= 201103L
+    OpalMediaStatistics(OpalMediaStatistics && other) delete;
+#endif
 
     /* Note operator= does not overwrite the m_updateInfo in the assignee,
        this allows it to have a different update cycle for bit rates etc
