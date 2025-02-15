@@ -265,7 +265,8 @@ if test "x$HAVE_LIBAVCODEC" = "xyes" ; then
 
    OPAL_SIMPLE_PLUGIN([H263],  [h.263], [H.263/H.263+ video codec], [$PLUGIN_SRC_DIR/video/H.263-1998])
    OPAL_SIMPLE_PLUGIN([MPEG4], [mpeg4], [MPEG4 part 2 video codec], [$PLUGIN_SRC_DIR/video/MPEG4-ffmpeg])
-   OPAL_SIMPLE_PLUGIN([H265],  [h.265], [H.265 (HEVC) video codec], [$PLUGIN_SRC_DIR/video/H.265-FFMPEG])
+   OPAL_SIMPLE_PLUGIN([ffH264], [h.264], [H.264 (FFMPEG) video codec], [$PLUGIN_SRC_DIR/video/H.264-FFMPEG])
+   OPAL_SIMPLE_PLUGIN([ffH265], [h.265], [H.265 (FFMPEG) video codec], [$PLUGIN_SRC_DIR/video/H.265-FFMPEG])
 
    OPAL_SYSTEM_PLUGIN(
       [X264],
@@ -450,7 +451,8 @@ MY_OUTPUT_SUMMARY(
    [            H.263/H.263+ (ffmpeg)], HAVE_H263,
    [                    VideoLAN x264], HAVE_X264,
    [                   Cisco OpenH264], HAVE_OPENH264,
-   [                   H.265 (ffmpeg)], HAVE_H265,
+   [                   H.264 (ffmpeg)], HAVE_ffH264,
+   [                   H.265 (ffmpeg)], HAVE_ffH265,
    [                              VP8], HAVE_VP8,
    [                           THEORA], HAVE_THEORA,
    [                     MPEG4 Part 2], HAVE_MPEG4,

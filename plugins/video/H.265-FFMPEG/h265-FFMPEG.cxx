@@ -1,5 +1,5 @@
 /*
- * H.264/H.265 Plugin codec for OPAL
+ * H.265 Plugin codec for OPAL using FFMPEG
  *
  * Copyright (C) 2025 Vox Lucida Pty Ltd, All Rights Reserved
  *
@@ -20,7 +20,8 @@
 
 #include "../common/platform.h"
 
-#define MY_CODEC ffvideo  // Name of codec (use C variable characters)
+#define MY_CODEC ffH265  // Name of codec (use C variable characters)
+class MY_CODEC { };
 
 #include "../../../src/codec/h265mf_inc.cxx"
 #include "../common/ffmpeg.h"
@@ -30,8 +31,6 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-
-class MY_CODEC { };
 
 PLUGINCODEC_CONTROL_LOG_FUNCTION_DEF
 
@@ -144,8 +143,8 @@ class H265_PluginMediaFormat : public PluginCodec_VideoFormat<MY_CODEC>
 public:
   typedef PluginCodec_VideoFormat<MY_CODEC> BaseClass;
 
-  H265_PluginMediaFormat()
-    : BaseClass(H265_FormatName,
+  H265_PluginMediaFormat(const char * formatName)
+    : BaseClass(formatName,
                 H265EncodingName,
                 MyDescription,
                 1000000000,
@@ -172,11 +171,13 @@ public:
   }
 };
 
-static H265_PluginMediaFormat const MyMediaFormatInfo;
+static H265_PluginMediaFormat const MyMediaFormatInfo(H265_FormatName);
+static H265_PluginMediaFormat const MyMediaFormatInfo_ff("ff" OPAL_H265);
 
-static uint8_t naluPrefix[4] = { 0, 0, 0, 1 };
 
 ///////////////////////////////////////////////////////////////////////////////
+
+static uint8_t naluPrefix[4] = { 0, 0, 0, 1 };
 
 class H265Frame : public OpalPluginFrame
 {
@@ -541,6 +542,7 @@ public:
 static struct PluginCodec_Definition CodecDefinition[] =
 {
   PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo, H265_Encoder, H265_Decoder),
+  PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_ff, H265_Encoder, H265_Decoder),
 };
 
 
