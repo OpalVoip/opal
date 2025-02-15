@@ -18,7 +18,7 @@
 # The Initial Developer of the Original Code is Post Increment
 #
 
-BASENAME := h26x_ffmpeg
+BASENAME := h265_ffmpeg
 
 COMMONDIR := $(abspath ../common)
 SRCDIR    := $(CURDIR)
