@@ -24,7 +24,7 @@ COMMONDIR := $(abspath ../common)
 SRCDIR    := $(CURDIR)
 SOURCES   := $(CURDIR)/h264-FFMPEG.cxx \
              $(COMMONDIR)/encframe.cxx \
-             $(COMMONDIR)/ffmpeg.cxx
+             $(COMMONDIR)/ffmpeg.cxx \
              $(COMMONDIR)/h264frame.cxx \
 
 PLUGIN_CPPFLAGS = $(LIBAVCODEC_CFLAGS) -I$(COMMONDIR)

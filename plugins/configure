@@ -858,6 +858,7 @@ enable_libavcodec
 with_libavcodec_dir
 enable_h_263
 enable_mpeg4
+enable_h_264
 enable_h_265
 enable_x264
 with_x264_dir
@@ -1586,7 +1587,8 @@ Optional Features:
   --disable-libavcodec    disable FFMPEG libavcodec library
   --disable-h.263         disable H.263/H.263+ video codec
   --disable-mpeg4         disable MPEG4 part 2 video codec
-  --disable-h.265         disable H.265 (HEVC) video codec
+  --disable-h.264         disable H.264 (FFMPEG) video codec
+  --disable-h.265         disable H.265 (FFMPEG) video codec
   --disable-x264          disable VideoLan x264 H.264 video
                           codec
   --enable-x264-licensed  enable commercially licensed x264
@@ -12005,6 +12007,55 @@ esac
 fi
 
 
+   if test -d "$PLUGIN_SRC_DIR/video/H.264-FFMPEG"
+then :
+
+      # Check whether --enable-h.264 was given.
+if test ${enable_h_264+y}
+then :
+  enableval=$enable_h_264;
+            if test "x$enableval" = xno
+then :
+
+               HAVE_ffH264="no (disabled by user)"
+
+else case e in #(
+  e)
+               HAVE_ffH264="yes"
+             ;;
+esac
+fi
+
+else case e in #(
+  e)
+            if test ${HAVE_ffH264+y}
+then :
+
+else case e in #(
+  e) HAVE_ffH264="yes" ;;
+esac
+fi
+
+       ;;
+esac
+fi
+
+
+      if test "x$HAVE_ffH264" = xyes
+then :
+
+         PLUGIN_SUBDIRS="$PLUGIN_SUBDIRS $PLUGIN_SRC_DIR/video/H.264-FFMPEG"
+
+fi
+
+else case e in #(
+  e)
+      HAVE_ffH264="no (missing directory $PLUGIN_SRC_DIR/video/H.264-FFMPEG)"
+    ;;
+esac
+fi
+
+
    if test -d "$PLUGIN_SRC_DIR/video/H.265-FFMPEG"
 then :
 
@@ -12015,22 +12066,22 @@ then :
             if test "x$enableval" = xno
 then :
 
-               HAVE_H265="no (disabled by user)"
+               HAVE_ffH265="no (disabled by user)"
 
 else case e in #(
   e)
-               HAVE_H265="yes"
+               HAVE_ffH265="yes"
              ;;
 esac
 fi
 
 else case e in #(
   e)
-            if test ${HAVE_H265+y}
+            if test ${HAVE_ffH265+y}
 then :
 
 else case e in #(
-  e) HAVE_H265="yes" ;;
+  e) HAVE_ffH265="yes" ;;
 esac
 fi
 
@@ -12039,7 +12090,7 @@ esac
 fi
 
 
-      if test "x$HAVE_H265" = xyes
+      if test "x$HAVE_ffH265" = xyes
 then :
 
          PLUGIN_SUBDIRS="$PLUGIN_SUBDIRS $PLUGIN_SRC_DIR/video/H.265-FFMPEG"
@@ -12048,7 +12099,7 @@ fi
 
 else case e in #(
   e)
-      HAVE_H265="no (missing directory $PLUGIN_SRC_DIR/video/H.265-FFMPEG)"
+      HAVE_ffH265="no (missing directory $PLUGIN_SRC_DIR/video/H.265-FFMPEG)"
     ;;
 esac
 fi
@@ -16094,9 +16145,19 @@ esac
 fi
 
 
-   if test ${HAVE_H265+y}
+   if test ${HAVE_ffH264+y}
 then :
-  printf "%s\n" "                   H.265 (ffmpeg) : ${HAVE_H265}"
+  printf "%s\n" "                   H.264 (ffmpeg) : ${HAVE_ffH264}"
+else case e in #(
+  e) printf "%s\n" "                   H.264 (ffmpeg) : no"
+       ;;
+esac
+fi
+
+
+   if test ${HAVE_ffH265+y}
+then :
+  printf "%s\n" "                   H.265 (ffmpeg) : ${HAVE_ffH265}"
 else case e in #(
   e) printf "%s\n" "                   H.265 (ffmpeg) : no"
        ;;
