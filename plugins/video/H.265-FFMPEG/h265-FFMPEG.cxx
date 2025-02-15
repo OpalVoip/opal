@@ -186,7 +186,7 @@ class H265Frame : public OpalPluginFrame
   bool m_intra;
 public:
   H265Frame()
-    : m_naluStart(NULL)
+    : m_naluStart(0)
     , m_fu(false)
     , m_intra(false)
   { }
@@ -268,9 +268,12 @@ public:
         size_t offset = sizeof(apNaluPrefix);
         while (offset + naluSize + nextNaluSize + 2 < m_maxPayloadSize) {
           uint8_t apPrefix[] = { (uint8_t)(naluSize >> 8), (uint8_t)naluSize };
+          if (!rtp.CopyPayload(apPrefix, sizeof(apPrefix), offset))
+            return false;
+          offset += 2;
           if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize, offset))
             return false;
-          offset += naluSize + 2;
+          offset += naluSize;
           m_naluStart += naluSize + sizeof(naluPrefix);
           naluSize = nextNaluSize;
           nextNaluSize = GetNaluSize(m_naluStart + naluSize + sizeof(naluPrefix));
