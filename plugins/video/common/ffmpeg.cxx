@@ -210,7 +210,7 @@ bool FFMPEGCodec::InitContext()
     return false;
   }
 
-  m_picture->format = m_context->pix_fmt = AV_PIX_FMT_YUV420P;
+  m_picture->format = m_context->pix_fmt = m_context->sw_pix_fmt = AV_PIX_FMT_YUV420P;
   m_picture->quality = 1;
   m_context->workaround_bugs = FF_BUG_AUTODETECT;
 
@@ -437,6 +437,8 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
                                     unsigned tsto,
                                     unsigned keyFramePeriod)
 {
+  m_context->framerate.den = PLUGINCODEC_VIDEO_CLOCK;
+  m_context->framerate.num = frameTime;
   m_context->time_base.den = 2997;
   m_context->time_base.num = frameTime*m_context->time_base.den/PLUGINCODEC_VIDEO_CLOCK;
 
@@ -490,6 +492,8 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
   if (m_context->qmax <= m_context->qmin)
     m_context->qmax = m_context->qmin+1;
 
+  m_context->sample_aspect_ratio.num = 1;
+  m_context->sample_aspect_ratio.den = 1;
   m_context->gop_size = keyFramePeriod;
   m_context->max_b_frames = 0;
   m_context->refs = 3;

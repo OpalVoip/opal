@@ -203,6 +203,15 @@ public:
     return OpalPluginFrame::Reset(len);
   }
 
+  size_t GetNaluSize(size_t start)
+  {
+    for (size_t nextNalu = start+1; nextNalu < m_length - 4; ++nextNalu) {
+      if (memcmp(m_buffer+nextNalu, naluPrefix, sizeof(naluPrefix)) == 0)
+        return nextNalu - start;
+    }
+    return m_length - start;
+  }
+
   virtual bool GetPacket(PluginCodec_RTP & rtp, unsigned & flags)
   {
     flags = 0;
@@ -229,14 +238,7 @@ public:
         break;
     }
 
-    size_t naluSize = m_length - m_naluStart;
-    for (size_t nextNalu = m_naluStart+1; nextNalu < m_length - 4; ++nextNalu) {
-      if (memcmp(m_buffer+nextNalu, naluPrefix, sizeof(naluPrefix)) == 0) {
-        naluSize = nextNalu - m_naluStart;
-        break;
-      }
-    }
-
+    size_t naluSize = GetNaluSize(m_naluStart);
     if (naluSize > m_maxPayloadSize - 3) {
       naluSize = m_maxPayloadSize - 3;
       uint8_t fuPrefix[] = { 49 << 1, 0, (uint8_t)(m_fu ? 0 : 0x80) };
@@ -245,19 +247,41 @@ public:
       m_naluStart += naluSize;
       m_fu = true;
     }
-    else {
+    else if (m_fu) {
       m_fu = false;
       if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize))
         return false;
       m_naluStart += naluSize + sizeof(naluPrefix);
     }
-
-    if (m_naluStart >= m_length) {
-      flags |= PluginCodec_ReturnCoderLastFrame;
-      m_naluStart = 0;
+    else {
+      size_t nextNaluSize = GetNaluSize(m_naluStart + naluSize + sizeof(naluPrefix));
+      if (naluSize + nextNaluSize + 6 >= m_maxPayloadSize) {
+        if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize))
+          return false;
+        m_naluStart += naluSize + sizeof(naluPrefix);
+      }
+      else {
+        uint8_t apNaluPrefix[] = { 48 << 1, 0 };
+        if (!rtp.CopyPayload(apNaluPrefix, sizeof(apNaluPrefix)))
+          return false;
+        size_t offset = sizeof(apNaluPrefix);
+        while (offset + naluSize + nextNaluSize + 2 < m_maxPayloadSize) {
+          uint8_t apPrefix[] = { (uint8_t)(naluSize >> 8), (uint8_t)naluSize };
+          if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize, offset))
+            return false;
+          offset += naluSize + 2;
+          m_naluStart += naluSize + sizeof(naluPrefix);
+          naluSize = nextNaluSize;
+          nextNaluSize = GetNaluSize(m_naluStart + naluSize + sizeof(naluPrefix));
+        }
+      }
     }
 
-    return true;
+    if (m_naluStart < m_length)
+      return true;
+
+    flags |= PluginCodec_ReturnCoderLastFrame;
+    return Reset();
   }
 
   bool AppendNALU(const uint8_t * nalu, size_t naluSize)
