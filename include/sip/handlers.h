@@ -65,21 +65,31 @@ public:
   virtual PString GetAuthID() const override        { return m_username; }
   virtual PString GetPassword() const override      { return m_password; }
 
-  enum State {
+  P_DECLARE_TRACED_ENUM(States,
     Subscribed,       // The registration is active
     Subscribing,      // The registration is in process
     Unavailable,      // The registration is offline and still being attempted
     Refreshing,       // The registration is being refreshed
     Restoring,        // The registration is trying to be restored after being offline
     Unsubscribing,    // The unregistration is in process
-    Unsubscribed,     // The registrating is inactive
-    NumStates
-  };
+    Unsubscribed      // The registration is inactive
+  );
+  typedef States State; // Backward compatibility
 
-  void SetState (SIPHandler::State s);
+  void SetState(States s, unsigned retryAfter = 0);
 
-  inline SIPHandler::State GetState() const
+  inline States GetState() const
   { return m_state; }
+
+  // These names should not be changed as they are based on the underlying protocol
+  P_DECLARE_STREAMABLE_ENUM(TerminationReasons,
+    Deactivated,
+    Probation,
+    Rejected,
+    Timeout,
+    GiveUp,
+    NoResource
+  );
 
   const PString & GetCallID() const
     { return m_callID; }
@@ -89,9 +99,9 @@ public:
 
   virtual PBoolean OnReceivedNOTIFY(SIP_PDU & response);
 
-  virtual void SetExpire(int e);
+  virtual void SetExpire(unsigned expires);
 
-  virtual int GetExpire() const
+  virtual unsigned GetExpire() const
     { return m_currentExpireTime; }
 
   virtual void SetBody(const PString & /*body*/) { }
@@ -144,10 +154,10 @@ protected:
 
   unsigned                    m_lastCseq;
   SIP_PDU::StatusCodes        m_lastResponseStatus;
-  int                         m_currentExpireTime;
-  int                         m_originalExpireTime;
-  int                         m_offlineExpireTime;
-  State                       m_state;
+  unsigned                    m_currentExpireTime;
+  unsigned                    m_originalExpireTime;
+  unsigned                    m_offlineExpireTime;
+  States                      m_state;
   std::queue<State>           m_stateQueue;
   bool                        m_receivedResponse;
   SIPPoolTimer<SIPHandler>    m_expireTimer; 
@@ -250,21 +260,12 @@ public:
 
   virtual bool SendNotify(const PObject * body) override;
 
-  enum Reasons {
-    Deactivated,
-    Probation,
-    Rejected,
-    Timeout,
-    GiveUp,
-    NoResource
-  };
-
 protected:
   virtual PBoolean SendRequest(SIPHandler::State state) override;
   virtual void WriteTransaction(OpalTransport & transport, bool & succeeded) override;
 
   SIPEventPackage          m_eventPackage;
-  Reasons                  m_reason;
+  TerminationReasons       m_reason;
   SIPEventPackageHandler * m_packageHandler;
   PString                  m_body;
 };
