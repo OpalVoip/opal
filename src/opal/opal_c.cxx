@@ -1966,9 +1966,9 @@ static void StartStopListeners(OpalEndPoint * ep, const PString & interfaces, Op
 }
 
 
+#if P_SSL
 static void SetEndPointSSLCredentials(OpalEndPoint & ep, const OpalMessage & command, OpalMessageBuffer & response)
 {
-#if P_SSL
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_caFiles, ep.GetSSLCertificateAuthority());
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_certificate, ep.GetSSLCertificate());
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_privateKey, ep.GetSSLPrivateKey());
@@ -1982,8 +1982,8 @@ static void SetEndPointSSLCredentials(OpalEndPoint & ep, const OpalMessage & com
     ep.SetSSLPrivateKey(command.m_param.m_protocol.m_privateKey);
   if (command.m_param.m_protocol.m_autoCreateCertificate > 0)
     ep.SetSSLAutoCreateCertificate(command.m_param.m_protocol.m_autoCreateCertificate == 1);
-#endif
 }
+#endif // P_SSL
 
 
 void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBuffer & response)
@@ -2002,11 +2002,13 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
     FillOpalProductInfo(command, response, product);
     SetProductInfo(product);
 
+#if P_SSL
     if (m_apiVersion >= 43) {
       PList<OpalEndPoint> eps = GetEndPoints();
       for (PList<OpalEndPoint>::iterator ep = eps.begin(); ep != eps.end(); ++ep)
         SetEndPointSSLCredentials(*ep, command, response);
     }
+#endif // P_SSL
 
     if (command.m_param.m_protocol.m_interfaceAddresses != NULL) {
 #if OPAL_H323
@@ -2055,8 +2057,10 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
   FillOpalProductInfo(command, response, product);
   ep->SetProductInfo(product);
 
+#if P_SSL
   if (m_apiVersion >= 43)
     SetEndPointSSLCredentials(*ep, command, response);
+#endif // P_SSL
 
 #if OPAL_GSTREAMER
   OpalGstEndPoint_C * gstEP = dynamic_cast<OpalGstEndPoint_C *>(ep);
