@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <OpalGitRootDir Condition="'$(OpalGitRootDir)' == ''">$(ProjectDir)..\..</OpalGitRootDir>
+    <OpalGitRootDir Condition="'$(OpalGitRootDir)' == ''">$(SolutionDir).git</OpalGitRootDir>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\external')">$(ProjectDir)..\..\external</EXTERNALDIR>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\external')">$(ProjectDir)..\..\..\external</EXTERNALDIR>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\..\external')">$(ProjectDir)..\..\..\..\external</EXTERNALDIR>

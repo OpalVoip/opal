@@ -141,7 +141,7 @@ typedef class PSSLCertificateInfo OpalCertificateInfo;
 class OpalCertificateInfo
 {
 public:
-    OpalCertificateInfo(bool withDefaults = false) { }
+    OpalCertificateInfo(bool = false) { }
 };
 #endif // OPAL_PTLIB_SSL
 

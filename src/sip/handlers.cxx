@@ -54,21 +54,6 @@
 #define PTraceModule() "SIP"
 
 
-#if PTRACING
-ostream & operator<<(ostream & strm, SIPHandler::State state)
-{
-  static const char * const StateNames[] = {
-    "Subscribed", "Subscribing", "Unavailable", "Refreshing", "Restoring", "Unsubscribing", "Unsubscribed"
-  };
-  if (state < PARRAYSIZE(StateNames))
-    strm << StateNames[state];
-  else
-    strm << (unsigned)state;
-  return strm;
-}
-#endif
-
-
 ////////////////////////////////////////////////////////////////////////////
 
 SIPHandler::SIPHandler(SIP_PDU::Methods method,
@@ -159,7 +144,7 @@ bool SIPHandler::ShutDown()
 }
 
 
-void SIPHandler::SetState(SIPHandler::State newState) 
+void SIPHandler::SetState(States newState, unsigned retryAfter)
 {
   if (m_state == newState)
     return;
@@ -177,7 +162,7 @@ void SIPHandler::SetState(SIPHandler::State newState)
       return;
 
     case Unavailable :
-      RetryLater(m_offlineExpireTime);
+      RetryLater(retryAfter > 0 ? retryAfter : m_offlineExpireTime);
       break;
 
     default :
@@ -285,7 +270,7 @@ PBoolean SIPHandler::SendRequest(SIPHandler::State newState)
 }
 
 
-void SIPHandler::SetExpire(int e)
+void SIPHandler::SetExpire(unsigned e)
 {
   m_currentExpireTime = e;
   PTRACE(3, "Expiry time for " << GetMethod() << " set to " << e << " seconds.");
@@ -470,7 +455,7 @@ void SIPHandler::OnTransactionFailed(SIPTransaction & transaction)
   SIPTransactionOwner::OnTransactionFailed(transaction);
 
   if (transaction.IsCanceled()) {
-    PTRACE(4, "Not reporting canceled forked.");
+    PTRACE(4, "Not reporting cancelled forked transaction.");
     return;
   }
 
@@ -815,7 +800,7 @@ void SIPRegisterHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & re
 
   /* See if we are behind NAT and the Via header rport was present. This is
      a STUN free mechanism for working behind firewalls. Also, some servers
-     will refuse to work unless the Contact header agrees whith where the
+     will refuse to work unless the Contact header agrees with where the
      packet is physically coming from. */
   OpalTransportAddress externalAddress;
   if (m_parameters.m_compatibility != SIPRegister::e_HasApplicationLayerGateway)
@@ -1156,14 +1141,14 @@ PBoolean SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
   SIPResponse * response = new SIPResponse(m_sipEndpoint, request, SIP_PDU::Failure_BadRequest);
   PTRACE_CONTEXT_ID_TO(response);
 
-  PStringToString subscriptionStateInfo;
+  PStringOptions subscriptionStateInfo;
   PCaselessString subscriptionState = requestMIME.GetSubscriptionState(subscriptionStateInfo);
   if (subscriptionState.IsEmpty()) {
     PTRACE(2, "NOTIFY received without Subscription-State, assuming 'active'");
     subscriptionState = "active";
   }
 
-  // Check the susbscription state
+  // Check the subscription state
   if (subscriptionState == "terminated") {
     PTRACE(3, "Subscription is terminated, state=" << GetState());
     response->SetStatusCode(SIP_PDU::Successful_OK);
@@ -1175,7 +1160,25 @@ PBoolean SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
 
       case Subscribed :
       case Unavailable :
-        SendRequest(Unsubscribing);
+        // Retry options depending on termination reason
+        switch (TerminationReasonsFromString(subscriptionStateInfo("reason"), false)) {
+          default:
+            SendRequest(Unsubscribing);
+            break;
+          case Deactivated:
+          case Timeout:
+            SetState(Unavailable, 1); // Resubscribe (almost) immediately
+            break;
+          case Probation:
+          case GiveUp:
+            unsigned retryAfter = subscriptionStateInfo.GetInteger("retry-after");
+            if (retryAfter < 1)
+              SetState(Unavailable, 1); // No specified retry-after, so  (almost) immediately
+            else if (GetState() == Unavailable)
+              RetryLater(retryAfter); // Just adjust the retry time
+            else
+              SetState(Unavailable, retryAfter); // Retry subscription after a while
+        }
         break;
 
       default :
@@ -1253,7 +1256,7 @@ PBoolean SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
   }
 
   // If GetMultiParts() returns true there as at least one part and that
-  // part must be the meta list, guranteed by DecodeMultiPartList()
+  // part must be the meta list, guaranteed by DecodeMultiPartList()
   PMultiPartList::iterator iter = parts.begin();
 
   // First part is always Meta Information
@@ -1915,27 +1918,18 @@ SIPNotifyHandler::~SIPNotifyHandler()
 
 SIPTransaction * SIPNotifyHandler::CreateTransaction(OpalTransport & transport)
 {
-  PString state;
+  PStringStream state;
   PString body;
 
-  if (GetExpire() > 0 && GetState() != Unsubscribing) {
-    state.sprintf("active;expires=%u", GetExpire());
+  if (GetExpire() == 0 || GetState() == Unsubscribing)
+    state << "terminated;reason=" << m_reason;
+  else {
+    state << "active;expires=" << GetExpire();
     body = m_body;
   }
-  else {
-    state = "terminated;reason=";
-    static const char * const ReasonNames[] = {
-      "deactivated",
-      "probation",
-      "rejected",
-      "timeout",
-      "giveup",
-      "noresource"
-    };
-    state += ReasonNames[m_reason];
-  }
 
-  return new SIPNotify(*this, transport, m_dialog, m_eventPackage, state, body);
+  // The ToLower() is not strictly needed but maximises compatibility with bad implementations
+  return new SIPNotify(*this, transport, m_dialog, m_eventPackage, state.ToLower(), body);
 }
 
 
@@ -2465,10 +2459,10 @@ SIPTransaction * SIPPingHandler::CreateTransaction(OpalTransport & transport)
 
 //////////////////////////////////////////////////////////////////
 
-/* All of the bwlow search loops run through the list with only
+/* All of the below search loops run through the list with only
    PSafeReference rather than PSafeReadOnly, even though they are
    reading fields from the handler instances. We can get away with
-   this becuase the information being tested, e.g. AOR, is constant
+   this because the information being tested, e.g. AOR, is constant
    for the life of the handler instance, once constructed.
 
    We need to use PSafeReference as there are some cases where
@@ -2601,7 +2595,7 @@ PSafePtr<SIPHandler> SIPHandlers::FindBy(IndexMap & by, const PString & key, PSa
       return NULL;
 
     ptr = r->second;
-    // If above assignement ends up NULL, then entry in IndexMap was deleted
+    // If above assignment ends up NULL, then entry in IndexMap was deleted
     if (ptr == NULL)
       return NULL;
   }

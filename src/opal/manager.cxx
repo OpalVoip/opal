@@ -310,7 +310,9 @@ OpalManager::OpalManager()
 #endif
   , lastCallTokenID(0)
   , P_DISABLE_MSVC_WARNINGS(4355, m_activeCalls(*this))
+#if OPAL_HAS_PRESENCE
   , m_presenceThreadPool(4, 0, "Presence")
+#endif
   , m_clearingAllCallsCount(0)
   , m_garbageCollector(NULL)
   , m_decoupledEventPool(5, 0, "OPAL-Event")
