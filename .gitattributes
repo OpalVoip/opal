@@ -1,0 +1,5 @@
+*.sh        text eol=lf
+*.vcproj    text eol=crlf
+*.jpg       binary
+*.exe       binary
+*configure  text eol=lf
