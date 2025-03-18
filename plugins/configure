@@ -8016,35 +8016,35 @@ fi
 then :
   major=${OPAL_MAJOR}
 else case e in #(
-  e) major=`cat $VERSION_DIR/version.h | grep MAJOR_VERSION | cut -f3 -d' '` ;;
+  e) major=`sed -n 's/ *#define *MAJOR_VERSION *\([0-9]*\).*/\1/p' $VERSION_DIR/version.h` ;;
 esac
 fi
    if test ${OPAL_MINOR+y}
 then :
   minor=${OPAL_MINOR}
 else case e in #(
-  e) minor=`cat $VERSION_DIR/version.h | grep MINOR_VERSION | cut -f3 -d' '` ;;
+  e) minor=`sed -n 's/ *#define *MINOR_VERSION *\([0-9]*\).*/\1/p' $VERSION_DIR/version.h` ;;
 esac
 fi
    if test ${OPAL_PATCH+y}
 then :
   patch=${OPAL_PATCH}
 else case e in #(
-  e) patch=`cat $VERSION_DIR/version.h | grep PATCH_VERSION | cut -f3 -d' '` ;;
+  e) patch=`sed -n 's/ *#define *PATCH_VERSION *\([0-9]*\).*/\1/p' $VERSION_DIR/version.h` ;;
 esac
 fi
    if { as_var=OPAL_OEM  ; eval test \${$as_var+y}; }
 then :
     oem=${OPAL_OEM}
 else case e in #(
-  e)   oem=`cat $VERSION_DIR/version.h | grep OEM_VERSION   | cut -f3 -d' '` ;;
+  e)   oem=`sed -n 's/ *#define *OEM_VERSION *\([0-9]*\).*/\1/p' $VERSION_DIR/version.h` ;;
 esac
 fi
    if test ${OPAL_STAGE+y}
 then :
   stage=${OPAL_STAGE}
 else case e in #(
-  e) stage=`cat $VERSION_DIR/version.h | grep BUILD_TYPE    | cut -f3 -d' ' | sed 's/BetaCode/-beta/' | sed 's/AlphaCode/-alpha/' | sed 's/ReleaseCode/\./'` ;;
+  e) stage=`sed -n -e 's/ *#define *BUILD_TYPE *BetaCode.*/beta/p' -e 's/ *#define *BUILD_TYPE *AlphaCode.*/alpha/p' -e 's/ *#define *BUILD_TYPE *ReleaseCode.*//p' $VERSION_DIR/version.h` ;;
 esac
 fi
 
@@ -8058,6 +8058,13 @@ then :
   version="${major}.${minor}.${patch}"
 else case e in #(
   e) version="${major}.${minor}.${patch}-${oem}" ;;
+esac
+fi
+   if test "x$stage" = x''
+then :
+
+else case e in #(
+  e) version="${version}-${stage}" ;;
 esac
 fi
 
@@ -8087,11 +8094,11 @@ printf "%s\n" "#define OPAL_PATCH ${patch}" >>confdefs.h
 printf "%s\n" "#define OPAL_OEM ${oem}" >>confdefs.h
 
 
-printf "%s\n" "#define OPAL_VERSION \"$version\"" >>confdefs.h
+printf "%s\n" "#define OPAL_VERSION \"${version}\"" >>confdefs.h
 
 
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: OPAL version is $version (${major}.${minor}${stage}${patch}-${oem})" >&5
-printf "%s\n" "$as_me: OPAL version is $version (${major}.${minor}${stage}${patch}-${oem})" >&6;}
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: OPAL version is $version" >&5
+printf "%s\n" "$as_me: OPAL version is $version" >&6;}
 
 
 
@@ -15802,6 +15809,17 @@ fi
 
    printf "%s\n" ""
    printf "%s\n" "=========================== Configuration =============================="
+
+   if test ${version+y}
+then :
+  printf "%s\n" "                          Version : ${version}"
+else case e in #(
+  e) printf "%s\n" "                          Version : no"
+       ;;
+esac
+fi
+
+
 
    if test ${target_os+y}
 then :

@@ -301,15 +301,16 @@ dnl Parse version file and set variables
 dnl $1 file location
 dnl $2 variable prefix
 AC_DEFUN([MY_VERSION_FILE],[
-   AS_VAR_SET_IF([$2[_MAJOR]],[major=${$2[_MAJOR]}],[major=`cat $1 | grep MAJOR_VERSION | cut -f3 -d' '`])
-   AS_VAR_SET_IF([$2[_MINOR]],[minor=${$2[_MINOR]}],[minor=`cat $1 | grep MINOR_VERSION | cut -f3 -d' '`])
-   AS_VAR_SET_IF([$2[_PATCH]],[patch=${$2[_PATCH]}],[patch=`cat $1 | grep PATCH_VERSION | cut -f3 -d' '`])
-   AS_VAR_SET_IF([$2[_OEM]]  ,[  oem=${$2[_OEM]}],  [  oem=`cat $1 | grep OEM_VERSION   | cut -f3 -d' '`])
-   AS_VAR_SET_IF([$2[_STAGE]],[stage=${$2[_STAGE]}],[stage=`cat $1 | grep BUILD_TYPE    | cut -f3 -d' ' | sed 's/BetaCode/-beta/' | sed 's/AlphaCode/-alpha/' | sed 's/ReleaseCode/\./'`])
+   AS_VAR_SET_IF([$2[_MAJOR]],[major=${$2[_MAJOR]}],[major=`sed -n 's/ *#define *MAJOR_VERSION *\([0-9]*\).*/\1/p' $1`])
+   AS_VAR_SET_IF([$2[_MINOR]],[minor=${$2[_MINOR]}],[minor=`sed -n 's/ *#define *MINOR_VERSION *\([0-9]*\).*/\1/p' $1`])
+   AS_VAR_SET_IF([$2[_PATCH]],[patch=${$2[_PATCH]}],[patch=`sed -n 's/ *#define *PATCH_VERSION *\([0-9]*\).*/\1/p' $1`])
+   AS_VAR_SET_IF([$2[_OEM]]  ,[  oem=${$2[_OEM]}],  [  oem=`sed -n 's/ *#define *OEM_VERSION *\([0-9]*\).*/\1/p' $1`])
+   AS_VAR_SET_IF([$2[_STAGE]],[stage=${$2[_STAGE]}],[stage=`sed -n -e 's/ *#define *BUILD_TYPE *BetaCode.*/beta/p' -e 's/ *#define *BUILD_TYPE *AlphaCode.*/alpha/p' -e 's/ *#define *BUILD_TYPE *ReleaseCode.*//p' $1`])
 
    AS_IF([test -z "$major" -o -z "$minor" -o -z "$patch"], AC_MSG_ERROR(Could not determine version number from $1))
 
    AS_VAR_IF([oem],[0],[version="${major}.${minor}.${patch}"],[version="${major}.${minor}.${patch}-${oem}"])
+   AS_VAR_IF([stage],[''],[],[version="${version}-${stage}"])
 
    AC_SUBST($2[_MAJOR], $major)
    AC_SUBST($2[_MINOR], $minor)
@@ -322,9 +323,9 @@ AC_DEFUN([MY_VERSION_FILE],[
    AC_DEFINE_UNQUOTED([$2[_MINOR]],   [${minor}],  [Minor version])
    AC_DEFINE_UNQUOTED([$2[_PATCH]],   [${patch}],  [Patch version])
    AC_DEFINE_UNQUOTED([$2[_OEM]],     [${oem}],    [OEM version])
-   AC_DEFINE_UNQUOTED([$2[_VERSION]], ["$version"],[PTLib version])
+   AC_DEFINE_UNQUOTED([$2[_VERSION]], ["${version}"],[PTLib version])
 
-   AC_MSG_NOTICE([$2 version is $version (${major}.${minor}${stage}${patch}-${oem})])
+   AC_MSG_NOTICE([$2 version is $version])
 ])
 
 
@@ -343,6 +344,7 @@ dnl Output summary of configuration at end of script
 AC_DEFUN([MY_OUTPUT_SUMMARY],[
    AS_ECHO("")
    AS_ECHO("=========================== Configuration ==============================")
+   INTERNAL_OUTPUT_SUMMARY([                          Version],[version])
    INTERNAL_OUTPUT_SUMMARY([                          OS Type],[target_os])
    INTERNAL_OUTPUT_SUMMARY([                     Machine Type],[target_cpu])
    AS_VAR_SET_IF([P_PROFILING], [
