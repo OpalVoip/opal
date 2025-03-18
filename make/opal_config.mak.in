@@ -22,11 +22,12 @@
 # Contributor(s): ______________________________________.
 #
 
-OPAL_MAJOR :=@OPAL_MAJOR@
-OPAL_MINOR :=@OPAL_MINOR@
-OPAL_STAGE :=@OPAL_STAGE@
-OPAL_PATCH :=@OPAL_PATCH@
-OPAL_OEM   :=@OPAL_OEM@
+OPAL_MAJOR   :=@OPAL_MAJOR@
+OPAL_MINOR   :=@OPAL_MINOR@
+OPAL_STAGE   :=@OPAL_STAGE@
+OPAL_PATCH   :=@OPAL_PATCH@
+OPAL_OEM     :=@OPAL_OEM@
+OPAL_VERSION :=@OPAL_VERSION@
 
 # detected platform
 target_cpu       := @target_cpu@
