@@ -1,6 +1,9 @@
-*.sh        text eol=lf
-*.vcproj    text eol=crlf
-*configure  text eol=lf
-make/*      text eol=lf
-*.jpg       binary
-*.exe       binary
+*.sh           text eol=lf
+*.vcproj       text eol=crlf
+*configure     text eol=lf
+*configure.gnu text eol=lf
+*config.sub    text eol=lf
+*config.guess  text eol=lf
+make/*         text eol=lf
+*.jpg          binary
+*.exe          binary
