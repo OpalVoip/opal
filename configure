@@ -13594,10 +13594,12 @@ ac_config_files="$ac_config_files opal_cfg.dxy"
 
 ac_config_files="$ac_config_files make/opal_config.mak"
 
-ac_config_files="$ac_config_files samples/openphone/version.wxs"
+if test -d samples; then
+   ac_config_files="$ac_config_files samples/openphone/version.wxs"
 
-ac_config_files="$ac_config_files samples/server/version.wxs"
+   ac_config_files="$ac_config_files samples/server/version.wxs"
 
+fi
 ac_config_headers="$ac_config_headers ${ac_top_build_prefix}include/opal_config.h:include/opal_config.h.in"
 
 
