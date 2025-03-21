@@ -513,7 +513,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
       CallEndReason(
         CallEndReasonCodes reason = NumCallEndReasons,
         unsigned cause = 0
-      ) : code(reason), q931(cause) { }
+      ) : code(reason), q931((uint16_t)cause) { }
       explicit CallEndReason(
         long reason
       ) : code((CallEndReasonCodes)(reason&0xff)), q931((reason>>8)&0xff) { }
@@ -744,7 +744,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
     /**Set the outgoing Q.931 cause code (Q.850) that is sent for this call
        See Q931::CauseValues for common values.
      */
-    void SetQ931Cause(unsigned v) { m_callEndReason.q931 = v; }
+    void SetQ931Cause(unsigned v) { m_callEndReason.q931 = (uint16_t)v; }
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
