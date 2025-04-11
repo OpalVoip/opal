@@ -77,7 +77,7 @@ OpalSockConnection::OpalSockConnection(OpalCall & call,
                                        void * userData,
                                        unsigned options,
                                        OpalConnection::StringOptions * stringOptions)
-  : OpalLocalConnection(call, endpoint, userData, options, stringOptions, 'I')
+  : OpalLocalConnection(call, endpoint, userData, options, stringOptions, 'S')
   , m_endpoint(endpoint)
   , m_audioSocket(NULL)
 #if OPAL_VIDEO
