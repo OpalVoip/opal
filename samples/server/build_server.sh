@@ -29,6 +29,7 @@ while [ -n "$1" ]; do
         "--install" )
             shift
             INSTALLDIR="$1"
+            CONFIG_PARMS+="--prefix=$INSTALLDIR "
         ;;
 
         "--no-install" )
@@ -46,6 +47,20 @@ while [ -n "$1" ]; do
 
         "--minimal" )
             MINIMAL=true
+            CONFIG_PARMS+="--disable-silk \
+                           --disable-gsmamr \
+                           --disable-g.726 \
+                           --disable-ima-adpcm \
+                           --disable-g.722 \
+                           --disable-g.722.2 \
+                           --disable-lpc10 \
+                           --disable-isac \
+                           --disable-g.722.1 \
+                           --disable-gsm \
+                           --disable-iLBC \
+                           --disable-speex \
+                           --disable-sbc \
+                           --disable-celt "
         ;;
 
         "bootstrap" )
@@ -72,6 +87,8 @@ while [ -n "$1" ]; do
     shift
 done
 
+CONFIG_PARMS+="$@"
+
 
 function ask() {
     read -p "$1 (y/N)? "
@@ -84,7 +101,7 @@ function ask() {
 
 function clone() {
     echo "========================================================================"
-    git clone -b ${BRANCH:-v2_$MINOR_VERSION} $GIT_PATH/$1
+    git clone -b $2 $GIT_PATH/$1
     cd $1
     git status
     cd ..
@@ -139,7 +156,8 @@ if $BOOTSTRAP; then
     if which apt > /dev/null 2> /dev/null; then
         if $MINIMAL; then
             sudo apt install \
-                g++ git make autoconf libexpat-dev libssl-dev libsrtp2-dev
+                g++ git make autoconf libexpat-dev libssl-dev \
+                libsrtp2-dev libopus-dev
         elif [ $(lsb_release --release --short) \< "22.04" ]; then
             sudo apt install --ignore-missing \
                 g++ git make autoconf swig \
@@ -165,8 +183,9 @@ if $BOOTSTRAP; then
         fi
     elif which yum > /dev/null 2> /dev/null; then
         if $MINIMAL; then
-            sudo yumm install \
-                gcc-g++ git make autoconf expat-dev openssl-dev libsrtp
+            sudo yum install \
+                gcc-g++ git make autoconf expat-devel openssl-devel \
+                libsrtp opus-devel
         else
             sudo yum-config-manager --enable epel
             sudo yum install \
@@ -196,8 +215,8 @@ if $BOOTSTRAP; then
         GIT_PATH=git://git.code.sf.net/p/opalvoip
     fi
 
-    clone ptlib
-    clone opal
+    clone ptlib ${BRANCH:-v2_$MINOR_VERSION}
+    clone opal ${BRANCH:-v3_$MINOR_VERSION}
 fi
 
 if $UPDATE; then
@@ -215,9 +234,9 @@ fi
 
 if $BOOTSTRAP || [ $# -gt 0 ] ; then
     echo "========================================================================"
-    echo "Configuring PTLib to install to $INSTALLDIR"
+    echo "Configuring PTLib with $CONFIG_PARMS"
     cd ptlib
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR $@" config
+    make "CONFIG_PARMS=$CONFIG_PARMS" config
     git checkout configure
     rm -f configure~
     cd ..
@@ -238,9 +257,9 @@ $NO_INSTALL || sudo -E make -C ptlib install
 
 if $BOOTSTRAP || [ $# -gt 0 ]; then
     echo "========================================================================"
-    echo "Configuring OPAL to install to $INSTALLDIR"
+    echo "Configuring OPAL with $CONFIG_PARMS"
     cd opal
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR $@" config
+    make "CONFIG_PARMS=$CONFIG_PARMS" config
     git checkout configure plugins/configure src/csharp/* src/java/*
     rm -f configure~ plugins/configure~
     cd ..
