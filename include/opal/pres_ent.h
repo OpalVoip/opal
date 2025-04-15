@@ -127,7 +127,7 @@ class OpalSendMessageToCommand;
    concrete class via concrete versions of OpalPresentityCommand class. These
    may be protocol specific or one of the abstracted versions.
   */
-class OpalPresentity : public PSafeObject
+class OpalPresentity : public PSafeObject, PProfiling::HighWaterMark<OpalPresentity>
 {
     PCLASSINFO(OpalPresentity, PSafeObject);
 

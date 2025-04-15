@@ -460,6 +460,9 @@ void OpalManager::ShutDownEndpoints()
     ep->ShutDown();
   m_endpointsMutex.EndRead();
 
+  // Allow some time for garbage collection before deleting endpoints.
+  PThread::Sleep(2000);
+
   m_endpointsMutex.StartWrite();
   m_endpointMap.clear();
   m_endpointList.RemoveAll();

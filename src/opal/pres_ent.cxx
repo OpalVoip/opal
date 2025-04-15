@@ -151,6 +151,8 @@ OpalPresentity::OpalPresentity()
   , m_temporarilyUnavailable(false)
   , m_localInfo(OpalPresenceInfo::NoPresence)
 {
+  PTRACE_CONTEXT_ID_NEW();
+  PTRACE(4, "Constructed Presentity " << this);
 }
 
 
@@ -162,11 +164,13 @@ OpalPresentity::OpalPresentity(const OpalPresentity & other)
   , m_temporarilyUnavailable(false)
   , m_localInfo(OpalPresenceInfo::NoPresence)
 {
+  PTRACE(4, "Copied Presentity " << this << " from " << other);
 }
 
 
 OpalPresentity::~OpalPresentity()
 {
+  PTRACE(4, "Destroyed Presentity " << this);
 }
 
 
