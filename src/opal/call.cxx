@@ -307,7 +307,7 @@ PBoolean OpalCall::OnSetUp(OpalConnection & connection)
       ok = true;
   }
 
-  PTRACE_IF(2, !ok, "OnSetUp " << connection << " has no other suitable connection.");
+  PTRACE_IF(2, !ok, "OnSetUp " << connection << " failed/refused: " << GetCallEndReason());
   return ok;
 }
 
