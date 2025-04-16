@@ -1600,6 +1600,12 @@ OpalManager::RouteEntry::RouteEntry(const PString & partyA, const PString & part
   , m_partyB(partyB)
   , m_destination(dest)
 {
+  if (m_partyA.empty())
+    m_partyA = ".*";
+  if (m_partyB.empty())
+    m_partyB = ".*";
+  if (m_destination.empty())
+    m_destination = "<da>";
   CompileRegEx();
 }
 
