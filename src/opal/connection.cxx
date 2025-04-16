@@ -393,7 +393,7 @@ PBoolean OpalConnection::SetUpConnection()
 
 PBoolean OpalConnection::OnSetUpConnection()
 {
-  PTRACE(3, "OnSetUpConnection" << *this);
+  PTRACE(3, "OnSetUpConnection " << *this);
   return m_endpoint.OnSetUpConnection(*this);
 }
 
