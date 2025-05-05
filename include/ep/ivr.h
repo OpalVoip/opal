@@ -65,8 +65,12 @@ class OpalIVRConnection;
 #define OPAL_OPT_IVR_TTS_CACHE_DIR "IVR-Cache-Dir"
 
 /** IVR properties of the form IVR-Property=<name>:<value>.
-    For example IVR-Property=documentmaxage:0
     Multiple properties can be set via the option being added multiple times.
+    For example:
+      IVR-Property=documentmaxage:0
+      IVR-Property=audiomaxage:0
+      IVR-Property=multiline:first line
+      IVR-Property=multiline:second line
  */
 #define OPAL_OPT_IVR_PROPERTY "IVR-Property"
 
