@@ -588,9 +588,10 @@ PBoolean SIPEndPoint::GarbageCollection()
   bool transactionsDone = m_activeTransactions.DeleteObjectsToBeRemoved();
 
   for (SIPHandlers::iterator it = m_activeSIPHandlers.begin(); it != m_activeSIPHandlers.end(); ++it) {
+    PSafePtr<SIPHandler> handler = it->second;
     // If unsubscribed then we do the shut down to clean up the handler
-    if (it->second->GetState() == SIPHandler::Unsubscribed && it->second->ShutDown())
-      m_activeSIPHandlers.RemoveAt(it->first); // Unlike a PDictionary() or std::map<>, this is safe to do
+    if (handler != NULL && handler->GetState() == SIPHandler::Unsubscribed && handler->ShutDown())
+      m_activeSIPHandlers.Remove(handler);
   }
   bool handlersDone = m_activeSIPHandlers.DeleteObjectsToBeRemoved();
 

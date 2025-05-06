@@ -227,11 +227,11 @@ void OpalIVRConnection::OnApplyStringOptions()
   }
 
   PStringArray properties = m_stringOptions.GetString(OPAL_OPT_IVR_PROPERTY).Lines();
-  for (PINDEX i = 0; i < properties.GetSize(); ++i) {
-    PString name, value;
-    properties[i].Split(':', name, value, PString::SplitDefaultToBefore|PString::SplitTrimBefore);
-    m_vxmlSession.SetProperty(name, value, true);
-  }
+  for (PINDEX i = 0; i < properties.GetSize(); ++i)
+    properties[i].Replace(':', '=');
+  PStringToString mergedProperties(PSTRSTRM(setfill('\n') << properties));
+  for (PStringToString::iterator it = mergedProperties.begin(); it != mergedProperties.end(); ++it)
+    m_vxmlSession.SetProperty(it->first, it->second, true);
 }
 
 

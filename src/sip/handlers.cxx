@@ -104,7 +104,7 @@ SIPHandler::SIPHandler(SIP_PDU::Methods method,
     requestURI.SetTransport(transport);
   m_dialog.SetRequestURI(requestURI);
 
-  PTRACE(4, "Constructed " << m_method << " handler for " << m_addressOfRecord);
+  PTRACE(4, "Constructed " << m_method << " handler " << this << " for " << m_addressOfRecord);
 }
 
 
@@ -113,7 +113,7 @@ SIPHandler::~SIPHandler()
   m_expireTimer.Stop();
 
   PTRACE_IF(4, !m_addressOfRecord.IsEmpty(),
-            "Destroyed " << m_method << " handler for " << m_addressOfRecord);
+            "Destroyed " << m_method << " handler " << this << " for " << m_addressOfRecord);
 }
 
 
@@ -2496,7 +2496,7 @@ PStringList SIPHandlers::GetAddresses(bool includeOffline, SIP_PDU::Methods meth
 
 static PString MakeUrlKey(const PString & aor, SIP_PDU::Methods method, const PString & eventPackage = PString::Empty())
 {
-  return PString((unsigned)method) + aor + eventPackage;
+  return PSTRSTRM(method << aor << eventPackage);
 }
 
 
@@ -2556,6 +2556,9 @@ void SIPHandlers::Remove(SIPHandler * handler)
 
   if (RemoveAt(handler->GetCallID()))
     RemoveIndexes(handler);
+  else {
+    PTRACE(2, handler, "Handler " << *handler << " already removed.");
+  }
 }
 
 
