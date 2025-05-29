@@ -1159,13 +1159,14 @@ void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patc
         m_echoCanceler->SetClockRate(mediaFormat.GetClockRate());
         patch.AddFilter(isSource ? m_echoCanceler->GetReceiveHandler()
                                  : m_echoCanceler->GetSendHandler(), mediaFormat);
-        PTRACE(4, "Added echo canceler filter on connection " << *this << ", patch " << patch);
+        PTRACE(4, "Added echo canceller filter on connection " << *this << ", patch " << patch);
       }
 #endif
     }
 
 #if OPAL_PTLIB_DTMF
     if (m_detectInBandDTMF && isSource) {
+      m_dtmfDecoder.Reset(mediaFormat.GetClockRate(), m_dtmfScaleMultiplier, m_dtmfScaleDivisor);
       patch.AddFilter(m_dtmfDetectNotifier, OpalPCM16);
       PTRACE(4, "Added detect DTMF filter on connection " << *this << ", patch " << patch);
     }
@@ -1583,10 +1584,7 @@ void OpalConnection::OnDetectInBandDTMF(RTP_DataFrame & frame, P_INT_PTR)
   // before the audio is passed on to the sound card (or other output device)
 
   // Pass the 16 bit PCM audio through the DTMF decoder
-  PString tones = m_dtmfDecoder.Decode((const short *)frame.GetPayloadPtr(),
-                                       frame.GetPayloadSize()/sizeof(short),
-                                       m_dtmfScaleMultiplier,
-                                       m_dtmfScaleDivisor);
+  PString tones = m_dtmfDecoder.Decode((const short *)frame.GetPayloadPtr(), frame.GetPayloadSize()/sizeof(short));
   if (!tones.IsEmpty()) {
     PTRACE(3, "DTMF detected: \"" << tones << '"');
     for (PINDEX i = 0; i < tones.GetLength(); i++)
