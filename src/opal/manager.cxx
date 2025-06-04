@@ -2091,7 +2091,7 @@ bool OpalManager::SetNATServer(const PString & method,
     }
 
     if (!natMethod->Open(ifaceIP)) {
-      PTRACE(2, "Could not open server \"" << server << " for " << method << " NAT method");
+      PTRACE(2, "Could not open server \"" << server << "\" for " << method << " NAT method");
       return false;
     }
   }
