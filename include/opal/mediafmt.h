@@ -980,7 +980,7 @@ class OpalMediaFormat : public PContainer
 
     /**Get the name of the format
       */
-    PString GetName() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
+    PString GetName() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? PString::Empty() : m_info->formatName; }
 
     /**Get the description string for the media format.
       */
@@ -1352,8 +1352,8 @@ class OpalMediaFormat : public PContainer
 
     // Backward compatibility
     virtual PBoolean IsEmpty() const override { PWaitAndSignal m(m_mutex); return m_info == NULL || !m_info->IsValid(); }
-    operator PString() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
-    operator const char *() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
+    operator PString() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? PString::Empty() : m_info->formatName; }
+    operator const char *() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? PString::Empty() : m_info->formatName; }
     bool operator==(const char * other) const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->formatName == other; }
     bool operator!=(const char * other) const { PWaitAndSignal m(m_mutex); return m_info == NULL || m_info->formatName != other; }
     bool operator==(const PString & other) const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->formatName == other; }
@@ -1645,7 +1645,9 @@ public:
     : OpalMediaFormatStatic<MEDIA_FORMAT>(formatInfo)
   {
     if (this->m_mediaFormat != &this->m_previousFormat)
-      static H323CapabilityFactory::Worker<H323_CAPABILITY> capability(this->m_mediaFormat->GetName(), true);
+      P_DISABLE_MSVC_WARNINGS(4150,
+        static H323CapabilityFactory::Worker<H323_CAPABILITY> capability(this->m_mediaFormat->GetName(), true)
+      );
   }
 };
 #endif // OPAL_H323

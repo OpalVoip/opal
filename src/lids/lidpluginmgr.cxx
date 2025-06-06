@@ -57,7 +57,7 @@ OpalPluginLIDManager::~OpalPluginLIDManager()
 }
 
 
-void OpalPluginLIDManager::OnLoadPlugin(PDynaLink & dll, INT code)
+void OpalPluginLIDManager::OnLoadPlugin(PDynaLink & dll, P_INT_PTR code)
 {
   PluginLID_GetDefinitionsFunction getDefinitions;
   {

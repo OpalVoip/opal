@@ -56,7 +56,7 @@ RTP_DataFrame::MetaData::MetaData()
 
 
 RTP_DataFrame::RTP_DataFrame(PINDEX payloadSz, PINDEX bufferSz)
-  : PBYTEArray(max(bufferSz, MinHeaderSize+payloadSz))
+  : PBYTEArray(std::max(bufferSz, MinHeaderSize+payloadSz))
   , m_headerSize(MinHeaderSize)
   , m_payloadSize(payloadSz)
   , m_paddingSize(0)

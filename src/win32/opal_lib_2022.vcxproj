@@ -2936,6 +2936,7 @@ copy "%(RootDir)%(Directory)java_swig_wrapper.cxx"+nul "%(RootDir)%(Directory)ja
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</BuildInParallel>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
     </CustomBuild>
+    <None Include="OPAL.props" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="opal.natvis" />

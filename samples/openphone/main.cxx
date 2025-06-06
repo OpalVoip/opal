@@ -5479,11 +5479,17 @@ bool OptionsDialog::TransferDataFromWindow()
     item.m_itemId = i;
     item.m_mask = wxLIST_MASK_TEXT;
     m_Routes->GetItem(item);
-    spec += (item.m_text == wxT("<ALL>")) ? wxT(".*") : item.m_text;
+    if (item.m_text == wxT("<ALL>"))
+      spec += wxT(".*");
+    else
+      spec += item.m_text;
     spec += ':';
     item.m_col++;
     m_Routes->GetItem(item);
-    spec += item.m_text.empty() ? wxT(".*") : item.m_text;
+    if (item.m_text.empty())
+      spec += wxT(".*");
+    else
+      spec += item.m_text;
     spec += '\t';
     item.m_col++;
     m_Routes->GetItem(item);

@@ -484,7 +484,8 @@ OpalLineConnection::OpalLineConnection(OpalCall & call,
 
   m_silenceDetector = new OpalLineSilenceDetector(m_line, (m_endpoint.GetManager().GetSilenceDetectParams()));
 
-  PTRACE(3, "LID Con\tConnection " << m_callToken << " created to " << (number.IsEmpty() ? "local" : number));
+  PTRACE(3, "LID Con\tConnection " << m_callToken << " created to "
+         << (number.IsEmpty() ? PConstString("local") : number));
   
 }
 

@@ -658,8 +658,8 @@ OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDe
     return e_Unchanged;
   }
 
-  int minJitterDelay = max(m_minJitterDelay, 2*m_packetTime);
-  int maxJitterDelay = max(m_minJitterDelay, m_maxJitterDelay);
+  int minJitterDelay = std::max(m_minJitterDelay, 2*m_packetTime);
+  int maxJitterDelay = std::max(m_minJitterDelay, m_maxJitterDelay);
 
   if (delta < 0 && m_currentJitterDelay <= minJitterDelay)
     return e_Unchanged;

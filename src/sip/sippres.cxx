@@ -1159,7 +1159,7 @@ bool XCAPClient::GetXml(const PURL & url, PXML & xml)
   bool hasNode = HasNode(url);
 
   PString body;
-  if (!GetTextDocument(url, body, hasNode ? "application/xcap-el+xml" : m_contentType)) {
+  if (!GetTextDocument(url, body, hasNode ? PConstString("application/xcap-el+xml") : m_contentType)) {
     PTRACE(3, "Error getting buddy list at '" << url << "\'\n"
            << GetLastResponseCode() << ' '  << GetLastResponseInfo());
     return false;
@@ -1178,7 +1178,7 @@ bool XCAPClient::PutXml(const PURL & url, const PXML & xml)
 {
   PStringStream strm;
   strm << xml;
-  return PutTextDocument(url, strm, HasNode(url) ? "application/xcap-el+xml" : m_contentType);
+  return PutTextDocument(url, strm, HasNode(url) ? PConstString("application/xcap-el+xml") : m_contentType);
 }
 
 

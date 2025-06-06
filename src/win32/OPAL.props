@@ -41,8 +41,13 @@
     <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\$(Platform)\$(Configuration)
 PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
-  <PropertyGroup />
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="OpalGitRootDir">
       <Value>$(OpalGitRootDir)</Value>

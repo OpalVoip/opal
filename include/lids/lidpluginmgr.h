@@ -62,7 +62,7 @@ class OpalPluginLIDManager : public PPluginModuleManager
     OpalPluginLIDManager(PPluginManager * pluginMgr = NULL);
     ~OpalPluginLIDManager();
 
-    virtual void OnLoadPlugin(PDynaLink & dll, INT code) override;
+    virtual void OnLoadPlugin(PDynaLink & dll, P_INT_PTR code) override;
     virtual void OnShutdown() override;
 
   protected:

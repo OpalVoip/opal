@@ -603,7 +603,7 @@ PString SIPRegisterHandler::CreateRegisterContact(const OpalTransportAddress & a
   }
 
   if (q >= 0)
-    contact.GetFieldParameters().Set("q", q < 1000 ? psprintf("0.%03u", q) : "1");
+    contact.GetFieldParameters().Set("q", q < 1000 ? psprintf("0.%03u", q) : PConstString("1"));
 
   return contact.AsQuotedString();
 }
