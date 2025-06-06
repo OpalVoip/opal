@@ -154,19 +154,19 @@
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(X264DIR)\;.\x264;..\..\..\..\external\x264;$(FFMPEG64DIR)\lib;..\common\ffmpeg-win64-dev\lib;..\..\..\..\external\ffmpeg-win64-dev\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Configuration)\</OutDir>
-    <IntDir>$(OutDir)$(ProjectName)\$(Platform)\</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Configuration)\</OutDir>
-    <IntDir>$(OutDir)$(ProjectName)\$(Platform)\</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (licensed)|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\Release\</OutDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (licensed)|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\Debug\</OutDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
