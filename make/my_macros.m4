@@ -475,8 +475,8 @@ AC_SUBST(STATICLIBEXT, "a")
 AC_SUBST(DEBUGINFOEXT, "debug")
 AC_SUBST(ARFLAGS, "rc")
 
-dnl Check for latest and greatest, minimum of C++11
-AC_SUBST(CPLUSPLUS_STD,"-std=c++11")
+dnl Check for latest and greatest, minimum of C++11, default to C++20
+AC_SUBST(CPLUSPLUS_STD,"-std=c++20")
 AC_ARG_ENABLE(cpp11, AS_HELP_STRING([--enable-cpp11],[Enable C++11 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++11"))
 AC_ARG_ENABLE(cpp14, AS_HELP_STRING([--enable-cpp14],[Enable C++14 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++14"))
 AC_ARG_ENABLE(cpp17, AS_HELP_STRING([--enable-cpp17],[Enable C++17 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++17"))

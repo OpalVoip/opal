@@ -6391,7 +6391,7 @@ DEBUGINFOEXT="debug"
 ARFLAGS="rc"
 
 
-CPLUSPLUS_STD="-std=c++11"
+CPLUSPLUS_STD="-std=c++20"
 
 # Check whether --enable-cpp11 was given.
 if test ${enable_cpp11+y}
