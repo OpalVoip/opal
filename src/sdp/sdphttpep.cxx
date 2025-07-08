@@ -306,12 +306,14 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     m_guid = id;
   m_identifier = m_guid.AsString();
 
-  m_remotePartyName = request.origin.AsString();
-  m_remoteAddress = OpalTransportAddress(m_remotePartyName, OpalTransportAddress::TcpPrefix());
+  m_remotePartyName = request.inMIME(PHTTP::AuthorizationTag());
+  if (m_remotePartyName.empty())
+    m_remotePartyName = request.origin.AsString();
+  m_remoteAddress = OpalTransportAddress(request.origin, OpalTransportAddress::TcpPrefix());
   m_calledPartyName = parameters(OPAL_SDP_HTTP_DEST_QUERY_PARAM);
   if (m_calledPartyName.IsEmpty()) {
     PTRACE(1, "HTTP URL does not have a destination query parameter");
-    return request.OnError(PHTTP::NotFound, "Must have a destination query parameter");
+    return request.OnError(PHTTP::BadRequest, "Must have a destination query parameter");
   }
 
   if (OpalSDPEndPoint::ContentType() != request.inMIME.Get(PHTTP::ContentTypeTag())) {
@@ -336,8 +338,15 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     return request.OnError(PHTTP::BadRequest, "HTTP body does not have acceptable SDP");
   }
 
-  if (!m_ownerCall.OnSetUp(*this))
-    return request.OnError(PHTTP::BadGateway, "Could not set up secondary connection");
+  if (!m_ownerCall.OnSetUp(*this)) {
+    if (m_ownerCall.GetCallEndReason() == OpalConnection::EndedByNoUser)
+      return request.OnError(PHTTP::NotFound, "No user on B-party connection");
+    if (m_ownerCall.GetCallEndReason() == OpalConnection::EndedByLocalBusy)
+        return request.OnError(PHTTP::ServiceUnavailable, "Unavailable B-party connection");
+    if (m_ownerCall.GetCallEndReason() == OpalConnection::EndedBySecurityDenial)
+        return request.OnError(PHTTP::Forbidden, "Forbidden B-party connection");
+    return request.OnError(PHTTP::BadGateway, "Could not set up B-party connection");
+  }
 
   PTRACE(3, "Awaiting SetConnected on " << *this);
   static const PTimeInterval connectTimeout(0, 0, 1);
