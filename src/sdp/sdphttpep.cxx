@@ -312,12 +312,14 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   m_remoteAddress = OpalTransportAddress(request.origin, OpalTransportAddress::TcpPrefix());
   m_calledPartyName = parameters(OPAL_SDP_HTTP_DEST_QUERY_PARAM);
   if (m_calledPartyName.IsEmpty()) {
-    PTRACE(1, "HTTP URL does not have a destination query parameter");
+    PTRACE(2, "HTTP URL does not have a destination query parameter");
     return request.OnError(PHTTP::BadRequest, "Must have a destination query parameter");
   }
 
-  if (OpalSDPEndPoint::ContentType() != request.inMIME.Get(PHTTP::ContentTypeTag())) {
-    PTRACE(1, "HTTP does not have " << PHTTP::ContentTypeTag() << " of " << OpalSDPEndPoint::ContentType());
+  PCaselessString contentType = request.inMIME(PHTTP::ContentTypeTag());
+  if (contentType != OpalSDPEndPoint::ContentType()) {
+    PTRACE(2, "HTTP does not have " << PHTTP::ContentTypeTag()
+           << " of " << OpalSDPEndPoint::ContentType() << ", is \"" << contentType << '"');
     return request.OnError(PHTTP::NoneAcceptable, "Must be " + OpalSDPEndPoint::ContentType());
   }
 
@@ -334,7 +336,7 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   PTRACE(4, "Received SDP on " << *this << ":\n" << request.GetEntityBody());
   m_offerSDP = m_endpoint.CreateSDP(0, 0, OpalTransportAddress());
   if (!m_offerSDP->Decode(request.GetEntityBody(), GetLocalMediaFormats()) || m_offerSDP->GetMediaDescriptions().IsEmpty()) {
-    PTRACE(1, "HTTP body does not have acceptable SDP");
+    PTRACE(2, "HTTP body does not have acceptable SDP");
     return request.OnError(PHTTP::BadRequest, "HTTP body does not have acceptable SDP");
   }
 
@@ -351,7 +353,7 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   PTRACE(3, "Awaiting SetConnected on " << *this);
   static const PTimeInterval connectTimeout(0, 0, 1);
   if (!m_connected.Wait(connectTimeout)) {
-    PTRACE(1, "Timed out waiting for SetConnected on " << *this);
+    PTRACE(2, "Timed out waiting for SetConnected on " << *this);
     return request.OnError(PHTTP::ServiceUnavailable, "Timed out waiting for connection");
   }
 
@@ -359,7 +361,7 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   m_offerSDP = NULL;
 
   if (m_answerSDP == NULL) {
-    PTRACE(1, "SDP over HTTP call not answered by " << m_calledPartyName << " on " << *this);
+    PTRACE(2, "SDP over HTTP call not answered by " << m_calledPartyName << " on " << *this);
     return request.OnError(PHTTP::ServiceUnavailable, "No answer");
   }
 
