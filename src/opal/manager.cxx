@@ -1,7 +1,7 @@
 /*
  * manager.cxx
  *
- * Media channels abstraction
+ * OPAL top level manager.
  *
  * Open Phone Abstraction Library (OPAL)
  * Formally known as the Open H323 project.
@@ -1946,8 +1946,7 @@ PBoolean OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const
 #if OPAL_PTLIB_NAT
   return m_natMethods->IsLocalAddress(ip);
 #else
-  /* Check if the remote address is a private IP, broadcast, or us */
-  return ip.IsAny() || ip.IsBroadcast() || ip.IsPrivate() || PIPSocket::IsLocalHost(ip);
+  return PIPSocket::IsLocalNetwork(ip);
 #endif
 }
 
