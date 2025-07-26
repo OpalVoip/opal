@@ -826,6 +826,7 @@ OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
   , m_channel(chan)
   , m_autoDelete(autoDelete)
   , m_trustTimestamps(conn.GetStringOptions().GetBoolean(OPAL_OPT_TRUST_TIMESTAMPS, true))
+  , m_failSafeTime(0, 0, conn.GetStringOptions().GetInteger(OPAL_OPT_MAX_INSERTED_SILENCE, 30))
   , m_externalSilence(true)
   , m_expectedTimestamp(0)
 , m_lastDataSize(10*PCM16Size*m_timeUnits) // At least 10ms
@@ -959,7 +960,7 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        m_ssrcChanged || // SyncSource has changed
        m_expectedTimestamp == 0 || // Not received anything yet
        m_timestamp < m_expectedTimestamp || // Timestamp went backwards
-      (m_timestamp - m_expectedTimestamp) > 600000U*m_timeUnits) // More than 10 minutes
+      (m_timestamp - m_expectedTimestamp) > m_failSafeTime.GetMilliSeconds()*m_timeUnits) // More than fail safe time
   {
     if (m_expectedTimestamp != 0)
       m_expectedTimestamp = m_timestamp;
