@@ -909,7 +909,7 @@ void OpalCallStatistics::AddFinalMediaStreamStatistics(const OpalMediaStream & m
   PWaitAndSignal lock(m_mediaStatisticsMutex);
   std::string name(mediaStream.IsSource() ? "From " : "To ");
   name += mediaStream.GetConnection().GetToken() == m_connectionInfo.begin()->first ? 'A' : 'B';
-  mediaStream.GetStatistics(m_mediaStatistics[name]);
+  m_mediaStatistics[name].Update(mediaStream);
 }
 
 
