@@ -161,17 +161,24 @@ bool OpalSDPHTTPEndPoint::OnReceivedHTTP(PHTTPRequest & request)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep, const PURL & url)
-  : PHTTPResource(url)
+OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
+                                         const PURL & url,
+                                         const PString allowedOrigins)
+  : PHTTPResource(url, OpalSDPEndPoint::ContentType())
   , m_endpoint(ep)
 {
+  SetAllowedOrigins(allowedOrigins);
 }
 
 
-OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep, const PURL & url, const PHTTPAuthority & auth)
-  : PHTTPResource(url, auth)
+OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
+                                         const PURL & url,
+                                         const PHTTPAuthority & auth,
+                                         const PString allowedOrigins)
+  : PHTTPResource(url, OpalSDPEndPoint::ContentType(), auth)
   , m_endpoint(ep)
 {
+  SetAllowedOrigins(allowedOrigins);
 }
 
 
