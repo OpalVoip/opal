@@ -194,13 +194,24 @@ class OpalSDPHTTPResource : public PHTTPResource
     OpalSDPHTTPResource(
       OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint
       const PURL & url,           ///< Name of the resource in URL space.
-      const PString allowedOrigins = "*"  ///< CORS allowed origins
+      const PString & allowedOrigins = "*"  ///< CORS allowed origins
     );
     OpalSDPHTTPResource(
       OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint
       const PURL & url,           ///< Name of the resource in URL space.
       const PHTTPAuthority & auth, ///< Authorisation for the resource.
-      const PString allowedOrigins = "*"  ///< CORS allowed origins
+      const PString & allowedOrigins = "*"  ///< CORS allowed origins
+    );
+    OpalSDPHTTPResource(
+      OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint
+      const PURL & url,           ///< Name of the resource in URL space.
+      const CORS & cors           ///< CORS headers
+    );
+    OpalSDPHTTPResource(
+      OpalSDPHTTPEndPoint & ep,    //< Opal endpoint
+      const PURL & url,            ///< Name of the resource in URL space.
+      const PHTTPAuthority & auth, ///< Authorisation for the resource.
+      const CORS & cors            ///< CORS headers
     );
 
     virtual PBoolean OnGETData(
@@ -212,6 +223,7 @@ class OpalSDPHTTPResource : public PHTTPResource
     ) override;
 
   protected:
+    void InternalSetCORS(CORS & cors);
     OpalSDPHTTPEndPoint & m_endpoint;
 };
 
