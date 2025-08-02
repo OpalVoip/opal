@@ -213,8 +213,10 @@ void OpalSDPHTTPResource::InternalSetCORS(CORS & cors)
     cors.m_allowedHeaders.AppendString(PHTTP::ContentTypeTag());
     cors.m_allowedHeaders.AppendString(PHTTP::AuthorizationTag());
   }
-  if (cors.m_exposeHeaders.empty())
+  if (cors.m_exposeHeaders.empty()) {
+    cors.m_allowedHeaders.AppendString(PHTTP::ContentTypeTag());
     cors.m_exposeHeaders.AppendString(OPAL_SDP_HTTP_ID_HEADER);
+  }
   SetCORS(cors);
 }
 
