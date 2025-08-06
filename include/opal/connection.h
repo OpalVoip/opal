@@ -97,6 +97,7 @@ class PURL;
 #define OPAL_OPT_MIN_JITTER           "Min-Jitter"            ///< String option to set minimum jitter in milliseconds
 #define OPAL_OPT_DISABLE_JITTER       "Disable-Jitter"        ///< String option to disable jitter buffer, default "false"
 #define OPAL_OPT_TRUST_TIMESTAMPS     "Trust-Timestamps"      ///< String option to trust RTP timestamps when JB disabled, default "true"
+#define OPAL_OPT_MAX_INSERTED_SILENCE "Max-Inserted-Silence"  ///< String option to set fail safe time when trusting timestamps and JB disabled, default 30 minutes
 #define OPAL_OPT_RECORD_AUDIO         "Record-Audio"          ///< String option to start recording to a file for call
 #define OPAL_OPT_REMOVE_CODEC         "Remove-Codec"          ///< String option to remove codecs for this call
 

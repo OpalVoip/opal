@@ -21,7 +21,7 @@
  *
  * The Initial Developer of the Original Code is Equivalence Pty. Ltd.
  *
- * Portions of this code were written with the assisance of funding from
+ * Portions of this code were written with the assistance of funding from
  * Vovida Networks, Inc. http://www.vovida.com.
  *
  * Contributor(s): ______________________________________.
@@ -771,6 +771,18 @@ class OpalRTPSession : public OpalMediaSession
 
     OpalJitterBuffer  * m_jitterBuffer;
 
+#if OPAL_STATISTICS
+    struct Statistics : OpalMediaStatistics
+    {
+      uint64_t m_pktTimeSum;
+      unsigned m_pktTimeCount;
+      uint64_t m_jitterSum;
+      unsigned m_jitterCount;
+
+      Statistics() : m_pktTimeSum(0), m_pktTimeCount(0), m_jitterSum(0), m_jitterCount(0) { }
+    } m_statsFromClosedSSRCs;
+#endif
+
 #if OPAL_RTP_FEC
     RTP_DataFrame::PayloadTypes m_redundencyPayloadType;
     RTP_DataFrame::PayloadTypes m_ulpFecPayloadType;
@@ -820,6 +832,7 @@ class OpalRTPSession : public OpalMediaSession
       virtual void CalculateStatistics(const RTP_DataFrame & frame, const PTime & now);
 #if OPAL_STATISTICS
       virtual void GetStatistics(OpalMediaStatistics & statistics) const;
+      virtual void AddStatistics(Statistics & statistics) const;
 #endif
 
       virtual bool OnSendReceiverReport(RTP_ControlFrame::ReceiverReport * report, const PTime & now PTRACE_PARAM(, unsigned logLevel));
@@ -997,7 +1010,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual bool InternalSendReport(RTP_ControlFrame & report, SyncSource & sender, bool includeReceivers, bool forced, const PTime & now);
     virtual void InitialiseControlFrame(RTP_ControlFrame & frame, SyncSource & sender);
 
-    // Some statitsics not SSRC related
+    // Some statistics not SSRC related
     unsigned m_rtcpPacketsSent;
     unsigned m_rtcpPacketsReceived;
     int      m_roundTripTime;
