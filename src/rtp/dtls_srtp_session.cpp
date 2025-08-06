@@ -208,15 +208,19 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
 
 int OpalDTLSMediaTransport::DTLSChannel::BioRead(char * buf, int len)
 {
-  if (!m_lastReceivedPackets.empty()) {
+  while (!m_lastReceivedPackets.empty()) {
     // First return packets received before we were ready to handshake
-    PBYTEArray & packet = m_lastReceivedPackets.front();
-    size_t packetLen = packet.size();
-    if (static_cast<size_t>(len) >= packetLen)
-      memcpy(buf, packet.GetPointer(), packetLen);
+    PBYTEArray packet = m_lastReceivedPackets.front();
     m_lastReceivedPackets.pop_front();
-    PTRACE(5, "Read " << packetLen << " bytes from pre-handshake cache");
-    return packetLen;
+
+    size_t packetLen = packet.size();
+    if (static_cast<size_t>(len) >= packetLen) {
+      memcpy(buf, packet.GetPointer(), packetLen);
+      PTRACE(5, "Read " << packetLen << " bytes from pre-handshake cache");
+      return packetLen;
+    }
+
+    PTRACE(3, "Cannot use " << packetLen << " bytes from pre-handshake cache, expected max is " << len << " bytes");
   }
 
   int result = PSSLChannelDTLS::BioRead(buf, len);
