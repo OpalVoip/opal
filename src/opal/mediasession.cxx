@@ -1480,8 +1480,19 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
           }
 
           for (PINDEX i = 0; i < subchannelCount; ++i) {
+            PNatMethod::Component component;
+            switch (i) {
+              case 0 :
+                component = PNatMethod::eComponent_RTP;
+                break;
+              case 1:
+                component = PNatMethod::eComponent_RTCP;
+                break;
+              default:
+                component = PNatMethod::eComponent_Unknown;
+            }
             PUDPSocket * socket = NULL;
-            if (natMethod->CreateSocket(socket, bindingIP))
+            if (natMethod->CreateSocket(socket, bindingIP, 0, NULL, component))
               AddChannel(socket);
             else {
               delete socket;
