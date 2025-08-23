@@ -1074,7 +1074,7 @@ void OpalRawMediaStream::InternalCalculateAudioLevel(const BYTE * data, PINDEX l
     if (m_dbTraceTime.GetElapsed() > TracePeriod) {
       m_dbTraceTime.SetCurrentTime();
       PTRACE_BEGIN(TraceLevel)
-        << "Average audio level: " << m_dbCalculatorTrace.Finalise() << "dB"
+        << "Average audio level: " << m_dbCalculatorTrace.Finalise() << "dBov"
         << " on " << *this
         << PTrace::End;
     }
