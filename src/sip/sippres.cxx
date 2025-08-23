@@ -746,7 +746,7 @@ void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationReques
       m_authorisationIdByAor[watcher] = ruleId;
       PTRACE(4, "Getting rule id=" << ruleId << " for '" << watcher << "' at '" << m_aor << '\'');
 
-      if (watcher == cmd.m_presentity.AsString())
+      if (cmd.m_presentity == watcher)
         existingRuleForWatcher = true;
     }
   }

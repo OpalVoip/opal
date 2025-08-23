@@ -2402,7 +2402,7 @@ bool OpalManagerConsole::Initialise(PArgList & args, bool verbose, const PString
           format.SetOptionInteger(OpalVideoFormat::MaxRxFrameHeightOption(), maxHeight);
         if (rate > 0)
           format.SetOptionInteger(OpalVideoFormat::FrameTimeOption(),
-                                  (unsigned)(double(OpalMediaFormat::VideoClockRate)/rate));
+                                  unsigned(unsigned(OpalMediaFormat::VideoClockRate)/rate));
         if (bitrate > 0)
           format.SetOptionInteger(OpalVideoFormat::TargetBitRateOption(), bitrate);
         OpalMediaFormat::SetRegisteredMediaFormat(format);
