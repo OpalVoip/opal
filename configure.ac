@@ -151,6 +151,7 @@ fi
 
 AC_SUBST(PTLIB_MAKE_DIR, `pkg-config ptlib --variable=makedir`)
 AC_SUBST(PTLIB_LIB_DIR,  `pkg-config ptlib --variable=libdir`)
+AC_SUBST(CPLUSPLUS_STD,  `pkg-config ptlib --variable=cplusplus_std`)
 
 if test "x$OPAL_PTLIB_DIR" = "x"; then
    OPAL_PTLIB_DIR="`pkg-config ptlib --variable=prefix` (pkg-config)"

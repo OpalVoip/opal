@@ -41,26 +41,6 @@
 class OpalMediaTypeDefinition;
 class OpalConnection;
 
-////////////////////////////////////////////////////////////////////////////
-//
-//  define the factory used for keeping track of OpalMediaTypeDefintions
-//
-class OpalMediaType;
-typedef PFactory<OpalMediaTypeDefinition, OpalMediaType> OpalMediaTypesFactory;
-class OpalMediaTypeList : public OpalMediaTypesFactory::KeyList_T, public PObject
-{
-  public:
-    OpalMediaTypeList() { }
-
-    OpalMediaTypeList(const OpalMediaTypesFactory::KeyList_T & list)
-      : OpalMediaTypesFactory::KeyList_T(list) { }
-
-    virtual void PrintOn(ostream & strm) const override;
-
-    void PrioritiseAudioVideo();
-};
-
-
 /** Define the type used to hold the media type identifiers, i.e. "audio", "video", "h.224", "fax" etc
   */
 class OpalMediaType : public std::string     // do not make this PCaselessString as that type does not work as index for std::map etc
@@ -97,10 +77,23 @@ class OpalMediaType : public std::string     // do not make this PCaselessString
     OpalMediaTypeDefinition * GetDefinition() const;
     static OpalMediaTypeDefinition * GetDefinition(const OpalMediaType & key);
 
+    class List : public std::vector<OpalMediaType>, public PObject
+    {
+      public:
+        List() { }
+
+        List(const std::vector<OpalMediaType> & list)
+          : std::vector<OpalMediaType>(list) { }
+
+        virtual void PrintOn(ostream & strm) const override;
+
+        void PrioritiseAudioVideo();
+    };
+
     /** Get a list of all media types.
         This also assures that Audio() and Video() are the first two elements.
       */
-    static OpalMediaTypeList GetList();
+    static List GetList();
 
     P_DECLARE_BITWISE_ENUM_EX(AutoStartMode, 3,
                               (OfferInactive, Receive, Transmit, DontOffer),
@@ -136,6 +129,16 @@ __inline ostream & operator << (ostream & strm, const OpalMediaType & mediaType)
 }
 
 ostream & operator<<(ostream & strm, OpalMediaType::AutoStartMode mode);
+
+
+typedef OpalMediaType::List OpalMediaTypeList;
+
+
+////////////////////////////////////////////////////////////////////////////
+//
+//  define the factory used for keeping track of OpalMediaTypeDefintions
+//
+typedef PFactory<OpalMediaTypeDefinition, OpalMediaType> OpalMediaTypesFactory;
 
 
 ////////////////////////////////////////////////////////////////////////////
