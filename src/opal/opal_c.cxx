@@ -40,7 +40,6 @@
 #include <h323/h323ep.h>
 #include <sip/sipep.h>
 #include <sip/sippres.h>
-#include <iax2/iax2ep.h>
 #include <lids/lidep.h>
 #include <t38/t38proto.h>
 #include <ep/ivr.h>
@@ -1130,10 +1129,6 @@ OpalManager_C::OpalManager_C(unsigned version, const PArgList & args)
   bool hasSIPS = CheckProto(args, OPAL_PREFIX_SIPS, "<da>", defProto, defProtoPos);
 #endif
 
-#if OPAL_IAX2
-  bool hasIAX2 = CheckProto(args, OPAL_PREFIX_IAX2, "<da>", defProto, defProtoPos);
-#endif
-
 #if OPAL_SKINNY
   bool hasSkinny = CheckProto(args, OPAL_PREFIX_SKINNY, "<dn>", defProto, defProtoPos);
 #endif
@@ -1197,13 +1192,6 @@ OpalManager_C::OpalManager_C(unsigned version, const PArgList & args)
       AddRouteEntry(OPAL_PREFIX_SIPS":.*=" + defUser);
     else
       DetachEndPoint(OPAL_PREFIX_SIPS);
-  }
-#endif
-
-#if OPAL_IAX2
-  if (hasIAX2) {
-    new IAX2EndPoint(*this);
-    AddRouteEntry(OPAL_PREFIX_IAX2":.*=" + defUser);
   }
 #endif
 
@@ -2016,9 +2004,6 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
 #endif
 #if OPAL_SIP
       StartStopListeners(FindEndPoint(OPAL_PREFIX_SIP),  command.m_param.m_protocol.m_interfaceAddresses, response);
-#endif
-#if OPAL_IAX2
-      StartStopListeners(FindEndPoint(OPAL_PREFIX_IAX2),  command.m_param.m_protocol.m_interfaceAddresses, response);
 #endif
     }
 
@@ -3251,7 +3236,7 @@ extern "C" {
 
   OpalHandle OPAL_EXPORT OpalInitialise(unsigned * version, const char * options)
   {
-    PCaselessString optionsString = IsNullString(options) ? "pcss h323 sip iax2 pots pstn fax t38 ivr" : options;
+    PCaselessString optionsString = IsNullString(options) ? "pcss h323 sip pots pstn fax t38 ivr" : options;
 
     // For backward compatibility
     optionsString.Replace("TraceLevel=", "--trace-level ",  true);

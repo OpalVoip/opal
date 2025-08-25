@@ -226,11 +226,9 @@ not agreed on.
 
 In the example above, we have described the decision process as to the codec
 type, and the ports used. This decision process is not necessarily directly
-handled by the OpalConnection descendant. For IAX2, where media negotiation is
-an integral part of setting up the call, the IAX2Connection does media
-negotiation. However, for SIP, there are SDPBandwidth, SDPMediaDescription,
-SDPMediaFormat, SDPSessionDescription classes for handling media
-negotiation. For the case of a PSTN gateway using ISDN, there is no media
+handled by the OpalConnection descendant. For SIP, there are SDPBandwidth,
+SDPMediaDescription, SDPMediaFormat, SDPSessionDescription classes for handling
+media negotiation. For the case of a PSTN gateway using ISDN, there is no media
 negotiation.  It always uses G.711 and the same "port" (the B channel).
 
 
@@ -640,7 +638,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
        This indicates the if the connection may be regarded as a "network"
        connection. The distinction is about if there is a concept of a "remote"
        party being connected to and is best described by example: sip, h323,
-       iax and pstn are all "network" connections as they connect to something
+       and pstn are all "network" connections as they connect to something
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
 

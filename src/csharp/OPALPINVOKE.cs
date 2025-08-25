@@ -240,9 +240,6 @@ class OPALPINVOKE {
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OPAL_PREFIX_SDP_get")]
   public static extern string OPAL_PREFIX_SDP_get();
 
-  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OPAL_PREFIX_IAX2_get")]
-  public static extern string OPAL_PREFIX_IAX2_get();
-
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OPAL_PREFIX_PCSS_get")]
   public static extern string OPAL_PREFIX_PCSS_get();
 

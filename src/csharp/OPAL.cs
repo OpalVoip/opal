@@ -47,7 +47,6 @@ public class OPAL {
   public static readonly string OPAL_PREFIX_SIP = OPALPINVOKE.OPAL_PREFIX_SIP_get();
   public static readonly string OPAL_PREFIX_SIPS = OPALPINVOKE.OPAL_PREFIX_SIPS_get();
   public static readonly string OPAL_PREFIX_SDP = OPALPINVOKE.OPAL_PREFIX_SDP_get();
-  public static readonly string OPAL_PREFIX_IAX2 = OPALPINVOKE.OPAL_PREFIX_IAX2_get();
   public static readonly string OPAL_PREFIX_PCSS = OPALPINVOKE.OPAL_PREFIX_PCSS_get();
   public static readonly string OPAL_PREFIX_LOCAL = OPALPINVOKE.OPAL_PREFIX_LOCAL_get();
   public static readonly string OPAL_PREFIX_POTS = OPALPINVOKE.OPAL_PREFIX_POTS_get();

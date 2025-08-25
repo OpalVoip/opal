@@ -330,7 +330,7 @@ class OpalLineConnection : public OpalConnection
        This indicates the if the connection may be regarded as a "network"
        connection. The distinction is about if there is a concept of a "remote"
        party being connected to and is best described by example: sip, h323,
-       iax and pstn are all "network" connections as they connect to something
+       and pstn are all "network" connections as they connect to something
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */

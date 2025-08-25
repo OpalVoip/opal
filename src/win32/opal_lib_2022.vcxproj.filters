@@ -61,9 +61,6 @@
     <Filter Include="Source Files\H.460">
       <UniqueIdentifier>{4fee85ca-b6d4-4643-928f-ae2999402bbc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\IAX2">
-      <UniqueIdentifier>{7b641a5f-bbd4-4c3f-b0cc-86e074a88d22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\IM">
       <UniqueIdentifier>{905285c5-dea1-4304-aa0f-de02dd648c47}</UniqueIdentifier>
     </Filter>
@@ -368,51 +365,6 @@
     </ClCompile>
     <ClCompile Include="..\h460\h460tm.cxx">
       <Filter>Source Files\H.460</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\callprocessor.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\frame.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\iax2con.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\iax2ep.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\iax2medstrm.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\iedata.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\ies.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\processor.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\receiver.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\regprocessor.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\remote.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\safestrings.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\sound.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\specialprocessor.cxx">
-      <Filter>Source Files\IAX2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\iax2\transmit.cxx">
-      <Filter>Source Files\IAX2</Filter>
     </ClCompile>
     <ClCompile Include="..\im\im_mf.cxx">
       <Filter>Source Files\IM</Filter>

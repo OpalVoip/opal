@@ -137,7 +137,7 @@ class OpalLocalEndPoint : public OpalEndPoint
         OPAL does it's best to compensate, but very often there is no other
         choice.
 
-        Note, it is important for the correct oeprating of the jitter buffer
+        Note, it is important for the correct operation of the jitter buffer
         that one of the above two modes is used for audio.
 
         If GetSynchronicity() returns e_Asynchronous, then the system will indicate
@@ -602,7 +602,7 @@ class OpalLocalConnection : public OpalConnection
        This indicates the if the connection may be regarded as a "network"
        connection. The distinction is about if there is a concept of a "remote"
        party being connected to and is best described by example: sip, h323,
-       iax and pstn are all "network" connections as they connect to something
+       and pstn are all "network" connections as they connect to something
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */

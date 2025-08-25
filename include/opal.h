@@ -93,11 +93,11 @@ typedef struct OpalMessage OpalMessage;
     to be enabled, for example the protocols to be available. NULL or an empty
     string will load all available protocols. The current protocol tokens are:
         <code>
-        sip sips h323 h323s iax2 pc local pots pstn ivr
+        sip sips h323 h323s pc local pots pstn ivr
         </code>
     The above protocols are in priority order, so if a protocol is not
     explicitly in the address, then the first one of the opposite "category"
-    s used. There are two categories, network protocols (sip, h323, iax & pstn)
+    s used. There are two categories, network protocols (sip, h323 & pstn)
     and non-network protocols (pc, local, pots & ivr).
 
     Additional options are in similar form to command line arguments:
@@ -151,7 +151,6 @@ typedef struct OpalMessage OpalMessage;
       if ((hOPAL = OpalInitialise(&version,
                                   OPAL_PREFIX_H323  " "
                                   OPAL_PREFIX_SIP   " "
-                                  OPAL_PREFIX_IAX2  " "
                                   OPAL_PREFIX_PCSS
                                   " TraceLevel=4")) == NULL) {
         fputs("Could not initialise OPAL\n", stderr);
@@ -347,7 +346,6 @@ typedef void (OPAL_EXPORT *OpalFreeMessageFunction)(OpalMessage * message);
 #define OPAL_PREFIX_SIP    "sip"    ///< SIP Protocol supported string for OpalInitialise()
 #define OPAL_PREFIX_SIPS   "sips"   ///< Secure SIP Protocol supported string for OpalInitialise()
 #define OPAL_PREFIX_SDP    "sdp"    ///< SDP over HTTP (e.g. for WebRTC) supported string for OpalInitialise()
-#define OPAL_PREFIX_IAX2   "iax2"   ///< IAX2 Protocol supported string for OpalInitialise()
 #define OPAL_PREFIX_PCSS   "pc"     ///< PC sound system supported string for OpalInitialise()
 #define OPAL_PREFIX_LOCAL  "local"  ///< Local endpoint supported string for OpalInitialise()
 #define OPAL_PREFIX_POTS   "pots"   ///< Plain Old Telephone System supported string for OpalInitialise()
@@ -366,7 +364,6 @@ typedef void (OPAL_EXPORT *OpalFreeMessageFunction)(OpalMessage * message);
                         OPAL_PREFIX_SIPS   " " \
                         OPAL_PREFIX_H323   " " \
                         OPAL_PREFIX_H323S  " " \
-                        OPAL_PREFIX_IAX2   " " \
                         OPAL_PREFIX_SDP    " " \
                         OPAL_PREFIX_SKINNY " " \
                         OPAL_PREFIX_LYNC   " " \

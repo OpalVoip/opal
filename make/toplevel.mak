@@ -278,28 +278,6 @@ endif # OPAL_H323
 
 ########################################
 
-ifeq ($(OPAL_IAX2), yes)
-  VPATH_CXX += $(OPAL_SRCDIR)/iax2 
-  SOURCES += $(OPAL_SRCDIR)/iax2/callprocessor.cxx \
-             $(OPAL_SRCDIR)/iax2/frame.cxx \
-             $(OPAL_SRCDIR)/iax2/iax2con.cxx \
-             $(OPAL_SRCDIR)/iax2/iax2ep.cxx \
-             $(OPAL_SRCDIR)/iax2/iax2medstrm.cxx \
-             $(OPAL_SRCDIR)/iax2/iedata.cxx \
-             $(OPAL_SRCDIR)/iax2/ies.cxx \
-             $(OPAL_SRCDIR)/iax2/processor.cxx \
-             $(OPAL_SRCDIR)/iax2/receiver.cxx \
-             $(OPAL_SRCDIR)/iax2/regprocessor.cxx\
-             $(OPAL_SRCDIR)/iax2/remote.cxx \
-             $(OPAL_SRCDIR)/iax2/safestrings.cxx \
-             $(OPAL_SRCDIR)/iax2/sound.cxx \
-             $(OPAL_SRCDIR)/iax2/specialprocessor.cxx \
-             $(OPAL_SRCDIR)/iax2/transmit.cxx 
-endif # OPAL_IAX2
-
-
-########################################
-
 ifeq ($(OPAL_SDP),yes)
   VPATH_CXX += $(OPAL_SRCDIR)/sdp
   SOURCES += $(OPAL_SRCDIR)/sdp/sdpep.cxx \
@@ -559,7 +537,7 @@ install uninstall:
 
 else # OPALDIR
 
-INCSUBDIRS:=asn codec ep h323 h460 h224 iax2 im lids opal rtp sdp sip t120 t38
+INCSUBDIRS:=asn codec ep h323 h460 h224 im lids opal rtp sdp sip t120 t38
 
 install:
 	for dir in $(DESTDIR)$(libdir) \
