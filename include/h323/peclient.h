@@ -494,7 +494,7 @@ class H323PeerElement : public H323_AnnexG
     // structures needed to maintain local service relationships (for which we receive a ServiceRequest)
     PSafeSortedList<H323PeerElementServiceRelationship> localServiceRelationships;
     PDECLARE_MUTEX(localPeerListMutex);
-    POrdinalSet localServiceOrdinals;
+    PSet<POrdinalKey> localServiceOrdinals;
 
     // structures needed to maintain remote service relationships (for which we send a ServiceRequest)
     PDECLARE_MUTEX(remotePeerListMutex);

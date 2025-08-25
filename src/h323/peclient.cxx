@@ -1208,7 +1208,7 @@ PBoolean H323PeerElement::AccessRequest(const H225_AliasAddress & searchAlias,
                                                      unsigned options)
 {
   // try each service relationship in turn
-  POrdinalSet peersTried;
+  PSet<POrdinalKey> peersTried;
 
   for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr) {
 
