@@ -756,7 +756,7 @@ class SIP_PDU : public PSafeObject
 };
 
 
-PQUEUE(SIP_PDU_Queue, SIP_PDU);
+typedef PQueue<SIP_PDU> SIP_PDU_Queue;
 
 
 #if PTRACING

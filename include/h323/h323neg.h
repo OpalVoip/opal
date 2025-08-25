@@ -197,7 +197,7 @@ class H245NegLogicalChannel : public H245Negotiator
 };
 
 
-PDICTIONARY(H245LogicalChannelDict, H323ChannelNumber, H245NegLogicalChannel);
+typedef PDictionary<H323ChannelNumber, H245NegLogicalChannel> H245LogicalChannelDict;
 
 /**Dictionary of all Logical Channels
  */

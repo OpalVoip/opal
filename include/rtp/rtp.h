@@ -809,7 +809,7 @@ class RTP_DataFrame : public PBYTEArray
     virtual PBoolean SetSize(PINDEX sz) override { return PBYTEArray::SetSize(sz); }
 };
 
-PLIST(RTP_DataFrameList, RTP_DataFrame);
+typedef PList<RTP_DataFrame> RTP_DataFrameList;
 
 
 ///////////////////////////////////////////////////////////////////////////////

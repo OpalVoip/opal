@@ -520,13 +520,13 @@ class OpalManager : public PObject, public OpalCertificateInfo
 
       protected:
         PString            m_partyA;      ///< URL of caller
-        PString            m_partyB;      ///< URL caller want to conect to
+        PString            m_partyB;      ///< URL caller want to connect to
         PString            m_destination; ///< URL we map above to, with macro substitutions
         PRegularExpression m_regex;       ///< Compiled Regular expression from pattern
 
         void CompileRegEx();
     };
-    PARRAY(RouteTable, RouteEntry);
+    typedef PArray<RouteEntry> RouteTable;
 
     /**Add a route entry to the route table.
 

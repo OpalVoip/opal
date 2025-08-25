@@ -446,7 +446,7 @@ class H323Gatekeeper : public H225_RAS
 };
 
 
-PLIST(H323GatekeeperList, H323Gatekeeper);
+typedef PList<H323Gatekeeper> H323GatekeeperList;
 
 
 #endif // OPAL_H323

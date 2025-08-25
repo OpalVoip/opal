@@ -172,8 +172,8 @@ class H450xHandler : public PObject
     unsigned          currentInvokeId;
 };
 
-PARRAY(H450xHandlerArray, H450xHandler);
-PDICTIONARY(H450xHandlerDict, POrdinalKey, H450xHandler);
+typedef PArray<H450xHandler> H450xHandlerArray;
+typedef PDictionary<POrdinalKey, H450xHandler> H450xHandlerDict;
 
 
 class H450xDispatcher : public PObject

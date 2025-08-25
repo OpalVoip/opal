@@ -120,7 +120,7 @@ protected:
   OpalH224Handler * m_h224Handler;
 };
 
-PSORTED_LIST(OpalH224ClientList, OpalH224Client);
+typedef PSortedList<OpalH224Client> OpalH224ClientList;
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -482,7 +482,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
   P_REMOVE_VIRTUAL_VOID(Copy(SDPMediaDescription &));
 };
 
-PARRAY(SDPMediaDescriptionArray, SDPMediaDescription);
+typedef PArray<SDPMediaDescription> SDPMediaDescriptionArray;
 
 
 class SDPDummyMediaDescription : public SDPMediaDescription

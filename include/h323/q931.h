@@ -409,8 +409,8 @@ class Q931 : public PObject
     unsigned protocolDiscriminator;
     MsgTypes messageType;
 
-    PARRAY(InternalInformationElement, PBYTEArray);
-    PDICTIONARY(InternalInformationElements, POrdinalKey, InternalInformationElement);
+    typedef PArray<PBYTEArray> InternalInformationElement;
+    typedef PDictionary<POrdinalKey, InternalInformationElement> InternalInformationElements;
     InternalInformationElements informationElements;
 };
 

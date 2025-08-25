@@ -483,7 +483,7 @@ class H323TransactionServer : public PObject
 
     PDECLARE_MUTEX(m_mutex);
 
-    PLIST(ListenerList, H323Transactor);
+    typedef PList<H323Transactor> ListenerList;
     ListenerList m_listeners;
 };
 

@@ -105,7 +105,7 @@ class OpalBandwidth : public PObject
 
 ///////////////////////////////////////////////////////////////////////////////
 
-PLIST(OpalMediaFormatBaseList, OpalMediaFormat);
+typedef PList<OpalMediaFormat> OpalMediaFormatBaseList;
 
 /**This class contains a list of media formats.
   */

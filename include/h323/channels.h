@@ -335,7 +335,7 @@ class H323Channel : public PObject
 };
 
 
-PLIST(H323LogicalChannelList, H323Channel);
+typedef PList<H323Channel> H323LogicalChannelList;
 
 
 

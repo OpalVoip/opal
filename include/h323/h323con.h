@@ -2308,7 +2308,7 @@ class H323Connection : public OpalRTPConnection
 };
 
 
-PDICTIONARY(H323CallIdentityDict, PString, H323Connection);
+typedef PDictionary<PString, H323Connection> H323CallIdentityDict;
 
 
 #endif // OPAL_H323

@@ -65,7 +65,7 @@ class CallThread : public PThread
     PSyncPoint   m_exit;
 };
 
-PLIST(CallThreadList, CallThread);
+typedef PList<CallThread> CallThreadList;
 
 
 ///////////////////////////////////////////////////////////////////////////////

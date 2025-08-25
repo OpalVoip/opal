@@ -1750,7 +1750,7 @@ class H323GatekeeperServer : public H323TransactionServer
     PThread   * m_monitorThread;
     PSyncPoint  m_monitorExit;
 
-    PLIST(ListenerList, H323GatekeeperListener);
+    typedef PList<H323GatekeeperListener> ListenerList;
     ListenerList m_listeners;
 
 #if OPAL_H501

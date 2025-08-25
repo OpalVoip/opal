@@ -500,12 +500,12 @@ class H323PeerElement : public H323_AnnexG
     PDECLARE_MUTEX(remotePeerListMutex);
     PSafeSortedList<H323PeerElementServiceRelationship> remoteServiceRelationships;
     PStringToString remotePeerAddrToServiceID;
-    PDICTIONARY(StringToOrdinalKey, PString, POrdinalKey);
+    typedef PDictionary<PString, POrdinalKey> StringToOrdinalKey;
     StringToOrdinalKey remotePeerAddrToOrdinalKey;
 
     PSafeSortedList<H323PeerElementDescriptor> descriptors;
 
-    PSORTED_LIST(AliasKeyList, H225_AliasAddress);
+    typedef PSortedList<H225_AliasAddress> AliasKeyList;
 
     PDECLARE_MUTEX(aliasMutex);
     AliasKeyList transportAddressToDescriptorID;

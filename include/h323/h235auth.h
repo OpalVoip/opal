@@ -175,7 +175,8 @@ class H235Authenticator : public PObject
 };
 
 
-PDECLARE_LIST(H235Authenticators, H235Authenticator)
+class H235Authenticators : public PList<H235Authenticator>
+{
   protected:
     void InternalPreparePDU(
       H323TransactionPDU & pdu,

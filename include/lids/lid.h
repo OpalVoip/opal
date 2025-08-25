@@ -913,7 +913,7 @@ class OpalLineInterfaceDevice : public PObject
 };
 
 
-PLIST(OpalLIDList, OpalLineInterfaceDevice);
+typedef PList<OpalLineInterfaceDevice> OpalLIDList;
 
 
 
@@ -1403,7 +1403,7 @@ class OpalLine : public PObject
 };
 
 
-PLIST(OpalLineList, OpalLine);
+typedef PList<OpalLine> OpalLineList;
 
 
 /**This class embodies the description of a Line Interface Device.

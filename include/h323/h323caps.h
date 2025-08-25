@@ -2475,9 +2475,9 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-PARRAY(H323CapabilitiesList, H323Capability);
+typedef PArray<H323Capability> H323CapabilitiesList;
 
-PARRAY(H323CapabilitiesListArray, H323CapabilitiesList);
+typedef PArray<H323CapabilitiesList> H323CapabilitiesListArray;
 
 class H323SimultaneousCapabilities : public H323CapabilitiesListArray
 {
@@ -2491,7 +2491,7 @@ class H323SimultaneousCapabilities : public H323CapabilitiesListArray
 };
 
 
-PARRAY(H323CapabilitiesSetArray, H323SimultaneousCapabilities);
+typedef PArray<H323SimultaneousCapabilities> H323CapabilitiesSetArray;
 
 
 class H323CapabilitiesSet : public H323CapabilitiesSetArray

@@ -534,7 +534,7 @@ class OpalListener : public PObject
 };
 
 
-PLIST(OpalListenerList, OpalListener);
+typedef PList<OpalListener> OpalListenerList;
 
 
 class OpalListenerIP : public OpalListener
