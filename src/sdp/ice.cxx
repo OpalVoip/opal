@@ -380,7 +380,7 @@ void OpalICEMediaTransport::ICEChannel::GetLocalCandidates(PNatCandidateList & c
       if (natMethod != NULL &&
           natMethod->GetNatType() == PNatMethod::OpenNat &&
           natMethod->GetExternalAddress(ip) &&
-          m_localCandidates.back().m_baseTransportAddress != ip)
+          m_localCandidates.back().m_baseTransportAddress.GetAddress() != ip)
         AddLocalCandidate(OpalTransportAddress(ip, port));
     }
   }
