@@ -62,8 +62,8 @@ static const char LiteFoundation[] = "xyzzy";
 
 /////////////////////////////////////////////////////////////////////////////
 
-OpalICEMediaTransport::OpalICEMediaTransport(const PString & name)
-  : OpalUDPMediaTransport(name)
+OpalICEMediaTransport::OpalICEMediaTransport(OpalConnection & connection, const PString & name)
+  : OpalUDPMediaTransport(connection, name)
   , m_localUsername(PBase64::Encode(PRandom::Octets(12)))
   , m_localPassword(PBase64::Encode(PRandom::Octets(18)))
   , m_localLite(false)
@@ -91,7 +91,7 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
 
   m_localTrickle = options.GetBoolean(OPAL_OPT_TRICKLE_ICE, true);
   m_useNetworkCost = options.GetBoolean(OPAL_OPT_NETWORK_COST_ICE);
-  m_iceTimeout = options.GetVar(OPAL_OPT_ICE_TIMEOUT, session.GetConnection().GetEndPoint().GetManager().GetICETimeout());
+  m_iceTimeout = options.GetVar(OPAL_OPT_ICE_TIMEOUT, m_connection.GetEndPoint().GetManager().GetICETimeout());
 
   // As per RFC 5425
   static const PTimeInterval MinTimeout(0,15);
@@ -364,10 +364,24 @@ bool OpalICEMediaTransport::GetCandidates(PString & user,
 void OpalICEMediaTransport::ICEChannel::GetLocalCandidates(PNatCandidateList & candidates)
 {
   if (m_localCandidates.empty()) {
+    OpalTransportAddress localAddress = m_owner.m_subchannels[m_subchannel].m_localAddress;
+
     // Only do ICE-Lite right now so just offer "host" type using local address.
-    if (!AddLocalCandidate(m_owner.m_subchannels[m_subchannel].m_localAddress)) {
+    if (!AddLocalCandidate(localAddress)) {
       PTRACE(2, m_owner << m_subchannel << ", no local binding when using ICE-lite!");
       return;
+    }
+
+    // If OpenNAT is present, we add the external IP address as a candidate too.
+    PIPAddress ip;
+    WORD port;
+    if (localAddress.GetIpAndPort(ip, port)) {
+      PNatMethod * natMethod = m_owner.m_connection.GetEndPoint().GetManager().GetNatMethods().GetMethod(ip, this);
+      if (natMethod != NULL &&
+          natMethod->GetNatType() == PNatMethod::OpenNat &&
+          natMethod->GetExternalAddress(ip) &&
+          m_localCandidates.back().m_baseTransportAddress != ip)
+        AddLocalCandidate(OpalTransportAddress(ip, port));
     }
   }
 

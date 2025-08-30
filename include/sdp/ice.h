@@ -70,7 +70,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
 {
     PCLASSINFO(OpalICEMediaTransport, OpalUDPMediaTransport);
   public:
-    OpalICEMediaTransport(const PString & name);
+    OpalICEMediaTransport(OpalConnection & connection, const PString & name);
 
     P_DECLARE_BITWISE_ENUM(Options, 2, (
       OptNone,

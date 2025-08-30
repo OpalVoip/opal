@@ -96,12 +96,12 @@ class OpalDTLSContext : public PSSLContext
 };
 
 
-OpalDTLSMediaTransport::DTLSChannel::DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel)
+OpalDTLSMediaTransport::DTLSChannel::DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel, unsigned mtu)
   : PSSLChannelDTLS(new OpalDTLSContext(transport), true)
   , m_transport(transport)
   , m_lastResponseLength(0)
 {
-  SetMTU(m_transport.m_MTU);
+  SetMTU(mtu);
   SetVerifyMode(PSSLContext::VerifyPeerMandatory,
                 PCREATE_NOTIFIER2_EXT(m_transport, OpalDTLSMediaTransport, OnVerify, PSSLChannel::VerifyInfo &));
   Open(channel);
@@ -262,11 +262,10 @@ int OpalDTLSMediaTransport::DTLSChannel::BioWrite(const char * buf, int len)
 }
 
 
-OpalDTLSMediaTransport::OpalDTLSMediaTransport(const PString & name, OpalMediaSession::SetUpMode mode, const PSSLCertificateFingerprint& fp)
-  : OpalDTLSMediaTransportParent(name)
+OpalDTLSMediaTransport::OpalDTLSMediaTransport(OpalConnection & connection, const PString & name, OpalMediaSession::SetUpMode mode, const PSSLCertificateFingerprint& fp)
+  : OpalDTLSMediaTransportParent(connection, name)
   , m_setupMode(mode)
   , m_handshakeTimeout(0, 2)
-  , m_MTU(1400)
   , m_privateKey(1024)
   , m_remoteFingerprint(fp)
 {
@@ -286,8 +285,7 @@ bool OpalDTLSMediaTransport::Open(OpalMediaSession & session,
   }
 
   m_handshakeTimeout = session.GetStringOptions().GetVar(OPAL_OPT_DTLS_TIMEOUT,
-                       session.GetConnection().GetEndPoint().GetManager().GetDTLSTimeout());
-  m_MTU = session.GetConnection().GetMaxRtpPayloadSize();
+                                                         m_connection.GetEndPoint().GetManager().GetDTLSTimeout());
 
   return OpalDTLSMediaTransportParent::Open(session, count, localInterface, remoteAddress);
 }
@@ -296,7 +294,9 @@ bool OpalDTLSMediaTransport::Open(OpalMediaSession & session,
 PChannel * OpalDTLSMediaTransport::AddWrapperChannels(SubChannels subchannel, PChannel * channel)
 {
   // Should already be locked, or in ctor
-  return new DTLSChannel(*this, OpalDTLSMediaTransportParent::AddWrapperChannels(subchannel, channel));
+  return new DTLSChannel(*this,
+                         OpalDTLSMediaTransportParent::AddWrapperChannels(subchannel, channel),
+                         m_connection.GetMaxRtpPayloadSize());
 }
 
 
@@ -536,7 +536,7 @@ void OpalDTLSSRTPSession::SetRemoteFingerprint(const PSSLCertificateFingerprint&
 OpalMediaTransport * OpalDTLSSRTPSession::CreateMediaTransport(const PString & name)
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
-  return new OpalDTLSMediaTransport(name, m_setupMode, m_earlyRemoteFingerprint);
+  return new OpalDTLSMediaTransport(GetConnection(), name, m_setupMode, m_earlyRemoteFingerprint);
 }
 
 

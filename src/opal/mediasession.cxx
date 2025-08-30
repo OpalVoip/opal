@@ -656,8 +656,9 @@ ostream & operator<<(ostream & strm, OpalMediaTransportChannelTypes::SubChannels
 #endif // PTRACING
 
 
-OpalMediaTransport::OpalMediaTransport(const PString & name)
+OpalMediaTransport::OpalMediaTransport(OpalConnection & connection, const PString & name)
   : PSafeObject(m_instrumentedMutex)
+  , m_connection(connection)
   , m_name(name)
   , m_remoteBehindNAT(false)
   , m_packetSize(2048)
@@ -669,6 +670,7 @@ OpalMediaTransport::OpalMediaTransport(const PString & name)
   , m_started(false)
   , m_congestionControl(NULL)
 {
+  PTRACE_CONTEXT_ID_FROM(connection);
   m_ccTimer.SetNotifier(PCREATE_NOTIFIER(ProcessCongestionControl), "RTP-CC");
   PTRACE(5, "Created OpalMediaTransport " << this);
 }
@@ -1151,8 +1153,8 @@ PChannel * OpalMediaTransport::AddWrapperChannels(SubChannels /*subchannel*/, PC
 
 //////////////////////////////////////////////////////////////////////////////
 
-OpalTCPMediaTransport::OpalTCPMediaTransport(const PString & name)
-  : OpalMediaTransport(name)
+OpalTCPMediaTransport::OpalTCPMediaTransport(OpalConnection & connection, const PString & name)
+  : OpalMediaTransport(connection, name)
 {
   AddChannel(new PTCPSocket);
 }
@@ -1204,8 +1206,8 @@ bool OpalTCPMediaTransport::Write(const void * data, PINDEX length, SubChannels 
 
 //////////////////////////////////////////////////////////////////////////////
 
-OpalUDPMediaTransport::OpalUDPMediaTransport(const PString & name)
-  : OpalMediaTransport(name)
+OpalUDPMediaTransport::OpalUDPMediaTransport(OpalConnection & connection, const PString & name)
+  : OpalMediaTransport(connection, name)
   , m_localHasRestrictedNAT(false)
 {
 }
@@ -1420,31 +1422,30 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
-  PTRACE_CONTEXT_ID_FROM(session);
-
   if (!PAssert(subchannelCount > 0, PInvalidParameter))
     return false;
 
-  OpalManager & manager = session.GetConnection().GetEndPoint().GetManager();
+  const PStringOptions & options = session.GetStringOptions();
+  OpalManager & manager = m_connection.GetEndPoint().GetManager();
 
   m_packetSize = manager.GetMaxRtpPacketSize();
   if (session.IsRemoteBehindNAT())
     SetRemoteBehindNAT();
-  m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
+  m_maxNoTransmitTime = options.GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
 
   if (!PAssert(!localInterface.empty(), PLogicError))
     return false;
 
   PIPAddress bindingIP(localInterface);
   if (!bindingIP.IsValid()) {
-    PTRACE(2, session << "open failed, illegal local interface \"" << localInterface << '"');
+    PTRACE(2, *this << "open failed, illegal local interface \"" << localInterface << '"');
     return false;
   }
 
   PIPAddress remoteIP;
   remoteAddress.GetIpAddress(remoteIP);
 
-  PTRACE(4, session << "opening " << subchannelCount << " subchannel(s):"
+  PTRACE(4, *this << "opening " << subchannelCount << " subchannel(s):"
             " interface=\"" << localInterface << "\" local=" << bindingIP << " remote=" << remoteIP);
 
 #if OPAL_PTLIB_NAT
@@ -1464,18 +1465,18 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
           // Then do case for full cone support and create NAT sockets
 
         case PNatMethod::RTPSupported :
-          PTRACE(4, session << "attempting natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
+          PTRACE(4, *this << "attempting natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
           if (subchannelCount == 2) {
             PUDPSocket * dataSocket = NULL;
             PUDPSocket * controlSocket = NULL;
             if (natMethod->CreateSocketPair(dataSocket, controlSocket, bindingIP, &session)) {
               AddChannel(dataSocket);
               AddChannel(controlSocket);
-              PTRACE(4, session << natMethod->GetMethodName() << " created NAT RTP/RTCP socket pair.");
+              PTRACE(4, *this << natMethod->GetMethodName() << " created NAT RTP/RTCP socket pair.");
               break;
             }
 
-            PTRACE(2, session << natMethod->GetMethodName()
+            PTRACE(2, *this << natMethod->GetMethodName()
                     << " could not create NAT RTP/RTCP socket pair; trying to create individual sockets.");
           }
 
@@ -1496,7 +1497,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
               AddChannel(socket);
             else {
               delete socket;
-              PTRACE(2, session << natMethod->GetMethodName()
+              PTRACE(2, *this << natMethod->GetMethodName()
                       << " could not create NAT RTP socket, using normal sockets.");
             }
           }
@@ -1508,7 +1509,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
              talk to the real RTP destination. All we can so is bind to the
              local interface the NAT is on and hope the NAT router is doing
              something sneaky like symmetric port forwarding. */
-          PTRACE(4, session << "cannot use natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
+          PTRACE(4, *this << "cannot use natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
           break;
       }
     }
@@ -1521,7 +1522,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     for (PINDEX i = 0; i < extraSockets; ++i)
       sockets[i] = new PUDPSocket();
     if (!manager.GetRtpIpPortRange().Listen(sockets.data(), extraSockets, bindingIP)) {
-      PTRACE(1, session << "no ports available,"
+      PTRACE(1, *this << "no ports available,"
                 " base=" << manager.GetRtpIpPortBase() << ","
                 " max=" << manager.GetRtpIpPortMax() << ","
                 " bind=" << bindingIP);
@@ -1546,7 +1547,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     SetMinBufferSize(socket, SO_SNDBUF, 0x2000);
   }
 
-  SetMediaTimeout(session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout()));
+  SetMediaTimeout(options.GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout()));
 
   m_opened = true;
   return true;

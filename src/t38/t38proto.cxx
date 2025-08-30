@@ -171,9 +171,9 @@ bool OpalFaxSession::Open(const PString & localInterface, const OpalTransportAdd
 
   // T.38 over TCP is half baked. One day someone might want it enough for it to be finished
   if (remoteAddress.IsEmpty() || remoteAddress.GetProto(true) == OpalTransportAddress::UdpPrefix())
-    m_transport = new OpalUDPMediaTransport("T.38-UDP");
+    m_transport = new OpalUDPMediaTransport(GetConnection(), "T.38-UDP");
   else
-    m_transport = new OpalTCPMediaTransport("T.38-TCP");
+    m_transport = new OpalTCPMediaTransport(GetConnection(), "T.38-TCP");
   PTRACE_CONTEXT_ID_TO(m_transport);
   m_connection.InternalCreatedMediaTransport(m_transport);
 

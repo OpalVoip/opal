@@ -414,7 +414,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
   private:
     PDECLARE_INSTRUMENTED_READ_WRITE_MUTEX(m_instrumentedMutex, OpalMediaTransport, 500, 100);
   public:
-    OpalMediaTransport(const PString & name);
+    OpalMediaTransport(OpalConnection & connection, const PString & name);
     ~OpalMediaTransport();
 
     virtual void PrintOn(ostream & strm) const override;
@@ -588,6 +588,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
     virtual PTimeInterval GetTimeout(SubChannels /*subchannel*/) const { return m_mediaTimeout; }
 
+    const OpalConnection & m_connection;
     PString       m_name;
     bool          m_remoteBehindNAT;
     PINDEX        m_packetSize;
@@ -664,7 +665,7 @@ typedef PSafePtr<OpalMediaTransport, PSafePtrMultiThreaded> OpalMediaTransportPt
 class OpalTCPMediaTransport : public OpalMediaTransport
 {
   public:
-    OpalTCPMediaTransport(const PString & name);
+    OpalTCPMediaTransport(OpalConnection & connection, const PString & name);
 
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
     virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, PINDEX = e_Media);
@@ -678,7 +679,7 @@ class OpalUDPMediaTransport : public OpalMediaTransport
 {
     PCLASSINFO(OpalUDPMediaTransport, OpalMediaTransport);
   public:
-    OpalUDPMediaTransport(const PString & name);
+    OpalUDPMediaTransport(OpalConnection & connection, const PString & name);
 
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
     virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, SubChannels subchannel = e_Media) override;

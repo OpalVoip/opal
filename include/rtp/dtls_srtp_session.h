@@ -61,7 +61,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
 {
     PCLASSINFO(OpalDTLSMediaTransport, OpalDTLSMediaTransportParent);
   public:
-    OpalDTLSMediaTransport(const PString & name, OpalMediaSession::SetUpMode mode, const PSSLCertificateFingerprint& fp);
+    OpalDTLSMediaTransport(OpalConnection & connection, const PString & name, OpalMediaSession::SetUpMode mode, const PSSLCertificateFingerprint& fp);
 
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
     virtual bool IsEstablished() const override;
@@ -79,7 +79,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     {
         PCLASSINFO(DTLSChannel, PSSLChannelDTLS);
       public:
-        DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel);
+        DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel, unsigned mtu);
         ~DTLSChannel() { Close(); }
         virtual bool Read(void * buf, PINDEX len) override;
         virtual int BioRead(char * buf, int len) override;
@@ -101,7 +101,6 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
 
     atomic<OpalMediaSession::SetUpMode> m_setupMode;
     PTimeInterval       m_handshakeTimeout;
-    unsigned            m_MTU;
     PSSLCertificate     m_certificate;
     PSSLPrivateKey      m_privateKey;
     PSSLCertificateFingerprint m_remoteFingerprint;

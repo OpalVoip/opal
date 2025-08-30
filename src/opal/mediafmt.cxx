@@ -87,8 +87,12 @@ AUDIO_FORMAT(G711_ALAW_64K,  PCMA,           "PCMA",       8,        8,       24
 
 const OpalAudioFormat & GetOpalPCM16(unsigned clockRate, unsigned channels)
 {
+  PAssert(channels >= 1 && channels <= 2, PInvalidParameter);
+
   switch (clockRate) {
     default :
+      PAssert(clockRate, PInvalidParameter);
+    case 8000:
       return channels == 2 ? GetOpalPCM16S()       : GetOpalPCM16();
     case 12000 :
       return channels == 2 ? GetOpalPCM16S_12KHZ() : GetOpalPCM16_12KHZ();

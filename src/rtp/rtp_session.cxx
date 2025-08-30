@@ -3509,9 +3509,9 @@ OpalMediaTransport * OpalRTPSession::CreateMediaTransport(const PString & name)
 {
 #if OPAL_ICE
   if (!m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_ICE))
-    return new OpalICEMediaTransport(name);
+    return new OpalICEMediaTransport(GetConnection(), name);
 #endif
-  return new OpalUDPMediaTransport(name);
+  return new OpalUDPMediaTransport(GetConnection(), name);
 }
 
 
