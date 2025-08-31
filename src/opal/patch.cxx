@@ -294,7 +294,7 @@ bool OpalMediaPatch::Sink::CreateTranscoders()
   OpalMediaFormat sourceFormat = m_patch.m_source.GetMediaFormat();
   OpalMediaFormat destinationFormat = m_stream->GetMediaFormat();
 
-  PTRACE(5, "AddSink\n"
+  PTRACE(5, "CreateTranscoders\n"
             "Source format:\n" << setw(-1) << sourceFormat << "\n"
             "Destination format:\n" << setw(-1) << destinationFormat);
 
@@ -342,7 +342,7 @@ bool OpalMediaPatch::Sink::CreateTranscoders()
   PTRACE(4, "Creating two stage transcoders for " << sourceFormat << "->" << destinationFormat << " with ID " << id);
   OpalMediaFormat intermediateFormat;
   if (!OpalTranscoder::FindIntermediateFormat(sourceFormat, destinationFormat, intermediateFormat)) {
-    PTRACE(1, "Could find compatible media format for " << *m_stream);
+    PTRACE(1, "Could not find compatible media format for " << *m_stream);
     return false;
   }
 
