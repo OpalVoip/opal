@@ -326,13 +326,17 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
       log << "No-audio";
     else
       log << (m_options.m_stereo ? "Stereo" : "Mono") << '-' << m_options.m_audioFormat;
+    if (m_audioTrack < tracks.size())
+      log << '[' << m_audioTrack << ']';
   #if OPAL_VIDEO
     log << '/';
     if (m_options.m_videoFormat.empty())
       log << "No-video";
     else
       log << m_options.m_videoFormat;
-  #endif //OPAL_VIDEO
+    if (m_videoTrack < tracks.size())
+      log << '[' << m_videoTrack << ']';
+#endif //OPAL_VIDEO
     log << " opened for file \"" << fn << '"' << PTrace::End;
   }
 #endif // PTRACING
@@ -428,7 +432,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     track.m_rate = m_options.m_videoRate;
 
     if (!m_file->SetTracks(tracks)) {
-      PTRACE(2, "Could not set track for video");
+      PTRACE(2, "Could not set " << tracks.size() << " tracks with video at " << trackId);
       return false;
     }
 
@@ -447,7 +451,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     track.m_size = track.m_channels * sizeof(short);
 
     if (!m_file->SetTracks(tracks)) {
-      PTRACE(2, "Could not set tracks for audio");
+      PTRACE(2, "Could not set " << tracks.size() << " tracks with audio at " << trackId);
       return false;
     }
 
