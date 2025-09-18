@@ -148,32 +148,12 @@ bool OpalMediaStream::SetMediaFormat(const OpalMediaFormat & newMediaFormat)
   }
 
   // Easy if we haven't done the patch yet
-  if (mediaPatch == NULL || mediaPatch->GetSink() == NULL)
+  if (mediaPatch == NULL)
     return true;
 
-  // Special case of only the clock rate changing. See if we can just change
-  // clock rate on other side. Relevant for some audio scenarios.
-  if (oldMediaFormat.GetClockRate() != newMediaFormat.GetClockRate() &&
-      PConstCaselessString(oldMediaFormat.GetEncodingName()) == newMediaFormat.GetEncodingName()) {
-    OpalMediaStream & otherMediaStream = IsSource() ? *mediaPatch->GetSink() : mediaPatch->GetSource();
-    OpalMediaFormatList mediaFormats = IsSource() ? m_connection.GetMediaFormats() : m_connection.GetLocalMediaFormats();
-    OpalMediaFormatList::const_iterator otherMediaFormat =
-            mediaFormats.FindFormat(RTP_DataFrame::LastKnownPayloadType,
-                                    newMediaFormat.GetClockRate(),
-                                    otherMediaStream.GetMediaFormat().GetEncodingName());
-    if (otherMediaFormat == mediaFormats.end())
-      PTRACE(3, "Cannot find " << newMediaFormat.GetClockRate() << "Hz version of "
-             << otherMediaStream.GetMediaFormat() << " on " << otherMediaStream);
-    else {
-      if (otherMediaStream.SetMediaFormat(*otherMediaFormat))
-        return true;
-    }
-  }
-  else {
   // Find transcoders for new media format pair (source/sink)
-    if (mediaPatch->ResetTranscoders())
-      return true;
-  }
+  if (mediaPatch->ResetTranscoders())
+    return true;
 
   {
     // Couldn't switch, put it back
