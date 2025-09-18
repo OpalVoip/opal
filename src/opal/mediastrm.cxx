@@ -156,20 +156,18 @@ bool OpalMediaStream::SetMediaFormat(const OpalMediaFormat & newMediaFormat)
   if (oldMediaFormat.GetClockRate() != newMediaFormat.GetClockRate() &&
       PConstCaselessString(oldMediaFormat.GetEncodingName()) == newMediaFormat.GetEncodingName()) {
     OpalMediaStream & otherMediaStream = IsSource() ? *mediaPatch->GetSink() : mediaPatch->GetSource();
-    OpalMediaFormat otherMediaFormat = otherMediaStream.GetMediaFormat();
-    OpalConnection & otherConnection = otherMediaStream.GetConnection();
-    OpalMediaFormatList formats = otherConnection.GetEndPoint().GetMediaFormats();
-    otherConnection.AdjustMediaFormats(false, NULL, formats);
-
-    OpalMediaFormatList::const_iterator iter;
-    while ((iter = formats.FindFormat(RTP_DataFrame::LastKnownPayloadType, 0,
-                                      otherMediaFormat.GetEncodingName(), NULL, iter)) != formats.end()) {
-      if (*iter != otherMediaFormat && otherMediaStream.SetMediaFormat(*iter))
+    OpalMediaFormatList mediaFormats = IsSource() ? m_connection.GetMediaFormats() : m_connection.GetLocalMediaFormats();
+    OpalMediaFormatList::const_iterator otherMediaFormat =
+            mediaFormats.FindFormat(RTP_DataFrame::LastKnownPayloadType,
+                                    newMediaFormat.GetClockRate(),
+                                    otherMediaStream.GetMediaFormat().GetEncodingName());
+    if (otherMediaFormat == mediaFormats.end())
+      PTRACE(3, "Cannot find " << newMediaFormat.GetClockRate() << "Hz version of "
+             << otherMediaStream.GetMediaFormat() << " on " << otherMediaStream);
+    else {
+      if (otherMediaStream.SetMediaFormat(*otherMediaFormat))
         return true;
     }
-    PTRACE(3, "Cannot find " << newMediaFormat.GetClockRate() << "Hz version of "
-           << otherMediaFormat << " (" << otherMediaFormat.GetEncodingName() << ") in "
-           << setfill(',') << formats << " on " << otherMediaStream);
   }
   else {
   // Find transcoders for new media format pair (source/sink)
