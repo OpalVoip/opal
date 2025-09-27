@@ -156,10 +156,19 @@ class OpalRecordManager : public PObject
     virtual bool IsOpen() const = 0;
 
     /**Close the recording file.
-       Note this may block until various sub-threads are termianted so
+       Note this may block until various sub-threads are terminated so
        care may be needed to avoid deadlocks.
       */
     virtual bool Close() = 0;
+
+    /**Mute the recording file.
+       The output file continues to be recorded, but audio is muted
+      */
+    void Mute(bool muted = true) { m_muted.store(muted); }
+
+    /**Resume the recording file.
+      */
+    void Resume() { return Mute(false); }
 
     /**Open an individual media stream using the provided identifier and format.
       */
@@ -193,30 +202,20 @@ class OpalRecordManager : public PObject
       const PTime & when   ///< Current time to achieve correct output rates.
     );
 
-    /** Push audio through the mixer.
-      */
-    virtual bool OnPushAudio() = 0;
-    virtual unsigned GetPushAudioPeriodMS() const = 0;
-
     /**Write audio to the recording file.
       */
-    virtual bool WriteAudio(
+    bool WriteAudio(
       const PString & strmId,     ///< Identifier for media stream.
       const RTP_DataFrame & rtp   ///< RTP data containing PCM-16 data
-    ) = 0;
+    );
 
 #if OPAL_VIDEO
-    /** Push video through the mixer.
-      */
-    virtual bool OnPushVideo() = 0;
-    virtual unsigned GetPushVideoPeriodMS() const = 0;
-
     /**Write video to the recording file.
       */
-    virtual bool WriteVideo(
+    bool WriteVideo(
       const PString & strmId,     ///< Identifier for media stream.
       const RTP_DataFrame & rtp   ///< RTP data containing a YUV420P frame
-    ) = 0;
+    );
 #endif
 
     /**Get the options for this recording.
@@ -241,6 +240,14 @@ class OpalRecordManager : public PObject
     { }
 
     virtual bool OpenFile(const PFilePath & fn);
+    virtual bool OnPushAudio() = 0;
+    virtual unsigned GetPushAudioPeriodMS() const = 0;
+    virtual bool InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp) = 0;
+#if OPAL_VIDEO
+    virtual bool OnPushVideo() = 0;
+    virtual unsigned GetPushVideoPeriodMS() const = 0;
+    virtual bool InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp) = 0;
+#endif
 
     Options   m_options;
     PFilePath m_filename;
@@ -253,6 +260,7 @@ class OpalRecordManager : public PObject
     PTime m_videoPushTime;
 #endif
     PTimeInterval m_maxJumpTime;
+    atomic<bool> m_muted;
 };
 
 #endif // OPAL_HAS_MIXER

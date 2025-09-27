@@ -668,6 +668,16 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::H
       */
     bool StopRecording();
 
+    /** Mute a recording.
+        Returns true if the call does exists, an active call is not indicated.
+      */
+    bool MuteRecording();
+
+    /** Resume a recording.
+        Returns true if the call does exists, an active call is not indicated.
+      */
+    bool ResumeRecording();
+
     /** Call back on recording started.
       */
     virtual bool OnStartRecording(

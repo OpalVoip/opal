@@ -95,15 +95,34 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
   StreamFormatMap::const_iterator it = m_streamFormats.find(strmId);
   if (it == m_streamFormats.end())
     return false;
+
+  if (m_muted.load())
+    return true;
+
   if (it->second.GetMediaType() == OpalMediaType::Audio())
-    return WriteAudio(strmId, rtp);
+    return InternalWriteAudio(strmId, rtp);
+
 #if OPAL_VIDEO
   if (it->second.GetMediaType() == OpalMediaType::Video())
-    return WriteVideo(strmId, rtp);
+    return InternalWriteVideo(strmId, rtp);
 #endif
+
   return false;
 }
 
+
+bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+{
+  return m_muted.load() || InternalWriteAudio(strmId, rtp);
+}
+
+
+#if OPAL_VIDEO
+bool OpalRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+{
+  return m_muted.load() || InternalWriteVideo(strmId, rtp);
+}
+#endif
 
 bool OpalRecordManager::CloseStream(const PString & strmId)
 {
@@ -146,16 +165,16 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     OpalMediaFileRecordManager();
     ~OpalMediaFileRecordManager();
 
-    virtual bool OpenFile(const PFilePath & fn);
-    virtual bool IsOpen() const;
-    virtual bool Close();
-    virtual bool OpenStream(const PString & strmId, const OpalMediaFormat & format);
-    virtual bool CloseStream(const PString & strmId);
+    virtual bool OpenFile(const PFilePath & fn) override;
+    virtual bool IsOpen() const override;
+    virtual bool Close() override;
+    virtual bool OpenStream(const PString & strmId, const OpalMediaFormat & format) override;
+    virtual bool CloseStream(const PString & strmId) override;
 
     struct FactoryInitialiser : OpalRecordManager::Factory::WorkerBase
     {
       FactoryInitialiser();
-      virtual OpalRecordManager * Create(OpalRecordManager::Factory::Param_T) const;
+      virtual OpalRecordManager * Create(OpalRecordManager::Factory::Param_T) const override;
     };
 
   protected:
@@ -165,11 +184,11 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     PSmartPtr<PMediaFile> m_file;
 
     // Audio
-    virtual bool WriteAudio(const PString & strmId, const RTP_DataFrame & rtp);
-    virtual bool OnPushAudio();
-    virtual unsigned GetPushAudioPeriodMS() const;
+    virtual bool InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool OnPushAudio() override;
+    virtual unsigned GetPushAudioPeriodMS() const override;
     // Callback from OpalAudioMixer
-    virtual bool OnMixedAudio(const RTP_DataFrame & frame);
+    virtual bool OnMixedAudio(const RTP_DataFrame & frame) override;
 
     struct AudioMixer : public OpalAudioMixer
     {
@@ -182,19 +201,19 @@ class OpalMediaFileRecordManager : public OpalRecordManager
         , m_manager(manager)
       { }
       ~AudioMixer() { StopPushThread(); }
-      virtual bool OnMixed(RTP_DataFrame * & output) { return m_manager.OnMixedAudio(*output); }
+      virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedAudio(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
     PSmartPtr<AudioMixer> m_audioMixer;
     unsigned m_audioTrack;
 
 #if OPAL_VIDEO
-    virtual bool WriteVideo(const PString & strmId, const RTP_DataFrame & rtp);
-    virtual bool OnPushVideo();
-    virtual unsigned GetPushVideoPeriodMS() const;
+    virtual bool InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool OnPushVideo() override;
+    virtual unsigned GetPushVideoPeriodMS() const override;
 
     // Callback from OpalVideoMixer
-    virtual bool OnMixedVideo(const RTP_DataFrame & frame);
+    virtual bool OnMixedVideo(const RTP_DataFrame & frame) override;
 
     struct VideoMixer : public OpalVideoMixer
     {
@@ -209,7 +228,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
         , m_manager(manager)
       { }
       ~VideoMixer() { StopPushThread(); }
-      virtual bool OnMixed(RTP_DataFrame * & output) { return m_manager.OnMixedVideo(*output); }
+      virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedVideo(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
     PSmartPtr<VideoMixer> m_videoMixer;
@@ -519,7 +538,7 @@ unsigned OpalMediaFileRecordManager::GetPushAudioPeriodMS() const
 }
 
 
-bool OpalMediaFileRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   m_mutex.Wait();
   PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
@@ -549,7 +568,7 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
 
 #if OPAL_VIDEO
 
-bool OpalMediaFileRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   m_mutex.Wait();
   PSmartPtr<VideoMixer> videoMixer = m_videoMixer;

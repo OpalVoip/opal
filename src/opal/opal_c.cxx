@@ -110,7 +110,10 @@ ostream & operator<<(ostream & strm, OpalMessageType type)
     "OpalIndPresenceChange",
     "OpalCmdSendIM",
     "OpalIndReceiveIM",
-    "OpalIndSentIM"
+    "OpalIndSentIM",
+    "OpalIndProtocolMessage",
+    "OpalCmdMuteRecording",
+    "OpalCmdResumeRecording",
   };
   if (type >= 0 && type < PARRAYSIZE(Types))
     strm << Types[type];
@@ -361,6 +364,8 @@ protected:
     void HandleSetUserData      (const OpalMessage & command, OpalMessageBuffer & response);
     void HandleStartRecording   (const OpalMessage & command, OpalMessageBuffer & response);
     void HandleStopRecording    (const OpalMessage & command, OpalMessageBuffer & response);
+    void HandleMuteRecording    (const OpalMessage & command, OpalMessageBuffer & response);
+    void HandleResumeRecording  (const OpalMessage & command, OpalMessageBuffer & response);
     void HandleAuthorisePresence(const OpalMessage & command, OpalMessageBuffer & response);
     void HandleSubscribePresence(const OpalMessage & command, OpalMessageBuffer & response);
     void HandleSetLocalPresence (const OpalMessage & command, OpalMessageBuffer & response);
@@ -416,6 +421,10 @@ OpalManager_C::HandlerFunc OpalManager_C::m_handlers[OpalMessageTypeCount] = {
   NULL,                                     // OpalIndPresenceChange
   &OpalManager_C::HandleSendIM,             // OpalCmdSendIM
   NULL,                                     // OpalIndReceiveIM
+  NULL,                                     // OpalIndSentIM
+  NULL,                                     // OpalIndProtocolMessage
+  & OpalManager_C::HandleMuteRecording,     // OpalCmdMuteRecording
+  & OpalManager_C::HandleResumeRecording,   // OpalCmdResumeRecording
 };
 
 
@@ -2834,6 +2843,30 @@ void OpalManager_C::HandleStopRecording(const OpalMessage & command, OpalMessage
 
 #if OPAL_HAS_MIXER
   call->StopRecording();
+#endif
+}
+
+
+void OpalManager_C::HandleMuteRecording(const OpalMessage & command, OpalMessageBuffer & response)
+{
+  PSafePtr<OpalCall> call;
+  if (!FindCall(command.m_param.m_userInput.m_callToken, response, call))
+    return;
+
+#if OPAL_HAS_MIXER
+  call->MuteRecording();
+#endif
+}
+
+
+void OpalManager_C::HandleResumeRecording(const OpalMessage & command, OpalMessageBuffer & response)
+{
+  PSafePtr<OpalCall> call;
+  if (!FindCall(command.m_param.m_userInput.m_callToken, response, call))
+    return;
+
+#if OPAL_HAS_MIXER
+  call->ResumeRecording();
 #endif
 }
 

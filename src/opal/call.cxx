@@ -1038,6 +1038,28 @@ bool OpalCall::IsRecording() const
 }
 
 
+bool OpalCall::MuteRecording()
+{
+  PSafeLockReadWrite lock(*this);
+  if (!lock.IsLocked() || m_recordManager == NULL)
+    return false;
+
+  m_recordManager->Mute();
+  return true;
+}
+
+
+bool OpalCall::ResumeRecording()
+{
+  PSafeLockReadWrite lock(*this);
+  if (!lock.IsLocked() || m_recordManager == NULL)
+    return false;
+
+  m_recordManager->Resume();
+  return true;
+}
+
+
 bool OpalCall::StopRecording()
 {
   PSafeLockReadWrite lock(*this);
