@@ -79,7 +79,12 @@ bool OpalRecordManager::OpenFile(const PFilePath & fn)
 
 bool OpalRecordManager::OpenStream(const PString & strmId, const OpalMediaFormat & format)
 {
-  return m_streamFormats.insert(make_pair(strmId, format)).second;
+  // We can only record audio and video
+  return (format.GetMediaType() == OpalMediaType::Audio()
+#if OPAL_VIDEO
+            || format.GetMediaType() != OpalMediaType::Video()
+#endif
+         ) &&  m_streamFormats.insert(make_pair(strmId, format)).second;
 }
 
 
@@ -99,8 +104,12 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
   if (m_muted.load())
     return true;
 
-  if (it->second.GetMediaType() == OpalMediaType::Audio())
+  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize()
+         << " bytes of " << it->second.GetMediaType() << " to " << strmId);
+
+  if (it->second.GetMediaType() == OpalMediaType::Audio()) {
     return InternalWriteAudio(strmId, rtp);
+  }
 
 #if OPAL_VIDEO
   if (it->second.GetMediaType() == OpalMediaType::Video())
@@ -113,6 +122,7 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
 
 bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
+  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes of audio to " << strmId);
   return m_muted.load() || InternalWriteAudio(strmId, rtp);
 }
 
@@ -120,14 +130,18 @@ bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame &
 #if OPAL_VIDEO
 bool OpalRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
+  PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes of video to " << strmId);
   return m_muted.load() || InternalWriteVideo(strmId, rtp);
 }
 #endif
 
 bool OpalRecordManager::CloseStream(const PString & strmId)
 {
+  if (m_streamFormats.erase(strmId) == 0)
+    return false;
+
   PTRACE(4, "Closed stream " << strmId);
-  return m_streamFormats.erase(strmId) > 0;
+  return true;
 }
 
 

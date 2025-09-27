@@ -256,8 +256,10 @@ class OpalRecordManager : public PObject
     StreamFormatMap m_streamFormats;
 
     PTime m_audioPushTime;
+    PTRACE_THROTTLE(m_audioLogThrottle, 10000);
 #if OPAL_VIDEO
     PTime m_videoPushTime;
+    PTRACE_THROTTLE(m_videoLogThrottle, 10000);
 #endif
     PTimeInterval m_maxJumpTime;
     atomic<bool> m_muted;
