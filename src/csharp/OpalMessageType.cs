@@ -48,5 +48,7 @@ public enum OpalMessageType {
   OpalIndReceiveIM,
   OpalIndSentIM,
   OpalIndProtocolMessage,
+  OpalCmdMuteRecording,
+  OpalCmdResumeRecording,
   OpalMessageTypeCount
 }

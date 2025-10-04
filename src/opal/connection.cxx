@@ -1099,7 +1099,7 @@ void OpalConnection::OnFailedMediaStream(bool fromRemote, const PString & reason
 
 static PString MakeRecordingKey(const OpalMediaPatch & patch)
 {
-  return psprintf("%08x", &patch);
+  return psprintf("%p", &patch);
 }
 
 
@@ -1197,29 +1197,21 @@ void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patc
 
 void OpalConnection::EnableRecording()
 {
-  OpalMediaStreamPtr stream = GetMediaStream(OpalMediaType::Audio(), true);
-  if (stream != NULL)
-    OnStartRecording(stream->GetPatch());
-
-#if OPAL_VIDEO
-  stream = GetMediaStream(OpalMediaType::Video(), true);
-  if (stream != NULL)
-    OnStartRecording(stream->GetPatch());
-#endif
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream != NULL && mediaStream->IsSource())
+      OnStartRecording(mediaStream->GetPatch());
+  }
 }
 
 
 void OpalConnection::DisableRecording()
 {
-  OpalMediaStreamPtr stream = GetMediaStream(OpalMediaType::Audio(), true);
-  if (stream != NULL)
-    OnStopRecording(stream->GetPatch());
-
-#if OPAL_VIDEO
-  stream = GetMediaStream(OpalMediaType::Video(), true);
-  if (stream != NULL)
-    OnStopRecording(stream->GetPatch());
-#endif // OPAL_VIDEO
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream != NULL && mediaStream->IsSource())
+      OnStopRecording(mediaStream->GetPatch());
+  }
 }
 
 

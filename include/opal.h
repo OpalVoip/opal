@@ -22,7 +22,7 @@
  * The Initial Developer of the Original Code is Vox Lucida (Robert Jongbloed)
  *
  * This code was initially written with the assistance of funding from
- * Stonevoice. http://www.stonevoice.com.
+ * Stonevoice http://www.stonevoice.com, now Imagicle http://www.imagicle.com
  *
  * Contributor(s): ______________________________________.
  */
@@ -40,10 +40,10 @@ extern "C" {
 /**\file opal.h
    \brief This file contains a simplified API to the OPAL system. It provides a
     pure "C" language interface as will as a very simple C++ class and a
-    contrained set of functions for "late binding".
+    constrained set of functions for "late binding".
 
     It should be noted that the simplified API, is sill not very simple. There are
-    complexities invoved that cannot be avoided. However, this API does remove
+    complexities involved that cannot be avoided. However, this API does remove
     some issues with the full API such as multi-threading and advanced C++ concepts.
 
     The other major feature of this API is the ability to be  easily "late bound"
@@ -494,8 +494,12 @@ typedef enum OpalMessageType {
                                     structure for more information. */
   OpalIndProtocolMessage,       /**<Get indication of protocol specific messages. See the OpalProtocolMessage
                                     structure for more information. */
+  OpalCmdMuteRecording,         /**<Mute recording an active call. Only the m_callToken field of the
+                                    OpalMessage union is used. */
+  OpalCmdResumeRecording,       /**<Resume recording an active call. Only the m_callToken field of the
+                                    OpalMessage union is used. */
 
-// Always add new messages to ethe end to maintain backward compatibility
+// Always add new messages to the end to maintain backward compatibility
   OpalMessageTypeCount
 } OpalMessageType;
 
@@ -977,7 +981,7 @@ typedef struct OpalParamProtocol {
       if (response != NULL && response->m_type == OpalCmdRegistration)
         m_AddressOfRecord = response->m_param.m_registrationInfo.m_identifier
 
-      // SIP register with regstrar/proxy
+      // SIP register with registrar/proxy
       memset(&command, 0, sizeof(command));
       command.m_type = OpalCmdRegistration;
       command.m_param.m_registrationInfo.m_protocol = "sip";
