@@ -202,7 +202,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     virtual bool OnPushAudio() override;
     virtual unsigned GetPushAudioPeriodMS() const override;
     // Callback from OpalAudioMixer
-    virtual bool OnMixedAudio(const RTP_DataFrame & frame) override;
+    virtual bool OnMixedAudio(const RTP_DataFrame & frame);
 
     struct AudioMixer : public OpalAudioMixer
     {
@@ -227,7 +227,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     virtual unsigned GetPushVideoPeriodMS() const override;
 
     // Callback from OpalVideoMixer
-    virtual bool OnMixedVideo(const RTP_DataFrame & frame) override;
+    virtual bool OnMixedVideo(const RTP_DataFrame & frame);
 
     struct VideoMixer : public OpalVideoMixer
     {
