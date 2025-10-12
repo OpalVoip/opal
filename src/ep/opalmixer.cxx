@@ -220,8 +220,11 @@ void OpalBaseMixer::StartPushThread()
 
 void OpalBaseMixer::StopPushThread(bool lock)
 {
+  bool oldPushThread = m_pushThread;
+  m_pushThread = false; // Make sure it does not get restarted
   m_threadRunning = false;
   PThread::WaitAndDelete(m_workerThread, 5000, &m_mutex, lock);
+  m_pushThread = oldPushThread && !lock;
 }
 
 
