@@ -237,6 +237,7 @@ class OpalRecordManager : public PObject
       , m_videoPushTime(0)
 #endif
       , m_maxJumpTime(0, 10) // Seconds
+      , m_muted(false)
     { }
 
     virtual bool OpenFile(const PFilePath & fn);
@@ -256,10 +257,10 @@ class OpalRecordManager : public PObject
     StreamFormatMap m_streamFormats;
 
     PTime m_audioPushTime;
-    PTRACE_THROTTLE(m_audioLogThrottle, 10000);
+    PTRACE_THROTTLE(m_audioLogThrottle, 3, 30000);
 #if OPAL_VIDEO
     PTime m_videoPushTime;
-    PTRACE_THROTTLE(m_videoLogThrottle, 10000);
+    PTRACE_THROTTLE(m_videoLogThrottle, 3, 30000);
 #endif
     PTimeInterval m_maxJumpTime;
     atomic<bool> m_muted;
