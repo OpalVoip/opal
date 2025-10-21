@@ -49,8 +49,8 @@ class Opal_G711_PCM : public OpalStreamedTranscoder {
     );
 
   protected:
-    OpalG711_PLC plc;
-    PINDEX       lastPayloadSize;
+    OpalG711_PLC m_plc;
+    PINDEX       m_lastPayloadSize;
 #endif
 };
 

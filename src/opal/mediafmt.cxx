@@ -81,9 +81,6 @@ AUDIO_FORMAT(L16_STEREO_16KHZ, L16_Stereo,   "L16",       64,       16,       24
 AUDIO_FORMAT(L16_STEREO_32KHZ, L16_Stereo,   "L16",      128,       32,       240,     30,      256,      32000, 2);
 AUDIO_FORMAT(L16_STEREO_48KHZ, L16_Stereo,   "L16",      192,       48,       240,     30,      256,      48000, 2);
 
-AUDIO_FORMAT(G711_ULAW_64K,  PCMU,           "PCMU",       8,        8,       240,     20,      256,       8000, 1);
-AUDIO_FORMAT(G711_ALAW_64K,  PCMA,           "PCMA",       8,        8,       240,     20,      256,       8000, 1);
-
 
 const OpalAudioFormat & GetOpalPCM16(unsigned clockRate, unsigned channels)
 {

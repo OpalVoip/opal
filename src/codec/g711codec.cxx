@@ -44,6 +44,42 @@ extern "C" {
 };
 
 
+static const PConstString PacketLossConcealment("PacketLossConcealment");
+
+class OpalG711Format : public OpalAudioFormatInternal
+{
+public:
+  OpalG711Format(const char * name, RTP_DataFrame::PayloadTypes pt, const char * encodingName)
+    : OpalAudioFormatInternal(name, pt, encodingName, 8, 8, 240, 20, 256, 8000)
+  {
+#if OPAL_G711PLC 
+    AddOption(new OpalMediaOptionBoolean(PacketLossConcealment, false, OpalMediaOption::AndMerge, true));
+#endif
+  }
+
+
+  virtual PObject * Clone() const
+  {
+    return new OpalG711Format(*this);
+  }
+};
+
+
+const OpalAudioFormat & GetOpalG711_ULAW_64K()
+{
+  static const OpalMediaFormatStatic<OpalAudioFormat> format(
+    new OpalG711Format(OPAL_G711_ULAW_64K, RTP_DataFrame::PCMU, "PCMU"));
+  return format;
+}
+
+
+const OpalAudioFormat & GetOpalG711_ALAW_64K()
+{
+  static const OpalMediaFormatStatic<OpalAudioFormat> format(
+    new OpalG711Format(OPAL_G711_ALAW_64K, RTP_DataFrame::PCMA, "PCMA"));
+  return format;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -51,8 +87,8 @@ Opal_G711_PCM::Opal_G711_PCM(const OpalMediaFormat & inputMediaFormat)
   : OpalStreamedTranscoder(inputMediaFormat, OpalPCM16, 8, 16)
 {
 #if OPAL_G711PLC 
-  acceptEmptyPayload = true;
-  lastPayloadSize = 0;
+  acceptEmptyPayload = inputMediaFormat.GetOptionBoolean(PacketLossConcealment);
+  m_lastPayloadSize = 0;
 #endif
 }
 
@@ -64,21 +100,21 @@ PBoolean Opal_G711_PCM::Convert(const RTP_DataFrame & input, RTP_DataFrame & out
          << " sn=" << input.GetSequenceNumber() << ", ts=" << input.GetTimestamp());
 
   if (input.GetPayloadSize() == 0) {
-    if (lastPayloadSize == 0)
+    if (m_lastPayloadSize == 0)
       return true; // Nothing to interpolate yet
 
-    output.SetPayloadSize(lastPayloadSize);
-    plc.dofe((short*)output.GetPayloadPtr(), lastPayloadSize/sizeof(short));
-    PTRACE(7, "G.711\tDOFE out_psz" << lastPayloadSize);
+    output.SetPayloadSize(m_lastPayloadSize);
+    m_plc.dofe((short*)output.GetPayloadPtr(), m_lastPayloadSize/sizeof(short));
+    PTRACE(7, "G.711\tDOFE out_psz" << m_lastPayloadSize);
     return true;
   }
 
   if (!OpalStreamedTranscoder::Convert(input, output))
     return false;
 
-  lastPayloadSize = output.GetPayloadSize();
-  plc.addtohistory((short*)output.GetPayloadPtr(), lastPayloadSize/sizeof(short));
-  PTRACE(7, "G.711\tPLC ADD out_psz=" << lastPayloadSize);
+  m_lastPayloadSize = output.GetPayloadSize();
+  m_plc.addtohistory((short*)output.GetPayloadPtr(), m_lastPayloadSize/sizeof(short));
+  PTRACE(7, "G.711\tPLC ADD out_psz=" << m_lastPayloadSize);
 
   return true;
 }
