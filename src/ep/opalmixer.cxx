@@ -217,10 +217,11 @@ void OpalBaseMixer::StartPushThread()
 
 void OpalBaseMixer::StopPushThreadOnDestruction()
 {
-  m_mutex.Wait();
-  m_pushThread = false;
+  bool oldPushThread = m_pushThread;
+  m_pushThread = false; // Make sure it does not get restarted
   m_threadRunning = false;
-  PThread::WaitAndDelete(m_workerThread, 5000, &m_mutex, false);
+  PThread::WaitAndDelete(m_workerThread, 5000, &m_mutex, lock);
+  m_pushThread = oldPushThread && !lock;
 }
 
 
@@ -228,8 +229,22 @@ void OpalBaseMixer::PushThreadMain()
 {
   PTRACE(4, "PushThread start " << m_periodMS << " ms");
   PAdaptiveDelay delay(500);
-  while (m_threadRunning && OnPush())
+  while (m_threadRunning && OnPush()) {
+#if PTRACING
+    if (PTrace::CanTrace(m_threadProgressThrottle)) {
+      ostream & log = PTRACE_BEGIN(m_threadProgressThrottle);
+      {
+        PWaitAndSignal mutex(m_mutex);
+        log << "Pushing " << m_inputStreams.size() << " streams:";
+        for (StreamMap_T::iterator iter = m_inputStreams.begin(); iter != m_inputStreams.end(); ++iter)
+          log << ' ' << iter->first << '=' << iter->second->m_queue.size();
+        log << " ts=" << m_outputTimestamp;
+      }
+      log << PTrace::End;
+    }
+#endif
     delay.Delay(m_periodMS);
+  }
 
   PTRACE(4, "PushThread end");
 }

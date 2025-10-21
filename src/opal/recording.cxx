@@ -79,6 +79,8 @@ bool OpalRecordManager::OpenFile(const PFilePath & fn)
 
 bool OpalRecordManager::OpenStream(const PString & strmId, const OpalMediaFormat & format)
 {
+  PTRACE(4, "Opening stream " << strmId << ' ' << format);
+
   // We can only record audio and video
   return (format.GetMediaType() == OpalMediaType::Audio()
 #if OPAL_VIDEO
@@ -101,15 +103,14 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
   if (it == m_streamFormats.end())
     return false;
 
+  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
+         " of " << it->second.GetMediaType() << " to " << strmId << (m_muted.load() ? " (muted)" : ""));
+
   if (m_muted.load())
     return true;
 
-  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize()
-         << " bytes of " << it->second.GetMediaType() << " to " << strmId);
-
-  if (it->second.GetMediaType() == OpalMediaType::Audio()) {
+  if (it->second.GetMediaType() == OpalMediaType::Audio())
     return InternalWriteAudio(strmId, rtp);
-  }
 
 #if OPAL_VIDEO
   if (it->second.GetMediaType() == OpalMediaType::Video())
@@ -122,7 +123,8 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
 
 bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
-  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes of audio to " << strmId);
+  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
+         " of audio to " << strmId << (m_muted.load() ? " (muted)" : ""));
   return m_muted.load() || InternalWriteAudio(strmId, rtp);
 }
 
@@ -130,7 +132,8 @@ bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame &
 #if OPAL_VIDEO
 bool OpalRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
-  PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes of video to " << strmId);
+  PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
+         " of video to " << strmId << (m_muted.load() ? " (muted)" : ""));
   return m_muted.load() || InternalWriteVideo(strmId, rtp);
 }
 #endif

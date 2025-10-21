@@ -1217,19 +1217,21 @@ void OpalConnection::DisableRecording()
 
 void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
 {
-  if (frame.GetPayloadSize() == 0)
-    return;
-
-  const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
-                   this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordAudio), psprintf("%p", this));
+  GetEndPoint().GetManager().QueueDecoupledEvent(
+    new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
+      this,
+      MakeRecordingKey(*(const OpalMediaPatch *)param),
+      RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()),
+      &OpalConnection::InternalOnRecordAudio
+    ),
+    psprintf("%p", this)
+  );
 }
 
 
-void OpalConnection::InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordAudio(PString key, RTP_DataFrame frame)
 {
-  m_ownerCall.OnRecordAudio(key, *frame);
+  m_ownerCall.OnRecordAudio(key, frame);
 }
 
 
@@ -1237,16 +1239,21 @@ void OpalConnection::InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> 
 
 void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
 {
-  const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
-                   this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordVideo), psprintf("%p", this));
+  GetEndPoint().GetManager().QueueDecoupledEvent(
+    new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
+      this,
+      MakeRecordingKey(*(const OpalMediaPatch *)param),
+      RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()),
+      &OpalConnection::InternalOnRecordVideo
+    ),
+    psprintf("%p", this)
+  );
 }
 
 
-void OpalConnection::InternalOnRecordVideo(PString key, PAutoPtr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordVideo(PString key, RTP_DataFrame frame)
 {
-  m_ownerCall.OnRecordVideo(key, *frame);
+  m_ownerCall.OnRecordVideo(key, frame);
 }
 
 #endif // OPAL_VIDEO

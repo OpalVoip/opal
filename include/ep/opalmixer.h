@@ -170,16 +170,16 @@ class OpalBaseMixer : public PSmartObject
     void PushThreadMain();
     void StopPushThreadOnDestruction();
 
-    bool      m_pushThread;      // true if to use a thread to push data out
-    unsigned  m_periodMS;        // Mixing interval in milliseconds
-    unsigned  m_periodTS;        // Mixing interval in timestamp units
-
+    bool            m_pushThread;       // true if to use a thread to push data out
+    unsigned        m_periodMS;         // Mixing interval in milliseconds
+    unsigned        m_periodTS;         // Mixing interval in timestamp units
     StreamMap_T     m_inputStreams;     // Map of key to stream for input RTP frame queues
     unsigned        m_outputTimestamp;  // RTP timestamp for output data
     RTP_DataFrame * m_pushFrame;        // Cached frame for pushing RTP
-    PThread *       m_workerThread;     // reader thread handle
-    bool            m_threadRunning;    // used to stop reader thread
-   PDECLARE_MUTEX(m_mutex);             // mutex for list of streams and thread handle
+    PThread       * m_workerThread;     // reader thread handle
+    atomic<bool>    m_threadRunning;    // used to stop reader thread
+   PDECLARE_MUTEX(  m_mutex);           // mutex for list of streams and thread handle
+   PTRACE_THROTTLE( m_threadProgressThrottle, 3, 30000);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
