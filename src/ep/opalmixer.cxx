@@ -111,7 +111,10 @@ void OpalBaseMixer::RemoveStream(const Key_T & key)
     PTRACE(4, "Removed stream at key " << key);
   }
 
-  m_mutex.Signal();
+  if (m_inputStreams.empty())
+    StopPushThread(false); // Will unlock mutex
+  else
+    m_mutex.Signal();
 }
 
 
@@ -125,7 +128,7 @@ void OpalBaseMixer::RemoveAllStreams()
     delete iter->second;
   m_inputStreams.clear();
 
-  m_mutex.Signal();
+  StopPushThread(false); // Will unlock mutex
 }
 
 
@@ -215,7 +218,7 @@ void OpalBaseMixer::StartPushThread()
 }
 
 
-void OpalBaseMixer::StopPushThreadOnDestruction()
+void OpalBaseMixer::StopPushThread(bool lock)
 {
   bool oldPushThread = m_pushThread;
   m_pushThread = false; // Make sure it does not get restarted

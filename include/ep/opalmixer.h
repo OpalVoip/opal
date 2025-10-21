@@ -168,7 +168,7 @@ class OpalBaseMixer : public PSmartObject
     virtual size_t GetOutputSize() const = 0;
 
     void PushThreadMain();
-    void StopPushThreadOnDestruction();
+    void StopPushThread(bool lock = true);
 
     bool            m_pushThread;       // true if to use a thread to push data out
     unsigned        m_periodMS;         // Mixing interval in milliseconds
@@ -204,7 +204,7 @@ class OpalAudioMixer : public OpalBaseMixer
       const PTimeInterval & activeSpakerDeadband = 0 ///< Period for active speaker detection
     );
 
-    ~OpalAudioMixer() { StopPushThreadOnDestruction(); }
+    ~OpalAudioMixer() { StopPushThread(); }
 
     /** Remove an input stream from mixer.
       */
@@ -328,7 +328,7 @@ class OpalVideoMixer : public OpalBaseMixer
       bool pushThread = true  ///< A push thread is to be created
     );
 
-    ~OpalVideoMixer() { StopPushThreadOnDestruction(); }
+    ~OpalVideoMixer() { StopPushThread(); }
 
     /**Get output video frame width.
       */
@@ -1089,7 +1089,7 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
     PCLASSINFO(OpalAudioStreamMixer, OpalAudioMixer);
   public:
     OpalAudioStreamMixer(OpalMixerNode & node);
-    ~OpalAudioStreamMixer() { StopPushThreadOnDestruction(); }
+    ~OpalAudioStreamMixer() { StopPushThread(); }
 
     virtual bool OnPush() override;
 
@@ -1139,7 +1139,7 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     PCLASSINFO(OpalVideoStreamMixer, OpalVideoMixer);
   public:
     OpalVideoStreamMixer(OpalMixerNode & node);
-    ~OpalVideoStreamMixer() { StopPushThreadOnDestruction(); }
+    ~OpalVideoStreamMixer() { StopPushThread(); }
 
     virtual bool SetFrameRate(unsigned rate) override;
     virtual bool OnMixed(RTP_DataFrame * & output) override;
