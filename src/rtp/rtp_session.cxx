@@ -2438,19 +2438,28 @@ void OpalRTPSession::TimedSendReport(PTimer&, P_INT_PTR)
 
 OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ssrc, bool force, const PTime & now)
 {
+  {
+    // Clean out old stale SSRC's
+    RTP_SyncSourceArray staleSSRCs;
+    {
+      P_INSTRUMENTED_LOCK_READ_ONLY(return e_AbortTransport);
+      for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it)
+        if (it->second->IsStaleReceiver(now))
+          staleSSRCs.push_back(it->first);
+    }
+
+    if (!staleSSRCs.empty()) {
+      // Write lock is needed for m_SSRC update and for state updated in InternalSendReport
+      P_INSTRUMENTED_LOCK_READ_WRITE(return e_AbortTransport);
+      for (RTP_SyncSourceArray::iterator it = staleSSRCs.begin(); it != staleSSRCs.end(); ++it)
+        RemoveSyncSource(*it PTRACE_PARAM(, "stale"));
+    }
+  }
+
   std::list<RTP_ControlFrame> frames;
 
   {
-    // Write lock is needed for m_SSRC update and for state updated in InternalSendReport
-    P_INSTRUMENTED_LOCK_READ_WRITE(return e_AbortTransport);
-
-    // Clean out old stale SSRC's
-    for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end();) {
-      if (it->second->IsStaleReceiver(now) && RemoveSyncSource(it->first PTRACE_PARAM(, "stale")))
-        it = m_SSRC.begin();
-      else
-        ++it;
-    }
+    P_INSTRUMENTED_LOCK_READ_ONLY(return e_AbortTransport);
 
     if (ssrc != 0) {
       SyncSource * sender;
@@ -2477,9 +2486,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ss
         if (sender != NULL && InternalSendReport(frame, *sender, true, true, now))
           frames.push_back(frame);
       }
-
-      if (force && !frames.empty() && !m_reportTimer.IsRunning())
-        m_reportTimer.RunContinuous(m_reportTimer.GetResetTime());
     }
   }
 
@@ -2492,6 +2498,10 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ss
   }
 
   PTRACE(4, *this << "sent " << frames.size() << ' ' << (force ? "forced" : "periodic") << " reports: status=" << status);
+
+  if (force && !frames.empty() && !m_reportTimer.IsRunning())
+    m_reportTimer.RunContinuous(m_reportTimer.GetResetTime());
+
   return status;
 }
 
@@ -3851,14 +3861,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::WriteControl(RTP_ControlFrame 
 
   PTRACE(6, *this << "Writing control packet:\n" << frame);
 
-  if (!LockReadWrite(P_DEBUG_LOCATION))
-    return e_AbortTransport;
-
-  SendReceiveStatus status = OnSendControl(frame, PTime());
-
-  UnlockReadWrite(P_DEBUG_LOCATION);
-
-  switch (status) {
+  switch (OnSendControl(frame, PTime())) {
     case e_IgnorePacket :
       return e_IgnorePacket;
 
