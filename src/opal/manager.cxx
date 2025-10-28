@@ -327,7 +327,7 @@ OpalManager::OpalManager()
 #endif
   , m_clearingAllCallsCount(0)
   , m_garbageCollector(NULL)
-  , m_decoupledEventPool(5, 0, "OPAL-Event")
+  , m_decoupledEventPool(100, 0, "OPAL-Event")
 #if OPAL_SCRIPT
   , m_script(NULL)
 #endif
