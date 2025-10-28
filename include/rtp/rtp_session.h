@@ -1011,7 +1011,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual void InitialiseControlFrame(RTP_ControlFrame & frame, SyncSource & sender);
 
     // Some statistics not SSRC related
-    unsigned m_rtcpPacketsSent;
+    atomic<unsigned> m_rtcpPacketsSent;
     unsigned m_rtcpPacketsReceived;
     int      m_roundTripTime;
 

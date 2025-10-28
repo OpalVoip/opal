@@ -206,7 +206,7 @@ void OpalBaseMixer::StartPushThread()
 {
   if (m_pushThread) {
     PWaitAndSignal mutex(m_mutex);
-    if (m_workerThread == NULL) {
+    if (m_pushThread && m_workerThread == NULL && !m_inputStreams.empty()) {
       m_threadRunning = true;
       m_workerThread = new PThreadObj<OpalBaseMixer>(*this,
                                                      &OpalBaseMixer::PushThreadMain,
