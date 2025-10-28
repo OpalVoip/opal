@@ -377,6 +377,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\codec\resample.cpp" />
     <ClCompile Include="..\codec\speexmf.cxx" />
     <ClCompile Include="..\codec\vp8mf.cxx" />
     <ClCompile Include="..\codec\vp8mf_inc.cxx">
@@ -2303,6 +2304,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\codec\resample.h" />
     <ClInclude Include="..\..\include\ep\lyncep.h" />
     <ClInclude Include="..\..\include\ep\sockep.h" />
     <ClInclude Include="..\..\include\sdp\ice.h" />

@@ -39,6 +39,7 @@
 #include <opal/call.h>
 #include <opal/patch.h>
 #include <opal/mediastrm.h>
+#include <codec/resample.h>
 #include <codec/g711codec.h>
 #include <codec/vidcodec.h>
 #include <codec/rfc4175.h>
@@ -118,6 +119,8 @@ static const char * const DefaultMediaFormatMask[] = {
 #endif
   OPAL_H264_High   // Do not include by default, interop issues.
 };
+
+OPAL_REGISTER_RESAMPLERS();
 
 // G.711 is *always* available
 // Yes, it would make more sense for this to be in g711codec.cxx, but on 

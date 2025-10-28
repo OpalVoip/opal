@@ -68,6 +68,7 @@ void CodecTest::Main()
              "P-play-device: audio player device.\n"
              "F-audio-frames: audio frames per packet, default 1.\n"
              "-play-buffers: audio player buffers, default 8.\n"
+             "-sample-rate: audio sample rate (Hz)\n"
              "-grab-driver: video grabber driver.\n"
              "G-grab-device: video grabber device.\n"
              "-grab-format: video grabber format (\"pal\"/\"ntsc\")\n"
@@ -194,7 +195,7 @@ void CodecTest::Main()
     return;
 
 #if 0
-  if (video.encoder == NULL && audio.encoder == NULL) {
+  if (!video.encoder && !audio.encoder) {
     cout << "Could not identify media formats ";
     for (int i = 0; i < args.GetCount(); ++i)
       cout << args[i] << ' ';
@@ -223,7 +224,7 @@ void CodecTest::Main()
 
 #if OPAL_VIDEO
       if (cmd == "vfu") {
-        if (test.m_video.m_encoder == NULL)
+        if (!test.m_video.m_encoder)
           cout << "\nNo video encoder running!" << endl;
         else
           test.m_video.m_encoder->ExecuteCommand(OpalVideoUpdatePicture());
@@ -231,7 +232,7 @@ void CodecTest::Main()
       }
 
       if (cmd == "fg") {
-        if (test.m_video.m_grabber == NULL)
+        if (!test.m_video.m_grabber)
           cout << "\nNo video grabber running!" << endl;
         else if (!test.m_video.m_grabber->SetVFlipState(!test.m_video.m_grabber->GetVFlipState()))
           cout << "\nCould not toggle Vflip state of video grabber device" << endl;
@@ -239,7 +240,7 @@ void CodecTest::Main()
       }
 
       if (cmd == "fd") {
-        if (test.m_video.m_display == NULL)
+        if (!test.m_video.m_display)
           cout << "\nNo video display running!" << endl;
         else if (!test.m_video.m_display->SetVFlipState(!test.m_video.m_display->GetVFlipState()))
           cout << "\nCould not toggle Vflip state of video display device" << endl;
@@ -249,11 +250,11 @@ void CodecTest::Main()
       unsigned width, height;
       if (PVideoFrameInfo::ParseSize(cmd, width, height)) {
         test.m_video.m_pause.Signal();
-        if (test.m_video.m_grabber == NULL)
+        if (!test.m_video.m_grabber)
           cout << "\nNo video grabber running!" << endl;
         else if (!test.m_video.m_grabber->SetFrameSizeConverter(width, height))
           cout << "Video grabber device could not be set to size " << width << 'x' << height << endl;
-        if (test.m_video.m_display == NULL)
+        if (!test.m_video.m_display)
           cout << "\nNo video display running!" << endl;
         else if (!test.m_video.m_display->SetFrameSizeConverter(width, height))
           cout << "Video display device could not be set to size " << width << 'x' << height << endl;
@@ -330,80 +331,96 @@ int TranscoderThread::InitialiseCodec(PArgList & args,
       return 0;
     }
 
-    if (mediaFormat.GetMediaType() == mediaType) {
-      if (!mediaFormat.IsTransportable()) {
-        m_decoder = NULL;
-        m_encoder = NULL;
-        rawFormat = mediaFormat;
-      }
-      else {
-        OpalMediaFormatList rawFormats = OpalTranscoder::GetDestinationFormats(mediaFormat);
-        if (rawFormats.IsEmpty()) {
-          cout << "No transcoders for format name \"" << mediaFormat << '"' << endl;
-          return 0;
-        }
-        rawFormat = rawFormats[0];
+    if (mediaFormat.GetMediaType() != mediaType)
+      continue;
 
-        if (args.HasOption('F') && mediaType == OpalMediaType::Audio()) {
-          unsigned fpp = args.GetOptionString('F').AsUnsigned();
-          if (fpp > 0)
-            mediaFormat.SetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption(), fpp);
-        }
-
-        if (args.HasOption("bit-rate")) {
-          PString str = args.GetOptionString("bit-rate");
-          double bitrate = str.AsReal();
-          switch (str[str.GetLength()-1]) {
-            case 'K' :
-            case 'k' :
-              bitrate *= 1000;
-              break;
-            case 'M' :
-            case 'm' :
-              bitrate *= 1000000;
-              break;
-          }
-          if (bitrate < 100 || bitrate > INT_MAX) {
-            cerr << "Could not set bit rate to " << str << endl;
-            return false;
-          }
-          mediaFormat.SetOptionInteger(OpalMediaFormat::TargetBitRateOption(), (unsigned)bitrate);
-          if (mediaFormat.GetOptionInteger(OpalMediaFormat::MaxBitRateOption()) < bitrate)
-            mediaFormat.SetOptionInteger(OpalMediaFormat::MaxBitRateOption(), (unsigned)bitrate);
-        }
-        cout << "Target bit rate set to " << PScaleSI(mediaFormat.GetOptionInteger(OpalMediaFormat::TargetBitRateOption()), 3, "b/s") << endl;
-
-        PStringArray options = args.GetOptionString('O').Lines();
-        for (PINDEX opt = 0; opt < options.GetSize(); ++opt) {
-          PString option = options[opt];
-          PINDEX equal = option.Find('=');
-          if (equal == P_MAX_INDEX)
-            cerr << "Illegal option \"" << option << "\" used." << endl;
-          else {
-            PString name = option.Left(equal);
-            PString value = option.Mid(equal+1);
-            if (mediaFormat.SetOptionValue(name, value))
-              cout << "Option \"" << name << "\" set to \"" << value << "\"." << endl;
-            else
-              cerr << "Could not set option \"" << name << "\" to \"" << value << "\"." << endl;
-          }
-        }
-
-        mediaFormat.ToCustomisedOptions();
-
-        if ((m_encoder = OpalTranscoder::Create(rawFormat, mediaFormat)) == NULL) {
-          cout << "Could not create encoder for media format \"" << mediaFormat << '"' << endl;
-          return false;
-        }
-
-        if ((m_decoder = OpalTranscoder::Create(mediaFormat, rawFormat)) == NULL) {
-          cout << "Could not create decoder for media format \"" << mediaFormat << '"' << endl;
-          return false;
-        }
-      }
-
+    if (!mediaFormat.IsTransportable()) {
+      rawFormat = mediaFormat;
       return -1;
     }
+
+    if (args.HasOption("sample-rate")) {
+      rawFormat = GetOpalPCM16(args.GetOptionAs<unsigned>("sample-rate"));
+    }
+    else {
+      OpalMediaFormatList rawFormats = OpalTranscoder::GetDestinationFormats(mediaFormat);
+      if (rawFormats.IsEmpty()) {
+        cout << "No transcoders for format name \"" << mediaFormat << '"' << endl;
+        return 0;
+      }
+      rawFormat = rawFormats[0];
+    }
+
+    if (args.HasOption('F') && mediaType == OpalMediaType::Audio()) {
+      unsigned fpp = args.GetOptionString('F').AsUnsigned();
+      if (fpp > 0)
+        mediaFormat.SetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption(), fpp);
+    }
+
+    if (args.HasOption("bit-rate")) {
+      PString str = args.GetOptionString("bit-rate");
+      double bitrate = str.AsReal();
+      switch (str[str.GetLength()-1]) {
+        case 'K' :
+        case 'k' :
+          bitrate *= 1000;
+          break;
+        case 'M' :
+        case 'm' :
+          bitrate *= 1000000;
+          break;
+      }
+      if (bitrate < 100 || bitrate > INT_MAX) {
+        cerr << "Could not set bit rate to " << str << endl;
+        return 0;
+      }
+      mediaFormat.SetOptionInteger(OpalMediaFormat::TargetBitRateOption(), (unsigned)bitrate);
+      if (mediaFormat.GetOptionInteger(OpalMediaFormat::MaxBitRateOption()) < bitrate)
+        mediaFormat.SetOptionInteger(OpalMediaFormat::MaxBitRateOption(), (unsigned)bitrate);
+    }
+    cout << "Target bit rate set to " << PScaleSI(mediaFormat.GetOptionInteger(OpalMediaFormat::TargetBitRateOption()), 3, "b/s") << endl;
+
+    PStringArray options = args.GetOptionString('O').Lines();
+    for (PINDEX opt = 0; opt < options.GetSize(); ++opt) {
+      PString option = options[opt];
+      PINDEX equal = option.Find('=');
+      if (equal == P_MAX_INDEX)
+        cerr << "Illegal option \"" << option << "\" used." << endl;
+      else {
+        PString name = option.Left(equal);
+        PString value = option.Mid(equal+1);
+        if (mediaFormat.SetOptionValue(name, value))
+          cout << "Option \"" << name << "\" set to \"" << value << "\"." << endl;
+        else
+          cerr << "Could not set option \"" << name << "\" to \"" << value << "\"." << endl;
+      }
+    }
+
+    mediaFormat.ToCustomisedOptions();
+
+    m_encoder.reset(OpalTranscoder::Create(rawFormat, mediaFormat));
+    if (!m_encoder) {
+      OpalMediaFormat intermediateFormat;
+      if (!OpalTranscoder::FindIntermediateFormat(rawFormat, mediaFormat, intermediateFormat)) {
+        cout << "Could not create encoder for media format \"" << mediaFormat << '"' << endl;
+        return 0;
+      }
+      m_encoder.reset(OpalTranscoder::Create(rawFormat, intermediateFormat));
+      m_encoder2.reset(OpalTranscoder::Create(intermediateFormat, mediaFormat));
+    }
+
+    m_decoder.reset(OpalTranscoder::Create(mediaFormat, rawFormat));
+    if (!m_decoder) {
+      OpalMediaFormat intermediateFormat;
+      if (!OpalTranscoder::FindIntermediateFormat(mediaFormat, rawFormat, intermediateFormat)) {
+        cout << "Could not create decoder for media format \"" << mediaFormat << '"' << endl;
+        return 0;
+      }
+      m_decoder.reset(OpalTranscoder::Create(mediaFormat, intermediateFormat));
+      m_decoder2.reset(OpalTranscoder::Create(intermediateFormat, rawFormat));
+    }
+
+    return -1;
   }
 
   return 1;
@@ -420,7 +437,7 @@ bool AudioThread::Initialise(PArgList & args)
       return true;
   }
 
-  m_readSize = m_encoder != NULL ? m_encoder->GetOptimalDataFrameSize(TRUE) : 480;
+  m_readSize = m_encoder ? m_encoder->GetOptimalDataFrameSize(TRUE) : 480;
 
   cout << "Audio media format set to " << mediaFormat << endl;
 
@@ -430,8 +447,8 @@ bool AudioThread::Initialise(PArgList & args)
   // Audio recorder
   PString driverName = args.GetOptionString("record-driver");
   PString deviceName = args.GetOptionString("record-device");
-  m_recorder = PSoundChannel::CreateOpenedChannel(driverName, deviceName, PSoundChannel::Recorder, channels, sampleRate);
-  if (m_recorder == NULL) {
+  m_recorder.reset(PSoundChannel::CreateOpenedChannel(driverName, deviceName, PSoundChannel::Recorder, channels, sampleRate));
+  if (!m_recorder) {
     cerr << "Cannot use ";
     if (driverName.IsEmpty() && deviceName.IsEmpty())
       cerr << "default ";
@@ -467,8 +484,8 @@ bool AudioThread::Initialise(PArgList & args)
   // Audio player
   driverName = args.GetOptionString("play-driver");
   deviceName = args.GetOptionString("play-device");
-  m_player = PSoundChannel::CreateOpenedChannel(driverName, deviceName, PSoundChannel::Player, channels, sampleRate);
-  if (m_player == NULL) {
+  m_player.reset(PSoundChannel::CreateOpenedChannel(driverName, deviceName, PSoundChannel::Player, channels, sampleRate));
+  if (!m_player) {
     cerr << "Cannot use ";
     if (driverName.IsEmpty() && deviceName.IsEmpty())
       cerr << "default ";
@@ -510,7 +527,7 @@ bool AudioThread::Initialise(PArgList & args)
 
 void AudioThread::Main()
 {
-  if (m_recorder == NULL || m_player == NULL) {
+  if (!m_recorder || !m_player) {
     cerr << "Audio cannot open recorder or player" << endl;
     return;
   }
@@ -535,8 +552,8 @@ bool VideoThread::Initialise(PArgList & args)
   // Video grabber
   PString driverName = args.GetOptionString("grab-driver");
   PString deviceName = args.GetOptionString("grab-device");
-  m_grabber = PVideoInputDevice::CreateOpenedDevice(driverName, deviceName, FALSE);
-  if (m_grabber == NULL) {
+  m_grabber.reset(PVideoInputDevice::CreateOpenedDevice(driverName, deviceName, FALSE));
+  if (!m_grabber) {
     cerr << "Cannot use ";
     if (driverName.IsEmpty() && deviceName.IsEmpty())
       cerr << "default ";
@@ -591,10 +608,8 @@ bool VideoThread::Initialise(PArgList & args)
   }
   cout << "Grabber channel set to " << m_grabber->GetChannel() << endl;
 
-  if (rawFormat != mediaFormat && m_grabber->SetColourFormat(mediaFormat)) {
-    delete m_encoder;
-    m_encoder = NULL;
-  }
+  if (rawFormat != mediaFormat && m_grabber->SetColourFormat(mediaFormat))
+    m_encoder.reset();
   else if (!m_grabber->SetColourFormatConverter(rawFormat)) {
     cerr << "Video grabber device could not be set to colour format " << rawFormat << endl;
     return false;
@@ -657,8 +672,8 @@ bool VideoThread::Initialise(PArgList & args)
   // Video display
   driverName = args.GetOptionString("display-driver");
   deviceName = args.GetOptionString("display-device");
-  m_display = PVideoOutputDevice::CreateOpenedDevice(driverName, deviceName, FALSE);
-  if (m_display == NULL) {
+  m_display.reset(PVideoOutputDevice::CreateOpenedDevice(driverName, deviceName, FALSE));
+  if (!m_display) {
     cerr << "Cannot use ";
     if (driverName.IsEmpty() && deviceName.IsEmpty())
       cerr << "default ";
@@ -682,10 +697,8 @@ bool VideoThread::Initialise(PArgList & args)
 
   // Configure formats/sizes/speeds
 
-  if (rawFormat != mediaFormat && m_display->SetColourFormat(mediaFormat)) {
-    delete m_decoder;
-    m_decoder = NULL;
-  }
+  if (rawFormat != mediaFormat && m_display->SetColourFormat(mediaFormat))
+    m_decoder.reset();
   else if (!m_display->SetColourFormatConverter(rawFormat)) {
     cerr << "Video display device could not be set to colour format " << rawFormat << endl;
     return false;
@@ -717,7 +730,7 @@ bool VideoThread::Initialise(PArgList & args)
   if (args.HasOption('T'))
     m_frameFilename = "frame_stats.csv";
 
-  if (m_encoder != NULL) {
+  if (m_encoder) {
     if (args.HasOption('p')) {
       unsigned bytes = args.GetOptionString('p').AsUnsigned();
       m_encoder->SetMaxOutputSize(bytes);
@@ -745,7 +758,7 @@ bool VideoThread::Initialise(PArgList & args)
 
 void VideoThread::Main()
 {
-  if (m_grabber == NULL || m_display == NULL) {
+  if (!m_grabber || !m_display) {
     cerr << "Video cannot open grabber or display" << endl;
     return;
   }
@@ -1001,7 +1014,7 @@ void TranscoderThread::Main()
 #if OPAL_VIDEO
   OpalVideoFormat videoFormat(m_encoder->GetOutputFormat());
   OpalVideoFormat::FrameDetectorPtr videoDetector;
-  bool isVideo = PIsDescendant(m_encoder, OpalVideoTranscoder);
+  bool isVideo = PIsDescendant(m_encoder.get(), OpalVideoTranscoder);
   bool videoDetectorFailed = false;
 #endif
 
@@ -1032,7 +1045,7 @@ void TranscoderThread::Main()
     //  push frames through encoder
     //
     RTP_DataFrameList encFrames;
-    if (m_encoder == NULL) 
+    if (!m_encoder) 
       encFrames.Append(new RTP_DataFrame(srcFrame)); 
     else {
 #if OPAL_VIDEO
@@ -1050,8 +1063,21 @@ void TranscoderThread::Main()
       if (m_headerExtension != 255)
         srcFrame.SetHeaderExtension(1, 1, &m_headerExtension, RTP_DataFrame::RFC5285_OneByte);
 
-
-      bool newInState = m_encoder->ConvertFrames(srcFrame, encFrames);
+      bool newInState;
+      if (!m_encoder2)
+        newInState = m_encoder->ConvertFrames(srcFrame, encFrames);
+      else {
+        RTP_DataFrameList intermediateFrames;
+        newInState = m_encoder->ConvertFrames(srcFrame, intermediateFrames);
+        if (newInState) {
+          for (const auto & intermediateFrame : intermediateFrames) {
+            if (!m_encoder2->ConvertFrames(intermediateFrame, encFrames)) {
+              newInState = false;
+              break;
+            }
+          }
+        }
+      }
       if (oldEncState != newInState) {
         oldEncState = newInState;
         cerr << "Encoder " << (newInState ? "restor" : "fail") << "ed at input frame " << totalInputFrameCount-1 << endl;
@@ -1059,7 +1085,7 @@ void TranscoderThread::Main()
       }
 #if OPAL_VIDEO
       if (isVideo)
-        encoderSaysIntra = ((OpalVideoTranscoder *)m_encoder)->WasLastFrameIFrame();
+        encoderSaysIntra = dynamic_cast<OpalVideoTranscoder *>(m_encoder.get())->WasLastFrameIFrame();
 #endif
     }
 
@@ -1139,7 +1165,7 @@ void TranscoderThread::Main()
     //
     //  push audio/video frames through NULL decoder
     //
-    if (m_decoder == NULL) {
+    if (!m_decoder) {
       totalEncodedByteCount += encodedPayloadSize;
       for (PINDEX i = 0; i < encFrames.GetSize(); i++) {
         bool state = Write(encFrames[i]);
@@ -1158,13 +1184,28 @@ void TranscoderThread::Main()
     else {
       totalEncodedByteCount += encodedPayloadSize;
       RTP_DataFrameList outFrames;
-      for (PINDEX i = 0; i < encFrames.GetSize(); i++) {
-        if (encFrames[i].GetPayloadSize() > largestPacket)
-          largestPacket = encFrames[i].GetPayloadSize();
-        bool state = m_decoder->ConvertFrames(encFrames[i], outFrames);
-        if (oldDecState != state) {
-          oldDecState = state;
-          cerr << "Decoder " << (state ? "restor" : "fail") << "ed at input frame " << totalInputFrameCount-1 << endl;
+      for (const auto & encFrame : encFrames) {
+        if (encFrame.GetPayloadSize() > largestPacket)
+          largestPacket = encFrame.GetPayloadSize();
+
+        bool newInState;
+        if (!m_decoder2)
+          newInState = m_decoder->ConvertFrames(encFrame, outFrames);
+        else {
+          RTP_DataFrameList intermediateFrames;
+          newInState = m_decoder->ConvertFrames(encFrame, intermediateFrames);
+          if (newInState) {
+            for (const auto & intermediateFrame : intermediateFrames) {
+              if (!m_decoder2->ConvertFrames(intermediateFrame, outFrames)) {
+                newInState = false;
+                break;
+              }
+            }
+          }
+        }
+        if (oldDecState != newInState) {
+          oldDecState = newInState;
+          cerr << "Decoder " << (newInState ? "restor" : "fail") << "ed at input frame " << totalInputFrameCount-1 << endl;
           continue;
         }
         if (outFrames.GetSize() > 1) 
@@ -1172,7 +1213,7 @@ void TranscoderThread::Main()
         else if (outFrames.GetSize() == 1) {
 #if OPAL_VIDEO
           if (isVideo) {
-            decoderSaysIntra = ((OpalVideoTranscoder *)m_decoder)->WasLastFrameIFrame();
+            decoderSaysIntra = dynamic_cast<OpalVideoTranscoder *>(m_decoder.get())->WasLastFrameIFrame();
             if (g_infoCount > 1) {
               coutMutex.Wait();
               cout << "Decoder generated payload of size " << outFrames[0].GetPayloadSize() << endl;
@@ -1185,7 +1226,7 @@ void TranscoderThread::Main()
           bool newOutState = Write(outFrames[0]);
           if (oldOutState != newOutState) {
             oldOutState = newOutState;
-            cerr << "Output write " << (state ? "restor" : "fail") << "ed at input frame " << totalInputFrameCount << endl;
+            cerr << "Output write " << (newOutState ? "restor" : "fail") << "ed at input frame " << totalInputFrameCount << endl;
           }
           totalOutputFrameCount++;
         }

@@ -1736,6 +1736,8 @@ extern const OpalMediaFormat & GetOpalT38_RTP();
 
 #define OpalPCM16          GetOpalPCM16()
 #define OpalPCM16S         GetOpalPCM16S()
+#define OpalPCM16_8KHZ     GetOpalPCM16()
+#define OpalPCM16S_8KHZ    GetOpalPCM16S()
 #define OpalPCM16_12KHZ    GetOpalPCM16_12KHZ()
 #define OpalPCM16S_12KHZ   GetOpalPCM16S_12KHZ()
 #define OpalPCM16_16KHZ    GetOpalPCM16_16KHZ()

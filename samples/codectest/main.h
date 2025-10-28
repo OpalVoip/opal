@@ -36,8 +36,6 @@ class TranscoderThread : public PThread
     TranscoderThread(unsigned num, const char * name)
       : PThread(5000, NoAutoDeleteThread, NormalPriority, name)
       , m_running(false)
-      , m_encoder(NULL)
-      , m_decoder(NULL)
       , m_num(num)
       , m_timestamp(0)
       , m_markerHandling(NormalMarkers)
@@ -47,8 +45,6 @@ class TranscoderThread : public PThread
 
     ~TranscoderThread()
     {
-      delete m_encoder;
-      delete m_decoder;
     }
 
     int InitialiseCodec(PArgList & args, const OpalMediaType & mediaType, OpalMediaFormat & mediaFormat, OpalMediaFormat & rawFormat);
@@ -77,8 +73,8 @@ class TranscoderThread : public PThread
     PSyncPointAck m_pause;
     PSyncPoint    m_resume;
 
-    OpalTranscoder * m_encoder;
-    OpalTranscoder * m_decoder;
+    std::unique_ptr<OpalTranscoder> m_encoder, m_encoder2;
+    std::unique_ptr<OpalTranscoder> m_decoder, m_decoder2;
     unsigned         m_num;
     DWORD            m_timestamp;
     enum MarkerHandling {
@@ -104,16 +100,8 @@ class AudioThread : public TranscoderThread
   public:
     AudioThread(unsigned _num)
       : TranscoderThread(_num, "Audio")
-      , m_recorder(NULL)
-      , m_player(NULL)
       , m_readSize(0)
     {
-    }
-
-    ~AudioThread()
-    {
-      delete m_recorder;
-      delete m_player;
     }
 
     bool Initialise(PArgList & args);
@@ -123,9 +111,9 @@ class AudioThread : public TranscoderThread
     virtual bool Write(const RTP_DataFrame & frame) override;
     virtual void Stop() override;
 
-    PSoundChannel * m_recorder;
-    PSoundChannel * m_player;
-    PINDEX          m_readSize;
+    std::unique_ptr<PSoundChannel> m_recorder;
+    std::unique_ptr<PSoundChannel> m_player;
+    PINDEX                         m_readSize;
 };
 
 
@@ -135,17 +123,17 @@ class VideoThread : public TranscoderThread
   public:
     VideoThread(unsigned num)
       : TranscoderThread(num, "Video")
-      , m_grabber(NULL)
-      , m_display(NULL)
       , m_singleStep(false)
       , m_frameWait(0, INT_MAX)
+      , m_frameCount(0)
+      , m_frameStartTimestamp(0)
+      , m_snrWidth(0)
+      , m_snrHeight(0)
+      , m_sumYSNR(0)
+      , m_sumCbSNR(0)
+      , m_sumCrSNR(0)
+      , m_snrCount(0)
     {
-    }
-
-    ~VideoThread()
-    {
-      delete m_grabber;
-      delete m_display;
     }
 
     bool Initialise(PArgList & args);
@@ -158,8 +146,8 @@ class VideoThread : public TranscoderThread
     PDECLARE_NOTIFIER(OpalMediaCommand, VideoThread, OnTranscoderCommand);
     void WriteFrameStats(const PString & str);
 
-    PVideoInputDevice  * m_grabber;
-    PVideoOutputDevice * m_display;
+    std::unique_ptr<PVideoInputDevice> m_grabber;
+    std::unique_ptr<PVideoOutputDevice> m_display;
 
     bool                 m_singleStep;
     PSemaphore           m_frameWait;
