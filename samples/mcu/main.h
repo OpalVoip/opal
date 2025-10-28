@@ -48,7 +48,7 @@ class MyVideoMixer : public OpalVideoStreamMixer
   PCLASSINFO(MyVideoMixer, OpalVideoStreamMixer)
 public:
   MyVideoMixer(OpalMixerNode & node);
-  ~MyVideoMixer() { StopPushThreadOnDestruction(); }
+  ~MyVideoMixer() { StopPushThread(); }
 
   virtual bool GetMixPosition(
     const PString & id,
