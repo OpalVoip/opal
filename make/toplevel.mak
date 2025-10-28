@@ -128,6 +128,7 @@ SOURCES += $(OPAL_SRCDIR)/opal/manager.cxx \
            $(OPAL_SRCDIR)/opal/mediastrm.cxx \
            $(OPAL_SRCDIR)/opal/patch.cxx \
            $(OPAL_SRCDIR)/opal/transcoders.cxx \
+           $(OPAL_SRCDIR)/opal/resample.cxx \
            $(OPAL_SRCDIR)/opal/transports.cxx \
            $(OPAL_SRCDIR)/opal/guid.cxx \
            $(OPAL_SRCDIR)/rtp/rtp.cxx \

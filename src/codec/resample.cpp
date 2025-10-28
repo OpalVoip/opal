@@ -50,26 +50,62 @@ OpalResample::OpalResample(const OpalMediaFormat & inputMediaFormat,
   : OpalTranscoder(inputMediaFormat, outputMediaFormat)
   , m_outSampleRate(outputMediaFormat.GetClockRate())
   , m_inSampleRate(inputMediaFormat.GetClockRate())
-  , m_outSampleSize(sizeof(int16_t)* outputMediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption()))
-  , m_inSampleSize(sizeof(int16_t)* inputMediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption()))
-  {
+{
 #if P_FFMPEG
   m_bufferLength = 0;
 
+  unsigned outChannels = outputMediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption());
+  unsigned inChannels = inputMediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption());
+
+  m_outSampleSize = sizeof(int16_t) * outChannels;
+  m_inSampleSize = sizeof(int16_t) * inChannels;
+
+  int error = 1;
+
+#if LIBAVFORMAT_VERSION_MAJOR > 58
   AVChannelLayout out_layout, in_layout;
-  av_channel_layout_default(&out_layout, m_outSampleSize/sizeof(int16_t));
-  av_channel_layout_default(&in_layout, m_inSampleSize/sizeof(int16_t));
+  av_channel_layout_default(&out_layout, outChannels);
+  av_channel_layout_default(&in_layout, inChannels);
 
   m_swrContext = NULL;
-  int error = swr_alloc_set_opts2(&m_swrContext,
-                                  &out_layout, AV_SAMPLE_FMT_S16, m_outSampleRate,
-                                  &in_layout, AV_SAMPLE_FMT_S16, m_inSampleRate, 0, NULL);
-  if (error == 0 && (error = swr_init(m_swrContext)) == 0)
-    return;
+  error = swr_alloc_set_opts2(&m_swrContext,
+                              &out_layout, AV_SAMPLE_FMT_S16, m_outSampleRate,
+                              &in_layout, AV_SAMPLE_FMT_S16, m_inSampleRate,
+                              0, NULL);
+  if (error == 0)
+#else
+  int64_t outChLayout, inChLayout;
+  switch (outChannels) {
+    case 1: outChLayout = AV_CH_LAYOUT_MONO; break;
+    case 2: outChLayout = AV_CH_LAYOUT_STEREO; break;
+    case 4: outChLayout = AV_CH_LAYOUT_QUAD; break;
+    case 5: outChLayout = AV_CH_LAYOUT_5POINT0; break;
+    case 6: outChLayout = AV_CH_LAYOUT_5POINT1; break;
+    default: outChLayout = 0;
+  }
+  switch (inChannels) {
+    case 1: inChLayout = AV_CH_LAYOUT_MONO; break;
+    case 2: inChLayout = AV_CH_LAYOUT_STEREO; break;
+    case 4: inChLayout = AV_CH_LAYOUT_QUAD; break;
+    case 5: inChLayout = AV_CH_LAYOUT_5POINT0; break;
+    case 6: inChLayout = AV_CH_LAYOUT_5POINT1; break;
+    default: inChLayout = 0;
+  }
+  m_swrContext = swr_alloc_set_opts(NULL,
+                                    outChLayout, AV_SAMPLE_FMT_S16, m_outSampleRate,
+                                    inChLayout, AV_SAMPLE_FMT_S16, m_inSampleRate,
+                                    0, NULL);
+  if (m_swrContext != NULL)
+#endif
+    if ((error = swr_init(m_swrContext)) == 0)
+      return;
 
   PTRACE(1, "Cannot allocate/create resampler (error=" << error << ") from "
           << inputMediaFormat << " to " << outputMediaFormat);
   swr_free(&m_swrContext);
+#else
+  m_outSampleSize = sizeof(int16_t);
+  m_inSampleSize = sizeof(int16_t);
 #endif
 }
 
