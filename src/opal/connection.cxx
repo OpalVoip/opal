@@ -1217,6 +1217,7 @@ void OpalConnection::DisableRecording()
 
 void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
 {
+  // Post to a separate thread to avoid deadlocks
   GetEndPoint().GetManager().QueueDecoupledEvent(
     new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
       this,
@@ -1239,6 +1240,7 @@ void OpalConnection::InternalOnRecordAudio(PString key, RTP_DataFrame frame)
 
 void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
 {
+  // Post to a separate thread to avoid deadlocks
   GetEndPoint().GetManager().QueueDecoupledEvent(
     new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
       this,
