@@ -68,7 +68,24 @@ static const PConstCaselessString ReferredBy("Referred-By");
 static const PConstCaselessString Diversion("Diversion");
 static const PConstCaselessString Supported("Supported");
 static const PConstCaselessString Unsupported("Unsupported");
+static const PConstCaselessString Require("Require");
 static const PConstCaselessString Event("Event");
+static const PConstCaselessString AllowEvents("Allow-Events");
+static const PConstCaselessString Route("Route");
+static const PConstCaselessString Accept("Accept");
+static const PConstCaselessString AcceptEncoding("Accept-Encoding");
+static const PConstCaselessString AcceptLanguage("Accept-Language");
+static const PConstCaselessString MaxForwards("Max-Forwards");
+static const PConstCaselessString MinExpires("Min-Expires");
+static const PConstCaselessString SubscriptionState("Subscription-State");
+static const PConstCaselessString UserAgent("User-Agent");
+static const PConstCaselessString Organization("Organization");
+static const PConstCaselessString IfMatch("SIP-If-Match");
+static const PConstCaselessString ETag("SIP-ETag");
+static const PConstCaselessString AlertInfo("Alert-Info");
+static const PConstCaselessString MinSE("Min-SE");
+static const PConstCaselessString SessionExpires("Session-Expires");
+
 
 static PConstCaselessString const TagStr("tag");
 static PConstString const TransactionPrefix("z9hG4bK");
@@ -145,6 +162,7 @@ PString SIP_PDU::GetStatusCodeDescription(int code)
     { SIP_PDU::Failure_UnsupportedURIScheme,        "Unsupported URI Scheme" },
     { SIP_PDU::Failure_BadExtension,                "Bad Extension" },
     { SIP_PDU::Failure_ExtensionRequired,           "Extension Required" },
+    { SIP_PDU::Failure_SessionIntervalTooSmall,     "Session Interval Too Small" },
     { SIP_PDU::Failure_IntervalTooBrief,            "Interval Too Brief" },
     { SIP_PDU::Failure_TemporarilyUnavailable,      "Temporarily Unavailable" },
     { SIP_PDU::Failure_TransactionDoesNotExist,     "Call Leg/Transaction Does Not Exist" },
@@ -1210,7 +1228,7 @@ void SIPMIMEInfo::SetCSeq(const PString & v)
 
 PString SIPMIMEInfo::GetRoute() const
 {
-  return Get("Route");
+  return Get(Route);
 }
 
 
@@ -1223,7 +1241,7 @@ bool SIPMIMEInfo::GetRoute(SIPURLList & proxies) const
 void SIPMIMEInfo::SetRoute(const PString & v)
 {
   if (!v.IsEmpty())
-    SetAt("Route", v);
+    SetAt(Route, v);
 }
 
 
@@ -1264,37 +1282,37 @@ void SIPMIMEInfo::SetRecordRoute(const SIPURLList & proxies)
 
 PString SIPMIMEInfo::GetAccept() const
 {
-  return GetString("Accept");    // no compact form
+  return GetString(Accept);    // no compact form
 }
 
 
 void SIPMIMEInfo::SetAccept(const PString & v)
 {
-  SetAt("Accept", v);  // no compact form
+  SetAt(Accept, v);  // no compact form
 }
 
 
 PString SIPMIMEInfo::GetAcceptEncoding() const
 {
-  return GetString("Accept-Encoding");   // no compact form
+  return GetString(AcceptEncoding);   // no compact form
 }
 
 
 void SIPMIMEInfo::SetAcceptEncoding(const PString & v)
 {
-  SetAt("Accept-Encoding", v); // no compact form
+  SetAt(AcceptEncoding, v); // no compact form
 }
 
 
 PString SIPMIMEInfo::GetAcceptLanguage() const
 {
-  return GetString("Accept-Language");   // no compact form
+  return GetString(AcceptLanguage);   // no compact form
 }
 
 
 void SIPMIMEInfo::SetAcceptLanguage(const PString & v)
 {
-  SetAt("Accept-Language", v); // no compact form
+  SetAt(AcceptLanguage, v); // no compact form
 }
 
 
@@ -1363,25 +1381,59 @@ void SIPMIMEInfo::SetExpires(unsigned v)
 
 unsigned SIPMIMEInfo::GetMaxForwards() const
 {
-  return GetInteger("Max-Forwards", INT_MAX);       // no compact form
+  return GetInteger(MaxForwards, INT_MAX);       // no compact form
 }
 
 
-void SIPMIMEInfo::SetMaxForwards(PINDEX v)
+void SIPMIMEInfo::SetMaxForwards(unsigned v)
 {
-  SetAt("Max-Forwards", PString(PString::Unsigned, v)); // no compact form
+  SetAt(MaxForwards, PString(PString::Unsigned, v)); // no compact form
 }
 
 
 unsigned SIPMIMEInfo::GetMinExpires() const
 {
-  return GetInteger("Min-Expires", INT_MAX);        // no compact form
+  return GetInteger(MinExpires, INT_MAX);        // no compact form
 }
 
 
-void SIPMIMEInfo::SetMinExpires(PINDEX v)
+void SIPMIMEInfo::SetMinExpires(unsigned v)
 {
-  SetAt("Min-Expires", PString(PString::Unsigned, v)); // no compact form
+  SetAt(MinExpires, PString(PString::Unsigned, v)); // no compact form
+}
+
+
+PTimeInterval SIPMIMEInfo::GetMinSE() const
+{
+  return PTimeInterval(0, GetInteger(MinSE, 90)); // RFC4028 says absolute minimum is 90 seconds
+}
+
+
+void SIPMIMEInfo::SetMinSE(const PTimeInterval & v)
+{
+  SetAt(MinSE, PString(PString::Unsigned, v.GetSeconds())); // no compact form
+}
+
+
+PTimeInterval SIPMIMEInfo::GetSessionExpires() const
+{
+  return PTimeInterval(0, GetInteger(SessionExpires));
+}
+
+
+bool SIPMIMEInfo::IsSessionRefresherUAC() const
+{
+  return GetString(SessionExpires).Find("uac") != P_MAX_INDEX;
+}
+
+void SIPMIMEInfo::SetSessionExpires(const PTimeInterval & period, const char * refresher)
+{
+  PString str(PString::Unsigned, period.GetSeconds());
+  if (refresher) {
+    str += ";refresher=";
+    str += refresher;
+  }
+  SetAt(SessionExpires, str);
 }
 
 
@@ -1446,21 +1498,39 @@ void SIPMIMEInfo::SetTokenSet(const char * field, const PStringSet & tokens)
 }
 
 
+bool SIPMIMEInfo::SetFeatureMode(FeatureMode mode, const PString & feature)
+{
+  switch (mode) {
+    case e_featureDisabled:
+      return false;
+
+    case e_featureRequired:
+      AddRequire(feature);
+      // Then add supported as well
+
+    case e_featureSupported:
+      AddSupported(feature);
+  }
+
+  return true;
+}
+
+
 PStringSet SIPMIMEInfo::GetRequire() const
 {
-  return GetTokenSet("Require");
+  return GetTokenSet(Require);
 }
 
 
 void SIPMIMEInfo::SetRequire(const PStringSet & v)
 {
-  SetTokenSet("Require", v);
+  SetTokenSet(Require, v);
 }
 
 
 void SIPMIMEInfo::AddRequire(const PString & v)
 {
-  SetTokenSet("Require", v);
+  SetTokenSet(Require, v);
 }
 
 
@@ -1514,61 +1584,55 @@ void SIPMIMEInfo::SetEvent(const PString & v)
 
 PCaselessString SIPMIMEInfo::GetSubscriptionState(PStringToString & info) const
 {
-  return GetComplex("Subscription-State", info) ? info[PString::Empty()] : PString::Empty();
+  return GetComplex(SubscriptionState, info) ? info[PString::Empty()] : PString::Empty();
 }
 
 
 void SIPMIMEInfo::SetSubscriptionState(const PString & v)
 {
-  SetAt("Subscription-State", v);     // no compact form
+  SetAt(SubscriptionState, v);     // no compact form
 }
 
 
 PString SIPMIMEInfo::GetUserAgent() const
 {
-  return GetString("User-Agent");        // no compact form
+  return GetString(UserAgent);        // no compact form
 }
 
 
 void SIPMIMEInfo::SetUserAgent(const PString & v)
 {
-  SetAt("User-Agent", v);     // no compact form
+  SetAt(UserAgent, v);     // no compact form
 }
 
 
 PString SIPMIMEInfo::GetOrganization() const
 {
-  return GetString("Organization");        // no compact form
+  return GetString(Organization);        // no compact form
 }
 
 
 void SIPMIMEInfo::SetOrganization(const PString & v)
 {
-  SetAt("Organization", v);     // no compact form
+  SetAt(Organization, v);     // no compact form
 }
 
 
-PString SIPMIMEInfo::GetAllowEvents() const
+PStringSet SIPMIMEInfo::GetAllowEvents() const
 {
-  return GetString("Allow-Events");     // no compact form
+  return GetTokenSet(AllowEvents);     // no compact form
 }
 
 
-void SIPMIMEInfo::SetAllowEvents(const PString & v)
+void SIPMIMEInfo::AddAllowEvents(const PString & v)
 {
-  if (!v.IsEmpty())
-    SetAt("Allow-Events", v);   // no compact form
+  AddTokenSet(AllowEvents, v);
 }
 
 
 void SIPMIMEInfo::SetAllowEvents(const PStringSet & set)
 {
-  if (set.IsEmpty())
-    return;
-
-  PStringStream strm;
-  strm << setfill(',') << set;
-  SetAllowEvents(strm);
+  SetTokenSet(AllowEvents, set);
 }
 
 
@@ -1656,33 +1720,33 @@ void SIPMIMEInfo::SetProductInfo(const PString & ua, const OpalProductInfo & inf
 
 PString SIPMIMEInfo::GetWWWAuthenticate() const
 {
-  return GetString("WWW-Authenticate");  // no compact form
+  return GetString(PHTTP::WWWAuthenticateTag);  // no compact form
 }
 
 
 void SIPMIMEInfo::SetWWWAuthenticate(const PString & v)
 {
-  SetAt("WWW-Authenticate", v);        // no compact form
+  SetAt(PHTTP::WWWAuthenticateTag, v);        // no compact form
 }
 
 PString SIPMIMEInfo::GetSIPIfMatch() const
 {
-  return GetString("SIP-If-Match");  // no compact form
+  return GetString(IfMatch);  // no compact form
 }
 
 void SIPMIMEInfo::SetSIPIfMatch(const PString & v)
 {
-  SetAt("SIP-If-Match", v);        // no compact form
+  SetAt(IfMatch, v);        // no compact form
 }
 
 PString SIPMIMEInfo::GetSIPETag() const
 {
-  return GetString("SIP-ETag");  // no compact form
+  return GetString(ETag);  // no compact form
 }
 
 void SIPMIMEInfo::SetSIPETag(const PString & v)
 {
-  SetAt("SIP-ETag", v);        // no compact form
+  SetAt(ETag, v);        // no compact form
 }
 
 
@@ -1694,7 +1758,7 @@ void SIPMIMEInfo::GetAlertInfo(PString & info, int & appearance) const
   info.MakeEmpty();
   appearance = -1;
 
-  SIPURL uri = GetString("Alert-Info");
+  SIPURL uri = GetString(AlertInfo);
   if (uri.IsEmpty())
     return;
 
@@ -1716,17 +1780,17 @@ void SIPMIMEInfo::GetAlertInfo(PString & info, int & appearance) const
 void SIPMIMEInfo::SetAlertInfo(const PString & info, int appearance)
 {
   if (appearance < 0 && info.IsEmpty()) {
-    RemoveAt("Alert-Info");
+    RemoveAt(AlertInfo);
     return;
   }
 
   if (info.IsEmpty())
-    SetAt("Alert-Info", PSTRSTRM("<>;" << AppearanceFieldParamName << '=' << appearance));
+    SetAt(AlertInfo, PSTRSTRM("<>;" << AppearanceFieldParamName << '=' << appearance));
   else {
     SIPURL uri = info;
     if (appearance >= 0)
       uri.GetFieldParameters().Set(AppearanceFieldParamName, appearance);
-    SetAt("Alert-Info", uri.AsQuotedString());
+    SetAt(AlertInfo, uri.AsQuotedString());
   }
 }
 

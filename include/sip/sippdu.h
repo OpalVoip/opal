@@ -391,10 +391,17 @@ class SIPMIMEInfo : public PMIMEInfo
     void SetExpires(unsigned v);
 
     unsigned GetMaxForwards() const;
-    void SetMaxForwards(PINDEX v);
+    void SetMaxForwards(unsigned v);
 
     unsigned GetMinExpires() const;
-    void SetMinExpires(PINDEX v);
+    void SetMinExpires(unsigned v);
+
+    PTimeInterval GetMinSE() const;
+    void SetMinSE(const PTimeInterval & v);
+
+    PTimeInterval GetSessionExpires() const;
+    bool IsSessionRefresherUAC() const;
+    void SetSessionExpires(const PTimeInterval & period, const char * refresher = NULL);
 
     PString GetProxyAuthenticate() const;
     void SetProxyAuthenticate(const PString & v);
@@ -410,6 +417,23 @@ class SIPMIMEInfo : public PMIMEInfo
     void SetRecordRoute(const SIPURLList & proxies);
 
     unsigned GetCSeqIndex() const { return GetCSeq().AsUnsigned(); }
+
+    /// Mode for feature support.
+    enum FeatureMode
+    {
+      e_featureDisabled,  /**< Do not use feature if remote asks for the feature
+                               name in Supported field. Refuse call with 420 Bad
+                               Extension if name is in Require header field. */
+
+      e_featureSupported, /** Add feature name to Supported header in outgoing
+                              INVITE. For incoming INVITE enable feature if either
+                              Supported or Require headers include feature name. */
+      e_featureRequired   /** Add feature name to Require header in outgoing INVITE.
+                              For incoming INVITE enable feature if either Supported
+                              or Require headers include feature name, fail the call
+                              with a 421 Extension Required if missing. */
+    };
+    bool SetFeatureMode(FeatureMode mode, const PString & feature);
 
     PStringSet GetRequire() const;
     void SetRequire(const PStringSet & v);
@@ -452,9 +476,9 @@ class SIPMIMEInfo : public PMIMEInfo
 
     PString GetCallInfo() const;
 
-    PString GetAllowEvents() const;
-    void SetAllowEvents(const PString & v);
+    PStringSet GetAllowEvents() const;
     void SetAllowEvents(const PStringSet & list);
+    void AddAllowEvents(const PString & event);
 
     /** return the value of a header field parameter, empty if none
      */
@@ -597,6 +621,7 @@ class SIP_PDU : public PSafeObject
       Failure_UnsupportedURIScheme        = 416,
       Failure_BadExtension                = 420,
       Failure_ExtensionRequired           = 421,
+      Failure_SessionIntervalTooSmall     = 422,
       Failure_IntervalTooBrief            = 423,
       Failure_UnresolvableDestination     = 476,
       Failure_TemporarilyUnavailable      = 480,

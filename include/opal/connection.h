@@ -505,7 +505,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
       EndedByIllegalAddress,         ///< Destination Address  format was incorrect format
       EndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
       EndedByMediaTransportFail,     ///< End call due to media transport failure, typically ICE error
-      EndedByMediaTransportClosed    ///< End call due to media transport closed
+      EndedByMediaTransportClosed,   ///< End call due to media transport closed
+      EndedBySessionTimeout          ///< End call due to signalling channel timeout
     );
 
     struct CallEndReason {

@@ -66,7 +66,9 @@ static BYTE DefaultKeepAliveData[] = { '\r', '\n', '\r', '\n' };
 
 SIPEndPoint::SIPEndPoint(OpalManager & mgr, unsigned maxThreads)
   : OpalSDPEndPoint(mgr, OPAL_PREFIX_SIP, IsNetworkEndPoint | SupportsE164)
-  , m_defaultPrackMode(SIPConnection::e_prackSupported)
+  , m_defaultPrackMode(SIPMIMEInfo::e_featureSupported)
+  , m_defaultSessionTimerMode(SIPMIMEInfo::e_featureSupported)
+  , m_defaultSessionTimerPeriod(0, 0, 30) // 30 minutes
   , m_maxPacketSizeUDP(1300)         // As per RFC 3261 section 18.1.1
   , m_maxRetries(10)
   , m_retryTimeoutMin(500)             // 0.5 seconds
@@ -646,6 +648,8 @@ PStringList SIPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_NO_REFER_SUB,
     OPAL_OPT_MAX_REFER_TIME,
     OPAL_OPT_PRACK_MODE,
+    OPAL_OPT_SESSION_TIMER_MODE,
+    OPAL_OPT_SESSION_TIMER_PERIOD,
     OPAL_OPT_INITIAL_OFFER,
     OPAL_OPT_ALLOW_EARLY_REPLACE,
     OPAL_OPT_EXTERNAL_SDP,

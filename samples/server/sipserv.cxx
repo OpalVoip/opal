@@ -88,7 +88,7 @@ bool MySIPEndPoint::Configure(PConfig & cfg, PConfigPage * rsrc)
   // Add SIP parameters
   SetDefaultLocalPartyName(rsrc->AddStringField(SIPUsernameKey, 25, GetDefaultLocalPartyName(), "SIP local user name"));
 
-  SIPConnection::PRACKMode prack = cfg.GetEnum(SIPPrackKey, GetDefaultPRACKMode());
+  SIPMIMEInfo::FeatureMode prack = cfg.GetEnum(SIPPrackKey, GetDefaultPRACKMode());
   static const char * const prackModes[] = { "Disabled", "Supported", "Required" };
   rsrc->Add(new PHTTPRadioField(SIPPrackKey, PARRAYSIZE(prackModes), prackModes, prack,
     "SIP provisional responses (100rel) handling."));

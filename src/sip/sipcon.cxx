@@ -57,6 +57,8 @@ static const PConstCaselessString HeaderPrefix(SIP_HEADER_PREFIX);
 static const PConstCaselessString RemotePartyID("Remote-Party-ID");
 static const PConstCaselessString ApplicationDTMFRelayKey("application/dtmf-relay");
 static const PConstCaselessString ApplicationDTMFKey("application/dtmf");
+static const PConstCaselessString PrackFeature("100rel");
+static const PConstCaselessString TimerFeature("timer");
 
 #if OPAL_VIDEO
 static const char ApplicationMediaControlXMLKey[] = "application/media_control+xml";
@@ -137,6 +139,7 @@ static SIP_PDU::StatusCodes GetStatusCodeFromReason(OpalConnection::CallEndReaso
     { OpalConnection::EndedByNoEndPoint        , SIP_PDU::Failure_NotFound               },
     { OpalConnection::EndedByUnreachable       , SIP_PDU::Failure_Forbidden              },
     { OpalConnection::EndedByNoBandwidth       , SIP_PDU::GlobalFailure_NotAcceptable    },
+    { OpalConnection::EndedBySessionTimeout    , SIP_PDU::Failure_ServerTimeout          },
     { OpalConnection::EndedByInvalidConferenceID,SIP_PDU::Failure_TransactionDoesNotExist}
   };
 
@@ -177,6 +180,7 @@ static OpalConnection::CallEndReason GetCallEndReasonFromResponse(SIP_PDU::Statu
     { SIP_PDU::Failure_UnsupportedURIScheme       , OpalConnection::EndedByQ931Cause         , 127 }, // Interworking (+)
     { SIP_PDU::Failure_BadExtension               , OpalConnection::EndedByNoUser            , 127 }, // Interworking (+)
     { SIP_PDU::Failure_ExtensionRequired          , OpalConnection::EndedByNoUser            , 127 }, // Interworking (+)
+    { SIP_PDU::Failure_SessionIntervalTooSmall    , OpalConnection::EndedByQ931Cause         , 127 }, // Interworking (+)
     { SIP_PDU::Failure_IntervalTooBrief           , OpalConnection::EndedByQ931Cause         , 127 }, // Interworking (+)
     { SIP_PDU::Failure_UnresolvableDestination    , OpalConnection::EndedByIllegalAddress    ,  28 }, // Invalid Number Format (+)
     { SIP_PDU::Failure_TemporarilyUnavailable     , OpalConnection::EndedByTemporaryFailure  ,  18 }, // No user responding
@@ -232,8 +236,10 @@ SIPConnection::SIPConnection(const Init & init)
 #if OPAL_VIDEO
   , m_canDoVideoFastUpdateINFO(true)
 #endif
+  , m_sessionTimerMode(m_stringOptions.GetEnum(OPAL_OPT_SESSION_TIMER_MODE, init.m_endpoint.GetDefaultSessionTimerMode()))
+  , m_sessionTimerRefresher(false)
   , m_sessionTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnSessionTimeout)
-  , m_prackMode((PRACKMode)m_stringOptions.GetInteger(OPAL_OPT_PRACK_MODE, init.m_endpoint.GetDefaultPRACKMode()))
+  , m_prackMode(m_stringOptions.GetEnum(OPAL_OPT_PRACK_MODE, init.m_endpoint.GetDefaultPRACKMode()))
   , m_prackEnabled(false)
   , m_prackSequenceNumber(0)
   , m_responseFailTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnInviteResponseTimeout)
@@ -311,7 +317,9 @@ SIPConnection::~SIPConnection()
 
 void SIPConnection::OnApplyStringOptions()
 {
-  m_prackMode = (PRACKMode)m_stringOptions.GetInteger(OPAL_OPT_PRACK_MODE, m_prackMode);
+  m_sessionTimerMode = m_stringOptions.GetEnum(OPAL_OPT_SESSION_TIMER_MODE, m_sessionTimerMode);
+  m_sessionTimerPeriod = m_stringOptions.GetVar(OPAL_OPT_SESSION_TIMER_PERIOD, m_sessionTimerPeriod);
+  m_prackMode = m_stringOptions.GetEnum(OPAL_OPT_PRACK_MODE, m_prackMode);
   m_dialog.SetInterface(m_stringOptions(OPAL_OPT_INTERFACE, GetInterface()));
   SetDisplayName(m_stringOptions(IsOriginating() ? OPAL_OPT_CALLING_DISPLAY_NAME : OPAL_OPT_CALLED_DISPLAY_NAME, GetDisplayName()));
 
@@ -706,7 +714,13 @@ bool SIPConnection::InternalSetConnected(bool transfer)
   }
 
   m_releaseMethod = ReleaseWithBYE;
-  m_sessionTimer = 10000;
+
+  if (m_sessionTimerPeriod == 0)
+    m_sessionTimer.Stop();
+  else {
+    PTRACE(3, "Started session timer: " << m_sessionTimerPeriod);
+    m_sessionTimer = m_sessionTimerPeriod;
+  }
 
   NotifyDialogState(SIPDialogNotification::Confirmed);
 
@@ -1228,18 +1242,10 @@ void SIPConnection::OnCreatingINVITE(SIPInvite & request)
 
   request.SetAllow(GetAllowedMethods());
   mime.SetAllowEvents(m_allowedEvents);
-
-  switch (m_prackMode) {
-    case e_prackDisabled :
-      break;
-
-    case e_prackRequired :
-      mime.AddRequire("100rel");
-      // Then add supported as well
-
-    case e_prackSupported :
-      mime.AddSupported("100rel");
-  }
+  mime.SetFeatureMode(m_prackMode, PrackFeature);
+  if (mime.SetFeatureMode(m_sessionTimerMode, TimerFeature))
+    mime.SetSessionExpires(m_stringOptions.GetVar(OPAL_OPT_SESSION_TIMER_PERIOD,
+                                                  m_sipEndpoint.GetDefaultSessionTimerPeriod()));
 
   mime.AddSupported("replaces");
   for (PStringToString::iterator it = m_stringOptions.begin(); it != m_stringOptions.end(); ++it) {
@@ -1713,7 +1719,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
 
   if (statusCode < 200) {
     // Do PRACK after all the dialog completion parts above.
-    if (responseMIME.GetRequire().Contains("100rel")) {
+    if (responseMIME.GetRequire().Contains(PrackFeature)) {
       PString rseq = responseMIME.GetString("RSeq");
       if (rseq.IsEmpty()) {
         PTRACE(2, "Reliable (100rel) response has no RSeq field.");
@@ -1734,6 +1740,11 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
     // If got here collapseForks was true and all the other INVITE transactions are
     // removed. This gets rid of the last one that returned the terminal response.
     m_forkedInvitations.RemoveAll();
+
+    if (responseMIME.GetRequire().Contains(TimerFeature)) {
+      m_sessionTimerPeriod = responseMIME.GetSessionExpires();
+      m_sessionTimerRefresher = responseMIME.IsSessionRefresherUAC(); // They want us to do it
+    }
   }
 
   // Check for if we did an empty INVITE offer
@@ -2108,11 +2119,22 @@ void SIPConnection::OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & r
 
   const SIPMIMEInfo & responseMIME = response.GetMIME();
 
+  PStringSet supported = responseMIME.GetSupported();
+  supported.Union(responseMIME.GetRequire());
+
   // If they ignore our "Require" header, we have to kill the call ourselves
-  if (m_prackMode == e_prackRequired &&
+  if (m_prackMode == SIPMIMEInfo::e_featureRequired &&
       responseClass == 1 &&
       response.GetStatusCode() != SIP_PDU::Information_Trying &&
-      !responseMIME.GetRequire().Contains("100rel")) {
+      !supported.Contains(PrackFeature)) {
+    Release(EndedBySecurityDenial);
+    return;
+  }
+
+  // If they ignore our "Require" header, we have to kill the call ourselves
+  if (m_sessionTimerMode == SIPMIMEInfo::e_featureRequired &&
+      responseClass == 2 &&
+      !supported.Contains(TimerFeature)) {
     Release(EndedBySecurityDenial);
     return;
   }
@@ -2282,7 +2304,7 @@ void SIPConnection::OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & r
       break;
   }
 
-  // Is a re-INVITE if in here, so don't kill the call becuase it failed.
+  // Is a re-INVITE if in here, so don't kill the call because it failed.
   if (GetPhase() == EstablishedPhase)
     return;
 
@@ -2368,6 +2390,37 @@ SIPConnection::TypeOfINVITE SIPConnection::CheckINVITE(const SIP_PDU & request) 
 }
 
 
+static bool CheckFeatureOnRxINVITE(const SIP_PDU & request, SIPMIMEInfo::FeatureMode mode, const PString & name, bool & enabled)
+{
+  bool required = request.GetMIME().GetRequire().Contains(name);
+  enabled = required || request.GetMIME().GetSupported().Contains(name);
+  switch (mode) {
+    case SIPMIMEInfo::e_featureDisabled:
+      if (required) {
+        SIP_PDU response(request, SIP_PDU::Failure_BadExtension);
+        response.GetMIME().SetUnsupported(name);
+        response.Send();
+        return false;
+      }
+      // Ignore, if just supported
+      break;
+
+    case SIPMIMEInfo::e_featureSupported:
+      break;
+
+    case SIPMIMEInfo::e_featureRequired:
+      if (!enabled) {
+        SIP_PDU response(request, SIP_PDU::Failure_ExtensionRequired);
+        response.GetMIME().SetRequire(name);
+        response.Send();
+        return false;
+      }
+  }
+
+  return true;
+}
+
+
 void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
 {
   bool isReinvite = IsOriginating() || GetPhase() >= ConnectedPhase;
@@ -2449,32 +2502,13 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
       DetermineRTPNAT(*request.GetTransport(), "ip$" + via(via.Find(' ') + 1, via.Find(':') - 1));
   }
 
-  bool prackSupported = mime.GetSupported().Contains("100rel");
-  bool prackRequired = mime.GetRequire().Contains("100rel");
-  switch (m_prackMode) {
-    case e_prackDisabled :
-      if (prackRequired) {
-        SIP_PDU response(request, SIP_PDU::Failure_BadExtension);
-        response.GetMIME().SetUnsupported("100rel");
-        response.Send();
-        return;
-      }
-      // Ignore, if just supported
-      break;
+  bool sessionTimerEnabled = false;
+  if (!CheckFeatureOnRxINVITE(request, m_prackMode, PrackFeature, m_prackEnabled) ||
+      !CheckFeatureOnRxINVITE(request, m_sessionTimerMode, TimerFeature, sessionTimerEnabled))
+    return;
 
-    case e_prackSupported :
-      m_prackEnabled = prackSupported || prackRequired;
-      break;
-
-    case e_prackRequired :
-      m_prackEnabled = prackSupported || prackRequired;
-      if (!m_prackEnabled) {
-        SIP_PDU response(request, SIP_PDU::Failure_ExtensionRequired);
-        response.GetMIME().SetRequire("100rel");
-        response.Send();
-        return;
-      }
-  }
+  if (sessionTimerEnabled)
+    m_sessionTimerPeriod = mime.GetSessionExpires();
 
   m_releaseMethod = ReleaseWithResponse;
   m_handlingINVITE = true;
@@ -3184,7 +3218,12 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
       return;
   }
 
-  m_sessionTimer = 10000;
+  if (m_sessionTimerPeriod == 0)
+    m_sessionTimer.Stop();
+  else {
+    PTRACE(3, "Started session timer: " << m_sessionTimerPeriod);
+    m_sessionTimer = m_sessionTimerPeriod;
+  }
 
   NotifyDialogState(SIPDialogNotification::Confirmed);
 
@@ -3391,14 +3430,22 @@ void SIPConnection::AdjustInviteResponse(SIP_PDU & response)
 
     m_responsePackets.push(response);
   }
-  else if (m_prackEnabled) {
-    mime.AddRequire("100rel");
+  else {
+    if (m_prackEnabled) {
+      mime.AddRequire(PrackFeature);
 
-    if (m_prackSequenceNumber == 0)
-      m_prackSequenceNumber = PRandom::Number(0x40000000); // as per RFC 3262
-    mime.SetAt("RSeq", PString(PString::Unsigned, ++m_prackSequenceNumber));
+      if (m_prackSequenceNumber == 0)
+        m_prackSequenceNumber = PRandom::Number(0x40000000); // as per RFC 3262
+      mime.SetAt("RSeq", PString(PString::Unsigned, ++m_prackSequenceNumber));
 
-    m_responsePackets.push(response);
+      m_responsePackets.push(response);
+    }
+    if (m_sessionTimerPeriod > 0) {
+      mime.AddRequire(TimerFeature);
+      mime.SetSessionExpires(m_stringOptions.GetVar(OPAL_OPT_SESSION_TIMER_PERIOD,
+                                                    m_sipEndpoint.GetDefaultSessionTimerPeriod()),
+                             "uac");
+    }
   }
 
   switch (m_responsePackets.size()) {
@@ -3887,7 +3934,7 @@ PBoolean SIPConnection::OnMediaControlXML(SIP_PDU & request)
 unsigned SIPConnection::GetAllowedMethods() const
 {
   unsigned methods = GetEndPoint().GetAllowedMethods();
-  if (GetPRACKMode() == e_prackDisabled)
+  if (m_prackMode == SIPMIMEInfo::e_featureDisabled)
     methods &= ~(1<<SIP_PDU::Method_PRACK);
   else
     methods |= (1<<SIP_PDU::Method_PRACK);
@@ -3897,9 +3944,10 @@ unsigned SIPConnection::GetAllowedMethods() const
 
 void SIPConnection::OnSessionTimeout()
 {
-  //SIPTransaction * invite = new SIPInvite(*this, GetTransport(), rtpSessions);  
-  //invite->Start();  
-  //sessionTimer = 10000;
+  if (m_sessionTimerRefresher)
+    SendReINVITE(PTRACE_PARAM("Session Timer"));
+  else
+    Release(EndedBySessionTimeout);
 }
 
 

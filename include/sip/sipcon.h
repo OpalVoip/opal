@@ -68,12 +68,26 @@ class OpalSIPIMContext;
  */
 #define OPAL_OPT_MAX_REFER_TIME    "Max-Refer-Time"
 
-/**OpalConnection::StringOption key to an integer indicating the the mode
+/**OpalConnection::StringOption key to an integer indicating the mode
    for the reliable provisional response system. See PRACKMode for more
    information. Default is from SIPEndPoint::GetDefaultPRACKMode() which
    in turn defaults to e_prackSupported.
   */
 #define OPAL_OPT_PRACK_MODE      "PRACK-Mode"
+
+/**OpalConnection::StringOption key to an integer indicating the mode
+   for RFC4028 session timers. See FeatureMode for more information.
+   Default is from SIPEndPoint::GetDefaultSessionTimerMode() which
+   in turn defaults to e_featureSupported.
+  */
+#define OPAL_OPT_SESSION_TIMER_MODE "Session-Timer-Mode"
+
+/**OpalConnection::StringOption key to an integer indicating the period
+   for session timers. Default is from
+   SIPEndPoint::GetDefaultSessionTimerPeriod() which in turn defaults to
+   30  minutes as recommended by RFC4028
+  */
+#define OPAL_OPT_SESSION_TIMER_PERIOD "Session-Timer-Period"
 
 /**OpalConnection::StringOption key to a boolean indicating that we should
    make initial SDP offer. Default true.
@@ -634,23 +648,13 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     SIPEndPoint & GetEndPoint() const { return m_sipEndpoint; }
     SIPAuthentication * GetAuthenticator() const { return m_authentication; }
 
-    /// Mode for reliable provisional responses.
-    enum PRACKMode {
-      e_prackDisabled,  /**< Do not use PRACK if remote asks for 100rel in Supported
-                             field, refuse call with 420 Bad Extension if 100rel is
-                             in Require header field. */
-                             
-      e_prackSupported, /** Add 100rel to Supported header in outgoing INVITE. For
-                            incoming INVITE enable PRACK is either Supported or
-                            Require headers include 100rel. */
-      e_prackRequired   /** Add 100rel to Require header in outgoing INVITE. For
-                            incoming INVITE enable PRACK is either Supported or
-                            Require headers include 100rel, fail the call with
-                            a 421 Extension Required if missing. */
-    };
-    /**Get active PRACK mode. See PRACKMode enum for details.
+    /**Get active PRACK mode. See FeatureMode enum for details.
       */
-    PRACKMode GetPRACKMode() const { return m_prackMode; }
+    SIPMIMEInfo::FeatureMode GetPRACKMode() const { return m_prackMode; }
+
+    /**Get active session timer mode. See FeatureMode enum for details.
+      */
+    SIPMIMEInfo::FeatureMode GetSessionTimerMode() const { return m_sessionTimerMode; }
 
     /** Return a bit mask of the allowed local SIP methods.
       */
@@ -782,8 +786,11 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 #if OPAL_VIDEO
     bool                  m_canDoVideoFastUpdateINFO;
 #endif
+    SIPMIMEInfo::FeatureMode m_sessionTimerMode; //RFC4028
+    PTimeInterval         m_sessionTimerPeriod;
+    bool                  m_sessionTimerRefresher;
     PoolTimer             m_sessionTimer;
-    PRACKMode             m_prackMode;
+    SIPMIMEInfo::FeatureMode m_prackMode;
     bool                  m_prackEnabled;
     unsigned              m_prackSequenceNumber;
     std::queue<SIP_PDU>   m_responsePackets;

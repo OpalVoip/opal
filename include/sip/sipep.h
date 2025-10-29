@@ -863,11 +863,27 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     /**Get default mode for PRACK support.
       */
-    SIPConnection::PRACKMode GetDefaultPRACKMode() const { return m_defaultPrackMode; }
+    SIPMIMEInfo::FeatureMode GetDefaultPRACKMode() const { return m_defaultPrackMode; }
 
     /**Set default mode for PRACK support.
       */
-    void SetDefaultPRACKMode(SIPConnection::PRACKMode mode) { m_defaultPrackMode = mode; }
+    void SetDefaultPRACKMode(SIPMIMEInfo::FeatureMode mode) { m_defaultPrackMode = mode; }
+
+    /**Get default mode for Session Timer support.
+      */
+    SIPMIMEInfo::FeatureMode GetDefaultSessionTimerMode() const { return m_defaultSessionTimerMode; }
+
+    /**Set default mode for Session Timer support.
+      */
+    void SetDefaultSessionTimerMode(SIPMIMEInfo::FeatureMode mode) { m_defaultSessionTimerMode = mode; }
+
+    /**Get default expires time for Session Timer support.
+      */
+    PTimeInterval GetDefaultSessionTimerPeriod() const { return m_defaultSessionTimerPeriod; }
+
+    /**Set default PTimeInterval for Session Timer support.
+      */
+    void SetDefaultSessionTimerPeriod(const PTimeInterval & t) { m_defaultSessionTimerPeriod = t; }
 
     void SetMaxPacketSizeUDP(PINDEX sz) { m_maxPacketSizeUDP = sz; }
     PINDEX GetMaxPacketSizeUDP() const { return m_maxPacketSizeUDP; }
@@ -1066,7 +1082,9 @@ class SIPEndPoint : public OpalSDPEndPoint
     PString       m_userAgentString;
     PStringSet    m_allowedEvents;
 
-    SIPConnection::PRACKMode m_defaultPrackMode;
+    SIPMIMEInfo::FeatureMode m_defaultPrackMode;
+    SIPMIMEInfo::FeatureMode m_defaultSessionTimerMode;
+    PTimeInterval m_defaultSessionTimerPeriod;
 
     PINDEX        m_maxPacketSizeUDP;
     unsigned      m_maxRetries;

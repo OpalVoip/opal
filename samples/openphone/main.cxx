@@ -1537,7 +1537,7 @@ bool MyManager::Initialise(bool startMinimised)
     sipEP->SetSendUserInputMode((OpalConnection::SendUserInputModes)value1);
 
   if (config->Read(SIPPRACKModeKey, &value1))
-    sipEP->SetDefaultPRACKMode((SIPConnection::PRACKMode)value1);
+    sipEP->SetDefaultPRACKMode((SIPMIMEInfo::FeatureMode)value1);
 
 #if OPAL_PTLIB_SSL
   if (!config->Read(SIPSignalingSecurityKey, &value1))
@@ -5425,7 +5425,7 @@ bool OptionsDialog::TransferDataFromWindow()
   SAVE_FIELD(LineAppearanceCode, m_manager.sipEP->SetDefaultAppearanceCode);
   m_manager.sipEP->SetSendUserInputMode((OpalConnection::SendUserInputModes)(m_SIPUserInputMode+1));
   config->Write(SIPUserInputModeKey, m_SIPUserInputMode+1);
-  m_manager.sipEP->SetDefaultPRACKMode((SIPConnection::PRACKMode)m_SIPPRACKMode);
+  m_manager.sipEP->SetDefaultPRACKMode((SIPMIMEInfo::FeatureMode)m_SIPPRACKMode);
   config->Write(SIPPRACKModeKey, m_SIPPRACKMode);
 
 #if OPAL_PTLIB_SSL
