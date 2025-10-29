@@ -132,7 +132,7 @@ static void Clamp(OpalMediaFormatInternal & fmt1, const OpalMediaFormatInternal 
     return;
 
   unsigned value    = fmt1.GetOptionInteger(variableOption, 0);
-  unsigned minValue = fmt2.GetOptionInteger(minOption, 0);
+  unsigned minValue = minOption.empty() ? 0 : fmt2.GetOptionInteger(minOption, 0);
   unsigned maxValue = fmt2.GetOptionInteger(maxOption, UINT_MAX);
   if (value < minValue) {
     PTRACE(4, "Clamped media option \"" << variableOption << "\" from " << value << " to min " << minValue);
