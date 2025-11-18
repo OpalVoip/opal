@@ -346,23 +346,6 @@ bool OpalMediaPatch::Sink::CreateTranscoders()
     return false;
   }
 
-  if (intermediateFormat.GetMediaType() == OpalMediaType::Audio()) {
-    // try prepare intermediateFormat for correct frames to frames transcoding
-    // so we need make sure that tx frames time of destinationFormat be equal 
-    // to tx frames time of intermediateFormat (all this does not produce during
-    // Merge phase in FindIntermediateFormat)
-    int destinationPacketTime = destinationFormat.GetFrameTime()*destinationFormat.GetOptionInteger(OpalAudioFormat::TxFramesPerPacketOption(), 1);
-    if ((destinationPacketTime % intermediateFormat.GetFrameTime()) != 0) {
-      PTRACE(1, "Could produce without buffered media format converting (which not implemented yet) for " << *m_stream);
-      return false;
-    }
-    intermediateFormat.AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::TxFramesPerPacketOption(),
-                                                              true,
-                                                              OpalMediaOption::NoMerge,
-                                                              destinationPacketTime/intermediateFormat.GetFrameTime()),
-                                  true);
-  }
-
   m_primaryCodec = OpalTranscoder::Create(sourceFormat, intermediateFormat, (const BYTE *)id, id.GetLength());
   m_secondaryCodec = OpalTranscoder::Create(intermediateFormat, destinationFormat, (const BYTE *)id, id.GetLength());
   if (m_primaryCodec == NULL || m_secondaryCodec == NULL)
