@@ -152,7 +152,7 @@ bool OpalBaseMixer::AddStream(const Key_T & key)
 }
 
 
-bool OpalBaseMixer::WriteStream(const Key_T & key, const RTP_DataFrame & rtp)
+bool OpalBaseMixer::QueueStream(const Key_T & key, const RTP_DataFrame & rtp)
 {
   if (rtp.GetPayloadSize() == 0)
     return true;
@@ -1498,7 +1498,7 @@ bool OpalMixerNode::WritePacket(const OpalMixerMediaStream & stream, const RTP_D
 {
   PString id = stream.GetID();
   MixerByIdMap::iterator it = m_mixerById.find(id);
-  return it == m_mixerById.end() || it->second->WriteStream(id, input);
+  return it == m_mixerById.end() || it->second->QueueStream(id, input);
 }
 
 

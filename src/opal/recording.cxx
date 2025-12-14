@@ -97,7 +97,7 @@ OpalMediaFormat OpalRecordManager::GetStreamFormat(const PString & strmId) const
 }
 
 
-bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame & rtp)
 {
   StreamFormatMap::const_iterator it = m_streamFormats.find(strmId);
   if (it == m_streamFormats.end())
@@ -110,31 +110,31 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
     return true;
 
   if (it->second.GetMediaType() == OpalMediaType::Audio())
-    return InternalWriteAudio(strmId, rtp);
+    return InternalQueueAudio(strmId, rtp);
 
 #if OPAL_VIDEO
   if (it->second.GetMediaType() == OpalMediaType::Video())
-    return InternalWriteVideo(strmId, rtp);
+    return InternalQueueVideo(strmId, rtp);
 #endif
 
   return false;
 }
 
 
-bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
          " of audio to " << strmId << (m_muted.load() ? " (muted)" : ""));
-  return m_muted.load() || InternalWriteAudio(strmId, rtp);
+  return m_muted.load() || InternalQueueAudio(strmId, rtp);
 }
 
 
 #if OPAL_VIDEO
-bool OpalRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
          " of video to " << strmId << (m_muted.load() ? " (muted)" : ""));
-  return m_muted.load() || InternalWriteVideo(strmId, rtp);
+  return m_muted.load() || InternalQueueVideo(strmId, rtp);
 }
 #endif
 
@@ -201,7 +201,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     PSmartPtr<PMediaFile> m_file;
 
     // Audio
-    virtual bool InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
     virtual bool OnPushAudio() override;
     virtual unsigned GetPushAudioPeriodMS() const override;
     // Callback from OpalAudioMixer
@@ -225,7 +225,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     unsigned m_audioTrack;
 
 #if OPAL_VIDEO
-    virtual bool InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool InternalQueueVideo(const PString & strmId, const RTP_DataFrame & rtp) override;
     virtual bool OnPushVideo() override;
     virtual unsigned GetPushVideoPeriodMS() const override;
 
@@ -555,12 +555,12 @@ unsigned OpalMediaFileRecordManager::GetPushAudioPeriodMS() const
 }
 
 
-bool OpalMediaFileRecordManager::InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   m_mutex.Wait();
   PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
   m_mutex.Signal();
-  return audioMixer != NULL && audioMixer->WriteStream(strmId, rtp);
+  return audioMixer != NULL && audioMixer->QueueStream(strmId, rtp);
 }
 
 
@@ -585,12 +585,12 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
 
 #if OPAL_VIDEO
 
-bool OpalMediaFileRecordManager::InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalQueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   m_mutex.Wait();
   PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
   m_mutex.Signal();
-  return videoMixer != NULL && videoMixer->WriteStream(strmId, rtp);
+  return videoMixer != NULL && videoMixer->QueueStream(strmId, rtp);
 }
 
 
