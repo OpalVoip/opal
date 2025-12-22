@@ -119,9 +119,6 @@ OpalCall::OpalCall(OpalManager & mgr)
   , m_isClearing(false)
   , m_handlingHold(false)
   , m_isCleared(false)
-#if OPAL_HAS_MIXER
-  , m_recordManager(NULL)
-#endif
 #if OPAL_T38_CAPABILITY
   , m_T38SwitchState(e_NotSwitchingT38)
 #endif
@@ -148,10 +145,6 @@ OpalCall::OpalCall(OpalManager & mgr)
 
 OpalCall::~OpalCall()
 {
-#if OPAL_HAS_MIXER
-  delete m_recordManager;
-#endif
-
 #if OPAL_SCRIPT
   PScriptLanguage * script = m_manager.GetScript();
   if (script != NULL) {
@@ -988,8 +981,8 @@ bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Opt
 {
   StopRecording();
 
-  OpalRecordManager * newManager = OpalRecordManager::Factory::CreateInstance(fn.GetType());
-  if (newManager == NULL) {
+  PSharedPtr<OpalRecordManager> newManager(OpalRecordManager::Factory::CreateInstance(fn.GetType()));
+  if (!newManager) {
     PTRACE(2, "Cannot record to file type of " << fn);
     return false;
   }
@@ -999,14 +992,6 @@ bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Opt
   // create the mixer entry
   if (!newManager->Open(fn, options)) {
     PTRACE(2, "Cannot open recording to file " << fn);
-    delete newManager;
-    return false;
-  }
-
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked()) {
-    PTRACE(2, "Cannot record, call " << *this << " abandoned.");
-    delete newManager;
     return false;
   }
 
@@ -1047,37 +1032,37 @@ bool OpalCall::StartRecording(const PDirectory & outputDir,
 
 bool OpalCall::IsRecording() const
 {
-  PSafeLockReadOnly lock(*this);
-  return lock.IsLocked() && m_recordManager != NULL && m_recordManager->IsOpen();
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  return recordManager != NULL && recordManager->IsOpen();
 }
 
 
 bool OpalCall::MuteRecording()
 {
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked() || m_recordManager == NULL)
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  if (!recordManager)
     return false;
 
-  m_recordManager->Mute();
+  recordManager->Mute();
   return true;
 }
 
 
 bool OpalCall::ResumeRecording()
 {
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked() || m_recordManager == NULL)
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  if (!recordManager)
     return false;
 
-  m_recordManager->Resume();
+  recordManager->Resume();
   return true;
 }
 
 
 bool OpalCall::StopRecording()
 {
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked() || m_recordManager == NULL)
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.exchange(PSharedPtr<OpalRecordManager>()));
+  if (!recordManager)
     return false;
 
   // tell each connection to stop sending data
@@ -1086,33 +1071,31 @@ bool OpalCall::StopRecording()
   while (EnumerateConnections(it, connection, PSafeReadWrite))
     connection->DisableRecording();
 
-  m_recordManager->Close();
-  delete m_recordManager;
-  m_recordManager = NULL;
+  recordManager->Close();
   return true;
 }
 
 
 bool OpalCall::OnStartRecording(const PString & streamId, const OpalMediaFormat & format)
 {
-  PSafeLockReadOnly lock(*this);
-  return lock.IsLocked() && m_recordManager != NULL && m_recordManager->OpenStream(streamId, format);
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  return recordManager && recordManager->OpenStream(streamId, format);
 }
 
 
 void OpalCall::OnStopRecording(const PString & streamId)
 {
-  PSafeLockReadOnly lock(*this);
-  if (lock.IsLocked() && m_recordManager != NULL)
-    m_recordManager->CloseStream(streamId);
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  if (recordManager)
+    recordManager->CloseStream(streamId);
 }
 
 
 void OpalCall::OnRecordAudio(const PString & streamId, const RTP_DataFrame & frame)
 {
-  PSafeLockReadOnly lock(*this);
-  if (lock.IsLocked() && m_recordManager != NULL && !m_recordManager->WriteAudio(streamId, frame))
-    m_recordManager->CloseStream(streamId);
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  if (recordManager && !recordManager->QueueAudio(streamId, frame))
+    recordManager->CloseStream(streamId);
 }
 
 
@@ -1120,9 +1103,9 @@ void OpalCall::OnRecordAudio(const PString & streamId, const RTP_DataFrame & fra
 
 void OpalCall::OnRecordVideo(const PString & streamId, const RTP_DataFrame & frame)
 {
-  PSafeLockReadOnly lock(*this);
-  if (lock.IsLocked() && m_recordManager != NULL && !m_recordManager->WriteVideo(streamId, frame))
-    m_recordManager->CloseStream(streamId);
+  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  if (recordManager && !recordManager->QueueVideo(streamId, frame))
+    recordManager->CloseStream(streamId);
 }
 
 #endif

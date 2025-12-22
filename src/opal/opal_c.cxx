@@ -2450,7 +2450,7 @@ void OpalManager_C::HandleSetUpCall(const OpalMessage & command, OpalMessageBuff
   if (!IsNullString(command.m_param.m_callSetUp.m_alertingType))
     options.SetAt(OPAL_OPT_ALERTING_TYPE, command.m_param.m_callSetUp.m_alertingType);
   if (m_apiVersion >= 26)
-    SetOptionOverrides(true, options, command.m_param.m_answerCall.m_overrides);
+    SetOptionOverrides(true, options, command.m_param.m_callSetUp.m_overrides);
 
   PString token;
   if (SetUpCall(partyA, command.m_param.m_callSetUp.m_partyB, token, NULL, 0, &options)) {

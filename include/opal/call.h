@@ -744,7 +744,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::H
     PSafeArray<OpalConnection> m_connectionsActive;
 
 #if OPAL_HAS_MIXER
-    OpalRecordManager * m_recordManager;
+    PAtomicSharedPtr<OpalRecordManager> m_recordManager;
 #endif
 
 #if OPAL_SCRIPT

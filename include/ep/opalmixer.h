@@ -104,7 +104,7 @@ class OpalBaseMixer : public PSmartObject
        quite fast as the actual mixing is done in a different thread so
        minimal interference with the normal media stream processing occurs.
       */
-    virtual bool WriteStream(
+    virtual bool QueueStream(
       const Key_T & key,          ///< key for mixer stream
       const RTP_DataFrame & input ///< Input RTP data for media
     );

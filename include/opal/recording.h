@@ -183,9 +183,9 @@ class OpalRecordManager : public PObject
       const PString & strmId     ///< Identifier for media stream.
     ) const;
 
-    /**Write audio to the recording file.
+    /**Queue media to be written to recording file.
     */
-    virtual bool WriteStream(
+    virtual bool QueueStream(
       const PString & strmId,     ///< Identifier for media stream.
       const RTP_DataFrame & rtp   ///< RTP data containing PCM-16 data
     );
@@ -202,17 +202,17 @@ class OpalRecordManager : public PObject
       const PTime & when   ///< Current time to achieve correct output rates.
     );
 
-    /**Write audio to the recording file.
+    /**Queue audio to be written to the recording file.
       */
-    bool WriteAudio(
+    bool QueueAudio(
       const PString & strmId,     ///< Identifier for media stream.
       const RTP_DataFrame & rtp   ///< RTP data containing PCM-16 data
     );
 
 #if OPAL_VIDEO
-    /**Write video to the recording file.
+    /**Queue video to be written to the recording file.
       */
-    bool WriteVideo(
+    bool QueueVideo(
       const PString & strmId,     ///< Identifier for media stream.
       const RTP_DataFrame & rtp   ///< RTP data containing a YUV420P frame
     );
@@ -243,11 +243,11 @@ class OpalRecordManager : public PObject
     virtual bool OpenFile(const PFilePath & fn);
     virtual bool OnPushAudio() = 0;
     virtual unsigned GetPushAudioPeriodMS() const = 0;
-    virtual bool InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp) = 0;
+    virtual bool InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp) = 0;
 #if OPAL_VIDEO
     virtual bool OnPushVideo() = 0;
     virtual unsigned GetPushVideoPeriodMS() const = 0;
-    virtual bool InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp) = 0;
+    virtual bool InternalQueueVideo(const PString & strmId, const RTP_DataFrame & rtp) = 0;
 #endif
 
     Options   m_options;

@@ -97,7 +97,7 @@ OpalMediaFormat OpalRecordManager::GetStreamFormat(const PString & strmId) const
 }
 
 
-bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame & rtp)
 {
   StreamFormatMap::const_iterator it = m_streamFormats.find(strmId);
   if (it == m_streamFormats.end())
@@ -110,31 +110,31 @@ bool OpalRecordManager::WriteStream(const PString & strmId, const RTP_DataFrame 
     return true;
 
   if (it->second.GetMediaType() == OpalMediaType::Audio())
-    return InternalWriteAudio(strmId, rtp);
+    return InternalQueueAudio(strmId, rtp);
 
 #if OPAL_VIDEO
   if (it->second.GetMediaType() == OpalMediaType::Video())
-    return InternalWriteVideo(strmId, rtp);
+    return InternalQueueVideo(strmId, rtp);
 #endif
 
   return false;
 }
 
 
-bool OpalRecordManager::WriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
          " of audio to " << strmId << (m_muted.load() ? " (muted)" : ""));
-  return m_muted.load() || InternalWriteAudio(strmId, rtp);
+  return m_muted.load() || InternalQueueAudio(strmId, rtp);
 }
 
 
 #if OPAL_VIDEO
-bool OpalRecordManager::WriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalRecordManager::QueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
          " of video to " << strmId << (m_muted.load() ? " (muted)" : ""));
-  return m_muted.load() || InternalWriteVideo(strmId, rtp);
+  return m_muted.load() || InternalQueueVideo(strmId, rtp);
 }
 #endif
 
@@ -201,7 +201,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     PSmartPtr<PMediaFile> m_file;
 
     // Audio
-    virtual bool InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
     virtual bool OnPushAudio() override;
     virtual unsigned GetPushAudioPeriodMS() const override;
     // Callback from OpalAudioMixer
@@ -221,11 +221,11 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedAudio(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
-    PSmartPtr<AudioMixer> m_audioMixer;
+    PAtomicSharedPtr<AudioMixer> m_audioMixer;
     unsigned m_audioTrack;
 
 #if OPAL_VIDEO
-    virtual bool InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp) override;
+    virtual bool InternalQueueVideo(const PString & strmId, const RTP_DataFrame & rtp) override;
     virtual bool OnPushVideo() override;
     virtual unsigned GetPushVideoPeriodMS() const override;
 
@@ -248,7 +248,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedVideo(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
-    PSmartPtr<VideoMixer> m_videoMixer;
+    PAtomicSharedPtr<VideoMixer> m_videoMixer;
     unsigned m_videoTrack;
 #endif
 };
@@ -296,7 +296,7 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
                                 m_options.m_stereo,
                                 m_options.m_audioSampleRate,
                                 m_options.m_pushThreads);
-  PTRACE_CONTEXT_ID_TO(*m_audioMixer);
+  PTRACE_CONTEXT_ID_TO(*m_audioMixer.load());
 
   if (m_options.m_audioFormat.IsEmpty()) {
     PMediaFile::TrackInfo info;
@@ -340,7 +340,7 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
                                 m_options.m_videoHeight,
                                 m_options.m_videoRate,
                                 m_options.m_pushThreads);
-  PTRACE_CONTEXT_ID_TO(*m_videoMixer);
+  PTRACE_CONTEXT_ID_TO(*m_videoMixer.load());
 #endif // OPAL_VIDEO
 
   PMediaFile::TracksInfo tracks;
@@ -389,21 +389,19 @@ bool OpalMediaFileRecordManager::IsOpen() const
 
 bool OpalMediaFileRecordManager::Close()
 {
-  m_mutex.Wait();
-
   // Deleted when out of scope
-  PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
-  m_audioMixer = NULL;
+  m_audioMixer.store(PSharedPtr<AudioMixer>());
 
 #if OPAL_VIDEO
-  PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
-  m_videoMixer = NULL;
+  m_videoMixer.store(PSharedPtr<VideoMixer>());
 #endif
+
+  m_mutex.Wait();
 
   PSmartPtr<PMediaFile> file = m_file;
   m_file = NULL;
 
-  if (!file.IsNULL() && file->Close() && !PFile::Move(m_tempFile, m_finalFile, true)) {
+  if (file && file->Close() && !PFile::Move(m_tempFile, m_finalFile, true)) {
     PTRACE(2, "Could not rename \"" << m_tempFile << "\" to \"" << m_finalFile << '"');
   }
 
@@ -429,13 +427,13 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
   if (mediaType == OpalMediaType::Audio() && !m_options.m_audioFormat.empty()) {
     trackId = m_audioTrack;
     outputFormat = m_options.m_audioFormat;
-    mixer = m_audioMixer;
+    mixer = m_audioMixer.load().get();
   }
 #if OPAL_VIDEO
   else if (mediaType == OpalMediaType::Video() && !m_options.m_videoFormat.empty()) {
     trackId = m_videoTrack;
     outputFormat = m_options.m_videoFormat;
-    mixer = m_videoMixer;
+    mixer = m_videoMixer.load().get();
   }
 #endif
   else {
@@ -498,7 +496,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
       return false;
     }
 
-    if (!m_audioMixer->SetSampleRate(format.GetClockRate())) {
+    if (!m_audioMixer.load()->SetSampleRate(format.GetClockRate())) {
       PTRACE(2, "Could not set audio sample rate to " << format.GetClockRate());
       return false;
     }
@@ -517,14 +515,10 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
 
 bool OpalMediaFileRecordManager::CloseStream(const PString & streamId)
 {
-  m_mutex.Wait();
-
-  PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
+  PSharedPtr<AudioMixer> audioMixer = m_audioMixer;
 #if OPAL_VIDEO
-  PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
+  PSharedPtr<VideoMixer> videoMixer = m_videoMixer;
 #endif
-
-  m_mutex.Signal();
 
   if (audioMixer != NULL)
     audioMixer->RemoveStream(streamId);
@@ -539,28 +533,22 @@ bool OpalMediaFileRecordManager::CloseStream(const PString & streamId)
 
 bool OpalMediaFileRecordManager::OnPushAudio()
 {
-  m_mutex.Wait();
-  PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
-  m_mutex.Signal();
-  return audioMixer != NULL && audioMixer->OnPush();
+  PSharedPtr<AudioMixer> audioMixer = m_audioMixer.load();
+  return audioMixer && audioMixer->OnPush();
 }
 
 
 unsigned OpalMediaFileRecordManager::GetPushAudioPeriodMS() const
 {
-  m_mutex.Wait();
-  PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
-  m_mutex.Signal();
-  return audioMixer != NULL ? audioMixer->GetPeriodMS() : 0;
+  PSharedPtr<AudioMixer> audioMixer = m_audioMixer.load();
+  return audioMixer ? audioMixer->GetPeriodMS() : 0;
 }
 
 
-bool OpalMediaFileRecordManager::InternalWriteAudio(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
-  m_mutex.Wait();
-  PSmartPtr<AudioMixer> audioMixer = m_audioMixer;
-  m_mutex.Signal();
-  return audioMixer != NULL && audioMixer->WriteStream(strmId, rtp);
+  PSharedPtr<AudioMixer> audioMixer = m_audioMixer;
+  return audioMixer && audioMixer->QueueStream(strmId, rtp);
 }
 
 
@@ -585,30 +573,24 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
 
 #if OPAL_VIDEO
 
-bool OpalMediaFileRecordManager::InternalWriteVideo(const PString & strmId, const RTP_DataFrame & rtp)
+bool OpalMediaFileRecordManager::InternalQueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
-  m_mutex.Wait();
-  PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
-  m_mutex.Signal();
-  return videoMixer != NULL && videoMixer->WriteStream(strmId, rtp);
+  PSharedPtr<VideoMixer> videoMixer = m_videoMixer;
+  return videoMixer && videoMixer->QueueStream(strmId, rtp);
 }
 
 
 bool OpalMediaFileRecordManager::OnPushVideo()
 {
-  m_mutex.Wait();
-  PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
-  m_mutex.Signal();
-  return videoMixer != NULL && videoMixer->OnPush();
+  PSharedPtr<VideoMixer> videoMixer = m_videoMixer;
+  return videoMixer && videoMixer->OnPush();
 }
 
 
 unsigned OpalMediaFileRecordManager::GetPushVideoPeriodMS() const
 {
-  m_mutex.Wait();
-  PSmartPtr<VideoMixer> videoMixer = m_videoMixer;
-  m_mutex.Signal();
-  return videoMixer != NULL ? videoMixer->GetPeriodMS() : 0;
+  PSharedPtr<VideoMixer> videoMixer = m_videoMixer;
+  return videoMixer ? videoMixer->GetPeriodMS() : 0;
 }
 
 

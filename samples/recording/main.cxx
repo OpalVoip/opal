@@ -196,7 +196,7 @@ bool MyLocalEndPoint::OnWriteMediaFrame(const OpalLocalConnection & connection,
   if (m_mixer.m_mediaFile.IsNULL())
     return false; // false means OnWriteMediaData() will get called
 
-  m_mixer.WriteStream(connection.GetToken(), frame);
+  m_mixer.QueueStream(connection.GetToken(), frame);
   return true;
 }
 

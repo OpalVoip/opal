@@ -1444,7 +1444,7 @@ void MyPlayer::Export(OpalPCAPFile * pcapFile, OpalRecordManager * recorder)
 
     RTP_DataFrame decoded;
     if (pcapFile->DecodeRTP(rtp, decoded, itContext->second) > 0) {
-      recorder->WriteStream(PSTRSTRM(itContext->first), decoded);
+      recorder->QueueStream(PSTRSTRM(itContext->first), decoded);
       recorder->OnPushMedia(pcapFile->GetPacketTime());
     }
   }

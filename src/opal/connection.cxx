@@ -1217,22 +1217,7 @@ void OpalConnection::DisableRecording()
 
 void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
 {
-  // Post to a separate thread to avoid deadlocks
-  GetEndPoint().GetManager().QueueDecoupledEvent(
-    new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
-      this,
-      MakeRecordingKey(*(const OpalMediaPatch *)param),
-      RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()),
-      &OpalConnection::InternalOnRecordAudio
-    ),
-    psprintf("%p", this)
-  );
-}
-
-
-void OpalConnection::InternalOnRecordAudio(PString key, RTP_DataFrame frame)
-{
-  m_ownerCall.OnRecordAudio(key, frame);
+  m_ownerCall.OnRecordAudio(MakeRecordingKey(*(const OpalMediaPatch *)param), frame);
 }
 
 
@@ -1240,22 +1225,7 @@ void OpalConnection::InternalOnRecordAudio(PString key, RTP_DataFrame frame)
 
 void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
 {
-  // Post to a separate thread to avoid deadlocks
-  GetEndPoint().GetManager().QueueDecoupledEvent(
-    new PSafeWorkArg2<OpalConnection, PString, RTP_DataFrame>(
-      this,
-      MakeRecordingKey(*(const OpalMediaPatch *)param),
-      RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()),
-      &OpalConnection::InternalOnRecordVideo
-    ),
-    psprintf("%p", this)
-  );
-}
-
-
-void OpalConnection::InternalOnRecordVideo(PString key, RTP_DataFrame frame)
-{
-  m_ownerCall.OnRecordVideo(key, frame);
+  m_ownerCall.OnRecordVideo(MakeRecordingKey(*(const OpalMediaPatch *)param), frame);
 }
 
 #endif // OPAL_VIDEO
