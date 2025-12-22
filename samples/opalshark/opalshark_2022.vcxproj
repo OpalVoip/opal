@@ -313,7 +313,7 @@ exit 1
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PATH=%PATH%;%WXDIR%\bin
 wxrc -c %(FullPath)
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PATH=%PATH%;%WXDIR%\bin
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PATH=%PATH%;$(wxLibOrDllDir)
 wxrc -c %(FullPath)
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">resource.cpp;%(Outputs)</Outputs>
@@ -323,7 +323,7 @@ wxrc -c %(FullPath)
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PATH=%PATH%;%WXDIR%\bin
 wxrc -c %(FullPath)
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PATH=%PATH%;%WXDIR%\bin
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PATH=%PATH%;$(wxLibOrDllDir)
 wxrc -c %(FullPath)
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">resource.cpp;%(Outputs)</Outputs>
