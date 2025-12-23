@@ -1099,10 +1099,8 @@ class OpalAudioStreamMixer : public OpalAudioMixer, public OpalMediaStreamMixer
       CachedAudio();
       CachedAudio(const CachedAudio & other);
       void operator=(const CachedAudio &) { PAssertAlways(PLogicError); }
-#if __cplusplus >= 201103L
       CachedAudio(CachedAudio && other);
       void operator=(CachedAudio &&) { PAssertAlways(PLogicError); }
-#endif
       ~CachedAudio();
 
       enum {

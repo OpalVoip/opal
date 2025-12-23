@@ -1832,7 +1832,6 @@ OpalAudioStreamMixer::CachedAudio::CachedAudio(const CachedAudio & other)
 }
 
 
-#if __cplusplus >= 201103L
 OpalAudioStreamMixer::CachedAudio::CachedAudio(CachedAudio && other)
   : m_state(other.m_state)
   , m_raw(other.m_raw)
@@ -1843,7 +1842,6 @@ OpalAudioStreamMixer::CachedAudio::CachedAudio(CachedAudio && other)
   other.m_raw = RTP_DataFrame();
   other.m_encoded = RTP_DataFrame();
 }
-#endif
 
 
 OpalAudioStreamMixer::CachedAudio::~CachedAudio()

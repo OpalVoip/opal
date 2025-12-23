@@ -981,7 +981,7 @@ bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Opt
 {
   StopRecording();
 
-  PSharedPtr<OpalRecordManager> newManager(OpalRecordManager::Factory::CreateInstance(fn.GetType()));
+  std::shared_ptr<OpalRecordManager> newManager(OpalRecordManager::Factory::CreateInstance(fn.GetType()));
   if (!newManager) {
     PTRACE(2, "Cannot record to file type of " << fn);
     return false;
@@ -1032,14 +1032,14 @@ bool OpalCall::StartRecording(const PDirectory & outputDir,
 
 bool OpalCall::IsRecording() const
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   return recordManager != NULL && recordManager->IsOpen();
 }
 
 
 bool OpalCall::MuteRecording()
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   if (!recordManager)
     return false;
 
@@ -1050,7 +1050,7 @@ bool OpalCall::MuteRecording()
 
 bool OpalCall::ResumeRecording()
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   if (!recordManager)
     return false;
 
@@ -1061,7 +1061,7 @@ bool OpalCall::ResumeRecording()
 
 bool OpalCall::StopRecording()
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.exchange(PSharedPtr<OpalRecordManager>()));
+  auto recordManager(m_recordManager.exchange(nullptr));
   if (!recordManager)
     return false;
 
@@ -1078,14 +1078,14 @@ bool OpalCall::StopRecording()
 
 bool OpalCall::OnStartRecording(const PString & streamId, const OpalMediaFormat & format)
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   return recordManager && recordManager->OpenStream(streamId, format);
 }
 
 
 void OpalCall::OnStopRecording(const PString & streamId)
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   if (recordManager)
     recordManager->CloseStream(streamId);
 }
@@ -1093,7 +1093,7 @@ void OpalCall::OnStopRecording(const PString & streamId)
 
 void OpalCall::OnRecordAudio(const PString & streamId, const RTP_DataFrame & frame)
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   if (recordManager && !recordManager->QueueAudio(streamId, frame))
     recordManager->CloseStream(streamId);
 }
@@ -1103,7 +1103,7 @@ void OpalCall::OnRecordAudio(const PString & streamId, const RTP_DataFrame & fra
 
 void OpalCall::OnRecordVideo(const PString & streamId, const RTP_DataFrame & frame)
 {
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
+  auto recordManager(m_recordManager.load());
   if (recordManager && !recordManager->QueueVideo(streamId, frame))
     recordManager->CloseStream(streamId);
 }
