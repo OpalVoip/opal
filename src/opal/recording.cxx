@@ -292,10 +292,10 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
     return false;
   }
 
-  m_audioMixer = new AudioMixer(*this,
-                                m_options.m_stereo,
-                                m_options.m_audioSampleRate,
-                                m_options.m_pushThreads);
+  m_audioMixer.store(PSharedPtr<AudioMixer>(new AudioMixer(*this,
+                                                           m_options.m_stereo,
+                                                           m_options.m_audioSampleRate,
+                                                           m_options.m_pushThreads)));
   PTRACE_CONTEXT_ID_TO(*m_audioMixer.load());
 
   if (m_options.m_audioFormat.IsEmpty()) {
@@ -334,12 +334,12 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
       break;
   }
 
-  m_videoMixer = new VideoMixer(*this,
-                                style,
-                                m_options.m_videoWidth,
-                                m_options.m_videoHeight,
-                                m_options.m_videoRate,
-                                m_options.m_pushThreads);
+  m_videoMixer.store(PSharedPtr<VideoMixer>(new VideoMixer(*this,
+                                                           style,
+                                                           m_options.m_videoWidth,
+                                                           m_options.m_videoHeight,
+                                                           m_options.m_videoRate,
+                                                           m_options.m_pushThreads)));
   PTRACE_CONTEXT_ID_TO(*m_videoMixer.load());
 #endif // OPAL_VIDEO
 
