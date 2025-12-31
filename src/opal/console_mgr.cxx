@@ -2778,7 +2778,7 @@ void OpalManagerConsole::OnClearedCall(OpalCall & call)
       output << "Did not accept incoming call from \"" << name << '"';
       break;
     case OpalConnection::EndedByNoUser :
-      output << "Could find user \"" << name << '"';
+      output << "Could not find user \"" << name << '"';
       break;
     case OpalConnection::EndedByUnreachable :
       output << '"' << name << "\" could not be reached.";
