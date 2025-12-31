@@ -116,6 +116,7 @@ protected:
   PFilePath       m_videoFilePath;
   OpalMediaFormat m_videoFileFormat;
 #endif
+  bool            m_saveMedia;
   PDirectory      m_incomingMediaDir;
 
   friend class MyLocalConnection;
@@ -127,7 +128,7 @@ class MyLocalConnection : public OpalLocalConnection
   PCLASSINFO(MyLocalConnection, OpalLocalConnection);
 public:
   MyLocalConnection(OpalCall & call, MyLocalEndPoint & ep, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions);
-  ~MyLocalConnection();
+
   virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const override;
   virtual bool OnReadMediaData(OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length) override;
   virtual bool OnReadMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame) override;
@@ -135,11 +136,11 @@ public:
 
 protected:
   MyLocalEndPoint & m_endpoint;
-  PFile           * m_audioFile;
+  PAutoPtr<PFile>   m_audioFile;
   PTones            m_tone;
   PINDEX            m_toneOffset;
 #if OPAL_VIDEO
-  PFile           * m_videoFile;
+  PAutoPtr<PFile>   m_videoFile;
   vector<off_t>     m_frameOffsets;
 #endif
 
