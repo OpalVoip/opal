@@ -169,7 +169,9 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
 
 bool MyLocalEndPoint::OnIncomingCall(OpalLocalConnection & connection)
 {
-  *m_manager.LockedOutput() << "Recording call from " << connection.GetRemotePartyURL() << endl;
+  *m_manager.LockedOutput()
+    << "Recording call from " << connection.GetRemotePartyURL()
+    << " active=" << GetConnectionCount() << endl;
 
   // Must call ancestor function to accept call
   return OpalLocalEndPoint::OnIncomingCall(connection);
