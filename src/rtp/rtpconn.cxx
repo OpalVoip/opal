@@ -141,6 +141,11 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
   OpalMediaTypeList allMediaTypes = GetLocalMediaFormats().GetMediaTypes();
   allMediaTypes.PrioritiseAudioVideo();
 
+  if (m_stringOptions.GetBoolean(OPAL_OPT_DUAL_AUDIO)) {
+    PTRACE(4, "Enabling dual audio.");
+    allMediaTypes.push_back(OpalMediaType::Audio());
+  }
+
   OpalMediaCryptoSuite::KeyExchangeModes keyExchangeModes = GetMediaCryptoKeyExchangeModes();
   const PStringArray cryptoSuites = GetMediaCryptoSuites();
   PTRACE(4, "Creating media sessions: media=" << setfill(',') << allMediaTypes << " - crypto=" << cryptoSuites);
@@ -156,6 +161,8 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
       PTRACE(4, "Not offering " << mediaType);
       continue;
     }
+
+    OpalMediaSession* session = NULL;
 
     for (PINDEX csIdx = 0; csIdx < cryptoSuites.GetSize(); ++csIdx) {
       PCaselessString cryptoSuiteName = cryptoSuites[csIdx];
@@ -180,20 +187,13 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
         continue;
       }
 
-      OpalMediaSession * session = NULL;
-
       unsigned nextSessionId = 1;
       for (SessionMap::const_iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
-        if (it->second->GetMediaType() == mediaType && it->second->GetSessionType() == sessionType) {
-          session = it->second;
-          PTRACE_IF(4, !openedMediaSessions[session->GetSessionID()],
-                    "Session " << session->GetSessionID() << " for " << mediaType << " and " << sessionType << " already created.");
-          break;
-        }
         if (nextSessionId <= it->first)
           nextSessionId = it->first+1;
       }
 
+      // The session variable is already set if we are added crypto suites to it
       if (session == NULL && (session = UseMediaSession(nextSessionId, mediaType, sessionType)) == NULL) {
         PTRACE(1, "Could not create RTP session for media type " << mediaType);
         continue;

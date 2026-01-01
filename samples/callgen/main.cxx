@@ -116,7 +116,7 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
     return false;
   }
 
-  if (args.HasOption('q'))
+  if (args.GetOptionCount('q') > 1)
     cout.rdbuf(NULL);
 
   if (!OpalManagerConsole::Initialise(args, !args.HasOption('q'), "local:"))
@@ -481,9 +481,11 @@ void MyCall::OnOpenMediaStream(OpalMediaStream & stream)
 {
   (stream.IsSink() ? m_openedTransmitMedia : m_openedReceiveMedia) = PTime();
 
+#if 0
   OUTPUT(m_index, GetToken(),
          "Opened " << (stream.IsSink() ? "transmitter" : "receiver")
                    << " for " << stream.GetMediaFormat());
+#endif
 }
 
 
@@ -657,11 +659,7 @@ OpalMediaFormatList MyLocalEndPoint::GetMediaFormats() const
 MyLocalConnection::MyLocalConnection(OpalCall & call, MyLocalEndPoint & ep, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions)
   : OpalLocalConnection(call, ep, userData, options, stringOptions)
   , m_endpoint(ep)
-  , m_audioFile(ep.OpenAudioFile())
   , m_toneOffset(0)
-#if OPAL_VIDEO
-  , m_videoFile(ep.OpenVideoFile())
-#endif
 {
 }
 
@@ -687,16 +685,17 @@ void MyLocalConnection::AdjustMediaFormats(bool local, const OpalConnection * ot
 
 bool MyLocalConnection::OnReadMediaData(OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length)
 {
-  if (m_audioFile) {
+  if (!m_endpoint.m_audioFilePath.empty()) {
     // WAV or RAW file
-    if (!m_audioFile->Read(data, size)) {
-      m_audioFile.reset(m_endpoint.OpenAudioFile());
-      if (!m_audioFile) {
-        PTRACE(2, "Could not reopen audio file.");
+    PAutoPtr<PFile>& audioFile = m_audioFiles[mediaStream.GetSessionID()];
+    if (!audioFile || !audioFile->Read(data, size)) {
+      audioFile.reset(m_endpoint.OpenAudioFile());
+      if (!audioFile || !audioFile->Read(data, size)) {
+        PTRACE(3, "Could not read audio data from file.");
         return false;
       }
     }
-    length = m_audioFile->GetLastReadCount();
+    length = audioFile->GetLastReadCount();
     return true;
   }
 
@@ -723,7 +722,7 @@ bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RT
 {
   OpalPCAPFile * pcapFile;
   if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Audio())
-    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFile.get());
+    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFiles[mediaStream.GetSessionID()].get());
 
 #if OPAL_VIDEO
   else {

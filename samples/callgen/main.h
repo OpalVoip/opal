@@ -136,7 +136,7 @@ public:
 
 protected:
   MyLocalEndPoint & m_endpoint;
-  PAutoPtr<PFile>   m_audioFile;
+  std::map<unsigned, PAutoPtr<PFile>> m_audioFiles;
   PTones            m_tone;
   PINDEX            m_toneOffset;
 #if OPAL_VIDEO

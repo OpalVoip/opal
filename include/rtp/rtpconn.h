@@ -51,14 +51,21 @@ class OpalRTPEndPoint;
 #define OPAL_OPT_DISABLE_NAT  "Disable-NAT"
 
 /**Enable audio/video media stream identifiers to SDP.
-   This flag places meda stream identifiers into the SDP so that corresponding
+   This flag places media stream identifiers into the SDP so that corresponding
    audio and video streams can be linked, e.g. for lip sync.
 
    Defaults to true.
   */
 #define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
 
-/**OpalConnection::StringOption key to an enum indicating the cryptographic
+  /**Enable dual audio.
+     This flag indicates two audio sessions should be created.
+
+     Defaults to false.
+    */
+#define OPAL_OPT_DUAL_AUDIO "Dual-Audio"
+
+    /**OpalConnection::StringOption key to an enum indicating the cryptographic
    exchange mode to use for the RTP connection. This is a list of strings:
    "AllowClear", "SecureSignalling" and "InBandKeyEchange".
 
