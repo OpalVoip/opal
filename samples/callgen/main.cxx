@@ -116,7 +116,7 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
     return false;
   }
 
-  if (args.HasOption('q'))
+  if (args.GetOptionCount('q') > 1)
     cout.rdbuf(NULL);
 
   if (!OpalManagerConsole::Initialise(args, !args.HasOption('q'), "local:"))
@@ -161,10 +161,11 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
     return false;
   }
 
-  cout << "Maximum time between calls: " << params.m_tmin_wait << '-' << params.m_tmax_wait << "\n"
-          "Maximum total call duration: " << params.m_tmin_call << '-' << params.m_tmax_call << "\n"
-          "Maximum wait for establish: " << params.m_tmax_est << "\n"
-          "Endpoint starting " << simultaneous << " simultaneous call";
+  cout << setprecision(0) <<
+      "Maximum time between calls: " << params.m_tmin_wait << '-' << params.m_tmax_wait << "\n"
+      "Maximum total call duration: " << params.m_tmin_call << '-' << params.m_tmax_call << "\n"
+      "Maximum wait for establish: " << params.m_tmax_est << "\n"
+      "Endpoint starting " << simultaneous << " simultaneous call";
   if (simultaneous > 1)
     cout << 's';
   cout << ' ';
@@ -480,15 +481,17 @@ void MyCall::OnOpenMediaStream(OpalMediaStream & stream)
 {
   (stream.IsSink() ? m_openedTransmitMedia : m_openedReceiveMedia) = PTime();
 
+#if 0
   OUTPUT(m_index, GetToken(),
          "Opened " << (stream.IsSink() ? "transmitter" : "receiver")
                    << " for " << stream.GetMediaFormat());
+#endif
 }
 
 
 MyLocalEndPoint::MyLocalEndPoint(OpalManager & mgr)
   : OpalLocalEndPoint(mgr)
-  , m_incomingMediaDir(PString::Empty())
+  , m_saveMedia(false)
 {
   SetDefaultAudioSynchronicity(e_SimulateSynchronous);
 #if OPAL_VIDEO
@@ -579,6 +582,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
       PTRACE(1, "Could not create incoming media directory \"" << m_incomingMediaDir << '"');
       return false;
     }
+    m_saveMedia = true;
   }
 
   return true;
@@ -655,21 +659,8 @@ OpalMediaFormatList MyLocalEndPoint::GetMediaFormats() const
 MyLocalConnection::MyLocalConnection(OpalCall & call, MyLocalEndPoint & ep, void * userData, unsigned options, OpalConnection::StringOptions * stringOptions)
   : OpalLocalConnection(call, ep, userData, options, stringOptions)
   , m_endpoint(ep)
-  , m_audioFile(ep.OpenAudioFile())
   , m_toneOffset(0)
-#if OPAL_VIDEO
-  , m_videoFile(ep.OpenVideoFile())
-#endif
 {
-}
-
-
-MyLocalConnection::~MyLocalConnection()
-{
-  delete m_audioFile;
-#if OPAL_VIDEO
-  delete m_videoFile;
-#endif
 }
 
 
@@ -694,11 +685,17 @@ void MyLocalConnection::AdjustMediaFormats(bool local, const OpalConnection * ot
 
 bool MyLocalConnection::OnReadMediaData(OpalMediaStream & mediaStream, void * data, PINDEX size, PINDEX & length)
 {
-  if (m_audioFile != NULL) {
+  if (!m_endpoint.m_audioFilePath.empty()) {
     // WAV or RAW file
-    if (!m_audioFile->Read(data, size))
-      return false;
-    length = m_audioFile->GetLastReadCount();
+    PAutoPtr<PFile>& audioFile = m_audioFiles[mediaStream.GetSessionID()];
+    if (!audioFile || !audioFile->Read(data, size)) {
+      audioFile.reset(m_endpoint.OpenAudioFile());
+      if (!audioFile || !audioFile->Read(data, size)) {
+        PTRACE(3, "Could not read audio data from file.");
+        return false;
+      }
+    }
+    length = audioFile->GetLastReadCount();
     return true;
   }
 
@@ -725,11 +722,11 @@ bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RT
 {
   OpalPCAPFile * pcapFile;
   if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Audio())
-    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFile);
+    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFiles[mediaStream.GetSessionID()].get());
 
 #if OPAL_VIDEO
   else {
-    PVideoFile * videoFile = dynamic_cast<PVideoFile *>(m_videoFile);
+    PVideoFile * videoFile = dynamic_cast<PVideoFile *>(m_videoFile.get());
     if (videoFile != NULL) {
       frame.SetPayloadSize(videoFile->GetFrameBytes() + sizeof(OpalVideoTranscoder::FrameHeader));
       OpalVideoTranscoder::FrameHeader * hdr = (OpalVideoTranscoder::FrameHeader *)frame.GetPayloadPtr();
@@ -739,7 +736,7 @@ bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RT
       return true;
     }
 
-    pcapFile = dynamic_cast<OpalPCAPFile *>(m_videoFile);
+    pcapFile = dynamic_cast<OpalPCAPFile *>(m_videoFile.get());
   }
 #endif
 
@@ -758,11 +755,13 @@ bool MyLocalConnection::OnWriteMediaFrame(const OpalMediaStream & mediaStream, R
   if (!mediaStream.GetMediaFormat().IsTransportable())
     return true;
 
+  if (!m_endpoint.m_saveMedia)
+    return true;
+
   if (!m_savedMedia.IsOpen()) {
-    if (m_endpoint.m_incomingMediaDir.IsEmpty())
+    if (!m_savedMedia.Open(m_endpoint.m_incomingMediaDir + GetToken() + ".pcap", PFile::WriteOnly)) {
       return true;
-    if (!m_savedMedia.Open(m_endpoint.m_incomingMediaDir + GetToken() + ".pcap", PFile::WriteOnly))
-      return true;
+    }
   }
 
   if (m_savedMedia.IsOpen())

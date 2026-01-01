@@ -36,7 +36,8 @@ PCREATE_PROCESS(MyApp);
 PString MyManager::GetArgumentSpec() const
 {
   return "[Application options:]"
-         "m-mix. Mix all incoming calls to single WAV file.\n"
+         "q-quiet. Do not display call progress output.\n"
+         "m-mix.   Mix all incoming calls to single WAV file.\n"
        + OpalManagerConsole::GetArgumentSpec();
 }
 
@@ -65,7 +66,7 @@ void MyManager::Usage(ostream & strm, const PArgList & args)
 }
 
 
-bool MyManager::Initialise(PArgList & args, bool verbose, const PString & defaultRoute)
+bool MyManager::Initialise(PArgList & args, bool, const PString & defaultRoute)
 {
   args.Parse(GetArgumentSpec());
 
@@ -75,7 +76,10 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString & defaul
     return false;
   }
 
-  if (!OpalManagerConsole::Initialise(args, verbose, defaultRoute))
+  if (args.GetOptionCount('q') > 1)
+    cout.rdbuf(NULL);
+
+  if (!OpalManagerConsole::Initialise(args, !args.HasOption('q'), defaultRoute))
     return false;
 
   PFilePath arg(args[0]);
@@ -91,6 +95,11 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString & defaul
     *LockedOutput() << "Directory for template \"" << args[0] << "\" does not exist." << endl;
     return false;
   }
+
+  *LockedOutput() << "\n"
+    "Recording directory: " << m_outputDir << "\n"
+    "Recording template : " << m_fileTemplate << "\n"
+    "Recording file type: " << m_fileType <<  endl;
 
   // Set up local endpoint, SIP/H.323 connect to this via OPAL routing engine
   MyLocalEndPoint * ep = new MyLocalEndPoint(*this);
@@ -160,7 +169,9 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
 
 bool MyLocalEndPoint::OnIncomingCall(OpalLocalConnection & connection)
 {
-  *m_manager.LockedOutput() << "Recording call from " << connection.GetRemotePartyURL() << endl;
+  *m_manager.LockedOutput()
+    << "Recording call from " << connection.GetRemotePartyURL()
+    << " active=" << GetConnectionCount() << endl;
 
   // Must call ancestor function to accept call
   return OpalLocalEndPoint::OnIncomingCall(connection);

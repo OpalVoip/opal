@@ -1115,7 +1115,8 @@ bool OpalConsoleLineEndPoint::Initialise(PArgList & args, bool verbose, const PS
   }
 
   if (!args.HasOption("lines")) {
-    output << "No PSTN lines supplied.\n";
+    if (verbose)
+      output << "No PSTN lines supplied.\n";
     return true;
   }
 
@@ -2778,7 +2779,7 @@ void OpalManagerConsole::OnClearedCall(OpalCall & call)
       output << "Did not accept incoming call from \"" << name << '"';
       break;
     case OpalConnection::EndedByNoUser :
-      output << "Could find user \"" << name << '"';
+      output << "Could not find user \"" << name << '"';
       break;
     case OpalConnection::EndedByUnreachable :
       output << '"' << name << "\" could not be reached.";
