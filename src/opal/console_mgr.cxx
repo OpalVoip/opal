@@ -1115,7 +1115,8 @@ bool OpalConsoleLineEndPoint::Initialise(PArgList & args, bool verbose, const PS
   }
 
   if (!args.HasOption("lines")) {
-    output << "No PSTN lines supplied.\n";
+    if (verbose)
+      output << "No PSTN lines supplied.\n";
     return true;
   }
 
