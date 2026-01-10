@@ -1507,7 +1507,7 @@ void SDPMediaDescription::AddMediaFormat(const OpalMediaFormat & mediaFormat)
   for (SDPMediaFormatList::iterator format = m_formats.begin(); format != m_formats.end(); ++format) {
     const OpalMediaFormat & sdpMediaFormat = format->GetMediaFormat();
     if (format->GetPayloadType() == payloadType) {
-      PTRACE_IF(2, sdpMediaFormat.GetName() != OpalRtx::GetName(sdpMediaFormat.GetMediaType()),
+      PTRACE_IF(3, sdpMediaFormat.GetName() != OpalRtx::GetName(sdpMediaFormat.GetMediaType()),
                 "Not including " << mediaFormat << " as it is has duplicate payload type " << payloadType);
       return;
     }
