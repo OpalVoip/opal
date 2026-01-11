@@ -65,11 +65,12 @@ MyManager::MyManager()
 PString MyManager::GetArgumentSpec() const
 {
   PString spec = OpalManagerConsole::GetArgumentSpec();
-  spec.Replace("r-register", "R-register");
+  spec.Replace("r-register", "-register");
   return "[Call Control:]"
          "l-listen.              Passive/listening mode.\n"
          "m-max:                 Maximum number of simultaneous calls\n"
          "r-repeat:              Repeat calls n times\n"
+         "R-rate:                Rate per second at which to start calls on start up [1]\n"
          "C-cycle.               Each simultaneous call cycles through destination list\r"
                                 "otherwise it only calls the destination for its position\r"
                                 "in the list.\n"
@@ -152,6 +153,7 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
   params.m_tmax_call.SetInterval(0, args.GetOptionString("tmaxcall", "60").AsUnsigned());
   params.m_tmin_wait.SetInterval(0, args.GetOptionString("tminwait", "10").AsUnsigned());
   params.m_tmax_wait.SetInterval(0, args.GetOptionString("tmaxwait", "30").AsUnsigned());
+  params.m_tmax_init.SetFrequency(args.GetOptionString("rate", "1").AsReal());
 
   if (params.m_tmin_call == 0 ||
       params.m_tmin_wait == 0 ||
@@ -263,8 +265,8 @@ void CallThread::Main()
 
   PRandom rand(PRandom::Number());
 
-  PTimeInterval delay = RandomRange(rand, (m_index-1)*500, (m_index+1)*500);
-  OUTPUT(m_index, PString::Empty(), "Initial delay of " << delay << " seconds");
+  PTimeInterval delay = m_params.m_tmax_init * m_index;
+  OUTPUT(m_index, PString::Empty(), "Initial delay of " << setprecision(1) << delay << " seconds");
 
   if (m_exit.Wait(delay)) {
     PTRACE(2, "Aborted thread " << m_index);
@@ -398,7 +400,7 @@ void MyCall::OnNewConnection(OpalConnection & connection)
     if (IsNetworkOriginated()) {
       OUTPUT(m_index, GetToken(), "Started \"" << GetRemoteName() << "\""
                                            " " << GetRemoteParty() <<
-                                    " active=" << m_manager.GetActiveCalls() <<
+                                    " active=" << m_manager.GetCallCount() <<
                                      " total=" << ++m_manager.m_totalCalls);
     }
   }
@@ -409,7 +411,7 @@ void MyCall::OnEstablishedCall()
 {
   OUTPUT(m_index, GetToken(), "Established \"" << GetRemoteName() << "\""
                                            " " << GetRemoteParty() <<
-                                    " active=" << m_manager.GetActiveCalls() <<
+                                    " active=" << m_manager.GetCallCount() <<
                                      " total=" << ++m_manager.m_totalEstablished);
   OpalCall::OnEstablishedCall();
 }
@@ -420,7 +422,7 @@ void MyCall::OnCleared()
   OUTPUT(m_index, GetToken(), "Cleared \"" << GetRemoteName() << "\""
                                        " " << GetRemoteParty() <<
                                 " reason=" << GetCallEndReason() <<
-                                " active=" << (m_manager.GetActiveCalls()-1) <<
+                                " active=" << (m_manager.GetCallCount()-1) <<
                                  " total=" << m_manager.m_totalEstablished);
 
   PTextFile & cdrFile = m_manager.m_cdrFile;

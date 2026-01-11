@@ -36,8 +36,9 @@ PCREATE_PROCESS(MyApp);
 PString MyManager::GetArgumentSpec() const
 {
   return "[Application options:]"
-         "q-quiet. Do not display call progress output.\n"
-         "m-mix.   Mix all incoming calls to single WAV file.\n"
+         "q-quiet.  Do not display call progress output.\n"
+         "m-mix.    Mix all incoming calls to single WAV file.\n"
+         "b-buffer: Set audio write buffering size.\n"
        + OpalManagerConsole::GetArgumentSpec();
 }
 
@@ -96,10 +97,13 @@ bool MyManager::Initialise(PArgList & args, bool, const PString & defaultRoute)
     return false;
   }
 
+  m_options.m_audioBufferSize = args.GetOptionAs("buffer", PINDEX(0));
+
   *LockedOutput() << "\n"
     "Recording directory: " << m_outputDir << "\n"
     "Recording template : " << m_fileTemplate << "\n"
-    "Recording file type: " << m_fileType <<  endl;
+    "Recording file type: " << m_fileType << "\n"
+    "Audio buffering    : " << PScaleSI(m_options.m_audioBufferSize) << 'B' << endl;
 
   // Set up local endpoint, SIP/H.323 connect to this via OPAL routing engine
   MyLocalEndPoint * ep = new MyLocalEndPoint(*this);
@@ -112,12 +116,33 @@ bool MyManager::Initialise(PArgList & args, bool, const PString & defaultRoute)
 }
 
 
+bool MyManager::OnLocalIncomingCall(OpalLocalConnection & connection)
+{
+  *LockedOutput()
+    << "Recording call from " << connection.GetRemotePartyURL()
+    << " token=" << connection.GetCall().GetToken()
+    << " active=" << GetCallCount() << endl;
+
+  return OpalManagerConsole::OnLocalIncomingCall(connection);
+}
+
 void MyManager::OnEstablishedCall(OpalCall & call)
 {
   call.StartRecording(m_outputDir, m_fileTemplate, m_fileType,  m_options);
-  OpalManager::OnEstablishedCall(call);
+  OpalManagerConsole::OnEstablishedCall(call);
 }
 
+void MyManager::OnClearedCall(OpalCall & call)
+{
+  if (!m_verbose) {
+    *LockedOutput()
+      << "Recorded  call from " << call.GetPartyA()
+      << " token=" << call.GetToken()
+      << " active=" << GetCallCount() << endl;
+  }
+
+  OpalManagerConsole::OnClearedCall(call);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -164,17 +189,6 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
   SetDeferredAnswer(false);
 
   return true;
-}
-
-
-bool MyLocalEndPoint::OnIncomingCall(OpalLocalConnection & connection)
-{
-  *m_manager.LockedOutput()
-    << "Recording call from " << connection.GetRemotePartyURL()
-    << " active=" << GetConnectionCount() << endl;
-
-  // Must call ancestor function to accept call
-  return OpalLocalEndPoint::OnIncomingCall(connection);
 }
 
 
