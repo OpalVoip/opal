@@ -158,6 +158,7 @@ PBoolean OpalResample::ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameL
     else {
       if (output.empty())
         output.Append(new RTP_DataFrame(outputBytes));
+      CopyHeader(output.front(), input);
       output.front().SetPayload(m_buffer.data(), outputBytes);
       memcpy(m_buffer.data(), m_buffer.data() + outputBytes, m_bufferLength - outputBytes);
       m_bufferLength -= outputBytes;

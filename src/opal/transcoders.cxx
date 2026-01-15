@@ -170,16 +170,18 @@ void OpalTranscoder::GetStatistics(OpalMediaStatistics & /*statistics*/) const
 #endif
 
 
-void OpalTranscoder::CopyTimestamp(RTP_DataFrame & dst, const RTP_DataFrame & src, bool inToOut) const
+void OpalTranscoder::CopyHeader(RTP_DataFrame& output, const RTP_DataFrame& input) const
 {
-  unsigned timestamp = src.GetTimestamp();
+  output.CopyHeader(input);
+
+  // If clock rates different, adjust timestamp accordingly
   if (m_inClockRate != m_outClockRate) {
-    if (inToOut)
-      timestamp = (unsigned)((PUInt64)timestamp*m_outClockRate/m_inClockRate);
-    else
-      timestamp = (unsigned)((PUInt64)timestamp*m_inClockRate/m_outClockRate);
+    RTP_Timestamp timestamp = input.GetTimestamp();
+    RTP_Timestamp newTimestamp = (RTP_Timestamp)((uint64_t)timestamp * m_inClockRate / m_outClockRate);
+    PTRACE(6, "Adjusting timestamp " << timestamp << " (" << m_inClockRate << ")"
+           " to " << newTimestamp << " (" << m_outClockRate << ')');
+    output.SetTimestamp(newTimestamp);
   }
-  dst.SetTimestamp(timestamp);
 }
 
 
@@ -197,10 +199,7 @@ PBoolean OpalTranscoder::ConvertFrames(const RTP_DataFrame & input, RTP_DataFram
 
   RTP_DataFrame & outframe = output.front();
   outframe.SetPayloadSize(0);
-  outframe.CopyHeader(input);
-
-  // set the output timestamp and marker bit
-  CopyTimestamp(outframe, input, true);
+  CopyHeader(outframe, input);
 
   // set the output payload type directly from the output media format
   // and the input payload directly from the input media format

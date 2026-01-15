@@ -1048,9 +1048,6 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
     if (m_secondaryCodec == NULL) {
       if (!m_stream->WritePacket(*interFrame))
         return false;
-      if (m_primaryCodec == NULL)
-        return true;
-      m_primaryCodec->CopyTimestamp(sourceFrame, *interFrame, false);
       continue;
     }
 
@@ -1065,7 +1062,6 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
         return false;
       if (m_secondaryCodec == NULL)
         return true;
-      m_secondaryCodec->CopyTimestamp(sourceFrame, *finalFrame, false);
     }
   }
 
