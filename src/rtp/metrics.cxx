@@ -718,7 +718,7 @@ void RTCP_XR_Metrics::InsertMetricsReport(RTP_ControlFrame & report,
   
   report.EndPacket();
   
-  PTRACE(3, "RTP", session << "SentExtendedReport:"
+  PTRACE(4, "RTP", session << "SentExtendedReport:"
             " ssrc=" << RTP_TRACE_SRC(xr.ssrc)
          << " loss_rate=" << (unsigned)xr.loss_rate
          << " discard_rate=" << (unsigned)xr.discard_rate

@@ -104,7 +104,8 @@ bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame 
     return false;
 
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of " << it->second.GetMediaType() << " to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of " << it->second.GetMediaType() << " to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_audioLogThrottle);
 
   if (m_muted.load())
     return true;
@@ -124,7 +125,8 @@ bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame 
 bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of audio to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of audio to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_audioLogThrottle);
   return m_muted.load() || InternalQueueAudio(strmId, rtp);
 }
 
@@ -133,7 +135,8 @@ bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame &
 bool OpalRecordManager::QueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of video to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of video to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_videoLogThrottle);
   return m_muted.load() || InternalQueueVideo(strmId, rtp);
 }
 #endif
@@ -581,6 +584,7 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
   if (m_options.m_audioBufferSize == 0) {
     if (!m_file->WriteAudio(m_audioTrack, frame.GetPayloadPtr(), frame.GetPayloadSize(), written))
       return false;
+    PTRACE(5, "Written " << written << " audio samples");
   }
   else {
     if (m_buffer.capacity() < m_options.m_audioBufferSize)
@@ -594,10 +598,10 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
     if (!m_file->WriteAudio(m_audioTrack, m_buffer.data(), m_buffer.size(), written))
       return false;
 
+    PTRACE(4, "Written " << written << " audio samples");
     m_buffer.clear();
   }
 
-  PTRACE(6, "Written " << written << " audio samples");
   return true;
 }
 

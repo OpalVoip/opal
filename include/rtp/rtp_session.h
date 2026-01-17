@@ -1033,7 +1033,7 @@ class OpalRTPSession : public OpalMediaSession
 
     ApplDefinedNotifierList m_applDefinedNotifiers;
 
-    PTRACE_THROTTLE(m_throttleTxReport,3,60000,5);
+    PTRACE_THROTTLE(m_throttleTxReport,3,60000,4);
     PTRACE_THROTTLE(m_throttleRxEmptyRR,3,60000);
     PTRACE_THROTTLE(m_throttleRxSDES,4,60000);
     PTRACE_THROTTLE(m_throttleRxBundleId,5,1000);
