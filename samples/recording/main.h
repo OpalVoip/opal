@@ -51,18 +51,6 @@ class MyLocalEndPoint : public OpalLocalEndPoint
       */
     virtual OpalMediaFormatList GetMediaFormats() const override;
 
-    /**Call back to indicate that there is an incoming call.
-       Note this function should not block or it will impede the operation of
-       the stack.
-
-       The default implementation returns true;
-
-       @return false is returned the call is aborted with status of EndedByLocalBusy.
-      */
-    virtual bool OnIncomingCall(
-      OpalLocalConnection & connection ///<  Connection having event
-    ) override;
-
     /**Call back when opening a media stream.
        This function is called when a connection has created a new media
        stream according to the logic of its underlying protocol.
@@ -126,6 +114,21 @@ class MyManager : public OpalManagerConsole
       const PString & defaultRoute = EXTERNAL_SCHEME":"
     ) override;
 
+    /**A call back function whenever a call is being terminated locally.
+       An application may use this function to auto-answer an incoming call
+       from the a network. Or indicate to a user interface that an incoming
+       call has to be answered asynchronously.
+
+       This called from the OpalLocalEndPoint::OnIncomingCall() function.
+
+       The default behaviour does nothing and returns true.
+
+        @return false to refuse the call.
+      */
+    virtual bool OnLocalIncomingCall(
+      OpalLocalConnection & connection ///< Connection for incoming call
+    );
+
     /**A call back function whenever a call is completed.
        In telephony terminology a completed call is one where there is an
        established link between two parties.
@@ -138,7 +141,24 @@ class MyManager : public OpalManagerConsole
       OpalCall & call   ///<  Call that was completed
     ) override;
 
-  protected:
+    /**A call back function whenever a call is cleared.
+       A call is cleared whenever there is no longer any connections attached
+       to it. This function is called just before the call is deleted.
+       However, it may be used to display information on the call after
+       completion, eg the call parties and duration.
+
+       Note that there is not a one to one relationship with the
+       OnEstablishedCall() function. This function may be called without that
+       function being called. For example if MakeConnection() was used but
+       the call never completed.
+
+       The default behaviour removes the call from the activeCalls dictionary.
+      */
+    virtual void OnClearedCall(
+      OpalCall & call   ///<  Connection that was established
+    ) override;
+
+protected:
     PDirectory m_outputDir;
     PString    m_fileTemplate;
     PString    m_fileType;

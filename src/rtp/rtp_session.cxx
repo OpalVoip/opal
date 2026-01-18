@@ -2431,7 +2431,7 @@ bool OpalRTPSession::SyncSource::IsStaleReceiver(const PTime & now) const
 void OpalRTPSession::TimedSendReport(PTimer&, P_INT_PTR)
 {
   PTRACE_CONTEXT_ID_PUSH_THREAD(*this);
-  PTRACE(5, *this << "sending periodic report");
+  PTRACE(4, *this << "sending periodic report");
   SendReport(0, false);
 }
 
@@ -2497,7 +2497,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ss
       break;
   }
 
-  PTRACE(4, *this << "sent " << frames.size() << ' ' << (force ? "forced" : "periodic") << " reports: status=" << status);
+  PTRACE(3, *this << "sent " << frames.size() << ' ' << (force ? "forced" : "periodic") << " reports: status=" << status);
 
   if (force && !frames.empty() && !m_reportTimer.IsRunning())
     m_reportTimer.RunContinuous(m_reportTimer.GetResetTime());

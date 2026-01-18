@@ -40,6 +40,7 @@ struct CallParams
   PTimeInterval m_tmax_call;
   PTimeInterval m_tmin_wait;
   PTimeInterval m_tmax_wait;
+  PTimeInterval m_tmax_init;
 };
 
 
@@ -165,8 +166,6 @@ class MyManager : public OpalManagerConsole
     virtual OpalCall * CreateCall(void * userData) override;
 
     virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream) override;
-
-    PINDEX GetActiveCalls() const { return m_activeCalls.GetSize(); }
 
     PTextFile      m_cdrFile;
     unsigned       m_totalCalls;

@@ -104,7 +104,8 @@ bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame 
     return false;
 
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of " << it->second.GetMediaType() << " to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of " << it->second.GetMediaType() << " to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_audioLogThrottle);
 
   if (m_muted.load())
     return true;
@@ -124,7 +125,8 @@ bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame 
 bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of audio to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of audio to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_audioLogThrottle);
   return m_muted.load() || InternalQueueAudio(strmId, rtp);
 }
 
@@ -133,7 +135,8 @@ bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame &
 bool OpalRecordManager::QueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
 {
   PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of video to " << strmId << (m_muted.load() ? " (muted)" : ""));
+         " of video to " << strmId << (m_muted.load() ? " (muted)" : "")
+         << m_videoLogThrottle);
   return m_muted.load() || InternalQueueVideo(strmId, rtp);
 }
 #endif
@@ -195,10 +198,11 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     };
 
   protected:
-    mutable PDECLARE_MUTEX(m_mutex);
+    mutable PDECLARE_INSTRUMENTED_MUTEX(m_mutex, MediaFileRecorder, 500, 100);
     PFilePath m_tempFile;
     PFilePath m_finalFile;
     PSmartPtr<PMediaFile> m_file;
+    std::vector<uint8_t> m_buffer;
 
     // Audio
     virtual bool InternalQueueAudio(const PString & strmId, const RTP_DataFrame & rtp) override;
@@ -401,8 +405,22 @@ bool OpalMediaFileRecordManager::Close()
   PSmartPtr<PMediaFile> file = m_file;
   m_file = NULL;
 
-  if (file && file->Close() && !PFile::Move(m_tempFile, m_finalFile, true)) {
-    PTRACE(2, "Could not rename \"" << m_tempFile << "\" to \"" << m_finalFile << '"');
+  if (file) {
+    if (!m_buffer.empty()) {
+      PINDEX written;
+      file->WriteAudio(m_audioTrack, m_buffer.data(), m_buffer.size(), written);
+      m_buffer.clear();
+    }
+
+    if (!file->Close()) {
+      PTRACE(2, "Could not close \"" << m_tempFile << '"');
+    }
+    else if (!PFile::Move(m_tempFile, m_finalFile, true)) {
+      PTRACE(2, "Could not rename \"" << m_tempFile << "\" to \"" << m_finalFile << '"');
+    }
+    else {
+      PTRACE(3, "Recording completed to \"" << m_finalFile << '"');
+    }
   }
 
   m_mutex.Signal();
@@ -563,10 +581,27 @@ bool OpalMediaFileRecordManager::OnMixedAudio(const RTP_DataFrame & frame)
     return true; // No audio to mix is not an error
 
   PINDEX written;
-  if (!m_file->WriteAudio(m_audioTrack, frame.GetPayloadPtr(), frame.GetPayloadSize(), written))
-    return false;
+  if (m_options.m_audioBufferSize == 0) {
+    if (!m_file->WriteAudio(m_audioTrack, frame.GetPayloadPtr(), frame.GetPayloadSize(), written))
+      return false;
+    PTRACE(5, "Written " << written << " audio samples");
+  }
+  else {
+    if (m_buffer.capacity() < m_options.m_audioBufferSize)
+      m_buffer.reserve(m_options.m_audioBufferSize);
 
-  PTRACE(6, "Written " << written << " audio samples");
+    const uint8_t * ptr = frame.GetPayloadPtr();
+    m_buffer.insert(m_buffer.end(), ptr, ptr + frame.GetPayloadSize());
+    if (m_buffer.size() < m_options.m_audioBufferSize)
+      return true;
+
+    if (!m_file->WriteAudio(m_audioTrack, m_buffer.data(), m_buffer.size(), written))
+      return false;
+
+    PTRACE(4, "Written " << written << " audio samples");
+    m_buffer.clear();
+  }
+
   return true;
 }
 
