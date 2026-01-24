@@ -744,7 +744,8 @@ PBoolean OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInter
     }
 
     ++m_consecutiveEmpty;
-    PTRACE_IF(2, m_consecutiveEmpty == 100, "Always empty    " COMMON_TRACE_INFO);
+    PTRACE_IF(2, m_consecutiveEmpty == 100 && m_bufferEmptiedTime != 0,
+              "Always empty    " COMMON_TRACE_INFO << ", emptied=" << m_bufferEmptiedTime);
     PTRACE_J(m_consecutiveEmpty < 100 && m_synchronisationState == e_SynchronisationDone ? 4U : 100U,
            "Buffer is empty " COMMON_TRACE_INFO);
     return true;

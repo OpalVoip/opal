@@ -3440,7 +3440,7 @@ void SIPConnection::OnInviteResponseTimeout()
   if (m_responsePackets.empty())
     return;
 
-  PTRACE(1, "Failed to receive "
+  PTRACE(2, "Failed to receive "
          << (m_responsePackets.front().GetStatusCode() < 200 ? "PRACK" : "ACK")
          << " for " << *this);
 
@@ -3491,7 +3491,7 @@ void SIPConnection::OnReceivedPRACK(SIP_PDU & request)
     m_responseRetryCount = 0;
     m_responseRetryTimer = GetEndPoint().GetRetryTimeoutMin();
     m_responseFailTimer = GetEndPoint().GetAckTimeout();
-    // 200 and up has alread been sent, is in queue for timeout retry reasons only.
+    // 200 and up has already been sent, is in queue for timeout retry reasons only.
     if (m_responsePackets.front().GetStatusCode() < 200)
       m_responsePackets.front().Send();
   }
