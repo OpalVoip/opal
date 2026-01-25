@@ -854,9 +854,10 @@ bool OpalCall::SelectMediaFormats(const OpalMediaType & mediaType,
     return true;
   }
 
-  PTRACE(2, "SelectMediaFormats could not find compatible " << mediaType << " format:\n"
-            "  source formats=" << setfill(',') << srcFormats << "\n"
-            "   sink  formats=" << dstFormats << setfill(' '));
+  PTRACE(mediaType== OpalMediaType::Audio() ? 2 : 3,
+         "SelectMediaFormats could not find compatible " << mediaType << " format:\n"
+         "  source formats=" << setfill(',') << srcFormats << "\n"
+         "   sink  formats=" << dstFormats << setfill(' '));
   return false;
 }
 

@@ -681,13 +681,15 @@ PSafePtr<OpalCall> OpalManager::SetUpCall(const PString & partyA,
                                              unsigned int options,
                           OpalConnection::StringOptions * stringOptions)
 {
-  PTRACE(3, "Set up call from " << partyA << " to " << partyB);
-
   OpalCall * call = InternalCreateCall(userData);
-  if (call == NULL)
+  if (call == NULL) {
+    PTRACE(1, "Could not create call!");
     return NULL;
+  }
 
   PTRACE_CONTEXT_ID_PUSH_THREAD(call);
+
+  PTRACE(3, "Setting up " << *call << " from \"" << partyA << "\" to \"" << partyB << '"');
 
   call->SetPartyB(partyB.Trim());
 
@@ -734,12 +736,22 @@ void OpalManager::OnEstablishedCall(OpalCall & call)
 {
   if (m_script != NULL)
     m_script->Call("OnEstablished", "s", (const char *)call.GetToken());
-}
 #else
-void OpalManager::OnEstablishedCall(OpalCall & /*call*/)
+void OpalManager::OnEstablishedCall(OpalCall & PTRACE_PARAM(call))
 {
-}
 #endif
+#if PTRACING
+  if (PTrace::CanTrace(2)) {
+    PSafePtr<OpalConnection> aParty = call.GetConnection(0);
+    PSafePtr<OpalConnection> bParty = call.GetConnection(1);
+    PTRACE_BEGIN(2) << "Established " << call << '@' << &call << "\n"
+      "   From: " << aParty->GetToken() << '@' << aParty << ' ' << call.GetPartyA() << "\n"
+      "     To: " << bParty->GetToken() << '@' << bParty << ' ' << call.GetPartyB() << "\n"
+      "  Delay: " << (call.GetEstablishedTime() - call.GetStartTime())
+      << PTrace::End;
+  }
+#endif
+}
 
 
 PBoolean OpalManager::IsCallEstablished(const PString & token)
@@ -837,9 +849,17 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
 
 void OpalManager::OnClearedCall(OpalCall & PTRACE_PARAM(call))
 {
-  PTRACE(3, "OnClearedCall " << call << '\n'
-         << setw(20) << "Call end reason" << ": " << call.GetCallEndReason() << '\n'
-         << setprecision(2) << PTrace::LogObject(call.GetFinalStatistics()));
+#if PTRACING
+  if (PTrace::CanTrace(2)) {
+    std::ostream & log = PTRACE_BEGIN(2);
+    log << "Cleared " << call << '@' << &call << ' ' << call.GetCallEndReason();
+    if (PTrace::CanTrace(3))
+      log << '\n' << setprecision(4) << PTrace::LogObject(call.GetFinalStatistics());
+    else
+      log << ' ' << setprecision(1) << call.GetFinalStatistics().m_duration;
+    log << PTrace::End;
+  }
+#endif // PTRACING
 }
 
 
@@ -850,7 +870,9 @@ OpalCall * OpalManager::InternalCreateCall(void * userData)
     return NULL;
   }
 
-  return CreateCall(userData);
+  OpalCall * call = CreateCall(userData);
+  PTRACE_IF(2, call != NULL, "Created " << *call << '@' << call);
+  return call;
 }
 
 
