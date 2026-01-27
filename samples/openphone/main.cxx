@@ -584,13 +584,13 @@ class TextCtrlChannel : public PChannel
       return true;
     }
 
-    static PThreadLocalStorage<TextCtrlChannel> sm_instances;
+    static thread_local TextCtrlChannel sm_instances;
 };
 
 wxFrame * TextCtrlChannel::sm_frame;
-PThreadLocalStorage<TextCtrlChannel> TextCtrlChannel::sm_instances;
+thread_local TextCtrlChannel TextCtrlChannel::sm_instances;
 
-#define LogWindow *TextCtrlChannel::sm_instances
+#define LogWindow TextCtrlChannel::sm_instances
 
 
 ///////////////////////////////////////////////////////////////////////////////
