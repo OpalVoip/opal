@@ -175,7 +175,7 @@ void FFMPEGCodec::LogAllCodecs(const AVMediaType type)
     if (type == codec->type) {
       PTRACE(1, m_prefix, codec->id << " \"" << codec->name << "\" \"" << codec->long_name << '"');
       if (codec->profiles) {
-        for (const AVProfile* profile = codec->profiles; profile->profile != FF_PROFILE_UNKNOWN && profile->name; ++profile)
+        for (const AVProfile* profile = codec->profiles; profile->profile != 0 && profile->name; ++profile)
           PTRACE(2, m_prefix, "  Profiles: " << profile->profile << "\" \"" << profile->name << '"');
       }
     }
@@ -367,7 +367,11 @@ void FFMPEGCodec::CloseCodec()
   if (m_open) {
     PTRACE(4, m_prefix, "Closing codec \"" << m_codec->long_name << '"');
     g_avcodec_mutex.Wait();
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
     avcodec_close(m_context);
+#else
+    avcodec_free_context(&m_context);
+#endif
     g_avcodec_mutex.Signal();
     m_open = false;
   }
@@ -577,12 +581,18 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   m_picture->pts = AV_NOPTS_VALUE;
 
   m_picture->pict_type = forceIFrame ? AV_PICTURE_TYPE_I : AV_PICTURE_TYPE_NONE;
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 0, 0)
   m_picture->key_frame = 0;
+#endif
 
   if (!EncodeVideoFrame())
     return false;
 
-  if (m_picture->key_frame || m_fullFrame->IsIntraFrame())
+  if (m_fullFrame->IsIntraFrame()
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 0, 0)
+      || m_picture->key_frame
+#endif
+  )
     flags |= PluginCodec_ReturnCoderIFrame;
 
   m_fullFrame->GetPacket(out, flags);
