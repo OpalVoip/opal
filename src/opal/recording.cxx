@@ -472,7 +472,11 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
 
   if (trackId >= tracks.size()) {
     trackId = tracks.size();
-    tracks.push_back(PMediaFile::TrackInfo(mediaType, outputFormat));
+    PMediaFile::TrackInfo info;
+    if (m_file->GetDefaultTrackInfo(mediaType, info))
+      tracks.push_back(info);
+    else
+      tracks.push_back(PMediaFile::TrackInfo(mediaType, outputFormat));
   }
 
   PMediaFile::TrackInfo & track = tracks[trackId];
@@ -501,6 +505,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
   {
     track.m_channels = m_options.m_stereo ? 2 : 1;
     track.m_size = track.m_channels * sizeof(short);
+    track.m_rate = m_options.m_audioSampleRate;
 
     if (!m_file->SetTracks(tracks)) {
       PTRACE(2, "Could not set " << tracks.size() << " tracks with audio at " << trackId);
