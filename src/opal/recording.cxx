@@ -304,15 +304,19 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
 
   if (m_options.m_audioFormat.IsEmpty()) {
     PMediaFile::TrackInfo info;
-    if (m_file->GetDefaultTrackInfo(PMediaFile::Audio(), info))
+    if (m_file->GetDefaultTrackInfo(PMediaFile::Audio(), info)) {
       m_options.m_audioFormat = info.m_format;
+      m_options.m_audioOptions.Merge(info.m_options, PStringOptions::e_MergeIgnore);
+    }
   }
 
 #if OPAL_VIDEO
   if (m_options.m_videoFormat.IsEmpty()) {
     PMediaFile::TrackInfo info;
-    if (m_file->GetDefaultTrackInfo(PMediaFile::Video(), info))
+    if (m_file->GetDefaultTrackInfo(PMediaFile::Video(), info)) {
       m_options.m_videoFormat = info.m_format;
+      m_options.m_videoOptions.Merge(info.m_options, PStringOptions::e_MergeIgnore);
+    }
   }
 
   OpalVideoMixer::Styles style;
@@ -486,6 +490,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     track.m_width = m_options.m_videoWidth;
     track.m_height = m_options.m_videoHeight;
     track.m_rate = m_options.m_videoRate;
+    track.m_options.Merge(m_options.m_videoOptions, PStringOptions::e_MergeOverwrite);
 
     if (!m_file->SetTracks(tracks)) {
       PTRACE(2, "Could not set " << tracks.size() << " tracks with video at " << trackId);
@@ -506,6 +511,7 @@ bool OpalMediaFileRecordManager::OpenStream(const PString & strmId, const OpalMe
     track.m_channels = m_options.m_stereo ? 2 : 1;
     track.m_size = track.m_channels * sizeof(short);
     track.m_rate = m_options.m_audioSampleRate;
+    track.m_options.Merge(m_options.m_audioOptions, PStringOptions::e_MergeOverwrite);
 
     if (!m_file->SetTracks(tracks)) {
       PTRACE(2, "Could not set " << tracks.size() << " tracks with audio at " << trackId);

@@ -93,6 +93,8 @@ class OpalRecordManager : public PObject
       PINDEX    m_audioBufferSize; /**< Size of buffer before writing to output. Note, this
                                         will always be rounded up to whole packet sizes. */
       unsigned  m_audioSampleRate; /**< Sample rate for audio, default is 8000Hz. */
+      PStringOptions m_audioOptions; /**< File & codec specific options for audio. For
+                                          example BitRate=32000 */
 
 #if OPAL_VIDEO
       VideoMode m_videoMixing;  ///< Mode for how incoming video is mixed.
@@ -107,6 +109,8 @@ class OpalRecordManager : public PObject
       unsigned  m_videoHeight;  ///< Video mixer buffer heigth. Inputs are scaled accordingly.
       unsigned  m_videoRate;    /**< Video mixer output frame rate. This is independent of
                                      the input frame rates. */
+      PStringOptions m_videoOptions; /**< File & codec specific options for video. For
+                                          example BitRate=256000 */
 #endif
       bool      m_pushThreads;  ///< Indicate push threads are to be started an operate in background
 
