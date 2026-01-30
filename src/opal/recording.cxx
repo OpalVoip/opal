@@ -218,7 +218,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
         bool stereo,
         unsigned sampleRate,
         bool pushThread
-      ) : OpalAudioMixer(stereo, sampleRate, pushThread)
+      ) : OpalAudioMixer(stereo, sampleRate, pushThread, 60) // 60ms is good for 99% of codecs
         , m_manager(manager)
       { }
       ~AudioMixer() { StopPushThread(); }
