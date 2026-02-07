@@ -102,9 +102,14 @@ OpalDTLSMediaTransport::DTLSChannel::DTLSChannel(OpalDTLSMediaTransport & transp
   , m_lastResponseLength(0)
 {
   SetMTU(mtu);
-  SetVerifyMode(PSSLContext::VerifyPeerMandatory,
-                PCREATE_NOTIFIER2_EXT(m_transport, OpalDTLSMediaTransport, OnVerify, PSSLChannel::VerifyInfo &));
+  SetVerifyMode(PSSLContext::VerifyPeerMandatory);
   Open(channel);
+}
+
+
+void OpalDTLSMediaTransport::DTLSChannel::OnVerify(VerifyInfo& info)
+{
+  info.m_ok = m_transport.OnVerify(info.m_peerCertificate);
 }
 
 
@@ -456,11 +461,15 @@ bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
 }
 
 
-void OpalDTLSMediaTransport::OnVerify(PSSLChannel &, PSSLChannel::VerifyInfo & info)
+bool OpalDTLSMediaTransport::OnVerify(const PSSLCertificate& peerCertificate) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return);
-  info.m_ok = m_remoteFingerprint.MatchForCertificate(info.m_peerCertificate);
-  PTRACE_IF(2, !info.m_ok, "Invalid remote certificate.");
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+
+  if (m_remoteFingerprint.MatchForCertificate(peerCertificate))
+      return true;
+
+  PTRACE(2, "Invalid remote certificate.");
+  return false;
 }
 
 

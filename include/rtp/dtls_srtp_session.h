@@ -81,6 +81,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
       public:
         DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel, unsigned mtu);
         ~DTLSChannel() { Close(); }
+        virtual void OnVerify(VerifyInfo& info) override;
         virtual bool Read(void * buf, PINDEX len) override;
         virtual int BioRead(char * buf, int len) override;
         virtual int BioWrite(const char * buf, int len) override;
@@ -97,7 +98,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     friend class DTLSChannel;
 
     virtual bool PerformHandshake(DTLSChannel & channel);
-    PDECLARE_SSLVerifyNotifier(OpalDTLSMediaTransport, OnVerify);
+    bool OnVerify(const PSSLCertificate& peerCertificate) const;
 
     atomic<OpalMediaSession::SetUpMode> m_setupMode;
     PTimeInterval       m_handshakeTimeout;
