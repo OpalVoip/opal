@@ -664,7 +664,7 @@ class OpalTCPMediaTransport : public OpalMediaTransport
     OpalTCPMediaTransport(OpalConnection & connection, const PString & name);
 
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
-    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, PINDEX = e_Media);
+    virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, SubChannels subchannel = e_Media) override;
     virtual bool Write(const void * data, PINDEX length, SubChannels = e_Media, const PIPSocketAddressAndPort * = NULL, int * = NULL);
 };
 
