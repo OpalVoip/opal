@@ -1166,18 +1166,18 @@ bool OpalTCPMediaTransport::Open(OpalMediaSession &, PINDEX, const PString & loc
 }
 
 
-bool OpalTCPMediaTransport::SetRemoteAddress(const OpalTransportAddress & remoteAddress, PINDEX)
+bool OpalTCPMediaTransport::SetRemoteAddress(const OpalTransportAddress & remoteAddress, OpalMediaTransportChannelTypes::SubChannels channel)
 {
   PIPSocketAddressAndPort ap;
   if (!remoteAddress.GetIpAndPort(ap) || !ap.IsValid() || ap.GetAddress().IsAny())
     return false;
 
-  PTCPSocket & socket = dynamic_cast<PTCPSocket &>(*m_subchannels[0].m_channel);
+  PTCPSocket & socket = dynamic_cast<PTCPSocket &>(*m_subchannels[channel].m_channel);
   socket.SetPort(ap.GetPort());
   if (!socket.Connect(ap.GetAddress()))
     return false;
 
-  m_subchannels[0].m_remoteAddressSource = e_RemoteAddressFromSignalling;
+  m_subchannels[channel].m_remoteAddressSource = e_RemoteAddressFromSignalling;
   m_established = true;
   return true;
 }
