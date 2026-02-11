@@ -176,11 +176,11 @@ void OpalTranscoder::CopyHeader(RTP_DataFrame& output, const RTP_DataFrame& inpu
 
   // If clock rates different, adjust timestamp accordingly
   if (m_inClockRate != m_outClockRate) {
-    RTP_Timestamp timestamp = input.GetTimestamp();
-    RTP_Timestamp newTimestamp = (RTP_Timestamp)((uint64_t)timestamp * m_inClockRate / m_outClockRate);
-    PTRACE(6, "Adjusting timestamp " << timestamp << " (" << m_inClockRate << ")"
-           " to " << newTimestamp << " (" << m_outClockRate << ')');
-    output.SetTimestamp(newTimestamp);
+    RTP_Timestamp inTimestamp = input.GetTimestamp();
+    RTP_Timestamp outTimestamp = (RTP_Timestamp)((uint64_t)inTimestamp * m_outClockRate / m_inClockRate);
+    PTRACE(6, "Adjusting timestamp " << inTimestamp << " (" << m_inClockRate << ")"
+           " to " << outTimestamp << " (" << m_outClockRate << ')');
+    output.SetTimestamp(outTimestamp);
   }
 }
 
