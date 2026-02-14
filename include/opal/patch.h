@@ -132,9 +132,9 @@ class OpalMediaPatch : public PSafeObject
       */
     OpalMediaStreamPtr GetSink(PINDEX i = 0) const;
 
-    /**Get the media format for a sink stream
+    /**Get the raw media format for the patch, if present.
       */
-    OpalMediaFormat GetSinkFormat(PINDEX i = 0) const;
+    OpalMediaFormat GetRawFormat() const;
 
     /**Add a filter to the media pipeline.
        Use PDECLARE_NOTIFIER(RTP_DataFrame, YourClass, YourFunction) for the
@@ -222,11 +222,6 @@ class OpalMediaPatch : public PSafeObject
     );
 
     bool IsBypassed() const { return m_bypassToPatch != NULL || m_bypassFromPatch != NULL; }
-
-    /**Get the transcoder used within a sink stream
-      */
-    virtual OpalTranscoder * GetAndLockSinkTranscoder(PINDEX i = 0) const;
-    virtual void UnLockSinkTranscoder() const;
 
     virtual bool ResetTranscoders();
     bool EnableJitterBuffer(bool enab = true);

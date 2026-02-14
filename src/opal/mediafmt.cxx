@@ -1098,7 +1098,8 @@ bool OpalMediaFormat::Update(const OpalMediaFormat & mediaFormat)
 
   if (*this != mediaFormat) {
     PTRACE(4, "Update (merge) of " << *this << " from " << mediaFormat);
-    SetPayloadType(mediaFormat.GetPayloadType()); // Does MakeUnique()
+    if (IsTransportable())
+        SetPayloadType(mediaFormat.GetPayloadType()); // Does MakeUnique()
     return m_info->OpalMediaFormatInternal::Merge(*mediaFormat.m_info);
   }
 

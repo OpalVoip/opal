@@ -1108,17 +1108,19 @@ void OpalConnection::OnStartRecording(OpalMediaPatch * patch)
   if (patch == NULL)
     return;
 
-  if (!m_ownerCall.OnStartRecording(MakeRecordingKey(*patch), patch->GetSource().GetMediaFormat())) {
-    PTRACE(4, "No record filter added on connection " << *this << ", patch " << *patch);
-    return;
-  }
-
-  patch->AddFilter(m_recordAudioNotifier, OpalPCM16);
+  OpalMediaFormat mediaFormat = patch->GetRawFormat();
+  if (m_ownerCall.OnStartRecording(MakeRecordingKey(*patch), mediaFormat)) {
 #if OPAL_VIDEO
-  patch->AddFilter(m_recordVideoNotifier, OPAL_YUV420P);
+    if (mediaFormat.GetMediaType() == OpalMediaType::Video())
+      patch->AddFilter(m_recordVideoNotifier, mediaFormat);
+    else
 #endif
-
-  PTRACE(4, "Added record filter on connection " << *this << ", patch " << *patch);
+      patch->AddFilter(m_recordAudioNotifier, mediaFormat);
+    PTRACE(4, "Added recording filter of " << mediaFormat << " on connection " << *this << ", patch " << *patch);
+  }
+  else {
+    PTRACE(2, "Could not start recording of " << mediaFormat << " on connection " << *this << ", patch " << *patch);
+  }
 }
 
 
@@ -1129,12 +1131,15 @@ void OpalConnection::OnStopRecording(OpalMediaPatch * patch)
 
   m_ownerCall.OnStopRecording(MakeRecordingKey(*patch));
 
-  patch->RemoveFilter(m_recordAudioNotifier, OpalPCM16);
+  OpalMediaFormat mediaFormat = patch->GetRawFormat();
 #if OPAL_VIDEO
-  patch->RemoveFilter(m_recordVideoNotifier, OPAL_YUV420P);
+  if (mediaFormat.GetMediaType() == OpalMediaType::Video())
+      patch->RemoveFilter(m_recordVideoNotifier, mediaFormat);
+  else
 #endif
+      patch->RemoveFilter(m_recordAudioNotifier, mediaFormat);
 
-  PTRACE(4, "Removed record filter on " << *patch);
+  PTRACE(4, "Removed record filter of " << mediaFormat << " on " << *patch);
 }
 
 #endif

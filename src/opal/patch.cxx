@@ -415,46 +415,34 @@ OpalMediaStreamPtr OpalMediaPatch::GetSink(PINDEX i) const
 }
 
 
-OpalMediaFormat OpalMediaPatch::GetSinkFormat(PINDEX i) const
+OpalMediaFormat OpalMediaPatch::GetRawFormat() const
 {
-  OpalMediaFormat fmt;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalMediaFormat());
 
-  OpalTranscoder * xcoder = GetAndLockSinkTranscoder(i);
-  if (xcoder != NULL) {
-    fmt = xcoder->GetOutputFormat();
-    UnLockSinkTranscoder();
+  if (m_sinks.IsEmpty())
+    return OpalMediaFormat();
+
+  Sink & sink = m_sinks.front();
+  if (sink.m_secondaryCodec) {
+    if (!sink.m_secondaryCodec->GetInputFormat().IsTransportable())
+      return sink.m_secondaryCodec->GetInputFormat();
+    if (!sink.m_secondaryCodec->GetOutputFormat().IsTransportable())
+      return sink.m_secondaryCodec->GetOutputFormat();
   }
 
-  return fmt;
-}
-
-
-OpalTranscoder * OpalMediaPatch::GetAndLockSinkTranscoder(PINDEX i) const
-{
-  if (!LockReadOnly(P_DEBUG_LOCATION))
-    return NULL;
-
-  if (i >= m_sinks.GetSize()) {
-    UnlockReadOnly(P_DEBUG_LOCATION);
-    return NULL;
+  if (sink.m_primaryCodec) {
+    if (!sink.m_primaryCodec->GetInputFormat().IsTransportable())
+      return sink.m_primaryCodec->GetInputFormat();
+    if (!sink.m_primaryCodec->GetOutputFormat().IsTransportable())
+      return sink.m_primaryCodec->GetOutputFormat();
   }
 
-  Sink & sink = m_sinks[i];
-  if (sink.m_secondaryCodec != NULL) 
-    return sink.m_secondaryCodec;
+  if (!m_source.GetMediaFormat().IsTransportable())
+    return m_source.GetMediaFormat();
+  if (!sink.m_stream->GetMediaFormat().IsTransportable())
+    return sink.m_stream->GetMediaFormat();
 
-  if (sink.m_primaryCodec != NULL)
-    return sink.m_primaryCodec;
-
-  UnlockReadOnly(P_DEBUG_LOCATION);
-
-  return NULL;
-}
-
-
-void OpalMediaPatch::UnLockSinkTranscoder() const
-{
-  UnlockReadOnly(P_DEBUG_LOCATION);
+  return OpalMediaFormat();
 }
 
 
