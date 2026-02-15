@@ -225,7 +225,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedAudio(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
-    std::atomic<std::shared_ptr<AudioMixer>> m_audioMixer;
+    PAtomicSharedPtr<AudioMixer> m_audioMixer;
     unsigned m_audioTrack;
 
 #if OPAL_VIDEO
@@ -252,7 +252,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
       virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedVideo(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
-    std::atomic<std::shared_ptr<VideoMixer>> m_videoMixer;
+    PAtomicSharedPtr<VideoMixer> m_videoMixer;
     unsigned m_videoTrack;
 #endif
 };
