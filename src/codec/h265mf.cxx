@@ -34,73 +34,69 @@
 
 #include "h265mf_inc.cxx"
 
-#include <opal/mediafmt.h>
+#include <codec/h265mf.h>
 
 
-class OpalH265FormatInternal : public OpalVideoFormatInternal
+OpalH265FormatInternal::OpalH265FormatInternal(const char * name)
+  : OpalVideoFormatInternal(name, RTP_DataFrame::DynamicBase, H265EncodingName,
+                            PVideoFrameInfo::MaxWidth, PVideoFrameInfo::MaxHeight, 30, 16000000)
 {
-public:
-  OpalH265FormatInternal()
-    : OpalVideoFormatInternal(H265_FormatName, RTP_DataFrame::DynamicBase, H265EncodingName,
-                              PVideoFrameInfo::MaxWidth, PVideoFrameInfo::MaxHeight, 30, 16000000)
-  {
-    OpalMediaOption * option;
-    static const char * const tiers[] = {
-      H265_TIER_STR_MAIN,
-      H265_TIER_STR_HIGH
-    };
-    AddOption(option = new OpalMediaOptionEnum(TierName, false, tiers, PARRAYSIZE(tiers), OpalMediaOption::MinMerge, DefaultTierInt));
+  OpalMediaOption * option;
+  static const char * const tiers[] = {
+    H265_TIER_STR_MAIN,
+    H265_TIER_STR_HIGH
+  };
+  AddOption(option = new OpalMediaOptionEnum(TierName, false, tiers, PARRAYSIZE(tiers), OpalMediaOption::MinMerge, DefaultTierInt));
 
-    static const char * const levels[] = {
-      H265_LEVEL_STR_1,
-      H265_LEVEL_STR_2,
-      H265_LEVEL_STR_2_1,
-      H265_LEVEL_STR_3,
-      H265_LEVEL_STR_3_1, // Default is 4
-      H265_LEVEL_STR_4,
-      H265_LEVEL_STR_4_1,
-      H265_LEVEL_STR_5,
-      H265_LEVEL_STR_5_1,
-      H265_LEVEL_STR_5_2,
-      H265_LEVEL_STR_6,
-      H265_LEVEL_STR_6_1,
-      H265_LEVEL_STR_6_2,
-    };
-    AddOption(option = new OpalMediaOptionEnum(LevelName, false, levels, PARRAYSIZE(levels),
-                                               OpalMediaOption::MinMerge, 4));
+  static const char * const levels[] = {
+    H265_LEVEL_STR_1,
+    H265_LEVEL_STR_2,
+    H265_LEVEL_STR_2_1,
+    H265_LEVEL_STR_3,
+    H265_LEVEL_STR_3_1, // Default is 4
+    H265_LEVEL_STR_4,
+    H265_LEVEL_STR_4_1,
+    H265_LEVEL_STR_5,
+    H265_LEVEL_STR_5_1,
+    H265_LEVEL_STR_5_2,
+    H265_LEVEL_STR_6,
+    H265_LEVEL_STR_6_1,
+    H265_LEVEL_STR_6_2,
+  };
+  AddOption(option = new OpalMediaOptionEnum(LevelName, false, levels, PARRAYSIZE(levels),
+                                              OpalMediaOption::MinMerge, 4));
 #if OPAL_SDP
-    option = new OpalMediaOptionUnsigned(TierFMTPName, true, OpalMediaOption::MinMerge, DefaultTierInt, 0, 1);
-    option->SetFMTP(TierFMTPName, STRINGIZE(DefaultTierInt));
-    AddOption(option);
+  option = new OpalMediaOptionUnsigned(TierFMTPName, true, OpalMediaOption::MinMerge, DefaultTierInt, 0, 1);
+  option->SetFMTP(TierFMTPName, STRINGIZE(DefaultTierInt));
+  AddOption(option);
 
-    option = new OpalMediaOptionUnsigned(LevelFMTPName, true, OpalMediaOption::MinMerge, DefaultLevelInt, 0, 255);
-    option->SetFMTP(LevelFMTPName, STRINGIZE(DefaultLevelInt));
-    AddOption(option);
+  option = new OpalMediaOptionUnsigned(LevelFMTPName, true, OpalMediaOption::MinMerge, DefaultLevelInt, 0, 255);
+  option->SetFMTP(LevelFMTPName, STRINGIZE(DefaultLevelInt));
+  AddOption(option);
 #endif //OPAL_SDP
-  }
+}
 
 
-  virtual PObject * Clone() const
-  {
-    return new OpalH265FormatInternal(*this);
-  }
+PObject * OpalH265FormatInternal::Clone() const
+{
+  return new OpalH265FormatInternal(*this);
+}
 
 
-  virtual bool ToNormalisedOptions()
-  {
-    return AdjustByOptionMaps(PTRACE_PARAM("ToNormalised", ) MyToNormalised) && OpalVideoFormatInternal::ToNormalisedOptions();
-  }
+bool OpalH265FormatInternal::ToNormalisedOptions()
+{
+  return AdjustByOptionMaps(PTRACE_PARAM("ToNormalised", ) MyToNormalised) && OpalVideoFormatInternal::ToNormalisedOptions();
+}
 
-  virtual bool ToCustomisedOptions()
-  {
-    return AdjustByOptionMaps(PTRACE_PARAM("ToCustomised", ) MyToCustomised) && OpalVideoFormatInternal::ToCustomisedOptions();
-  }
-};
+bool OpalH265FormatInternal::ToCustomisedOptions()
+{
+  return AdjustByOptionMaps(PTRACE_PARAM("ToCustomised", ) MyToCustomised) && OpalVideoFormatInternal::ToCustomisedOptions();
+}
 
 
 const OpalVideoFormat & GetOpalH265()
 {
-  static OpalMediaFormatStatic<OpalVideoFormat> const format(new OpalH265FormatInternal());
+  static OpalMediaFormatStatic<OpalVideoFormat> const format(new OpalH265FormatInternal(H265_FormatName));
   return format;
 }
 

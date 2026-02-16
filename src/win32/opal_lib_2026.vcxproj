@@ -120,6 +120,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\codec\h265mf.cxx" />
+    <ClCompile Include="..\codec\h265mf_inc.cxx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\codec\mpeg4mf_inc.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -953,6 +958,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\codec\h264mf.h" />
+    <ClInclude Include="..\..\include\codec\h265mf.h" />
     <ClInclude Include="..\..\include\ep\lyncep.h" />
     <ClInclude Include="..\..\include\ep\sockep.h" />
     <ClInclude Include="..\..\include\sdp\ice.h" />

@@ -750,6 +750,12 @@
     <ClCompile Include="..\codec\resample.cpp">
       <Filter>Source Files\Codec</Filter>
     </ClCompile>
+    <ClCompile Include="..\codec\h265mf.cxx">
+      <Filter>Source Files\Codec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\codec\h265mf_inc.cxx">
+      <Filter>Source Files\Codec</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\codec\echocancel.h">
@@ -1276,6 +1282,12 @@
     </ClInclude>
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_icm_ext.h">
       <Filter>Source Files\RTP\libSRTP\Headers\Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\codec\h264mf.h">
+      <Filter>Header Files\Codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\codec\h265mf.h">
+      <Filter>Header Files\Codec</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
