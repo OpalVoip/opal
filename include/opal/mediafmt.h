@@ -1721,6 +1721,7 @@ extern const OpalVideoFormat & GetOpalH263();
 extern const OpalVideoFormat & GetOpalH263plus();
 extern const OpalVideoFormat & GetOpalH264_MODE0();
 extern const OpalVideoFormat & GetOpalH264_MODE1();
+extern const OpalVideoFormat & GetOpalH265();
 extern const OpalVideoFormat & GetOpalMPEG4();
 extern const OpalVideoFormat & GetOpalVP8();
 #endif // OPAL_VIDEO
