@@ -483,6 +483,9 @@ OpalSilenceDetector::CalculateDB & OpalSilenceDetector::CalculateDB::Accumulate(
 
 int OpalSilenceDetector::CalculateDB::Finalise()
 {
+  if (m_rmsSamples == 0)
+    return MinAudioLevel; // zero samples is regarded as digital silence
+
   // Calculate the root mean square (RMS) of the signal.
   double rms = std::sqrt(m_rmsSum / m_rmsSamples);
 
