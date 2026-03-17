@@ -191,7 +191,7 @@ bool OpalMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & newMedia
   if (!m_mediaFormat.Update(newMediaFormat))
     return false;
 
-  PTRACE(4, "Media format updated on " << *this);
+  PTRACE(4, "Media format updated on " << *this << '\n' << setw(-1) << m_mediaFormat);
   m_payloadType = m_mediaFormat.GetPayloadType();
   m_frameTime = m_mediaFormat.GetFrameTime();
   m_frameSize = m_mediaFormat.GetFrameSize();

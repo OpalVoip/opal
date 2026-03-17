@@ -3493,7 +3493,11 @@ bool OpalRTPSession::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
 
   InternalSetQoS(m_qos);
 
-  PTRACE(4, *this << "updated media format " << mediaFormat << ": timeUnits=" << m_timeUnits << " maxBitRate=" << maxBitRate << ", feedback=" << m_feedback);
+  PTRACE(4, *this << "updated media format " << mediaFormat << ":"
+         " pt=" << mediaFormat.GetPayloadType() << ","
+         " timeUnits=" << m_timeUnits << ","
+         " maxBitRate=" << maxBitRate << ","
+         " feedback=" << m_feedback);
   return true;
 }
 
