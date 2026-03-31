@@ -194,13 +194,13 @@ class OpalSDPHTTPResource : public PHTTPResource
     OpalSDPHTTPResource(
       OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint
       const PURL & url,           ///< Name of the resource in URL space.
-      const PString & allowedOrigins = "*"  ///< CORS allowed origins
+      const PString & allowedOrigin = "*"  ///< CORS allowed origin
     );
     OpalSDPHTTPResource(
       OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint
       const PURL & url,           ///< Name of the resource in URL space.
       const PHTTPAuthority & auth, ///< Authorisation for the resource.
-      const PString & allowedOrigins = "*"  ///< CORS allowed origins
+      const PString & allowedOrigin = "*"  ///< CORS allowed origin
     );
     OpalSDPHTTPResource(
       OpalSDPHTTPEndPoint & ep,   ///< Opal endpoint

@@ -163,11 +163,11 @@ bool OpalSDPHTTPEndPoint::OnReceivedHTTP(PHTTPRequest & request)
 
 OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
                                          const PURL & url,
-                                         const PString & allowedOrigins)
+                                         const PString & allowedOrigin)
   : PHTTPResource(url, OpalSDPEndPoint::ContentType())
   , m_endpoint(ep)
 {
-  CORS cors(allowedOrigins);
+  CORS cors(allowedOrigin);
   InternalSetCORS(cors);
 }
 
@@ -175,11 +175,11 @@ OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
 OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
                                          const PURL & url,
                                          const PHTTPAuthority & auth,
-                                         const PString & allowedOrigins)
+                                         const PString & allowedOrigin)
   : PHTTPResource(url, OpalSDPEndPoint::ContentType(), auth)
   , m_endpoint(ep)
 {
-  CORS cors(allowedOrigins);
+  CORS cors(allowedOrigin);
   InternalSetCORS(cors);
 }
 
@@ -210,12 +210,12 @@ OpalSDPHTTPResource::OpalSDPHTTPResource(OpalSDPHTTPEndPoint & ep,
 void OpalSDPHTTPResource::InternalSetCORS(CORS & cors)
 {
   if (cors.m_allowedHeaders.empty()) {
-    cors.m_allowedHeaders.AppendString(PHTTP::ContentTypeTag());
-    cors.m_allowedHeaders.AppendString(PHTTP::AuthorizationTag());
+    cors.m_allowedHeaders += PHTTP::ContentTypeTag();
+    cors.m_allowedHeaders += PHTTP::AuthorizationTag();
   }
   if (cors.m_exposeHeaders.empty()) {
-    cors.m_allowedHeaders.AppendString(PHTTP::ContentTypeTag());
-    cors.m_exposeHeaders.AppendString(OPAL_SDP_HTTP_ID_HEADER);
+    cors.m_exposeHeaders += PHTTP::ContentTypeTag();
+    cors.m_exposeHeaders += OPAL_SDP_HTTP_ID_HEADER;
   }
   SetCORS(cors);
 }

@@ -283,8 +283,8 @@ PBoolean MyProcess::Initialise(const char * initMsg)
   if (!InitialiseBase(params))
     return false;
 
-  PString allowedOrigins = params.m_configPage->AddStringField(AllowedOriginsKey, 80, NULL,
-                                                               "Cross-Origin Resource Sharing (CORS) Allowed Origins");
+  PString allowedOrigin = params.m_configPage->AddStringField(AllowedOriginsKey, 80, NULL,
+                                                               "Cross-Origin Resource Sharing (CORS) Allowed Origin");
 
   // Configure the core of the system
   PConfig cfg(params.m_section);
@@ -313,7 +313,7 @@ PBoolean MyProcess::Initialise(const char * initMsg)
 
 #if OPAL_SDP
   OpalSDPHTTPResource * sdp_http = new OpalSDPHTTPResource(*m_manager->FindEndPointAs<OpalSDPHTTPEndPoint>(OPAL_PREFIX_SDP), "/sdp", params.m_authority);
-  sdp_http->SetAllowedOrigins(allowedOrigins);
+  sdp_http->SetAllowedOrigin(allowedOrigin);
   m_httpNameSpace.AddResource(sdp_http, PHTTPSpace::Overwrite);
   PHTTPFile * webrtcTest = new PHTTPFile("/webrtc_test.html", GetFile().GetDirectory() + "webrtc_test.html", params.m_authority);
   m_httpNameSpace.AddResource(webrtcTest, PHTTPSpace::Overwrite);
