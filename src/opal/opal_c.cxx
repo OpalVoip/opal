@@ -1910,6 +1910,22 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
   if (command.m_param.m_general.m_autoCreateCertificate > 0)
     SetSSLAutoCreateCertificate(command.m_param.m_general.m_autoCreateCertificate == 1);
 #endif
+
+  if (m_apiVersion < 47)
+    return;
+
+  if (command.m_param.m_general.m_txMediaTimeout > 0)
+    SetTxMediaTimeout(command.m_param.m_general.m_txMediaTimeout);
+  if (command.m_param.m_general.m_signalingTimeout > 0)
+    SetSignalingTimeout(command.m_param.m_general.m_signalingTimeout);
+  if (command.m_param.m_general.m_transportIdleTimeout > 0)
+    SetTransportIdleTime(command.m_param.m_general.m_transportIdleTimeout);
+  if (command.m_param.m_general.m_natKeepAliveTimeout > 0)
+    SetNatKeepAliveTime(command.m_param.m_general.m_natKeepAliveTimeout);
+  if (command.m_param.m_general.m_iceTimeout > 0)
+    SetICETimeout(command.m_param.m_general.m_iceTimeout);
+  if (command.m_param.m_general.m_staleRTPTimeout > 0)
+    SetStaleRTPTimeout(command.m_param.m_general.m_staleRTPTimeout);
 }
 
 
