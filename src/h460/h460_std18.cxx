@@ -207,10 +207,9 @@ void H460_FeatureStd18::ConnectThreadMain(H323TransportAddress address, OpalGlob
     return;
   }
 
-  // Thread now owned by OpalTransport
-  PThread * thread = PThread::Current();
-  transport->AttachThread(thread);
-  thread->SetNoAutoDelete();
+  // Create a new thread for transport as this one is auto-delete
+  transport->AttachThread(new PThreadObj2Arg<H323EndPoint, OpalTransportPtr, bool>(*m_endpoint,
+                                     transport, false, &H323EndPoint::InternalNewIncomingConnection));
 
   PTRACE(4, "H46018\tEstablished call for " << callId << ", awaiting SETUP.");
   m_endpoint->InternalNewIncomingConnection(transport);
