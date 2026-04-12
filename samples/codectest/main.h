@@ -124,7 +124,6 @@ class VideoThread : public TranscoderThread
     VideoThread(unsigned num)
       : TranscoderThread(num, "Video")
       , m_singleStep(false)
-      , m_frameWait(0, INT_MAX)
       , m_frameCount(0)
       , m_frameStartTimestamp(0)
       , m_snrWidth(0)
