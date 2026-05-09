@@ -29,7 +29,7 @@ while [ -n "$1" ]; do
         "--install" )
             shift
             INSTALLDIR="$1"
-            CONFIG_PARMS+="--prefix=$INSTALLDIR "
+            NO_INSTALL=false
         ;;
 
         "--no-install" )
@@ -229,6 +229,7 @@ if $NO_INSTALL; then
     export OPALDIR=`pwd`/opal
     export PKG_CONFIG_PATH=$PTLIBDIR:$OPALDIR
 else
+    CONFIG_PARMS+="--prefix=$INSTALLDIR "
     export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 fi
 

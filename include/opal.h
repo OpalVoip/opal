@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 45
+#define OPAL_C_API_VERSION 47
 
 
 ///////////////////////////////////////
@@ -825,6 +825,13 @@ typedef struct OpalParamGeneral {
                                            indicated (value=1), or that only the file/value indicated in above
                                            fields is used exclusively (value=2). */
   const char * m_traceLogOptions;     /**< Set trace logging options as described in the OpalInitialise function. */
+  unsigned m_txMediaTimeout;          /**< Set the amount of time with tx media errors (ICMP) that will cause a
+                                           call to clear */
+  unsigned m_signalingTimeout;        /**< Set the amount of time to wait on signalling channel connection */
+  unsigned m_transportIdleTimeout;    /**< Set the amount of time a transport can be idle before it is closed */
+  unsigned m_natKeepAliveTimeout;     /**< Set the amount of time between "keep-alive" packets to maintain NAT pin-hole. */
+  unsigned m_iceTimeout;              /**< Set the amount of time to wait for ICE/STUN packets. */
+  unsigned m_staleRTPTimeout;         /**< Set the amount of time before an RTP receive SSRC is stale and removed. */
 } OpalParamGeneral;
 
 

@@ -302,7 +302,7 @@ OpalManager::OpalManager()
 #if OPAL_ICE
   , m_iceTimeout(0, 15)           // Seconds, as per RFC 5245
 #endif
-  , m_staleReceiverTimeout(0,0,1) // Minutes
+  , m_staleRTPTimeout(0,0,1) // Minutes
 #if OPAL_SRTP
   , m_dtlsTimeout(0, 3)           // Seconds
 #endif
