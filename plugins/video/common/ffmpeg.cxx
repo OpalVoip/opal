@@ -225,7 +225,7 @@ bool FFMPEGCodec::InitContext()
 #endif
 
   m_context->opaque = this;
-  return SetResolution(352, 288);
+  return true;
 }
 
 
@@ -264,7 +264,7 @@ bool FFMPEGCodec::InternalInitEncoder(const AVCodec * codec)
 
   m_codec = codec;
 
-  if (!InitContext())
+  if (!InitContext() || !SetResolution(352, 288))
     return false;
 
   #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
@@ -385,8 +385,18 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
 
   bool wasOpen = m_open;
   if (wasOpen) {
+    if ((unsigned)m_context->width == width && (unsigned)m_context->height == height) {
+      PTRACE(4, m_prefix, "Resolution is already set to " << width << 'x' << height);
+      return true;
+    }
+
     PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
     CloseCodec();
+
+    if (!InitContext()) {
+      PTRACE(1, m_prefix, "Failed to initialise context during resolution change");
+      return false;
+    }
   }
 
 #ifdef CODEC_FLAG_EMU_EDGE
@@ -423,7 +433,6 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
     PTRACE(1, m_prefix, "Frame handler SetResolution failed");
     return false;
   }
-
 
   if (wasOpen && !OpenCodec()) {
     PTRACE(1, m_prefix, "Reopening codec failed");
@@ -678,7 +687,7 @@ bool FFMPEGCodec::EncodeVideoFrame()
     return false;
   }
 
-  PTRACE(5, m_prefix, "Encoded frame");
+  PTRACE(5, m_prefix, "Encoded frame: " << m_fullFrame->GetLength() << " bytes");
   return true;
 }
 
