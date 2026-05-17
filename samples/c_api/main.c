@@ -570,7 +570,7 @@ bool OpRegister(int argc, const char * const * argv)
   OpalMessage command;
   OpalMessage * response;
   char * colon;
-  char * aor = strdup(argv[2];
+  char * aor = strdup(argv[2]);
   const char * pwd = argv[3];
 
 
