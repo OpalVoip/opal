@@ -3553,6 +3553,9 @@ printf "%s\n" "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
+if test -z "$PKG_CONFIG"; then
+	as_fn_error $? "pkg-config not found" "$LINENO" 5
+fi
 if test ${PKG_CONFIG+y}
 then :
 
@@ -8740,23 +8743,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GSM_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gsm " 2>&1`
+                GSM_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gsm " 2>&1`
         else
-	        GSM_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gsm " 2>&1`
+                GSM_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gsm " 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$GSM_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$GSM_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	GSM_CFLAGS=$pkg_cv_GSM_CFLAGS
-	GSM_LIBS=$pkg_cv_GSM_LIBS
+        GSM_CFLAGS=$pkg_cv_GSM_CFLAGS
+        GSM_LIBS=$pkg_cv_GSM_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -9122,23 +9125,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        ILBC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "ilbc " 2>&1`
+                ILBC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "ilbc " 2>&1`
         else
-	        ILBC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "ilbc " 2>&1`
+                ILBC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "ilbc " 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$ILBC_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$ILBC_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	ILBC_CFLAGS=$pkg_cv_ILBC_CFLAGS
-	ILBC_LIBS=$pkg_cv_ILBC_LIBS
+        ILBC_CFLAGS=$pkg_cv_ILBC_CFLAGS
+        ILBC_LIBS=$pkg_cv_ILBC_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -9517,23 +9520,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        SPEEX_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "speex " 2>&1`
+                SPEEX_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "speex " 2>&1`
         else
-	        SPEEX_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "speex " 2>&1`
+                SPEEX_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "speex " 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$SPEEX_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$SPEEX_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	SPEEX_CFLAGS=$pkg_cv_SPEEX_CFLAGS
-	SPEEX_LIBS=$pkg_cv_SPEEX_LIBS
+        SPEEX_CFLAGS=$pkg_cv_SPEEX_CFLAGS
+        SPEEX_LIBS=$pkg_cv_SPEEX_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -9886,23 +9889,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        SBC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "samplerate" 2>&1`
+                SBC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "samplerate" 2>&1`
         else
-	        SBC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "samplerate" 2>&1`
+                SBC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "samplerate" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$SBC_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$SBC_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	SBC_CFLAGS=$pkg_cv_SBC_CFLAGS
-	SBC_LIBS=$pkg_cv_SBC_LIBS
+        SBC_CFLAGS=$pkg_cv_SBC_CFLAGS
+        SBC_LIBS=$pkg_cv_SBC_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -10219,23 +10222,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        CELT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "celt" 2>&1`
+                CELT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "celt" 2>&1`
         else
-	        CELT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "celt" 2>&1`
+                CELT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "celt" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$CELT_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$CELT_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	CELT_CFLAGS=$pkg_cv_CELT_CFLAGS
-	CELT_LIBS=$pkg_cv_CELT_LIBS
+        CELT_CFLAGS=$pkg_cv_CELT_CFLAGS
+        CELT_LIBS=$pkg_cv_CELT_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -10527,23 +10530,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        OPUS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "opus " 2>&1`
+                OPUS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "opus " 2>&1`
         else
-	        OPUS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "opus " 2>&1`
+                OPUS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "opus " 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$OPUS_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$OPUS_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	OPUS_CFLAGS=$pkg_cv_OPUS_CFLAGS
-	OPUS_LIBS=$pkg_cv_OPUS_LIBS
+        OPUS_CFLAGS=$pkg_cv_OPUS_CFLAGS
+        OPUS_LIBS=$pkg_cv_OPUS_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -10957,23 +10960,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBAVUTIL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libavutil >= 54.0.0" 2>&1`
+                LIBAVUTIL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libavutil >= 54.0.0" 2>&1`
         else
-	        LIBAVUTIL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libavutil >= 54.0.0" 2>&1`
+                LIBAVUTIL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libavutil >= 54.0.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBAVUTIL_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBAVUTIL_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	LIBAVUTIL_CFLAGS=$pkg_cv_LIBAVUTIL_CFLAGS
-	LIBAVUTIL_LIBS=$pkg_cv_LIBAVUTIL_LIBS
+        LIBAVUTIL_CFLAGS=$pkg_cv_LIBAVUTIL_CFLAGS
+        LIBAVUTIL_LIBS=$pkg_cv_LIBAVUTIL_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -11258,23 +11261,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBSWRESAMPLE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libswresample >= 1.1.0" 2>&1`
+                LIBSWRESAMPLE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libswresample >= 1.1.0" 2>&1`
         else
-	        LIBSWRESAMPLE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libswresample >= 1.1.0" 2>&1`
+                LIBSWRESAMPLE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libswresample >= 1.1.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBSWRESAMPLE_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBSWRESAMPLE_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	LIBSWRESAMPLE_CFLAGS=$pkg_cv_LIBSWRESAMPLE_CFLAGS
-	LIBSWRESAMPLE_LIBS=$pkg_cv_LIBSWRESAMPLE_LIBS
+        LIBSWRESAMPLE_CFLAGS=$pkg_cv_LIBSWRESAMPLE_CFLAGS
+        LIBSWRESAMPLE_LIBS=$pkg_cv_LIBSWRESAMPLE_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -11559,23 +11562,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBAVCODEC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libavcodec >= 56.0.0" 2>&1`
+                LIBAVCODEC_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libavcodec >= 56.0.0" 2>&1`
         else
-	        LIBAVCODEC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libavcodec >= 56.0.0" 2>&1`
+                LIBAVCODEC_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libavcodec >= 56.0.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBAVCODEC_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBAVCODEC_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	LIBAVCODEC_CFLAGS=$pkg_cv_LIBAVCODEC_CFLAGS
-	LIBAVCODEC_LIBS=$pkg_cv_LIBAVCODEC_LIBS
+        LIBAVCODEC_CFLAGS=$pkg_cv_LIBAVCODEC_CFLAGS
+        LIBAVCODEC_LIBS=$pkg_cv_LIBAVCODEC_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -12126,23 +12129,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        X264_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "x264 >= 0.102" 2>&1`
+                X264_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "x264 >= 0.102" 2>&1`
         else
-	        X264_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "x264 >= 0.102" 2>&1`
+                X264_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "x264 >= 0.102" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$X264_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$X264_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	X264_CFLAGS=$pkg_cv_X264_CFLAGS
-	X264_LIBS=$pkg_cv_X264_LIBS
+        X264_CFLAGS=$pkg_cv_X264_CFLAGS
+        X264_LIBS=$pkg_cv_X264_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -12578,23 +12581,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        OPENH264_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "" 2>&1`
+                OPENH264_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "" 2>&1`
         else
-	        OPENH264_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "" 2>&1`
+                OPENH264_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$OPENH264_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$OPENH264_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	OPENH264_CFLAGS=$pkg_cv_OPENH264_CFLAGS
-	OPENH264_LIBS=$pkg_cv_OPENH264_LIBS
+        OPENH264_CFLAGS=$pkg_cv_OPENH264_CFLAGS
+        OPENH264_LIBS=$pkg_cv_OPENH264_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -12952,23 +12955,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        VP8_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vpx" 2>&1`
+                VP8_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vpx" 2>&1`
         else
-	        VP8_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vpx" 2>&1`
+                VP8_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vpx" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$VP8_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$VP8_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	VP8_CFLAGS=$pkg_cv_VP8_CFLAGS
-	VP8_LIBS=$pkg_cv_VP8_LIBS
+        VP8_CFLAGS=$pkg_cv_VP8_CFLAGS
+        VP8_LIBS=$pkg_cv_VP8_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -13304,23 +13307,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        THEORA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "theora" 2>&1`
+                THEORA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "theora" 2>&1`
         else
-	        THEORA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "theora" 2>&1`
+                THEORA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "theora" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$THEORA_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$THEORA_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	THEORA_CFLAGS=$pkg_cv_THEORA_CFLAGS
-	THEORA_LIBS=$pkg_cv_THEORA_LIBS
+        THEORA_CFLAGS=$pkg_cv_THEORA_CFLAGS
+        THEORA_LIBS=$pkg_cv_THEORA_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -13656,23 +13659,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        VPB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vpb" 2>&1`
+                VPB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vpb" 2>&1`
         else
-	        VPB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vpb" 2>&1`
+                VPB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vpb" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$VPB_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$VPB_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	VPB_CFLAGS=$pkg_cv_VPB_CFLAGS
-	VPB_LIBS=$pkg_cv_VPB_LIBS
+        VPB_CFLAGS=$pkg_cv_VPB_CFLAGS
+        VPB_LIBS=$pkg_cv_VPB_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -14002,23 +14005,23 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        SPANDSP_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "spandsp" 2>&1`
+                SPANDSP_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "spandsp" 2>&1`
         else
-	        SPANDSP_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "spandsp" 2>&1`
+                SPANDSP_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "spandsp" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$SPANDSP_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$SPANDSP_PKG_ERRORS" >&5
 
-	usable=no
+        usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	usable=no
+        usable=no
 
 else
-	SPANDSP_CFLAGS=$pkg_cv_SPANDSP_CFLAGS
-	SPANDSP_LIBS=$pkg_cv_SPANDSP_LIBS
+        SPANDSP_CFLAGS=$pkg_cv_SPANDSP_CFLAGS
+        SPANDSP_LIBS=$pkg_cv_SPANDSP_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
