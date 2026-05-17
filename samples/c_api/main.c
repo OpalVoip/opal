@@ -103,7 +103,7 @@ char * CurrentCallToken;
 char * HeldCallToken;
 char * PlayScript;
 
-#ifndef bool
+#if __STDC_VERSION__ < 202311L
 typedef enum bool { false, true } bool;
 #endif
 
@@ -570,7 +570,7 @@ bool OpRegister(int argc, const char * const * argv)
   OpalMessage command;
   OpalMessage * response;
   char * colon;
-  const char * aor = argv[2];
+  char * aor = strdup(argv[2];
   const char * pwd = argv[3];
 
 
@@ -596,6 +596,7 @@ bool OpRegister(int argc, const char * const * argv)
 
   FreeMessageFunction(response);
   HandleMessages(15);
+  free(aor);
   return true;
 }
 
