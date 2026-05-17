@@ -401,23 +401,27 @@ int TranscoderThread::InitialiseCodec(PArgList & args,
     m_encoder.reset(OpalTranscoder::Create(rawFormat, mediaFormat));
     if (!m_encoder) {
       OpalMediaFormat intermediateFormat;
-      if (!OpalTranscoder::FindIntermediateFormat(rawFormat, mediaFormat, intermediateFormat)) {
+      if (OpalTranscoder::FindIntermediateFormat(rawFormat, mediaFormat, intermediateFormat)) {
+        m_encoder.reset(OpalTranscoder::Create(rawFormat, intermediateFormat));
+        m_encoder2.reset(OpalTranscoder::Create(intermediateFormat, mediaFormat));
+      }
+      if (!m_encoder || !m_encoder2) {
         cout << "Could not create encoder for media format \"" << mediaFormat << '"' << endl;
         return 0;
       }
-      m_encoder.reset(OpalTranscoder::Create(rawFormat, intermediateFormat));
-      m_encoder2.reset(OpalTranscoder::Create(intermediateFormat, mediaFormat));
     }
 
     m_decoder.reset(OpalTranscoder::Create(mediaFormat, rawFormat));
     if (!m_decoder) {
       OpalMediaFormat intermediateFormat;
-      if (!OpalTranscoder::FindIntermediateFormat(mediaFormat, rawFormat, intermediateFormat)) {
+      if (OpalTranscoder::FindIntermediateFormat(mediaFormat, rawFormat, intermediateFormat)) {
+        m_decoder.reset(OpalTranscoder::Create(mediaFormat, intermediateFormat));
+        m_decoder2.reset(OpalTranscoder::Create(intermediateFormat, rawFormat));
+      }
+      if (!m_decoder || !m_decoder2) {
         cout << "Could not create decoder for media format \"" << mediaFormat << '"' << endl;
         return 0;
       }
-      m_decoder.reset(OpalTranscoder::Create(mediaFormat, intermediateFormat));
-      m_decoder2.reset(OpalTranscoder::Create(intermediateFormat, rawFormat));
     }
 
     return -1;

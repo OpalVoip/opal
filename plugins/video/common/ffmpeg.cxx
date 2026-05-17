@@ -164,7 +164,7 @@ FFMPEGCodec::~FFMPEGCodec()
 }
 
 
-void FFMPEGCodec::LogAllCodecs(const AVMediaType type)
+void FFMPEGCodec::LogAllCodecs(bool encoder, const AVMediaType type)
 {
   void * context = NULL;
   for (;;) {
@@ -172,7 +172,7 @@ void FFMPEGCodec::LogAllCodecs(const AVMediaType type)
     if (!codec)
       break;
 
-    if (type == codec->type) {
+    if (encoder == (av_codec_is_encoder(codec) != 0) && type == codec->type) {
       PTRACE(1, m_prefix, codec->id << " \"" << codec->name << "\" \"" << codec->long_name << '"');
       if (codec->profiles) {
         for (const AVProfile* profile = codec->profiles; profile->profile != 0 && profile->name; ++profile)
@@ -288,7 +288,7 @@ bool FFMPEGCodec::InternalInitEncoder(const AVCodec * codec)
 
   m_context->gop_size = 132;
 
-  PTRACE(4, m_prefix, "Encoder created");
+  PTRACE(4, m_prefix, "Encoder created: " << m_codec->long_name);
 
   return true;
 }

@@ -112,7 +112,7 @@ class FFMPEGCodec
     FFMPEGCodec(const char * prefix, OpalPluginFrame * fullFrame);
     ~FFMPEGCodec();
 
-    void LogAllCodecs(const AVMediaType type = AVMEDIA_TYPE_VIDEO);
+    void LogAllCodecs(bool encoder, const AVMediaType type = AVMEDIA_TYPE_VIDEO);
 
     bool InitEncoder(const char * name);
     bool InitEncoder(AVCodecID codecId);

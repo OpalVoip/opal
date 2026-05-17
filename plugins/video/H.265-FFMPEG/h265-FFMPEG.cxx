@@ -373,7 +373,7 @@ public:
   virtual bool Construct()
   {
     // List some hardware accelerated encoders here
-    static const char * encoders[] = { "hevc_nvmpi" };
+    static const char * const encoders[] = { "hevc_nvmpi", "hevc_nvenc", "hevc_qsv", "libx265" };
     for (size_t i = 0; i < sizeof(encoders)/sizeof(encoders[0]); ++i) {
       if (InitEncoder(encoders[i]) && OpenCodec())
         return true;
@@ -381,7 +381,7 @@ public:
     if (InitEncoder(AV_CODEC_ID_H265) && OpenCodec())
       return true;
 
-    LogAllCodecs();
+    LogAllCodecs(true);
     return false;
   }
 
@@ -494,12 +494,16 @@ public:
   virtual bool Construct()
   {
     // List some hardware accelerated decoders here
-    static const char * decoders[] = { "hevc_nvmpi" };
+    static const char * const decoders[] = { "hevc_nvmpi", "hevc" };
     for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); ++i) {
       if (InitDecoder(decoders[i]) && OpenCodec())
         return true;
     }
-    return InitDecoder(AV_CODEC_ID_H265) && OpenCodec();
+    if (InitDecoder(AV_CODEC_ID_H265) && OpenCodec())
+      return true;
+
+    LogAllCodecs(false);
+    return false;
   }
 
 

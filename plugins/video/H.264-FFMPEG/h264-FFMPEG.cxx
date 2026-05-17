@@ -192,15 +192,15 @@ public:
   virtual bool Construct()
   {
     // List some hardware accelerated encoders here
-    static const char * encoders[] = { "h264_nvmpi" };
+    static const char * const encoders[] = { "h264_nvmpi", "h264_nvenc", "h264_qsv", "libx264" };
     for (size_t i = 0; i < sizeof(encoders)/sizeof(encoders[0]); ++i) {
       if (InitEncoder(encoders[i]) && OpenCodec())
         return true;
     }
-    if (InitEncoder(AV_CODEC_ID_H265) && OpenCodec())
+    if (InitEncoder(AV_CODEC_ID_H264) && OpenCodec())
       return true;
 
-    LogAllCodecs();
+    LogAllCodecs(true);
     return false;
   }
 
@@ -272,12 +272,16 @@ public:
   virtual bool Construct()
   {
     // List some hardware accelerated decoders here
-    static const char * decoders[] = { "h264_nvmpi" };
+    static const char * const decoders[] = { "h264_nvmpi", "h264_cuvid", "h264_qsv" };
     for (size_t i = 0; i < sizeof(decoders)/sizeof(decoders[0]); ++i) {
       if (InitDecoder(decoders[i]) && OpenCodec())
         return true;
     }
-    return InitDecoder(AV_CODEC_ID_H264) && OpenCodec();
+    if (InitDecoder(AV_CODEC_ID_H264) && OpenCodec())
+      return true;
+
+    LogAllCodecs(false);
+    return false;
   }
 
 
