@@ -200,18 +200,8 @@ bool FFMPEGCodec::InitContext()
     return false;
   }
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 0, 0)
-  m_picture = avcodec_alloc_frame();
-#else
-  m_picture = av_frame_alloc();
-#endif
-  if (m_picture == NULL) {
-    PTRACE(1, m_prefix, "Failed to allocate frame for codec");
-    return false;
-  }
-
-  m_picture->format = m_context->pix_fmt = m_context->sw_pix_fmt = AV_PIX_FMT_YUV420P;
-  m_picture->quality = 1;
+  m_context->opaque = this;
+  m_context->pix_fmt = m_context->sw_pix_fmt = AV_PIX_FMT_YUV420P;
   m_context->workaround_bugs = FF_BUG_AUTODETECT;
 
   // debugging flags
@@ -224,8 +214,7 @@ bool FFMPEGCodec::InitContext()
     m_context->debug |= FF_DEBUG_BUGS | FF_DEBUG_BUFFERS;
 #endif
 
-  m_context->opaque = this;
-  return true;
+  return SetResolution(352, 288);
 }
 
 
@@ -299,14 +288,13 @@ bool FFMPEGCodec::InitDecoder(const char * name)
   if (InternalInitDecoder(avcodec_find_decoder_by_name(name)))
     return true;
 
-  PTRACE(5, m_prefix, "Could not find decoder: " << name);
+  PTRACE(5, m_prefix, "Could not find decoder: \"" << name << '"');
   return false;
 }
 
 
 bool FFMPEGCodec::InitDecoder(AVCodecID codecId)
 {
-  PTRACE(5, m_prefix, "Initialising decoder: " << codecId);
   if (InternalInitDecoder(avcodec_find_decoder(codecId)))
     return true;
 
@@ -320,6 +308,7 @@ bool FFMPEGCodec::InternalInitDecoder(const AVCodec * codec)
   if (codec == NULL)
     return false;
 
+  PTRACE(5, m_prefix, "Initialising decoder: \"" << codec->long_name << '"');
   m_codec = codec;
 
   if (!InitContext())
@@ -341,6 +330,7 @@ bool FFMPEGCodec::OpenCodec()
     return false;
   }
 
+  PTRACE(5, m_prefix, "Opening codec \"" << m_codec->long_name << '"');
   g_avcodec_mutex.Wait();
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53, 0, 0)
@@ -409,18 +399,34 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
   m_context->coded_width = width;
   m_context->coded_height = height;
 
-  if (m_picture != NULL) {
-    // YUV420P input
+  if (m_picture == NULL) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 0, 0)
+    m_picture = avcodec_alloc_frame();
+#else
+    m_picture = av_frame_alloc();
+#endif
+    if (m_picture == NULL) {
+      PTRACE(1, m_prefix, "Failed to allocate frame for codec");
+      return false;
+    }
+
+    m_picture->format = m_context->pix_fmt;
+    m_picture->quality = 1;
+  }
+
+  // YUV420P input
+  if ((unsigned)m_picture->width != width || (unsigned)m_picture->height != height) {
     m_picture->width = width;
     m_picture->height = height;
     m_picture->linesize[0] = width;
     m_picture->linesize[1] = m_picture->linesize[2] = width/2;
+
     av_free(m_alignedYUV[0]);
     av_free(m_alignedYUV[1]);
     av_free(m_alignedYUV[2]);
 
     /* Allocate correctly aligned memory using av_malloc(), also pad out length
-       so don't overrrun the end of the allocated buffer.
+        so don't overrrun the end of the allocated buffer.
     */
     size_t sz = ((width*height+15)/16)*16;
     m_picture->data[0] = (uint8_t *)(m_alignedYUV[0] = av_malloc(sz));

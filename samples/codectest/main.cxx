@@ -226,8 +226,10 @@ void CodecTest::Main()
       if (cmd == "vfu") {
         if (!test.m_video.m_encoder)
           cout << "\nNo video encoder running!" << endl;
-        else
+        else {
+          cout << "\nExecuting Video Fast Update" << endl;
           test.m_video.m_encoder->ExecuteCommand(OpalVideoUpdatePicture());
+        }
         continue;
       }
 
@@ -236,6 +238,8 @@ void CodecTest::Main()
           cout << "\nNo video grabber running!" << endl;
         else if (!test.m_video.m_grabber->SetVFlipState(!test.m_video.m_grabber->GetVFlipState()))
           cout << "\nCould not toggle Vflip state of video grabber device" << endl;
+        else
+          cout << "\nVideo grabber flipped." << endl;
         continue;
       }
 
@@ -244,6 +248,8 @@ void CodecTest::Main()
           cout << "\nNo video display running!" << endl;
         else if (!test.m_video.m_display->SetVFlipState(!test.m_video.m_display->GetVFlipState()))
           cout << "\nCould not toggle Vflip state of video display device" << endl;
+        else
+          cout << "\nVideo display flipped." << endl;
         continue;
       }
 
@@ -258,6 +264,8 @@ void CodecTest::Main()
           cout << "\nNo video display running!" << endl;
         else if (!test.m_video.m_display->SetFrameSizeConverter(width, height))
           cout << "Video display device could not be set to size " << width << 'x' << height << endl;
+        else
+          cout << "\nVideo size set to " << width << 'x' << height << endl;
         test.m_video.m_resume.Signal();
         continue;
       }
@@ -1039,6 +1047,7 @@ void TranscoderThread::Main()
 
     srcFrame.SetTimestamp(m_timestamp);
     ++totalInputFrameCount;
+    PTRACE(4, "Frame " << totalInputFrameCount);
 
     bool detectorSaysIntra = false;
     bool encoderSaysIntra = false;
