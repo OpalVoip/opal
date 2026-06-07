@@ -650,6 +650,11 @@ bool FFMPEGCodec::EncodeVideoFrame()
     return true;
   }
 
+  if (!m_fullFrame->Reset(m_packet.size)) {
+    PTRACE(2, m_prefix, "Encoding/Packetisation error: " << m_packet.size << " bytes");
+    return false;
+  }
+
 #else
 
   if (avcodec_send_frame(m_context, m_picture) != 0)
@@ -669,7 +674,7 @@ bool FFMPEGCodec::EncodeVideoFrame()
     }
 
     m_fullFrame->Append(m_packet.data, m_packet.size);
-    
+
     size_t mbSize;
     const uint8_t * mbInfo = av_packet_get_side_data(&m_packet, AV_PKT_DATA_H263_MB_INFO, &mbSize);
     if (mbInfo) {
@@ -687,11 +692,6 @@ bool FFMPEGCodec::EncodeVideoFrame()
   }
 
 #endif
-
-  if (!m_fullFrame->Reset(m_fullFrame->GetLength())) {
-    PTRACE(2, m_prefix, "Encoding/Packetisation error: " << m_packet.size << " bytes");
-    return false;
-  }
 
   PTRACE(5, m_prefix, "Encoded frame: " << m_fullFrame->GetLength() << " bytes");
   return true;

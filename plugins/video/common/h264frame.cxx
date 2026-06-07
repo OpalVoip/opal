@@ -86,6 +86,11 @@ static void SkipStartCode(const uint8_t * & payload, size_t & length)
 }
 
 
+bool H264Frame::Append(const uint8_t * data, size_t len)
+{
+  return AddNALU(*data, len, data);
+}
+
 bool H264Frame::AddNALU(uint8_t type, size_t length, const uint8_t * payload)
 {
   if (payload != NULL)
@@ -100,7 +105,7 @@ bool H264Frame::AddNALU(uint8_t type, size_t length, const uint8_t * payload)
   ++m_numberOfNALsInFrame;
 
   if (payload != NULL) {
-    if (!Append(payload, length))
+    if (!OpalPluginFrame::Append(payload, length))
       return false;
 
     if (type == H264_NAL_TYPE_SEQ_PARAM)
@@ -471,9 +476,9 @@ bool H264Frame::AddDataToEncodedFrame(const uint8_t *data, size_t payloadSize, u
       SetSPS(data);
 
     // add 00 00 01 [headerbyte] header
-    if (!Append(StartCode, sizeof(StartCode)) ||
+    if (!OpalPluginFrame::Append(StartCode, sizeof(StartCode)) ||
         !AddNALU(header & 0x1f, payloadSize + 1, NULL) ||
-        !Append(&header, 1))
+        !OpalPluginFrame::Append(&header, 1))
       return false;
   }
   else {
@@ -484,5 +489,5 @@ bool H264Frame::AddDataToEncodedFrame(const uint8_t *data, size_t payloadSize, u
   PTRACE(6, GetName(), "Reserved memory for  " << m_NALs.size() <<" NALs, Inframe/current: "<< m_numberOfNALsInFrame <<" Offset: "
     << m_NALs[m_numberOfNALsInFrame-1].offset << " Length: "<< m_NALs[m_numberOfNALsInFrame-1].length << " Type: "<< (int)(m_NALs[m_numberOfNALsInFrame-1].type));
 
-  return Append(data, payloadSize);
+  return OpalPluginFrame::Append(data, payloadSize);
 }

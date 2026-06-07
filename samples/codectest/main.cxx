@@ -1047,7 +1047,7 @@ void TranscoderThread::Main()
 
     srcFrame.SetTimestamp(m_timestamp);
     ++totalInputFrameCount;
-    PTRACE(4, "Frame " << totalInputFrameCount);
+    PTRACE(4, "Transcoding Frame " << totalInputFrameCount);
 
     bool detectorSaysIntra = false;
     bool encoderSaysIntra = false;

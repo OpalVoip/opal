@@ -717,6 +717,7 @@ bool OpalPluginTranscoder::ExecuteCommand(const OpalMediaCommand & command)
     return SetCodecOption(OpalMediaFormat::MaxTxPacketSizeOption(), m_maxPayloadSize = mp->GetPayloadSize());
 
   OpalPluginControl cmd(codecDef, command.GetName());
+  PTRACE(4, "Executing command \"" << command.GetName() << "\" on " << (isEncoder ? codecDef->destFormat : codecDef->sourceFormat));
   return cmd.Call(command.GetPlugInData(), command.GetPlugInSize(), context) > 0;
 }
 

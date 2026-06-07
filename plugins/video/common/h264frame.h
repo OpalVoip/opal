@@ -65,6 +65,7 @@ public:
   virtual bool Reset(size_t len = 0);
   virtual bool GetPacket(PluginCodec_RTP & rtp, unsigned & flags);
   virtual bool AddPacket(const PluginCodec_RTP & frame, unsigned & flags);
+  virtual bool Append(const uint8_t * data, size_t len);
   virtual bool IsIntraFrame() const;
 
 
