@@ -951,7 +951,7 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
   }
 
   // Calculate the real time since last write (received packet) in timestamp units
-  RTP_Timestamp realDelta = (RTP_Timestamp)(m_writeTime.GetElapsed().GetMilliSeconds()/m_timeUnits);
+  RTP_Timestamp realDelta = (RTP_Timestamp)(m_writeTime.GetElapsed().GetMilliSeconds() * m_timeUnits);
   m_writeTime.SetCurrentTime();
 
   // Don't insert silence and reset expected timestamp if ...
@@ -1006,7 +1006,8 @@ bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length
   }
 
   written = m_channel->GetLastWriteCount();
-  m_expectedTimestamp += written/PCM16Size;
+  if (m_expectedTimestamp != 0)
+    m_expectedTimestamp += written/PCM16Size;
 
   InternalCalculateAudioLevel(buffer, written);
   return true;
