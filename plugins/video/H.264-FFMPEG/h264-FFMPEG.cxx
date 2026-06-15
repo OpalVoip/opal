@@ -326,9 +326,10 @@ public:
 
 static struct PluginCodec_Definition CodecDefinition[] =
 {
-  PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_Mode0, H264_Encoder, H264_Decoder),
+// The FFMPEG does not seem to have a mechanism to limit size of H.264 NALU's so we cannot use the mode 0.
+//  PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_Mode0, H264_Encoder, H264_Decoder),
   PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_Mode1, H264_Encoder, H264_Decoder),
-  PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_ffMode0, H264_Encoder, H264_Decoder),
+//  PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_ffMode0, H264_Encoder, H264_Decoder),
   PLUGINCODEC_VIDEO_CODEC_CXX(MyMediaFormatInfo_ffMode1, H264_Encoder, H264_Decoder),
 };
 
