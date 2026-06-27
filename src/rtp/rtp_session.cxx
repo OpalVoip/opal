@@ -759,7 +759,11 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
       m_minimumTimeAccum = localDiff;
   }
 
-  if (m_direction == e_Receiver) {
+  unsigned statisticsInterval;
+  if (m_direction != e_Receiver)
+    statisticsInterval = m_session.GetTxStatisticsInterval();
+  else {
+    statisticsInterval = m_session.GetRxStatisticsInterval();
     // As per RFC3550 Appendix 8
     localDiff *= m_session.m_timeUnits; // Convert to timestamp units
     long variance = localDiff > remoteDiff ? (localDiff - remoteDiff) : (remoteDiff - localDiff);
@@ -769,9 +773,12 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
       m_maximumJitter = m_currentJitter;
   }
 
-  if (++m_statisticsCount < (m_direction == e_Receiver ? m_session.GetRxStatisticsInterval()
-                                                       : m_session.GetTxStatisticsInterval()))
+  ++m_statisticsCount;
+  if (m_packets == 3 || m_statisticsCount < statisticsInterval)
     return;
+
+  // Normally calculate statistics every interval, but we also do it on the 3rd packet,
+  // so we have initial values which may be used by heuristics handling the session.
 
   m_averagePacketTime = m_averageTimeAccum/(m_statisticsCount-1); // Allow for last fence post
   m_maximumPacketTime = m_maximumTimeAccum;
@@ -1003,7 +1010,9 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     }
     return e_IgnorePacket;
   }
-  else if (sequenceDelta > SequenceRestartThreshold) {
+  else if (sequenceDelta > SequenceRestartThreshold ||
+           (m_session.m_isAudio && m_averagePacketTime > 0 && m_lastPacketNetTime.IsValid() &&
+               (now - m_lastPacketNetTime) < sequenceDelta*PTimeInterval(m_averagePacketTime))) {
     // Check for where sequence numbers suddenly start incrementing from a different base.
 
     if (m_consecutiveOutOfOrderPackets > 0 && (sequenceNumber != m_nextOutOfOrderPacket || now > m_consecutiveOutOfOrderEndTime)) {
