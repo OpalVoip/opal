@@ -2005,18 +2005,13 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
     /// Call back for connection to act on changed string options
     virtual void OnApplyStringOptions();
 
-#if OPAL_HAS_MIXER
     virtual void EnableRecording();
     virtual void DisableRecording();
 
-    PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordAudio);
-#if OPAL_VIDEO
-    PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordVideo);
-#endif
+    PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordMedia);
 
     virtual void OnStartRecording(OpalMediaPatch * patch);
     virtual void OnStopRecording(OpalMediaPatch * patch);
-#endif
 
     bool InternalOnConnected();
     bool InternalOnEstablished();
@@ -2089,13 +2084,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo, PProfil
 
     StringOptions m_stringOptions;
 
-#if OPAL_HAS_MIXER
-    PString       m_recordingFilename;
-    PNotifier     m_recordAudioNotifier;
-#if OPAL_VIDEO
-    PNotifier     m_recordVideoNotifier;
-#endif
-#endif
+    PNotifier m_recordMediaNotifier;
 
     OpalMediaType::AutoStartMap m_autoStartInfo;
 

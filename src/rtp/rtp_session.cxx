@@ -3775,6 +3775,10 @@ bool OpalRTPSession::SetRemoteAddress(const OpalTransportAddress & remoteAddress
 
 void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
 {
+  PSharedPtr<OpalRecordManager> recordManager = m_recordManager;
+  if (recordManager)
+    recordManager->QueueStream(PString::Empty(), RTP_DataFrame(data));
+
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   if (data.IsEmpty()) {
@@ -3810,6 +3814,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
 
 void OpalRTPSession::OnRxControlPacket(OpalMediaTransport &, PBYTEArray data)
 {
+  PSharedPtr<OpalRecordManager> recordManager = m_recordManager;
+  if (recordManager)
+    recordManager->QueueStream(PString::Empty(), RTP_DataFrame(data));
+
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   if (data.IsEmpty()) {

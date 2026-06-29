@@ -34,7 +34,8 @@
 #include <opal_config.h>
 
 #include <opal/transports.h>
-#include <opal//mediafmt.h>
+#include <opal/mediafmt.h>
+#include <opal/recording.h>
 #include <ptlib/notifier_ext.h>
 #include <ptclib/pjson.h>
 
@@ -907,11 +908,11 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     );
 
     /**Indicate the media session is secured.
-       @ retruns the active crypto key for that media
+       @ returns the active crypto key for that media
       */
     virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const;
 
-    /**Get the conenction that owns this media session.
+    /**Get the connection that owns this media session.
       */
     OpalConnection & GetConnection() const { return m_connection; }
 
@@ -941,6 +942,8 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     void SetVideoContentRole(OpalVideoFormat::ContentRole role) { m_videoContentRole = role; }
 #endif
 
+    void SetRecorder(const PSharedPtr<OpalRecordManager> & recorder) { m_recordManager.store(recorder); }
+
   protected:
     OpalConnection & m_connection;
     unsigned         m_sessionId;  // unique session ID
@@ -966,6 +969,8 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
 
     OpalMediaTransportPtr  m_transport;
     OpalMediaCryptoKeyList m_offeredCryptokeys;
+
+    PAtomicSharedPtr<OpalRecordManager> m_recordManager;
 
   private:
     OpalMediaSession(const OpalMediaSession & other)

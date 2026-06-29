@@ -202,12 +202,7 @@ OpalConnection::OpalConnection(OpalCall & call,
   , m_dtmfSendNotifier(PCREATE_NOTIFIER(OnSendInBandDTMF))
 #endif
   , m_stringOptions(ep.GetDefaultStringOptions(), stringOptions)
-#if OPAL_HAS_MIXER
-  , m_recordAudioNotifier(PCREATE_NOTIFIER(OnRecordAudio))
-#if OPAL_VIDEO
-  , m_recordVideoNotifier(PCREATE_NOTIFIER(OnRecordVideo))
-#endif
-#endif
+  , m_recordMediaNotifier(PCREATE_NOTIFIER(OnRecordMedia))
 {
   PTRACE_CONTEXT_ID_FROM(call);
 
@@ -1060,9 +1055,7 @@ void OpalConnection::OnClosedMediaStream(const OpalMediaStream & stream)
 {
   OpalMediaPatchPtr patch = stream.GetPatch();
   if (patch != NULL) {
-#if OPAL_HAS_MIXER
     OnStopRecording(patch);
-#endif
 
     if (m_silenceDetector != NULL && patch->RemoveFilter(m_silenceDetector->GetReceiveHandler(), m_filterMediaFormat)) {
       PTRACE(4, "Removed silence detect filter on connection " << *this << ", patch " << patch);
@@ -1095,8 +1088,6 @@ void OpalConnection::OnFailedMediaStream(bool fromRemote, const PString & reason
 }
 
 
-#if OPAL_HAS_MIXER
-
 static PString MakeRecordingKey(const OpalMediaPatch & patch)
 {
   return psprintf("%p", &patch);
@@ -1108,16 +1099,17 @@ void OpalConnection::OnStartRecording(OpalMediaPatch * patch)
   if (patch == NULL)
     return;
 
-  if (!m_ownerCall.OnStartRecording(MakeRecordingKey(*patch), patch->GetSource().GetMediaFormat())) {
+  PSharedPtr<OpalRecordManager> recordManager = m_ownerCall.GetRecorderManager();
+  if (!recordManager)
+    return;
+
+  PString key = MakeRecordingKey(*patch);
+  if (!recordManager->OpenStream(key, patch->GetSource().GetMediaFormat())) {
     PTRACE(4, "No record filter added on connection " << *this << ", patch " << *patch);
     return;
   }
 
-  patch->AddFilter(m_recordAudioNotifier, OpalPCM16);
-#if OPAL_VIDEO
-  patch->AddFilter(m_recordVideoNotifier, OPAL_YUV420P);
-#endif
-
+  patch->AddFilter(m_recordMediaNotifier, recordManager->GetStreamFormat(key));
   PTRACE(4, "Added record filter on connection " << *this << ", patch " << *patch);
 }
 
@@ -1127,17 +1119,18 @@ void OpalConnection::OnStopRecording(OpalMediaPatch * patch)
   if (patch == NULL)
     return;
 
-  m_ownerCall.OnStopRecording(MakeRecordingKey(*patch));
+  PSharedPtr<OpalRecordManager> recordManager = m_ownerCall.GetRecorderManager();
+  if (!recordManager)
+    return;
 
-  patch->RemoveFilter(m_recordAudioNotifier, OpalPCM16);
-#if OPAL_VIDEO
-  patch->RemoveFilter(m_recordVideoNotifier, OPAL_YUV420P);
-#endif
+  PString key = MakeRecordingKey(*patch);
 
+  patch->RemoveFilter(m_recordMediaNotifier, recordManager->GetStreamFormat(key));
   PTRACE(4, "Removed record filter on " << *patch);
+
+  recordManager->CloseStream(key);
 }
 
-#endif
 
 void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patch)
 {
@@ -1182,18 +1175,14 @@ void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patc
 #endif
   }
 
-#if OPAL_HAS_MIXER
-  if (!m_recordingFilename.IsEmpty())
-    m_ownerCall.StartRecording(m_recordingFilename);
+  if (m_stringOptions.Contains(OPAL_OPT_RECORD_AUDIO))
+    m_ownerCall.StartRecording(m_stringOptions(OPAL_OPT_RECORD_AUDIO));
   else if (m_ownerCall.IsRecording())
     OnStartRecording(&patch);
-#endif
 
   PTRACE(3, (isSource ? "Source" : "Sink") << " stream of connection " << *this << " uses patch " << patch);
 }
 
-
-#if OPAL_HAS_MIXER
 
 void OpalConnection::EnableRecording()
 {
@@ -1215,22 +1204,17 @@ void OpalConnection::DisableRecording()
 }
 
 
-void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
+void OpalConnection::OnRecordMedia(RTP_DataFrame & frame, P_INT_PTR param)
 {
-  m_ownerCall.OnRecordAudio(MakeRecordingKey(*(const OpalMediaPatch *)param), frame);
+  PSharedPtr<OpalRecordManager> recordManager = m_ownerCall.GetRecorderManager();
+  if (!recordManager)
+    return;
+
+  PString key = MakeRecordingKey(*(const OpalMediaPatch *)param);
+
+  if (recordManager && !recordManager->QueueStream(key, frame))
+    recordManager->CloseStream(key);
 }
-
-
-#if OPAL_VIDEO
-
-void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
-{
-  m_ownerCall.OnRecordVideo(MakeRecordingKey(*(const OpalMediaPatch *)param), frame);
-}
-
-#endif // OPAL_VIDEO
-
-#endif // OPAL_HAS_MIXER
 
 
 OpalMediaStreamPtr OpalConnection::GetMediaStream(const PString & streamID, bool source) const
@@ -1845,11 +1829,6 @@ void OpalConnection::OnApplyStringOptions()
   else
     SetAudioJitterDelay(m_stringOptions.GetInteger(OPAL_OPT_MIN_JITTER, GetMinAudioJitterDelay()),
                         m_stringOptions.GetInteger(OPAL_OPT_MAX_JITTER, GetMaxAudioJitterDelay()));
-
-#if OPAL_HAS_MIXER
-  if (m_stringOptions.Contains(OPAL_OPT_RECORD_AUDIO))
-    m_recordingFilename = m_stringOptions(OPAL_OPT_RECORD_AUDIO);
-#endif
 
   str = m_stringOptions(OPAL_OPT_ALERTING_TYPE);
   if (!str.IsEmpty())

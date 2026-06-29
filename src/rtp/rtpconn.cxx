@@ -752,4 +752,26 @@ bool OpalRTPConnection::GarbageCollection()
 }
 
 
+void OpalRTPConnection::EnableRecording()
+{
+  PSharedPtr<OpalRecordManager> recordManager = m_ownerCall.GetRecorderManager();
+  if (recordManager && recordManager->SupportsRawRTP()) {
+    for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it)
+      it->second->SetRecorder(recordManager);
+    return;
+  }
+
+  OpalConnection::EnableRecording();
+}
+
+
+void OpalRTPConnection::DisableRecording()
+{
+  for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it)
+    it->second->SetRecorder(NULL);
+
+  OpalConnection::DisableRecording();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////

@@ -730,7 +730,7 @@ class OpalRTPSession : public OpalMediaSession
     RTP_Timestamp GetLastSentTimestamp(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_lastPacketTimestamp; }
     const PTime & GetLastSentNetTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_lastPacketNetTime; }
 
-    /// Set the jitter buffer to get certain RTCP statustics from.
+    /// Set the jitter buffer to get certain RTCP statistics from.
     void SetJitterBuffer(OpalJitterBuffer * jitterBuffer, RTP_SyncSourceId ssrc = 0);
 
     bool HasFeedback(OpalMediaFormat::RTCPFeedback feature) const { return m_feedback&feature; }

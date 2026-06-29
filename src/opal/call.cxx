@@ -963,8 +963,6 @@ void OpalCall::OnHold(OpalConnection & connection, bool fromRemote, bool onHold)
   }
 }
 
-#if OPAL_HAS_MIXER
-
 bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Options & options)
 {
   StopRecording();
@@ -1060,43 +1058,6 @@ bool OpalCall::StopRecording()
   recordManager->Close();
   return true;
 }
-
-
-bool OpalCall::OnStartRecording(const PString & streamId, const OpalMediaFormat & format)
-{
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
-  return recordManager && recordManager->OpenStream(streamId, format);
-}
-
-
-void OpalCall::OnStopRecording(const PString & streamId)
-{
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
-  if (recordManager)
-    recordManager->CloseStream(streamId);
-}
-
-
-void OpalCall::OnRecordAudio(const PString & streamId, const RTP_DataFrame & frame)
-{
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
-  if (recordManager && !recordManager->QueueAudio(streamId, frame))
-    recordManager->CloseStream(streamId);
-}
-
-
-#if OPAL_VIDEO
-
-void OpalCall::OnRecordVideo(const PString & streamId, const RTP_DataFrame & frame)
-{
-  PSharedPtr<OpalRecordManager> recordManager(m_recordManager.load());
-  if (recordManager && !recordManager->QueueVideo(streamId, frame))
-    recordManager->CloseStream(streamId);
-}
-
-#endif
-
-#endif
 
 
 void OpalCall::SetPartyNames()

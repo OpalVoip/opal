@@ -630,7 +630,6 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::H
     const PTime & GetEstablishedTime() const { return m_establishedTime; }
   //@}
 
-#if OPAL_HAS_MIXER
     /**Start recording a call.
        Current version saves to a WAV file. It may either mix the receive and
        transmit audio stream to a single mono file, or the streams are placed
@@ -678,35 +677,9 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::H
       */
     bool ResumeRecording();
 
-    /** Call back on recording started.
+    /** Get the active recorder manager.
       */
-    virtual bool OnStartRecording(
-      const PString & streamId,       ///< Unique ID for stream within call
-      const OpalMediaFormat & format  ///< Media format for stream
-    );
-
-    /** Call back on recording stopped.
-      */
-    virtual void OnStopRecording(
-      const PString & streamId       ///< Unique ID for stream within call
-    );
-
-    /** Call back for having a frame of audio to record.
-      */
-    virtual void OnRecordAudio(
-      const PString & streamId,       ///< Unique ID for stream within call
-      const RTP_DataFrame & frame     ///< Media data
-    );
-
-#if OPAL_VIDEO
-    /** Call back for having a frame of video to record.
-      */
-    virtual void OnRecordVideo(
-      const PString & streamId,       ///< Unique ID for stream within call
-      const RTP_DataFrame & frame     ///< Media data
-    );
-#endif
-#endif // OPAL_HAS_MIXER
+    PSharedPtr<OpalRecordManager> GetRecorderManager() const { return m_recordManager.load(); }
 
     void InternalOnClear();
     void InternalAddConnection(OpalConnection * connection);
@@ -742,9 +715,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics, PProfiling::H
 
     PSafeArray<OpalConnection> m_connectionsActive;
 
-#if OPAL_HAS_MIXER
     PAtomicSharedPtr<OpalRecordManager> m_recordManager;
-#endif
 
 #if OPAL_SCRIPT
     PDECLARE_ScriptFunctionNotifier(OpalCall, ScriptClear);

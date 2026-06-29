@@ -345,6 +345,9 @@ class OpalRTPConnection : public OpalConnection
     OpalMediaFormatList NegotiateFECMediaFormats(OpalMediaSession & session);
 #endif
 
+    virtual void EnableRecording();
+    virtual void DisableRecording();
+
 
     SessionMap m_sessions;
     bool m_remoteBehindNAT;

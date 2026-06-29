@@ -53,8 +53,9 @@ class OpalRecordManager : public PObject
     /** Factory for creating new recording managers. Selection is made based on the
         file extension of the file supplied to OpalManager::StartRecording().
 
-        Currently only WAV files, and for WIndows only, AVI files, are supported.
-        Howeer this factory allows an application to add their own file formats. */
+        At a minimum WAV files are supported. If FFMPEG is available then any file
+        format supported by that library is also supported.
+        However, this factory allows an application to add their own file formats. */
     typedef PFactory<OpalRecordManager, PFilePathString> Factory;
 
 #if OPAL_VIDEO
@@ -202,22 +203,6 @@ class OpalRecordManager : public PObject
       const PTime & when   ///< Current time to achieve correct output rates.
     );
 
-    /**Queue audio to be written to the recording file.
-      */
-    bool QueueAudio(
-      const PString & strmId,     ///< Identifier for media stream.
-      const RTP_DataFrame & rtp   ///< RTP data containing PCM-16 data
-    );
-
-#if OPAL_VIDEO
-    /**Queue video to be written to the recording file.
-      */
-    bool QueueVideo(
-      const PString & strmId,     ///< Identifier for media stream.
-      const RTP_DataFrame & rtp   ///< RTP data containing a YUV420P frame
-    );
-#endif
-
     /**Get the options for this recording.
       */
     const Options & GetOptions() const { return m_options; }
@@ -228,6 +213,9 @@ class OpalRecordManager : public PObject
     {
       m_options = options;
     }
+
+    /// Indicate this recording method wants raw RTP/RTCP
+    virtual bool SupportsRawRTP() const { return false; }
 
   protected:
     /// Constructor, protected for derived classes only

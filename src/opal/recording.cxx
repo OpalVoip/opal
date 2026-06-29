@@ -35,6 +35,7 @@
 #include <opal/recording.h>
 
 #include <ep/opalmixer.h>
+#include <rtp/pcapfile.h>
 #include <ptclib/mediafile.h>
 
 
@@ -122,25 +123,6 @@ bool OpalRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame 
 }
 
 
-bool OpalRecordManager::QueueAudio(const PString & strmId, const RTP_DataFrame & rtp)
-{
-  PTRACE(m_audioLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of audio to " << strmId << (m_muted.load() ? " (muted)" : "")
-         << m_audioLogThrottle);
-  return m_muted.load() || InternalQueueAudio(strmId, rtp);
-}
-
-
-#if OPAL_VIDEO
-bool OpalRecordManager::QueueVideo(const PString & strmId, const RTP_DataFrame & rtp)
-{
-  PTRACE(m_videoLogThrottle, "Writing " << rtp.GetPayloadSize() << " bytes"
-         " of video to " << strmId << (m_muted.load() ? " (muted)" : "")
-         << m_videoLogThrottle);
-  return m_muted.load() || InternalQueueVideo(strmId, rtp);
-}
-#endif
-
 bool OpalRecordManager::CloseStream(const PString & strmId)
 {
   if (m_streamFormats.erase(strmId) == 0)
@@ -183,13 +165,14 @@ class OpalMediaFileRecordManager : public OpalRecordManager
 {
   public:
     OpalMediaFileRecordManager();
-    ~OpalMediaFileRecordManager();
+    ~OpalMediaFileRecordManager() { Close(); }
 
     virtual bool OpenFile(const PFilePath & fn) override;
     virtual bool IsOpen() const override;
     virtual bool Close() override;
     virtual bool OpenStream(const PString & strmId, const OpalMediaFormat & format) override;
     virtual bool CloseStream(const PString & strmId) override;
+    virtual OpalMediaFormat GetStreamFormat(const PString & strmId) const override;
 
     struct FactoryInitialiser : OpalRecordManager::Factory::WorkerBase
     {
@@ -264,12 +247,6 @@ OpalMediaFileRecordManager::OpalMediaFileRecordManager()
   , m_videoTrack(numeric_limits<unsigned>::max())
 #endif
 {
-}
-
-
-OpalMediaFileRecordManager::~OpalMediaFileRecordManager()
-{
-  Close();
 }
 
 
@@ -549,6 +526,24 @@ bool OpalMediaFileRecordManager::CloseStream(const PString & streamId)
 }
 
 
+OpalMediaFormat OpalMediaFileRecordManager::GetStreamFormat(const PString & strmId) const
+{
+  OpalMediaFormat format = OpalRecordManager::GetStreamFormat(strmId);
+  if (format.IsEmpty())
+    return format;
+
+#if OPAL_VIDEO
+  if (format.GetMediaType() == OpalMediaType::Video())
+    return GetOpalYUV420P();
+#endif
+
+  if (format.GetMediaType() == OpalMediaType::Audio())
+    return GetOpalPCM16(format.GetClockRate());
+
+  return format;
+}
+
+
 bool OpalMediaFileRecordManager::OnPushAudio()
 {
   PSharedPtr<AudioMixer> audioMixer = m_audioMixer.load();
@@ -681,6 +676,55 @@ static OpalMediaFileRecordManager::FactoryInitialiser OpalMediaFileRecordManager
 
 
 #endif // OPAL_HAS_MIXER
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+/** This class manages the recording of OPAL calls to a PCAP file.
+  */
+class OpalPCAPFileRecordManager : public OpalRecordManager
+{
+public:
+  ~OpalPCAPFileRecordManager() { Close(); }
+
+  virtual bool OpenFile(const PFilePath & fn) override { return m_file.Open(fn, PFile::WriteOnly); }
+  virtual bool IsOpen() const override { return m_file.IsOpen(); }
+  virtual bool Close() override { return m_file.Close(); }
+  virtual bool OpenStream(const PString & strmId, const OpalMediaFormat & format) override;
+  virtual bool CloseStream(const PString &) override { return true; }
+  virtual bool QueueStream(const PString & strmId, const RTP_DataFrame & rtp) override;
+
+protected:
+  OpalPCAPFile m_file;
+
+  // Audio
+  virtual bool InternalQueueAudio(const PString &, const RTP_DataFrame &) override { return false; }
+  virtual bool OnPushAudio() override { return false; }
+  virtual unsigned GetPushAudioPeriodMS() const override { return 0; }
+
+#if OPAL_VIDEO
+  virtual bool InternalQueueVideo(const PString &, const RTP_DataFrame &) override { return false; }
+  virtual bool OnPushVideo() override { return false; }
+  virtual unsigned GetPushVideoPeriodMS() const override { return 0; }
+#endif
+};
+
+
+bool OpalPCAPFileRecordManager::OpenStream(const PString & strmId, const OpalMediaFormat & format)
+{
+  PTRACE(4, "Opening stream " << strmId << ' ' << format);
+  return OpalRecordManager::OpenStream(strmId, format);
+}
+
+
+bool OpalPCAPFileRecordManager::QueueStream(const PString & strmId, const RTP_DataFrame & rtp)
+{
+  PTRACE(4, "Queueing stream " << strmId << ' ' << rtp);
+  return m_file.WriteRTP(rtp, 0);
+}
+
+
+PFACTORY_CREATE(OpalRecordManager::Factory, OpalPCAPFileRecordManager, "pcap");
 
 
 /////////////////////////////////////////////////////////////////////////////
