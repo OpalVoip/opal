@@ -747,17 +747,17 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   if (m_session.IsAudio() ? frame.GetMarker() : (lastTimestamp == frame.GetTimestamp()))
     return;
 
-  unsigned localDiff = 0;
+  PTimeInterval netDeltaTime;
   RTP_Timestamp remoteDiff = 0;
   if (previousPacketNetTime.IsValid()) {
-    localDiff = (m_lastPacketNetTime - previousPacketNetTime).GetInterval();
+    netDeltaTime = m_lastPacketNetTime - previousPacketNetTime;
     remoteDiff = frame.GetTimestamp() - lastTimestamp;
 
-    m_averageTimeAccum += localDiff;
-    if (localDiff > m_maximumTimeAccum)
-      m_maximumTimeAccum = localDiff;
-    if (localDiff < m_minimumTimeAccum)
-      m_minimumTimeAccum = localDiff;
+    m_averageTimeAccum += netDeltaTime;
+    if (netDeltaTime > m_maximumTimeAccum)
+      m_maximumTimeAccum = netDeltaTime;
+    if (netDeltaTime < m_minimumTimeAccum)
+      m_minimumTimeAccum = netDeltaTime;
   }
 
   unsigned statisticsInterval;
@@ -766,7 +766,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   else {
     statisticsInterval = m_session.GetRxStatisticsInterval();
     // As per RFC3550 Appendix 8
-    localDiff *= m_session.m_timeUnits; // Convert to timestamp units
+    RTP_Timestamp localDiff = (RTP_Timestamp)(netDeltaTime.GetMilliSeconds()*m_session.m_timeUnits); // Convert to timestamp units
     long variance = localDiff > remoteDiff ? (localDiff - remoteDiff) : (remoteDiff - localDiff);
     m_jitterAccum += variance - ((m_jitterAccum + (1 << (JitterRoundingGuardBits - 1))) >> JitterRoundingGuardBits);
     m_currentJitter = (m_jitterAccum >> JitterRoundingGuardBits) / m_session.m_timeUnits;
@@ -775,13 +775,18 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   }
 
   ++m_statisticsCount;
-  if (m_packets == 3 || m_statisticsCount < statisticsInterval)
+
+  /* Normally we calculate average every statisticsInterval, but we also do
+     it for all of the early packets, so we have initial values which may be
+     used by heuristics handling the session.
+   */
+  if (m_packets < 10)
+    m_averagePacketTime = m_averageTimeAccum/m_statisticsCount;
+
+  if (m_statisticsCount < statisticsInterval)
     return;
 
-  // Normally calculate statistics every interval, but we also do it on the 3rd packet,
-  // so we have initial values which may be used by heuristics handling the session.
-
-  m_averagePacketTime = m_averageTimeAccum/(m_statisticsCount-1); // Allow for last fence post
+  m_averagePacketTime = m_averageTimeAccum/m_statisticsCount;
   m_maximumPacketTime = m_maximumTimeAccum;
   m_minimumPacketTime = m_minimumTimeAccum;
 
@@ -1122,7 +1127,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     if (jb != NULL && jb->GetMinJitterDelay() > 0)
       m_metrics->SetJitterDelay(jb->GetCurrentJitterDelay() / m_session.m_timeUnits);
     else
-      m_metrics->SetJitterDelay(m_currentJitter);
+      m_metrics->SetJitterDelay((unsigned)m_currentJitter.GetMilliSeconds());
   }
 #endif
 
@@ -2665,11 +2670,11 @@ void OpalRTPSession::SyncSource::GetStatistics(OpalMediaStatistics & statistics)
   statistics.m_packetsLost       = m_packetsMissing;
   if (statistics.m_maxConsecutiveLost < m_maxConsecutiveLost)
     statistics.m_maxConsecutiveLost = m_maxConsecutiveLost;
-  statistics.m_minimumPacketTime = m_minimumPacketTime;
-  statistics.m_averagePacketTime = m_averagePacketTime;
-  statistics.m_maximumPacketTime = m_maximumPacketTime;
-  statistics.m_averageJitter     = m_currentJitter;
-  statistics.m_maximumJitter     = m_maximumJitter;
+  statistics.m_minimumPacketTime = (int)m_minimumPacketTime.GetMilliSeconds();
+  statistics.m_averagePacketTime = (int)m_averagePacketTime.GetMilliSeconds();
+  statistics.m_maximumPacketTime = (int)m_maximumPacketTime.GetMilliSeconds();
+  statistics.m_averageJitter     = (int)m_currentJitter.GetMilliSeconds();
+  statistics.m_maximumJitter     = (int)m_maximumJitter.GetMilliSeconds();
   if (m_packets > 0)
     statistics.m_lastPacketRTP   = m_lastPacketTimestamp;
   statistics.m_lastPacketAbsTime = m_lastPacketAbsTime;

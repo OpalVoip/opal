@@ -621,7 +621,7 @@ class OpalRTPSession : public OpalMediaSession
        This is averaged over the last txStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets sent.
       */
-    int GetAverageSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_averagePacketTime; }
+    PTimeInterval GetAverageSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_averagePacketTime; }
 
     /**Get the number of marker packets received this session.
        This can be used to find out the number of frames received in a video
@@ -639,48 +639,48 @@ class OpalRTPSession : public OpalMediaSession
        This is over the last txStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets sent.
       */
-    int GetMaximumSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_maximumPacketTime; }
+    PTimeInterval GetMaximumSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_maximumPacketTime; }
 
     /**Get minimum time between sent packets.
        This is over the last txStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets sent.
       */
-    int GetMinimumSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_minimumPacketTime; }
+    PTimeInterval GetMinimumSendTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_minimumPacketTime; }
 
     /**Get average time between received packets.
        This is averaged over the last rxStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets received.
       */
-    int GetAverageReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_averagePacketTime; }
+    PTimeInterval GetAverageReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_averagePacketTime; }
 
     /**Get maximum time between received packets.
        This is over the last rxStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets received.
       */
-    int GetMaximumReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_maximumPacketTime; }
+    PTimeInterval GetMaximumReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_maximumPacketTime; }
 
     /**Get minimum time between received packets.
        This is over the last rxStatisticsInterval packets and is in
        milliseconds. -1 indicated no packets received.
       */
-    int GetMinimumReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_minimumPacketTime; }
+    PTimeInterval GetMinimumReceiveTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_minimumPacketTime; }
 
     /**Get averaged jitter time for received packets.
-       This is the calculated statistical variance of the interarrival
+       This is the calculated statistical variance of the inter-arrival
        time of received packets in milliseconds. -1 indicated no packets received.
       */
-    int GetAvgJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_currentJitter; }
+    PTimeInterval GetAvgJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_currentJitter; }
 
     /**Get averaged jitter time for received packets.
        This is the maximum value of jitterLevel for the session. -1 indicated no packets received.
       */
-    int GetMaxJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_maximumJitter; }
+    PTimeInterval GetMaxJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_maximumJitter; }
 
     /**Get jitter time for received packets on remote.
-       This is the calculated statistical variance of the interarrival
+       This is the calculated statistical variance of the inter-arrival
        time of received packets in milliseconds. -1 indicated no RTCP received.
       */
-    int GetJitterTimeOnRemote(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_currentJitter; }
+    PTimeInterval GetJitterTimeOnRemote(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_currentJitter; }
 
     /**Get round trip time to remote.
        This is calculated according to the RFC 3550 algorithm.
@@ -933,23 +933,23 @@ class OpalRTPSession : public OpalMediaSession
       unsigned m_packetsOutOfOrder;
       int      m_lateOutOfOrder;
 
-      int      m_averagePacketTime; // Milliseconds
-      int      m_maximumPacketTime; // Milliseconds
-      int      m_minimumPacketTime; // Milliseconds
-      int      m_currentJitter;     // Milliseconds
-      int      m_maximumJitter;     // Milliseconds
-      unsigned m_markerCount;
+      PTimeInterval m_averagePacketTime;
+      PTimeInterval m_maximumPacketTime;
+      PTimeInterval m_minimumPacketTime;
+      PTimeInterval m_currentJitter;
+      PTimeInterval m_maximumJitter;
+      unsigned      m_markerCount;
 
       // Working for calculating statistics
-      RTP_Timestamp      m_lastPacketTimestamp;
-      RTP_Timestamp      m_lastPacketTimestampDelta;
-      PTime              m_lastPacketAbsTime;
-      PTime              m_lastPacketNetTime;
+      RTP_Timestamp m_lastPacketTimestamp;
+      RTP_Timestamp m_lastPacketTimestampDelta;
+      PTime         m_lastPacketAbsTime;
+      PTime         m_lastPacketNetTime;
 
-      unsigned           m_averageTimeAccum;
-      unsigned           m_maximumTimeAccum;
-      unsigned           m_minimumTimeAccum;
-      unsigned           m_jitterAccum;
+      PTimeInterval m_averageTimeAccum;
+      PTimeInterval m_maximumTimeAccum;
+      PTimeInterval m_minimumTimeAccum;
+      unsigned      m_jitterAccum;
 
       // Things to remember for filling in fields of sent SR/RR/DLRR
       unsigned           m_lastRRPacketsReceived;
