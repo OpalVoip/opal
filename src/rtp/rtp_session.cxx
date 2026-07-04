@@ -633,6 +633,7 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_maximumJitter(-1)
   , m_markerCount(0)
   , m_lastPacketTimestamp(0)
+  , m_lastPacketTimestampDelta(0)
   , m_lastPacketAbsTime(0)
   , m_lastPacketNetTime(0)
   , m_averageTimeAccum(0)
@@ -934,6 +935,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   frame.SetLipSyncId(m_mediaStreamId);
   frame.SetSimulcastId(m_rtpStreamId);
 
+  RTP_Timestamp timestamp = frame.GetTimestamp();
   RTP_SequenceNumber sequenceNumber = frame.GetSequenceNumber();
   RTP_SequenceNumber expectedSequenceNumber = m_lastSequenceNumber + 1;
   RTP_SequenceNumber sequenceDelta = sequenceNumber - expectedSequenceNumber;
@@ -955,6 +957,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     PTRACE(m_throttleReceiveData, &m_session, m_session << "received packet " << setw(1) << frame << m_throttleReceiveData);
     SetLastSequenceNumber(sequenceNumber);
     m_consecutiveOutOfOrderPackets = 0;
+    if (timestamp > m_lastPacketTimestamp)
+      m_lastPacketTimestampDelta = timestamp - m_lastPacketTimestamp; // For the SN jump heuristic
     switch (rxType) {
       case e_RxFromNetwork :
         if (HasPendingFrames()) {
@@ -1010,9 +1014,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     }
     return e_IgnorePacket;
   }
-  else if (sequenceDelta > SequenceRestartThreshold ||
-           (m_session.m_isAudio && m_averagePacketTime > 0 && m_lastPacketNetTime.IsValid() &&
-               (now - m_lastPacketNetTime) < sequenceDelta*PTimeInterval(m_averagePacketTime))) {
+  else if (sequenceDelta > SequenceRestartThreshold) {
     // Check for where sequence numbers suddenly start incrementing from a different base.
 
     if (m_consecutiveOutOfOrderPackets > 0 && (sequenceNumber != m_nextOutOfOrderPacket || now > m_consecutiveOutOfOrderEndTime)) {
@@ -1036,6 +1038,41 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
 #if OPAL_RTCP_XR
     if (m_metrics != NULL) m_metrics->OnPacketDiscarded();
 #endif
+  }
+  else if (sequenceDelta > 2 && m_session.m_isAudio &&
+           (
+             ((now - m_lastPacketNetTime) < sequenceDelta*PTimeInterval(m_averagePacketTime))
+             ||
+             ((timestamp - m_lastPacketTimestamp) > sequenceDelta*m_lastPacketTimestampDelta)
+             )
+           ) {
+    /* Heuristic for dealing with badly behaved endpoints that incorrectly jump
+       sequence numbers without changing the SSRC. Most often seen with PSTN
+       gateways when they switch between signalling and media servers.
+
+       Telling the downstream media handling that 100's pf packets are missing
+       when they weren't can cause all sorts of issues. For example, the
+       insertion of large amounts of silent audio. So we need to ignore these
+       when they happen.
+
+       This heuristic only works for audio where packets arrive very much on
+       time and with consistently incrementing timestamps. So when we detect
+       that the SN jump is far too fast, or inconsistent with the timestamp
+       jump, then we just essentially ignore the jump. We do indicate a
+       discontinuity so downstream media handling knows something happened,
+       but don't get told about incorrectly huge changes.
+
+       Note, if the timestamps jumps without a corresponding SN change, it is
+       the responsibility of the downstream handling to deal with that.
+     */
+    PTRACE(2, &m_session, *this << "abnormal change of sequence numbers:"
+           " newTS=" << timestamp << ","
+           " lastTS=" << m_lastPacketTimestamp << ","
+           " lastDelta=" << m_lastPacketTimestampDelta << ","
+           " newSN=" << sequenceNumber << ","
+           " lastSN=" << m_lastSequenceNumber);
+    SetLastSequenceNumber(sequenceNumber);
+    frame.SetDiscontinuity(1);  // Assume we've lost at least one packet
   }
   else {
     if (m_session.ResequenceOutOfOrderPackets(*this)) {
@@ -1063,13 +1100,13 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
 
   PTime absTime(0);
   if (m_reportAbsoluteTime.IsValid()) {
-    PTimeInterval delta = ((int64_t)frame.GetTimestamp() - (int64_t)m_reportTimestamp)/m_session.m_timeUnits;
+    PTimeInterval delta = ((int64_t)timestamp - (int64_t)m_reportTimestamp)/m_session.m_timeUnits;
     static PTimeInterval const MaxJumpMS(0,4);
     if (delta > -MaxJumpMS && delta < (m_lastSenderReportTime.GetElapsed().GetMilliSeconds()+MaxJumpMS))
       absTime = m_reportAbsoluteTime + delta;
     else {
       PTRACE(4,  &m_session, *this <<
-             "unexpected jump in RTP timestamp (" << frame.GetTimestamp() << ") "
+             "unexpected jump in RTP timestamp (" << timestamp << ") "
              "from SenderReport (" << m_reportTimestamp << ") "
              "delta=" << delta << ", "
              "SN=" << sequenceNumber);
@@ -1138,7 +1175,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
       PTRACE(m_absSendTimeLoglevel, &m_session, *this <<
               "set transmit time from RTP:"
               " sn=" << frame.GetSequenceNumber() << ","
-              " ts=" << frame.GetTimestamp() << ","
+              " ts=" << timestamp << ","
               " hdr=0x" << std::hex << setfill('0') << setw(8) << lowBits << setfill(' ') << std::dec << ","
               " delta=" << delta << ","
               " time=" << frame.GetMetaData().m_transmitTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone()));

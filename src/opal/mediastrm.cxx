@@ -975,8 +975,8 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        real time then it is suspect, and we should delay the real time amount.
        This can be if the remote is not setting timestamps correctly, or if it
        fails to change the SSRC on switching media servers.
-       The heristic used is if indicated delay is under 120ms but actual is 
-       over 500ms, then we don't truct the indicated timstamp */
+       The heuristic used is if indicated delay is under 120ms but actual is 
+       over 500ms, then we don't trust the indicated timestamp */
     RTP_Timestamp delta = m_timestamp - m_expectedTimestamp;
     if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits) {
       PTRACE(4, "Unexpected audio packet delay: ts-delta=" << delta << ", real-delta=" << realDelta);

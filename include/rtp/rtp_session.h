@@ -942,6 +942,7 @@ class OpalRTPSession : public OpalMediaSession
 
       // Working for calculating statistics
       RTP_Timestamp      m_lastPacketTimestamp;
+      RTP_Timestamp      m_lastPacketTimestampDelta;
       PTime              m_lastPacketAbsTime;
       PTime              m_lastPacketNetTime;
 
