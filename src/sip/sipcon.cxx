@@ -3026,6 +3026,10 @@ void SIPConnection::OnReceivedCANCEL(SIP_PDU & request)
     }
   }
 
+  // Deal with race condition between 200 response being sent and CANCEL arriving.
+  // See https://www.rfc-editor.org/info/rfc5407/#section-3.1.2
+  if (m_releaseMethod != ReleaseWithResponse)
+    m_releaseMethod = ReleaseWithNothing;
   Release(endReason);
 }
 
