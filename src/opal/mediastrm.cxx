@@ -954,21 +954,38 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
   RTP_Timestamp realDelta = (RTP_Timestamp)(m_writeTime.GetElapsed().GetMilliSeconds() * m_timeUnits);
   m_writeTime.SetCurrentTime();
 
-  // Don't insert silence and reset expected timestamp if ...
-  if (!m_trustTimestamps || // We don't trust the timestamps
-       m_externalSilence || // We are using JB which supplies the silence packets
-       m_ssrcChanged || // SyncSource has changed
-       m_expectedTimestamp == 0 || // Not received anything yet
-       m_timestamp < m_expectedTimestamp || // Timestamp went backwards
-      (m_timestamp - m_expectedTimestamp) > m_failSafeTime.GetMilliSeconds()*m_timeUnits) // More than fail safe time
-  {
-    if (m_expectedTimestamp != 0)
-      m_expectedTimestamp = m_timestamp;
-    else {
-      // If first packet, allow for leading silence since we opened
-      PTRACE(4, "First audio packet: real-delta=" << realDelta << ", ts=" << m_timestamp);
-      m_expectedTimestamp = m_timestamp - realDelta;
-    }
+  const RTP_Timestamp failSafeDelta = (RTP_Timestamp)(m_failSafeTime.GetMilliSeconds()*m_timeUnits);
+
+  if (m_expectedTimestamp == 0) {
+    // If first packet, allow for leading silence since we opened
+    PTRACE(4, "First audio packet: real-delta=" << realDelta << ", ts=" << m_timestamp);
+    m_expectedTimestamp = m_timestamp - realDelta;
+  }
+  else if (!m_trustTimestamps || m_externalSilence) {
+    /* Don't insert silence and just reset expected timestamp if ...
+          String option indicates we don't trust the timestamps
+          We are using JB which supplies the silence packets */
+    m_expectedTimestamp = m_timestamp;
+  }
+  else if (m_ssrcChanged) {
+    /* Mid-call SSRC change while this sink owns silence insertion
+       (JB disabled / m_externalSilence false). RTP timestamps start a new
+       continuum, so the inter-SSRC gap can only be reconstructed from
+       wall-clock (realDelta). */
+    RTP_Timestamp pad = std::min(realDelta, failSafeDelta);
+    PTRACE(4, "SSRC change wall-clock silence:"
+           " real-delta=" << realDelta << ","
+           " ts=" << m_timestamp << ","
+           " pad=" << pad);
+    if (!InternalWriteSilence(m_expectedTimestamp + pad))
+      return false;
+    // After adding the required silence, we start using the new timestamps
+    m_expectedTimestamp = m_timestamp;
+  }
+  else if (m_timestamp < m_expectedTimestamp || (m_timestamp - m_expectedTimestamp) > failSafeDelta) {
+    // Timestamp are bad, went backwards or jumped forward more than fail safe time
+    PTRACE(4, "Unexpected change in timestamps: ts=" << m_timestamp << ", expected=" << m_expectedTimestamp);
+    m_expectedTimestamp = m_timestamp;
   }
   else {
     /* If the indicated delta timestamp is significantly less than the elapsed
@@ -984,18 +1001,26 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     }
 
     // If current timestamp later than expected, need to pad with silence.
-    while (m_timestamp > m_expectedTimestamp) {
-      const PINDEX silence = std::min((m_timestamp - m_expectedTimestamp)*PCM16Size, 1000U*m_timeUnits);
-      PTRACE(6, "Writing silence: " << silence << " bytes");
-      if (!InternalWriteChannel(m_silence.GetPointer(silence), silence, written))
-        return false;
-    }
+    if (!InternalWriteSilence(m_timestamp))
+      return false;
   }
 
   m_lastDataSize = length;
   return InternalWriteChannel(buffer, length, written);
 }
 
+
+bool OpalRawMediaStream::InternalWriteSilence(RTP_Timestamp targetTimestamp)
+{
+  while (m_expectedTimestamp < targetTimestamp) {
+    const PINDEX silenceBytes = std::min((targetTimestamp - m_expectedTimestamp)*PCM16Size, 1000U*m_timeUnits);
+    PTRACE(4, "Writing silence: " << silenceBytes << " bytes");
+    PINDEX written;
+    if (!InternalWriteChannel(m_silence.GetPointer(silenceBytes), silenceBytes, written))
+      return false;
+  }
+  return true;
+}
 
 bool OpalRawMediaStream::InternalWriteChannel(const BYTE * buffer, PINDEX length, PINDEX & written)
 {

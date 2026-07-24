@@ -674,6 +674,7 @@ class OpalRawMediaStream : public OpalMediaStream
 
   protected:
     virtual void InternalClose() override;
+    virtual bool InternalWriteSilence(RTP_Timestamp targetTimestamp);
     virtual bool InternalWriteChannel(const BYTE * data, PINDEX length, PINDEX & written);
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
     void InternalCalculateAudioLevel(const BYTE * data, PINDEX length);
