@@ -29,7 +29,6 @@
 #include <ptlib/pprocess.h>
 #include <ptlib/videoio.h>
 #include <ptlib/sound.h>
-#include <ptlib/video.h>
 #include <ptclib/vsdl.h>
 #include <opal/transcoders.h>
 #include <codec/opalplugin.h>
