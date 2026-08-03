@@ -466,8 +466,8 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
   RTP_SequenceNumber currentSequenceNum = frame.GetSequenceNumber();
   RTP_SyncSourceId newSyncSource = frame.GetSyncSource();
 
-  // Avoid issues with constant delay offset caused by initial in rush of packets
-  if (m_lastSyncSource == 0 && (m_lastInsertTick == 0 || (tick - m_lastInsertTick) < 10)) {
+  // Avoid issues with constant delay offset caused by initial in rush of packets, but if JB disabled
+  if (m_lastSyncSource == 0 && m_currentJitterDelay > 0 && (m_lastInsertTick == 0 || (tick - m_lastInsertTick) < 10)) {
     PTRACE_J(4, "Flushing initial:"
                 " ts=" << timestamp << ","
                 " sn=" << currentSequenceNum << ","
