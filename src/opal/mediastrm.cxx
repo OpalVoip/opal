@@ -957,9 +957,11 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
   const RTP_Timestamp failSafeDelta = (RTP_Timestamp)(m_failSafeTime.GetMilliSeconds()*m_timeUnits);
 
   if (m_expectedTimestamp == 0) {
-    // If first packet, allow for leading silence since we opened
-    PTRACE(4, "First audio packet: real-delta=" << realDelta << ", ts=" << m_timestamp);
+    // If first packet, write leading silence in real time since we opened
+    PTRACE(4, "First audio packet: real-delta=" << realDelta << ", ts=" << m_timestamp << ", m=" << m_marker);
     m_expectedTimestamp = m_timestamp - realDelta;
+    if (!InternalWriteSilence(m_timestamp))
+      return false;
   }
   else if (!m_trustTimestamps || m_externalSilence) {
     /* Don't insert silence and just reset expected timestamp if ...
