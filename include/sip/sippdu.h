@@ -689,6 +689,7 @@ class SIP_PDU : public PSafeObject
     StatusCodes Read();
     StatusCodes Parse(
       istream & strm,
+      bool reliable,
       bool truncated
     );
 
