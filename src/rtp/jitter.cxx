@@ -478,6 +478,12 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     return true;
   }
 
+  /* Due to the above flushing, or sometimes on change of SSRC, the packet
+     marker bit is not set.However, that may be needed by downstream
+     components to indicate start of talk burst, so we fake it ourselves.
+  */
+  bool needsMarker = false;
+
   // Check for remote switching media senders, they shouldn't do this but do anyway
   if (newSyncSource != m_lastSyncSource) {
     PTRACE_IF(m_ssrcChangedThrottle, m_lastSyncSource != 0,
@@ -492,6 +498,7 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     m_packetTime = 0;
     m_packetsTooLate = m_bufferOverruns = 0; // Reset these stats for new SSRC
     m_lastSyncSource = newSyncSource;
+    needsMarker = true;
   }
 
 
@@ -618,6 +625,8 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
   if (result.second) {
     // A different thread will read the frame later, so ensure it is given a unique copy
     result.first->second.MakeUnique();
+    if (needsMarker)
+      result.first->second.SetMarker(true);
     ANALYSE(In, timestamp, m_synchronisationState != e_SynchronisationDone ? "PreBuf" : "");
     PTRACE_IF(sm_EveryPacketLogLevel, m_maxJitterDelay > 0,
               "Inserted packet :"
