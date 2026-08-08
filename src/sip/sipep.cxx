@@ -442,9 +442,9 @@ void SIPEndPoint::HandlePDU(const OpalTransportPtr & transport)
         for (SIPHandlers::iterator it = m_activeSIPHandlers.begin(); it != m_activeSIPHandlers.end(); ++it) {
           SIPRegisterHandler * regHandler = dynamic_cast<SIPRegisterHandler *>(&*it->second);
           if (  regHandler != NULL &&
-                regHandler->GetState() == SIPHandler::Subscribed &&
-                regHandler->GetParams().m_compatibility == SIPRegister::e_RFC5626 &&
-                regHandler->GetRemoteTransportAddress().IsEquivalent(transport->GetRemoteAddress())) {
+              regHandler->GetState() == SIPHandler::Subscribed &&
+              regHandler->GetParams().m_compatibility == SIPRegister::e_RFC5626 &&
+              regHandler->GetRemoteTransportAddress().IsEquivalent(transport->GetRemoteAddress())) {
             SIPHandler::State newState = SIPHandler::Restoring;
             if (!transport->Connect()) {
               // In case remote is bouncing, and is back up quickly, have another go
@@ -463,7 +463,7 @@ void SIPEndPoint::HandlePDU(const OpalTransportPtr & transport)
       break;
 
     case SIP_PDU::Successful_OK :
-      if (OnReceivedPDU(pdu)) 
+      if (OnReceivedPDU(pdu))
         return;
       break;
 
@@ -476,6 +476,20 @@ void SIPEndPoint::HandlePDU(const OpalTransportPtr & transport)
           !mime.GetFrom().IsEmpty() &&
           !mime.GetTo().IsEmpty())
         pdu->SendResponse(status);
+
+      /* On a stream transport a framing error means we can no longer reliably
+         delimit messages on this connection; continuing would black-hole every
+        following request. Drop it so the peer re-establishes a clean one. */
+      if (transport->IsReliable() &&
+            (
+              status < 100 ||
+              status == SIP_PDU::Failure_BadRequest ||
+              status == SIP_PDU::Failure_MessageTooLarge
+            )) {
+        PTRACE(2, "Framing error (" << status << ") on reliable transport "
+               << *transport << ", closing to force resync.");
+        transport->Close();
+      }
   }
 
   delete pdu;

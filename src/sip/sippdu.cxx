@@ -2333,7 +2333,11 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   StatusCodes status;
 
   if (m_transport->IsReliable()) {
-    status = Parse(*m_transport->GetChannel(), false);
+    PChannel & channel = *m_transport->GetChannel();
+    PTimeInterval oldTimeout = channel.GetReadTimeout();
+    channel.SetReadTimeout(m_transport->GetEndPoint().GetManager().GetSignalingTimeout());
+    status = Parse(channel, true, false);
+    channel.SetReadTimeout(oldTimeout);
     PTRACE_IF(2, status == SIP_PDU::Local_TransportLost,
               "Reliable transport lost to " << *m_transport <<
               " - " << m_transport->GetErrorText(PChannel::LastReadError));
@@ -2352,7 +2356,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
 
   PStringStream datagram;
   datagram = PString(pdu);
-  status = Parse(datagram, truncated);
+  status = Parse(datagram, false, truncated);
 
   if (status == Local_TransportLost) {
     if (m_transport->GetLastReceivedAddress() == m_transport->GetRemoteAddress() &&
@@ -2449,7 +2453,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
 }
 
 
-SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
+SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool reliable, bool truncated)
 {
 #if PTRACING
   PStringStream transportName;
@@ -2536,35 +2540,40 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
     return SIP_PDU::Failure_BadRequest;
   }
 
-  // get the SDP content body
-  // if a content length is specified, read that length
-  // if no content length is specified (which is not the same as zero length)
-  // then read until end of datagram or stream
+  // Check for valid content length
   int contentLength = m_mime.GetContentLength();
-  bool contentLengthPresent = m_mime.IsContentLengthPresent();
-
-  if (!contentLengthPresent) {
-    PTRACE(2, "No Content-Length present" << transportName << ", reading till end of datagram/stream.");
-  }
-  else if (contentLength < 0) {
-    PTRACE(2, "Impossible negative Content-Length" << transportName << ", reading till end of datagram/stream.");
-    contentLengthPresent = false;
-  }
-  else if (contentLength > 65535) {
-    PTRACE(2, "Implausibly long Content-Length " << contentLength << " received" << transportName << ", reading to end of datagram/stream.");
-    contentLengthPresent = false;
+  if (contentLength < 0) {
+    PTRACE(2, "Impossible negative Content-Length on " << transportName);
+    return SIP_PDU::Failure_BadRequest;
   }
 
-  // Don't worry about body if was truncated packet
+  if (contentLength > 65535) {
+    PTRACE(2, "Implausibly long Content-Length " << contentLength << " on " << transportName);
+    return SIP_PDU::Failure_MessageTooLarge;
+  }
+
+  // Don't worry about body if was truncated UDP packet
   if (!truncated) {
-    if (contentLengthPresent) {
+    if (m_mime.IsContentLengthPresent()) {
       if (contentLength > 0) {
         stream.read(m_entityBody.GetPointerAndSetLength(contentLength), contentLength);
-        if (stream.gcount() != (std::streamsize)contentLength)
+        if (stream.gcount() != (std::streamsize)contentLength) {
+          if (reliable) {
+            PTRACE(2, "Reliable transport but only read " << stream.gcount()
+                   << " of " << contentLength << " bytes of body " << transportName);
+            return SIP_PDU::Local_Timeout; // Most likely thing here
+          }
+          // On UDP this is just truncated
           truncated = true;
+        }
       }
     }
     else {
+      if (reliable) {
+        PTRACE(2, "Reliable transport without Content-Length on " << transportName);
+        return SIP_PDU::Failure_BadRequest;
+      }
+
       contentLength = 0;
       int c;
       while ((c = stream.get()) != EOF) {
@@ -2576,7 +2585,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
     m_entityBody[contentLength] = '\0';
 
     /* RFC3261 Sections 8.1.1.7 & 17.1.3 transactions are identified by the
-        branch paranmeter in the top most Via and CSeq. We do NOT include the
+        branch parameter in the top most Via and CSeq. We do NOT include the
         CSeq in our id as we want the CANCEL messages directed at out
         transaction structure.
       */
