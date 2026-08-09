@@ -80,6 +80,7 @@ public:
     Destroyed,
     UserAdded,
     UserRemoved,
+    UserRoleChanged,
     ActiveSpeakerChanged
   );
 
@@ -103,7 +104,7 @@ public:
   typedef std::vector<URI> URIs;
 
   URIs m_accessURI;               ///< All URIs that can access the conference
-  URIs m_serviceURI;              /**< All URIs that describe auxilliary services for
+  URIs m_serviceURI;              /**< All URIs that describe auxiliary services for
                                        conference, e.g. purpose could be "web-page" or
                                        "recording". */
 
@@ -111,6 +112,7 @@ public:
 
   struct User
   {
+    PString    m_callToken;       ///< INternal token for access to the users call
     PString    m_uri;             ///< URI that the user used to access this conference
     PString    m_displayText;     ///< Human readable form of users connection
     PStringSet m_roles;           ///< Role for user, e.g. "participant".
@@ -122,7 +124,7 @@ public:
 
 #if P_EXPAT
   /** Optional XML as per RFC 4575 "application/conference-info+xml".
-      If this member is set, then this is conferted to astring and sent in SIP
+      If this member is set, then this is converted to a string and sent in SIP
       NOTIFY commands. If it is not set, then the XML is generated from the
       other information, in this way if extended XML fields are required it
       can be added by an application.
@@ -1476,7 +1478,7 @@ class OpalManager : public PObject, public OpalCertificateInfo
       */
     virtual bool OnChangedPresentationRole(
       OpalConnection & connection,   ///< COnnection that has had the change
-      const PString & newChairURI,   ///< URI for new confernce chair
+      const PString & newChairURI,   ///< URI for new conference chair
       bool request                   ///< Indicates change is requested
     );
   //@}
@@ -1779,14 +1781,14 @@ class OpalManager : public PObject, public OpalCertificateInfo
 
     /**Get the default media format mask.
        The is the default list of media format names to be removed from media
-       format lists bfeore use by a connection.
+       format lists before use by a connection.
        See OpalMediaFormatList::Remove() for more information.
      */
     const PStringArray & GetMediaFormatMask() const { return m_mediaFormatMask; }
 
     /**Set the default media format mask.
        The is the default list of media format names to be removed from media
-       format lists bfeore use by a connection.
+       format lists before use by a connection.
        See OpalMediaFormatList::Remove() for more information.
      */
     void SetMediaFormatMask(

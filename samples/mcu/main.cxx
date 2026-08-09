@@ -40,7 +40,7 @@ PCREATE_PROCESS(MyApp);
 
 
 MyManager::MyManager()
-  : m_mixer(NULL)
+  : m_confEP(NULL)
 {
 }
 
@@ -81,7 +81,7 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
   OpalIVREndPoint * ivr = new OpalIVREndPoint(*this);
 
   // Set up conference mixer
-  m_mixer = new MyMixerEndPoint(*this);
+  m_confEP = new OpalConfEndPoint(*this);
 
   LockedStream lockedOutput(*this);
   ostream & output = lockedOutput;
@@ -99,7 +99,7 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
   pcss->SetDeferredAnswer(false);
   AddRouteEntry("mcu:.* = " OPAL_PREFIX_PCSS":<da>");
 
-  MyMixerNodeInfo info(args);
+  MyConfNodeInfo info(args);
 
 #if OPAL_VIDEO
   output << "Video mixer resolution: " << info.m_width << 'x' << info.m_height << endl;
@@ -107,20 +107,20 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 
   if (args.HasOption('n')) {
     info.m_name = args.GetOptionString('n');
-    m_mixer->SetAdHocNodeInfo(info);
+    m_confEP->SetAdHocNodeInfo(info);
     output << "Ad-hoc conferences enabled with default name: " << info.m_name << endl;
   }
 
   if (args.HasOption('f')) {
     info.m_name = args.GetOptionString('f');
-    m_mixer->SetFactoryNodeInfo(info);
+    m_confEP->SetFactoryNodeInfo(info);
     output << "Factory conferences enabled with name: " << info.m_name << endl;
   }
 
 
   m_cli->SetPrompt("MCU> ");
 
-  m_cli->SetCommand("conf add", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfAdd),
+  m_cli->SetCommand("conf add", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfAdd),
                     "Add a new conference:",
 #if OPAL_VIDEO
                     "[ -V ] [ -s size ] [ -m pin ] <name> [ <name> ... ]\n"
@@ -134,28 +134,28 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
                     "                         : if absent, all participants are moderators.\n"
                     "        --no-pass-thru   : Disable media pass through optimisation.\n"
                    );
-  m_cli->SetCommand("conf list", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfList),
+  m_cli->SetCommand("conf list", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfList),
                     "List conferences");
-  m_cli->SetCommand("conf remove", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfRemove),
+  m_cli->SetCommand("conf remove", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfRemove),
                     "Remove conference:",
                     "{ <name> | <guid> }");
-  m_cli->SetCommand("conf monitor", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfMonitor),
+  m_cli->SetCommand("conf monitor", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfMonitor),
                     "Toggle monitoring a conference:",
                     "{ <conf-name> | <guid> }");
-  m_cli->SetCommand("conf record", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfRecord),
+  m_cli->SetCommand("conf record", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfRecord),
                     "Record conference:",
                     "{ <conf-name> | <guid> } { <filename> | stop }");
-  m_cli->SetCommand("conf play", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdConfPlay),
+  m_cli->SetCommand("conf play", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdConfPlay),
                     "Play file to conference:",
                     "{ <conf-name> | <guid> } <filename>");
 
-  m_cli->SetCommand("member add", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdMemberAdd),
+  m_cli->SetCommand("member add", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdMemberAdd),
                     "Add a member to conference:",
                     "{ <name> | <guid> } <address>");
-  m_cli->SetCommand("member list", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdMemberList),
+  m_cli->SetCommand("member list", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdMemberList),
                     "List members in conference:",
                     "{ <name> | <guid> }");
-  m_cli->SetCommand("member remove", PCREATE_NOTIFIER_EXT(m_mixer, MyMixerEndPoint, CmdMemberRemove),
+  m_cli->SetCommand("member remove", PCREATE_NOTIFIER_EXT(*this, MyManager, CmdMemberRemove),
                     "Remove conference member:",
                     "{ <conf-name> | <guid> } <member-name>\n"
                     "member remove <call-token>");
@@ -180,53 +180,7 @@ void MyManager::OnClearedCall(OpalCall & call)
 }
 
 
-///////////////////////////////////////////////////////////////
-
-MyMixerNodeInfo::MyMixerNodeInfo(const PArgList & args, const char * name)
-  : OpalMixerNodeInfo(name)
-  , m_moderatorPIN(args.GetOptionString('m'))
-{
-  m_style = OpalVideoMixer::eUser;
-  m_listenOnly = !m_moderatorPIN.IsEmpty();
-  m_mediaPassThru = args.HasOption("pass-thru");
-#if OPAL_VIDEO
-  m_audioOnly = args.HasOption('V');
-  if (args.HasOption('s'))
-    PVideoFrameInfo::ParseSize(args.GetOptionString('s'), m_width, m_height);
-#endif
-}
-
-
-///////////////////////////////////////////////////////////////
-
-MyMixerEndPoint::MyMixerEndPoint(MyManager & manager)
-  : OpalMixerEndPoint(manager, "mcu")
-  , m_manager(manager)
-{
-}
-
-
-OpalMixerConnection * MyMixerEndPoint::CreateConnection(PSafePtr<OpalMixerNode> node,
-                                                        OpalCall & call,
-                                                        void * userData,
-                                                        unsigned options,
-                                                        OpalConnection::StringOptions * stringOptions)
-{
-  return new MyMixerConnection(node, call, *this, userData, options, stringOptions);
-}
-
-
-OpalMixerNode * MyMixerEndPoint::CreateNode(const OpalMixerNodeInfo & info)
-{
-  PStringStream strm;
-  strm << "Created new conference \"" << info.m_name << '"';
-  m_manager.Broadcast(strm);
-
-  return OpalMixerEndPoint::CreateNode(info);
-}
-
-
-void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfAdd(PCLI::Arguments & args, P_INT_PTR)
 {
   args.Parse("s-size:V-no-video.-m-moderator:");
   if (args.GetCount() == 0) {
@@ -235,13 +189,13 @@ void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, P_INT_PTR)
   }
 
   for (PINDEX i = 0; i < args.GetCount(); ++i) {
-    if (FindNode(args[i]) != NULL) {
+    if (m_confEP->FindNode(args[i]) != NULL) {
       args.WriteError() << "Conference name \"" << args[i] << "\" already exists." << endl;
       return;
     }
   }
 
-  PSafePtr<OpalMixerNode> node = AddNode(MyMixerNodeInfo(args, args[0]));
+  PSafePtr<OpalMixerNode> node = m_confEP->AddNode(MyConfNodeInfo(args, args[0]));
 
   if (node == NULL)
     args.WriteError() << "Could not create conference \"" << args[0] << '"' << endl;
@@ -255,24 +209,20 @@ void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyMixerEndPoint::CmdConfList(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfList(PCLI::Arguments & args, P_INT_PTR)
 {
-  ostream & out = args.GetContext();
-  PSafeArray<OpalMixerNode> nodes = GetNodes();
-  for (PSafeArray<OpalMixerNode>::iterator node = nodes.begin(); node != nodes.end(); ++node)
-    out << *node << '\n';
-  out.flush();
+  m_confEP->ConfList(args.GetContext());
 }
 
 
-bool MyMixerEndPoint::CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount)
+bool MyManager::CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount)
 {
   if (args.GetCount() < argCount) {
     args.WriteUsage();
     return false;
   }
 
-  node = FindNode(args[0]);
+  node = m_confEP->FindNode(args[0]);
   if (node == NULL) {
     args.WriteError() << "Conference \"" << args[0] << "\" does not exist" << endl;
     return false;
@@ -282,29 +232,29 @@ bool MyMixerEndPoint::CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode>
 }
 
 
-void MyMixerEndPoint::CmdConfRemove(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfRemove(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 1))
     return;
 
-  RemoveNode(*node);
+  m_confEP->RemoveNode(*node);
   args.GetContext() << "Removed conference " << *node << endl;
 }
 
 
-void MyMixerEndPoint::CmdConfMonitor(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfMonitor(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 1))
     return;
 
   if (m_monitorToken.IsEmpty()) {
-    if (GetManager().SetUpCall(PSTRSTRM("mcu:" << node->GetGUID() << ";Listen-Only"),
-                               PSTRSTRM("pc:*|" P_NULL_AUDIO_DEVICE
-                                        ";OPAL-" OPAL_OPT_VIDEO_PREVIEW_DEVICE "=Null"
-                                        ";OPAL-" OPAL_OPT_CALLING_DISPLAY_NAME "=" << *node->GetNames().begin()),
-                               m_monitorToken))
+    if (SetUpCall(PSTRSTRM("mcu:" << node->GetGUID() << ";Listen-Only"),
+                  PSTRSTRM("pc:*|" P_NULL_AUDIO_DEVICE
+                          ";OPAL-" OPAL_OPT_VIDEO_PREVIEW_DEVICE "=Null"
+                          ";OPAL-" OPAL_OPT_CALLING_DISPLAY_NAME "=" << *node->GetNames().begin()),
+                  m_monitorToken))
       args.GetContext() << "Started monitoring to conference " << *node << endl;
     else
       args.WriteError() << "Could not start";
@@ -317,16 +267,15 @@ void MyMixerEndPoint::CmdConfMonitor(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
     return;
 
-  PSafeArray<OpalConnection> connections = node->GetConnections();
-  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
-    if (connection->GetCall().GetPartyB().NumCompare("ivr:") == EqualTo)
-      connection->Release();
+  for (auto & connection : node->GetConnections()) {
+    if (connection.GetCall().GetPartyB().NumCompare("ivr:") == EqualTo)
+      connection.Release();
   }
 
   if (args[1] *= "stop")
@@ -348,13 +297,13 @@ void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
   }
 
   PString token;
-  if (GetManager().SetUpCall("mcu:"+node->GetGUID().AsString()+";Listen-Only",
-                        "ivr:<vxml>"
-                              "<form>"
-                                "<record name=\"msg\" dtmfterm=\"false\" dest=\"" + PURL(path).AsString() + "\"/>"
-                              "</form>"
-                            "</vxml>",
-                        token))
+  if (SetUpCall("mcu:"+node->GetGUID().AsString()+";Listen-Only",
+                "ivr:<vxml>"
+                      "<form>"
+                        "<record name=\"msg\" dtmfterm=\"false\" dest=\"" + PURL(path).AsString() + "\"/>"
+                      "</form>"
+                    "</vxml>",
+                token))
     args.GetContext() << "Started";
   else
     args.WriteError() << "Could not start";
@@ -362,7 +311,7 @@ void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdConfPlay(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
@@ -375,14 +324,14 @@ void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, P_INT_PTR)
   }
 
   PString token;
-  if (GetManager().SetUpCall(PSTRSTRM("mcu:" << node->GetGUID() << ";Listen-Only=0"),
-                             PSTRSTRM("ivr:"
-                                      "<vxml>"
-                                        "<form>"
-                                          "<audio src=\"" << PURL(path) << "\"/>"
-                                        "</form>"
-                                      "</vxml>"),
-                             token))
+  if (SetUpCall(PSTRSTRM("mcu:" << node->GetGUID() << ";Listen-Only=0"),
+                PSTRSTRM("ivr:"
+                        "<vxml>"
+                          "<form>"
+                            "<audio src=\"" << PURL(path) << "\"/>"
+                          "</form>"
+                        "</vxml>"),
+                token))
     args.GetContext() << "Started";
   else
     args.WriteError() << "Could not start";
@@ -390,14 +339,13 @@ void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyMixerEndPoint::CmdMemberAdd(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdMemberAdd(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
     return;
 
-  PString token;
-  if (GetManager().SetUpCall("mcu:"+node->GetGUID().AsString(), args[1], token))
+  if (m_confEP->MemberAdd(*node, args[1]))
     args.GetContext() << "Adding";
   else
     args.WriteError() << "Could not add";
@@ -405,25 +353,15 @@ void MyMixerEndPoint::CmdMemberAdd(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyMixerEndPoint::CmdMemberList(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdMemberList(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
-  if (!CmdConfXXX(args, node, 1))
-    return;
-
-  ostream & out = args.GetContext();
-  PSafeArray<OpalConnection> connections = node->GetConnections();
-  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
-    OpalCall & call = connection->GetCall();
-    out << call.GetToken() << ' '
-        << call.GetRemoteParty() << " \""
-        << call.GetRemoteName() << '"' << '\n';
-  }
-  out.flush();
+  if (CmdConfXXX(args, node, 1))
+    m_confEP->MemberList(args.GetContext(), *node);
 }
 
 
-void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() == 1) {
     if (ClearCall(args[0]))
@@ -439,10 +377,9 @@ void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
     return;
 
   PCaselessString name = args[1];
-  PSafeArray<OpalConnection> connections = node->GetConnections();
-  for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
-    if (name == connection->GetRemotePartyName()) {
-      connection->ClearCall();
+  for (auto & connection : node->GetConnections()) {
+    if (name == connection.GetRemotePartyName()) {
+      connection.ClearCall();
       args.GetContext() << "Removed member using name \"" << name << '"' << endl;
       return;
     }
@@ -454,158 +391,41 @@ void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
 
 ///////////////////////////////////////////////////////////////
 
-MyMixerConnection::MyMixerConnection(PSafePtr<OpalMixerNode> node,
-                                     OpalCall & call,
-                                     MyMixerEndPoint & ep,
-                                     void * userData,
-                                     unsigned options,
-                                     OpalConnection::StringOptions * stringOptions)
-  : OpalMixerConnection(node, call, ep, userData, options, stringOptions)
-  , m_endpoint(ep)
+MyConfEndPoint::MyConfEndPoint(MyManager & manager)
+  : OpalConfEndPoint(manager)
+  , m_manager(manager)
+{ }
+
+
+OpalMixerNode * MyConfEndPoint::CreateNode(const OpalMixerNodeInfo & info)
 {
+  m_manager.Broadcast(PSTRSTRM("Created new conference \"" << info.m_name << '"'));
+  return OpalMixerEndPoint::CreateNode(info);
 }
 
 
-bool MyMixerConnection::SendUserInputString(const PString & value)
+void MyConfEndPoint::OnModeratorCommand(OpalConfConnection & connection, const PCaselessString & cmd)
 {
-  m_userInput += value;
-
-  PString pin = dynamic_cast<const MyMixerNodeInfo &>(m_node->GetNodeInfo()).m_moderatorPIN;
-  if (pin.NumCompare(m_userInput) != EqualTo)
-    m_userInput.MakeEmpty();
-  else if (pin == m_userInput) {
-    m_userInput.MakeEmpty();
-    SetListenOnly(false);
-
-    PStringStream strm;
-    strm << "Connection " << GetToken() << ' '
-         << GetRemotePartyURL() << " \""
-         << GetRemotePartyName() << "\""
-            " promoted to moderator.\n";
-
-    m_endpoint.m_manager.Broadcast(strm);
-  }
-
-  return OpalMixerConnection::SendUserInputString(value);
+  m_manager.Broadcast(PSTRSTRM("Connection " << connection.GetToken() << ' '
+                               << connection.GetRemotePartyURL() << " \""
+                               << connection.GetRemotePartyName() << "\""
+                               " promoted to moderator.\n"));
 }
 
+
+///////////////////////////////////////////////////////////////
+
+MyConfNodeInfo::MyConfNodeInfo(const PArgList & args, const char * name)
+  : OpalConfNodeInfo(args.GetOptionString('m'), name)
+{
+  m_mediaPassThru = args.HasOption("pass-thru");
 #if OPAL_VIDEO
-
-OpalVideoStreamMixer * MyMixerEndPoint::CreateVideoMixer(OpalMixerNode & node)
-{
-  return new MyVideoMixer(node);
+  m_audioOnly = args.HasOption('V');
+  if (args.HasOption('s'))
+    PVideoFrameInfo::ParseSize(args.GetOptionString('s'), m_width, m_height);
+#endif
 }
 
-
-MyVideoMixer::MyVideoMixer(OpalMixerNode & node)
-  : OpalVideoStreamMixer(node)
-{
-}
-
-
-#if PTRACING
-ostream & operator<<(ostream & strm, const MyVideoMixer::OrderedConnections & connections)
-{
-  bool comma = false;
-  for (MyVideoMixer::OrderedConnections::const_iterator connection = connections.begin();
-       connection != connections.end(); ++connection)
-  {
-    if (comma)
-      strm << ", ";
-    else
-      comma = true;
-    strm << (*connection)->GetCall().GetToken();
-  }
-  return strm;
-}
-#endif
-
-
-bool MyVideoMixer::GetMixPosition(const PString & id, bool firstStream, MixPosition & pos)
-{
-  if (m_style != eUser)
-    return OpalVideoStreamMixer::GetMixPosition(id, firstStream, pos);
-
-  if (firstStream) {
-    // Calculate all the positions on first stream. First we need to maintain
-    // an order of connections based on last active speaker.
-
-#if PTRACING
-    bool changed = false;
-#endif
-
-    PSafeArray<OpalConnection> connections = m_node.GetConnections();
-    if (connections.IsEmpty()) {
-      m_order.clear();
-      return false;
-    }
-
-    // Add new connections
-    for (PSafeArray<OpalConnection>::iterator connection = connections.begin(); connection != connections.end(); ++connection) {
-      if (std::find(m_order.begin(), m_order.end(), &*connection) == m_order.end()) {
-        m_order.push_back(&*connection);
-#if PTRACING
-        changed = true;
-#endif
-      }
-    }
-
-    // Remove absent connections
-    for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ) {
-      if (connections.FindWithLock(**connection, PSafeReference) != NULL)
-        ++connection;
-      else {
-        connection = m_order.erase(connection);
-#if PTRACING
-        changed = true;
-#endif
-      }
-    }
-
-    if (m_order.empty())
-      return false;
-
-    PString activeSpeaker = m_node.GetActiveSpeakerURL();
-    if ((*m_order.begin())->GetRemotePartyURL() != activeSpeaker) {
-      for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ++connection) {
-        if ((*connection)->GetRemotePartyURL() == activeSpeaker) {
-          m_order.push_front(*connection);
-          m_order.erase(connection);
-#if PTRACING
-          changed = true;
-#endif
-          break;
-        }
-      }
-    }
-
-    PTRACE_IF(3, changed, "Order of connections changed: " << m_order);
-
-    // Now calculate positions for each video stream based on the above order
-    m_positions.clear();
-    MixPosition lastPosition;
-    for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ++connection) {
-      OpalMediaStreamPtr videoStream = (*connection)->GetMediaStream(OpalMediaType::Video(), false);
-      if (videoStream == NULL)
-        continue;
-
-      // We use the base class function to calculate the position in a simple NxN grid
-      if (!OpalVideoMixer::GetMixPosition(PString::Empty(), connection == m_order.begin(), lastPosition))
-        break;
-      m_positions[videoStream->GetID()] = lastPosition;
-    }
-  }
-
-  // Return the pre-calculated positions as the mixer asks for each stream to position
-  MixPositions::const_iterator it = m_positions.find(id);
-  if (it == m_positions.end())
-    return false;
-
-  pos = it->second;
-  return true;
-}
-
-#endif // OPAL_VIDEO
 
 #else
 

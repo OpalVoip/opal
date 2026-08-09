@@ -162,6 +162,7 @@
       <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EnableParallelCodeGeneration>
       <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableParallelCodeGeneration>
     </ClCompile>
+    <ClCompile Include="..\ep\opalconf.cxx" />
     <ClCompile Include="..\ep\sockep.cxx" />
     <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_gcm_ossl.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -961,6 +962,7 @@
     <ClInclude Include="..\..\include\codec\h264mf.h" />
     <ClInclude Include="..\..\include\codec\h265mf.h" />
     <ClInclude Include="..\..\include\ep\lyncep.h" />
+    <ClInclude Include="..\..\include\ep\opalconf.h" />
     <ClInclude Include="..\..\include\ep\sockep.h" />
     <ClInclude Include="..\..\include\sdp\ice.h" />
     <ClInclude Include="..\..\include\sdp\sdphttpep.h" />

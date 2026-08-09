@@ -815,11 +815,19 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
 
     /// Get manager
     OpalManager & GetManager() const { return OpalLocalEndPoint::GetManager(); }
+
+    /**Call back when mixed node state information changes.
+
+       Default behaviour does nothing.
+      */
+    virtual void OnNodeStatusChanged(
+      const OpalMixerNode & node,            ///< Node that has changed state
+      OpalConferenceState::ChangeType change ///< Change that occurred
+    );
   //@}
 
   protected:
     virtual PString CreateInternalURI(const PGloballyUniqueID & guid) override;
-    virtual void OnNodeStatusChanged(const OpalMixerNode & node, OpalConferenceState::ChangeType change) override;
 
     PAutoPtr<OpalMixerNodeInfo> m_adHocNodeInfo;
     PAutoPtr<OpalMixerNodeInfo> m_factoryNodeInfo;
@@ -975,6 +983,10 @@ class OpalMixerConnection : public OpalLocalConnection
     /**Get the node that this connection is being mixed in.
       */
     PSafePtr<OpalMixerNode> GetNode() const { return m_node; }
+
+    /** Get the roles that this connection has in the conference.
+      */
+    virtual PStringSet GetRoles() const;
   //@}
 
   protected:
@@ -1193,13 +1205,13 @@ class OpalMixerNode : public PSafeObject
     /**Attach a connection.
       */
     virtual void AttachConnection(
-      OpalConnection * connection  ///< Connection to attach
+      OpalMixerConnection * connection  ///< Connection to attach
     );
 
     /**Detach a connection.
       */
     virtual void DetachConnection(
-      OpalConnection * connection  ///< Connection to detach
+      OpalMixerConnection * connection  ///< Connection to detach
     );
 
     /**Attach a stream for output.
@@ -1294,11 +1306,11 @@ class OpalMixerNode : public PSafeObject
 
     /**Get connections in the mixer node
       */
-    PSafeArray<OpalConnection> GetConnections() const { return m_connections; }
+    PSafeArray<OpalMixerConnection> GetConnections() const { return m_connections; }
 
     /**Get connections in the mixer node
       */
-    PSafePtr<OpalConnection> GetConnectionFromStreamId(const PString & id) const;
+    PSafePtr<OpalMixerConnection> GetConnectionFromStreamId(const PString & id) const;
 
     /**Get the raw audio accumulation buffer.
      */
@@ -1342,8 +1354,8 @@ class OpalMixerNode : public PSafeObject
 
     const PAutoPtr<OpalMixerNodeInfo> m_info;
 
-    PSafeArray<OpalConnection> m_connections;
-    PString                    m_ownerConnection;
+    PSafeArray<OpalMixerConnection> m_connections;
+    PString                         m_ownerConnection;
 
     PSmartPtr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO

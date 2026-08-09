@@ -880,7 +880,7 @@ PStringList OpalMixerEndPoint::GetAvailableStringOptions() const
 PSafePtr<OpalConnection> OpalMixerEndPoint::MakeConnection(OpalCall & call,
                                                       const PString & party,
                                                                void * userData,
-                                                         unsigned int options,
+                                                             unsigned options,
                                       OpalConnection::StringOptions * stringOptions)
 {
   PTRACE(4, "Making connection to \"" << party << '"');
@@ -894,7 +894,7 @@ PSafePtr<OpalConnection> OpalMixerEndPoint::MakeConnection(OpalCall & call,
   PString name = party(party.Find(':')+1, std::min(semicolon, party.Find('@'))-1);
 
   if (m_factoryNodeInfo != NULL && name == m_factoryNodeInfo->m_name) {
-    PSafePtr<OpalConnection> connection = call.GetConnection(0);
+    auto connection = call.GetConnection(0);
     if (connection == NULL)
       return NULL; // Huh? A-Party!
 
@@ -1170,6 +1170,12 @@ void OpalMixerConnection::SetListenOnly(bool listenOnly)
 }
 
 
+PStringSet OpalMixerConnection::GetRoles() const
+{
+  return "participant";
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 
 OpalMixerMediaStream::OpalMixerMediaStream(OpalConnection & conn,
@@ -1313,8 +1319,8 @@ void OpalMixerNode::ShutDown()
 
   m_manager.OnNodeStatusChanged(*this, OpalConferenceState::Destroyed);
 
-  for (PSafeArray<OpalConnection>::iterator it = m_connections.begin(); it != m_connections.end(); ++it)
-    it->Release();
+  for (auto & it : m_connections)
+    it.Release();
 
   PSimpleTimer timer(0,10);
   while (!m_connections.IsEmpty() && timer.IsRunning())
@@ -1382,7 +1388,7 @@ void OpalMixerNode::RemoveName(const PString & name)
 }
 
 
-void OpalMixerNode::AttachConnection(OpalConnection * connection)
+void OpalMixerNode::AttachConnection(OpalMixerConnection * connection)
 {
   if (PAssertNULL(connection) == NULL)
     return;
@@ -1398,7 +1404,7 @@ void OpalMixerNode::AttachConnection(OpalConnection * connection)
 }
 
 
-void OpalMixerNode::DetachConnection(OpalConnection * connection)
+void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
 {
   if (PAssertNULL(connection) == NULL)
     return;
@@ -1502,7 +1508,7 @@ void OpalMixerNode::UseMediaPassThrough(unsigned sessionID, OpalConnection * con
     if (m_connections.GetSize() < 2)
       return;
 
-    PSafePtr<OpalConnection> connection2 = m_connections.GetAt(1, PSafeReference);
+    auto connection2 = m_connections.GetAt(1, PSafeReference);
     if (connection2 == NULL)
       return;
 
@@ -1511,11 +1517,11 @@ void OpalMixerNode::UseMediaPassThrough(unsigned sessionID, OpalConnection * con
   if (other2 == NULL)
     return;
 
-  PSafePtr<OpalConnection> connection1 = m_connections.GetAt(0, PSafeReference);
+  auto connection1 = m_connections.GetAt(0, PSafeReference);
   if (connection1 == NULL)
     return;
 
-  PSafePtr<OpalConnection> other1 = connection1->GetOtherPartyConnection();
+  auto other1 = connection1->GetOtherPartyConnection();
   if (other1 == NULL)
     return;
 
@@ -1539,10 +1545,10 @@ bool OpalMixerNode::WritePacket(const OpalMixerMediaStream & stream, const RTP_D
 
 void OpalMixerNode::BroadcastUserInput(const OpalConnection * connection, const PString & value)
 {
-  for (PSafeArray<OpalConnection>::iterator it = m_connections.begin(); it != m_connections.end(); ++it) {
-    if (connection != &*it)
-      it->GetEndPoint().GetManager().QueueDecoupledEvent(
-            new PSafeWorkArg1<OpalConnection, PString>(&*it, value, &OpalConnection::OnUserInputStringCallback));
+  for (auto & it : m_connections) {
+    if (connection != &it)
+      it.GetEndPoint().GetManager().QueueDecoupledEvent(
+            new PSafeWorkArg1<OpalConnection, PString>(&it, value, &OpalConnection::OnUserInputStringCallback));
   }
 }
 
@@ -1556,45 +1562,44 @@ void OpalMixerNode::GetConferenceState(OpalConferenceState & state) const
   state.m_keywords    = m_info->m_keywords;
 
   PStringList uriList;
-  for (PStringSet::const_iterator alias = m_names.begin(); alias != m_names.end(); ++alias)
-    uriList += m_manager.GetManager().GetNetworkURIs(*alias);
+  for (const auto & alias : m_names)
+    uriList += m_manager.GetManager().GetNetworkURIs(alias);
 
-  for (PStringList::iterator it = uriList.begin(); it != uriList.end(); ++it) {
+  for (const auto & it : uriList) {
     OpalConferenceState::URI newURI;
-    newURI.m_uri = *it;
+    newURI.m_uri = it;
     newURI.m_purpose = "participation";
     state.m_accessURI.push_back(newURI);
   }
 
-  for (PSafeArray<OpalConnection>::const_iterator conn = m_connections.begin(); conn != m_connections.end(); ++conn) {
-    PSafePtr<OpalConnection> other = conn->GetOtherPartyConnection();
+  for (auto & conn : m_connections) {
+    auto other = conn.GetOtherPartyConnection();
     if (other != NULL && other->IsNetworkConnection()) {
-      OpalConferenceState::User user;
+      if (conn.GetRemotePartyURL() == GetActiveSpeakerURL())
+        state.m_activeSpeaker = state.m_users.size();
+
       /* Should really use read only lock here, but can cause deadlock, and at
          this point in processing the remote party info should be static. */
-      user.m_uri = other->GetRemotePartyURL();
-      user.m_displayText = other->GetRemotePartyName();
-      user.m_roles += "participant";
-      if (conn->GetRemotePartyURL() == GetActiveSpeakerURL())
-        state.m_activeSpeaker = state.m_users.size();
-      state.m_users.push_back(user);
+      state.m_users.emplace_back(conn.GetCall().GetToken(),
+                                 other->GetRemotePartyURL(),
+                                 other->GetRemotePartyName(),
+                                 conn.GetRoles());
     }
   }
 }
 
 
-PSafePtr<OpalConnection> OpalMixerNode::GetConnectionFromStreamId(const PString & id) const
+PSafePtr<OpalMixerConnection> OpalMixerNode::GetConnectionFromStreamId(const PString & id) const
 {
   PSafeLockReadOnly mutex(*this);
   if (!mutex.IsLocked())
     return NULL;
 
   // Translate the active speaker media stream ID to it's connection URL.
-  for (PSafeArray<OpalConnection>::const_iterator conn = m_connections.begin(); conn != m_connections.end(); ++conn) {
-    PSafeArray<OpalMediaStream> mediaStreams = conn->GetMediaStreams();
-    for (PSafeArray<OpalMediaStream>::iterator mediaStream = mediaStreams.begin(); mediaStream != mediaStreams.end(); ++mediaStream) {
-      if (mediaStream->GetID() == id)
-        return &*conn;
+  for (auto & conn : m_connections) {
+    for (const auto & mediaStream : conn.GetMediaStreams()) {
+      if (mediaStream.GetID() == id)
+        return &conn;
     }
   }
 
@@ -1614,7 +1619,7 @@ void OpalMixerNode::SetOwnerConnection(const PString & connectionIdentifier)
 
 void OpalMixerNode::SetActiveSpeaker(const PString& streamId)
 {
-  PSafePtr<OpalConnection> activeSpeakerConnection = GetConnectionFromStreamId(streamId);
+  auto activeSpeakerConnection = GetConnectionFromStreamId(streamId);
 
   if (LockReadWrite()) {
     m_activeSpeakerStreamId = streamId;

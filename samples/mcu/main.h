@@ -26,109 +26,32 @@
 #ifndef _OPAL_MCU_MAIN_H
 #define _OPAL_MCU_MAIN_H
 
+#include <ep/opalconf.h>
+
+
+#if OPAL_HAS_MIXER
 
 class MyManager;
-class MyMixerEndPoint;
 
-#if OPAL_HAS_MIXER && OPAL_IVR
-
-struct MyMixerNodeInfo : public OpalMixerNodeInfo
+struct MyConfNodeInfo : public OpalConfNodeInfo
 {
-  MyMixerNodeInfo(const PArgList & args, const char * name = NULL);
-  virtual OpalMixerNodeInfo * Clone() const { return new MyMixerNodeInfo(*this); }
-
-  PString m_moderatorPIN;
+  MyConfNodeInfo(const PArgList & args, const char * name = NULL);
+  virtual OpalMixerNodeInfo * Clone() const { return new MyConfNodeInfo(*this); }
 };
 
-
-#if OPAL_VIDEO
-
-class MyVideoMixer : public OpalVideoStreamMixer
+class MyConfEndPoint : public OpalConfEndPoint
 {
-  PCLASSINFO(MyVideoMixer, OpalVideoStreamMixer)
+  PCLASSINFO(MyConfEndPoint, OpalConfEndPoint);
 public:
-  MyVideoMixer(OpalMixerNode & node);
-  ~MyVideoMixer() { StopPushThread(); }
-
-  virtual bool GetMixPosition(
-    const PString & id,
-    bool firstStream,
-    MixPosition & pos
+  MyConfEndPoint(MyManager & manager);
+  virtual OpalMixerNode * CreateNode(
+    const OpalMixerNodeInfo & info ///< Initial info for node
   ) override;
-
-  typedef std::list<PSafePtr<OpalConnection>> OrderedConnections;
-
-private:
-  OrderedConnections m_order;
-  typedef std::map<PString, MixPosition> MixPositions;
-  MixPositions m_positions;
+  virtual void OnModeratorCommand(OpalConfConnection & connection, const PCaselessString & cmd) override;
+protected:
+  MyManager & m_manager;
 };
-
-#endif // OPAL_VIDEO
-
-
-class MyMixerConnection : public OpalMixerConnection
-{
-    PCLASSINFO(MyMixerConnection, OpalMixerConnection);
-  public:
-    MyMixerConnection(
-      PSafePtr<OpalMixerNode> node,
-      OpalCall & call,
-      MyMixerEndPoint & endpoint,
-      void * userData,
-      unsigned options,
-      OpalConnection::StringOptions * stringOptions
-    );
-
-    virtual bool SendUserInputString(const PString & value) override;
-
-  protected:
-    MyMixerEndPoint & m_endpoint;
-    PString           m_userInput;
-};
-
-
-class MyMixerEndPoint : public OpalMixerEndPoint
-{
-    PCLASSINFO(MyMixerEndPoint, OpalMixerEndPoint);
-  public:
-    MyMixerEndPoint(MyManager & manager);
-
-    virtual OpalMixerConnection * CreateConnection(
-      PSafePtr<OpalMixerNode> node,
-      OpalCall & call,
-      void * userData,
-      unsigned options,
-      OpalConnection::StringOptions * stringOptions
-    ) override;
-
-    virtual OpalMixerNode * CreateNode(
-      const OpalMixerNodeInfo & info ///< Initial info for node
-    ) override;
-
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfAdd);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfList);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfRemove);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfRecord);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfPlay);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdConfMonitor);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberAdd);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberList);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyMixerEndPoint, CmdMemberRemove);
-
-    bool CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount);
-
-#if OPAL_VIDEO
-    virtual OpalVideoStreamMixer * CreateVideoMixer(OpalMixerNode & node) override;
-#endif // OPAL_VIDEO
-
-  private:
-    MyManager & m_manager;
-    PString m_monitorToken;
-
-  friend bool MyMixerConnection::SendUserInputString(const PString & value);
-};
-
+#endif
 
 #if OPAL_PCSS
 
@@ -154,8 +77,6 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
 
 #endif // OPAL_PCSS
 
-#endif // OPAL_HAS_MIXER && OPAL_IVR
-
 
 class MyManager : public OpalManagerCLI
 {
@@ -164,7 +85,17 @@ class MyManager : public OpalManagerCLI
   public:
     MyManager();
 
-#if OPAL_HAS_MIXER && OPAL_IVR
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfAdd);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfList);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfRemove);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfRecord);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfPlay);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConfMonitor);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdMemberAdd);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdMemberList);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdMemberRemove);
+
+    bool CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode> & node, PINDEX argCount);
 
     PString GetArgumentSpec() const override;
     virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
@@ -173,9 +104,9 @@ class MyManager : public OpalManagerCLI
     virtual void OnClearedCall(OpalCall & call) override;
 
     void Broadcast(const PString & str) override { m_cli->Broadcast(str); }
-#endif
 
-    MyMixerEndPoint * m_mixer;
+    OpalConfEndPoint * m_confEP;
+    PString m_monitorToken;
 };
 
 
