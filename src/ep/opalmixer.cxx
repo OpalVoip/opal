@@ -1580,10 +1580,11 @@ void OpalMixerNode::GetConferenceState(OpalConferenceState & state) const
 
       /* Should really use read only lock here, but can cause deadlock, and at
          this point in processing the remote party info should be static. */
-      state.m_users.emplace_back(conn.GetCall().GetToken(),
+      state.m_users.emplace_back(OpalConferenceState::User{
+                                 conn.GetCall().GetToken(),
                                  other->GetRemotePartyURL(),
                                  other->GetRemotePartyName(),
-                                 conn.GetRoles());
+                                 conn.GetRoles()});
     }
   }
 }
