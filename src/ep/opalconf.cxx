@@ -136,7 +136,10 @@ OpalConfConnection::OpalConfConnection(PSafePtr<OpalMixerNode> node,
 
 bool OpalConfConnection::SendUserInputString(const PString & value)
 {
-  if (m_participantType == ParticipantModerator)
+  PString pin = dynamic_cast<const OpalConfNodeInfo &>(m_node->GetNodeInfo()).m_moderatorPIN;
+  if (value == pin)
+    SetParticipantType(ParticipantModerator);
+  else if (m_participantType == ParticipantModerator)
     m_endpoint.OnModeratorCommand(*this, value);
   return true;
 }

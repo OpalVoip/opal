@@ -38,7 +38,7 @@ class OpalConfEndPoint;
 
 struct OpalConfNodeInfo : public OpalMixerNodeInfo
 {
-  OpalConfNodeInfo(const PString & moderatorPIN, const char * name = NULL);
+  OpalConfNodeInfo(const PString & moderatorPIN = PString::Empty(), const char * name = nullptr);
   virtual OpalMixerNodeInfo * Clone() const { return new OpalConfNodeInfo(*this); }
 
   PString m_moderatorPIN;
