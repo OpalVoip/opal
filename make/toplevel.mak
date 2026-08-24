@@ -157,7 +157,8 @@ endif
 
 ifeq ($(OPAL_HAS_MIXER), yes)
   SOURCES += $(OPAL_SRCDIR)/opal/recording.cxx \
-             $(OPAL_SRCDIR)/ep/opalmixer.cxx
+             $(OPAL_SRCDIR)/ep/opalmixer.cxx \
+             $(OPAL_SRCDIR)/ep/opalconf.cxx
   ifeq ($(target_os),mingw)
     LIBS := -lvfw32 $(LIBS)
   endif
