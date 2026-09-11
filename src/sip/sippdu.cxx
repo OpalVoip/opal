@@ -2335,6 +2335,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (m_transport->IsReliable()) {
     PChannel & channel = *m_transport->GetChannel();
     PTimeInterval oldTimeout = channel.GetReadTimeout();
+    channel.peek();
     channel.SetReadTimeout(m_transport->GetEndPoint().GetManager().GetSignalingTimeout());
     status = Parse(channel, true, false);
     channel.SetReadTimeout(oldTimeout);
