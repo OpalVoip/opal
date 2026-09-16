@@ -674,8 +674,10 @@ bool OpalSRTPSession::ApplyKeysToSRTP(OpalMediaTransport & transport)
     return false;
 
   for (PINDEX i = 0; i < 2; ++i) {
-    if (!ApplyKeyToSRTP(*keyInfo[i], (Direction)i))
+    if (!ApplyKeyToSRTP(*keyInfo[i], (Direction)i)) {
+      Close();
       return false;
+    }
   }
   return true;
 }
