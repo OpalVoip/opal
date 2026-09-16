@@ -166,17 +166,6 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
       continue;
     }
 
-    PTRACE(4, "Packet received after handshake completed:"
-           " type=" << (unsigned)frame->m_type << ","
-           " ver=" << ~frame->m_versionMajor << '.' << ~frame->m_versionMinor << ","
-           " epoch=" << frame->m_epoch << ","
-           " sn=" << (frame->m_snHigh*0x100000000ULL+frame->m_snLow) << ","
-           " cipher=" << (unsigned)frame->m_cipherType << ","
-           " len=" << frame->m_length << ","
-           " level=" << (unsigned)frame->m_alertLevel << ","
-           " desc=" << (unsigned)frame->m_alertDescription << '\n'
-           << setprecision(2) << PHexDump(buf, len, false));
-
     if (frame->m_type == 21 /* DTLS Alert */ &&
         frame->m_cipherType == 0 && /* stream cipher */
         frame->m_length >= 2 &&
@@ -188,6 +177,17 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
       CloseBaseReadChannel();  // Then close (most likely) socket
       return false;
     }
+
+    PTRACE(4, "Packet received after handshake completed:"
+           " type=" << (unsigned)frame->m_type << ","
+           " ver=" << ~frame->m_versionMajor << '.' << ~frame->m_versionMinor << ","
+           " epoch=" << frame->m_epoch << ","
+           " sn=" << (frame->m_snHigh*0x100000000ULL+frame->m_snLow) << ","
+           " cipher=" << (unsigned)frame->m_cipherType << ","
+           " len=" << frame->m_length << ","
+           " level=" << (unsigned)frame->m_alertLevel << ","
+           " desc=" << (unsigned)frame->m_alertDescription << '\n'
+           << setprecision(2) << PHexDump(buf, len, false));
 
     /* In case remote didn't get our last response, send it again if we get
        a DTLS packet. This is a bit primitive, but we don't really want to
