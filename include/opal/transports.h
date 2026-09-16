@@ -809,6 +809,12 @@ class OpalTransport : public PSafeObject, PProfiling::HighWaterMark<OpalTranspor
       ostream & strm
     ) const override;
 
+    /**Do any garbage collection that may be required by the object so that it
+       may be finally deleted.
+       @return true if object may be deleted.
+      */
+    virtual bool GarbageCollection() override;
+
     /**Low level write to the channel. This function will block until the
        requested number of characters are written or the write timeout is
        reached. The GetLastWriteCount() function returns the actual number
