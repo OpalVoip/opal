@@ -1035,6 +1035,24 @@ void OpalTransport::PrintOn(ostream & strm) const
 }
 
 
+bool OpalTransport::GarbageCollection()
+{
+  Close();
+
+  PWaitAndSignal lock(m_threadMutex);
+
+  if (m_thread == NULL)
+    return true;
+
+  if (!m_thread->IsTerminated())
+    return false;
+
+  delete m_thread;
+  m_thread = NULL;
+  return true;
+}
+
+
 bool OpalTransport::SetInterface(const PString &)
 {
   return true;
