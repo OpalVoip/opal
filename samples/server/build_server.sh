@@ -87,7 +87,7 @@ while [ -n "$1" ]; do
     shift
 done
 
-CONFIG_PARMS+="$@"
+CONFIG_PARMS+="$@ "
 
 
 function ask() {
