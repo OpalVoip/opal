@@ -253,7 +253,7 @@ void OpalRFC2833Proto::UseRTPSession(bool rx, OpalRTPSession * rtpSession)
 {
   if (rx) {
     if (rtpSession != NULL) {
-      PTRACE(3, "Setting receive handler " << m_receiveHandler.GetObject()
+      PTRACE(3, "Setting receive handler " << m_receiveHandler
              << " in RTP session " << rtpSession << " for " << m_baseMediaFormat);
       rtpSession->AddDataNotifier(50, m_receiveHandler);
     }

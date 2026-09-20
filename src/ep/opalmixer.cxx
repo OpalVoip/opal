@@ -86,7 +86,6 @@ OpalBaseMixer::OpalBaseMixer(bool pushThread, unsigned periodMS, unsigned period
   , m_periodMS(periodMS)
   , m_periodTS(periodTS)
   , m_outputTimestamp(10000000)
-  , m_pushFrame(NULL)
   , m_workerThread(NULL)
   , m_threadRunning(false)
 {
@@ -96,7 +95,6 @@ OpalBaseMixer::OpalBaseMixer(bool pushThread, unsigned periodMS, unsigned period
 OpalBaseMixer::~OpalBaseMixer()
 {
   RemoveAllStreams();
-  delete m_pushFrame;
 }
 
 
@@ -255,8 +253,8 @@ void OpalBaseMixer::PushThreadMain()
 
 bool OpalBaseMixer::OnPush()
 {
-  if (m_pushFrame == NULL) {
-    m_pushFrame = new RTP_DataFrame((PINDEX)0, GetOutputSize());
+  if (!m_pushFrame) {
+    m_pushFrame = std::make_unique<RTP_DataFrame>((PINDEX)0, GetOutputSize());
     m_pushFrame->SetPayloadType(RTP_DataFrame::MaxPayloadType);
   }
 
@@ -264,7 +262,7 @@ bool OpalBaseMixer::OnPush()
 }
 
 
-bool OpalBaseMixer::OnMixed(RTP_DataFrame * & /*mixed*/)
+bool OpalBaseMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & /*mixed*/)
 {
   return false;
 }
@@ -1438,26 +1436,20 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
 #if OPAL_VIDEO
   if (stream->GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
     OpalVideoFormat::ContentRole role = stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
-    OpalVideoStreamMixer * videoMixer;
     VideoMixerMap::iterator it = m_videoMixers.find(role);
-    if (it != m_videoMixers.end())
-      videoMixer = it->second.get();
-    else {
-      videoMixer = m_manager.CreateVideoMixer(*this);
-      m_videoMixers[role].reset(videoMixer);
-    }
-
-    m_mixerById[id] = videoMixer;
+    if (it == m_videoMixers.end())
+      it = m_videoMixers.emplace(role, m_manager.CreateVideoMixer(*this)).first;
+    m_mixerById[id] = it->second;
 
     if (stream->IsSink())
-      return videoMixer->AddStream(id);
+      return it->second->AddStream(id);
 
-    videoMixer->Append(stream);
+    it->second->Append(stream);
     return true;
   }
 #endif // OPAL_VIDEO
 
-  m_mixerById[id] = m_audioMixer.get();
+  m_mixerById[id] = m_audioMixer;
 
   if (stream->IsSink())
     return m_audioMixer->AddStream(id);
@@ -2043,7 +2035,7 @@ bool OpalVideoStreamMixer::SetFrameRate(unsigned rate)
 }
 
 
-bool OpalVideoStreamMixer::OnMixed(RTP_DataFrame * & output)
+bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 {
   typedef std::map<PString, RTP_DataFrameList> CachedPackets;
   CachedPackets cachedPackets;
@@ -2109,7 +2101,7 @@ bool OpalVideoStreamMixer::OnMixed(RTP_DataFrame * & output)
         RTP_DataFrame * rawRTP;
         if (header->width == width && header->height == height) {
           PTRACE(5, "Using mixer video frame: " << width << 'x' << height);
-          rawRTP = output;
+          rawRTP = output.get();
         }
         else {
           unsigned frameStoreKey = width + height*65536;

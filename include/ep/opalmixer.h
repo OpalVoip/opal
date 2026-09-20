@@ -69,9 +69,9 @@ class OpalMixerConnection;
     Note the timestamps of the input media are extremely important as they are
     used so that breaks or too fast data in the input media is dealt with correctly.
   */
-class OpalBaseMixer : public PSmartObject
+class OpalBaseMixer : public PObject
 {
-    PCLASSINFO(OpalBaseMixer, PSmartObject);
+    PCLASSINFO(OpalBaseMixer, PObject);
   public:
     OpalBaseMixer(
       bool pushThread,    ///< Indicate if the push thread should be started
@@ -132,7 +132,7 @@ class OpalBaseMixer : public PSmartObject
        If false is returned then the push thread is exited.
       */
     virtual bool OnMixed(
-      RTP_DataFrame * & mixed   ///< Pointer to mixed media.
+      std::unique_ptr<RTP_DataFrame> & mixed   ///< Pointer to mixed media.
     );
 
     /**Start the push thread.
@@ -175,10 +175,10 @@ class OpalBaseMixer : public PSmartObject
     unsigned        m_periodTS;         // Mixing interval in timestamp units
     StreamMap_T     m_inputStreams;     // Map of key to stream for input RTP frame queues
     unsigned        m_outputTimestamp;  // RTP timestamp for output data
-    RTP_DataFrame * m_pushFrame;        // Cached frame for pushing RTP
     PThread       * m_workerThread;     // reader thread handle
     atomic<bool>    m_threadRunning;    // used to stop reader thread
-   PDECLARE_MUTEX(  m_mutex);           // mutex for list of streams and thread handle
+    std::unique_ptr<RTP_DataFrame> m_pushFrame; // Cached frame for pushing RTP
+    PDECLARE_MUTEX(  m_mutex);           // mutex for list of streams and thread handle
    PTRACE_THROTTLE( m_threadProgressThrottle, 3, 30000);
 };
 
@@ -1152,7 +1152,7 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     ~OpalVideoStreamMixer() { StopPushThread(); }
 
     virtual bool SetFrameRate(unsigned rate) override;
-    virtual bool OnMixed(RTP_DataFrame * & output) override;
+    virtual bool OnMixed(std::unique_ptr<RTP_DataFrame> & output) override;
     virtual Key_T GetActiveSpeaker() const override;
 
   protected:
@@ -1357,13 +1357,13 @@ class OpalMixerNode : public PSafeObject
     PSafeArray<OpalMixerConnection> m_connections;
     PString                         m_ownerConnection;
 
-    PSmartPtr<OpalAudioStreamMixer> m_audioMixer;
+    std::shared_ptr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO
-    typedef std::map<OpalVideoFormat::ContentRole, PSmartPtr<OpalVideoStreamMixer>> VideoMixerMap;
+    typedef std::map<OpalVideoFormat::ContentRole, std::shared_ptr<OpalVideoStreamMixer>> VideoMixerMap;
     VideoMixerMap m_videoMixers;
 #endif // OPAL_VIDEO
 
-    typedef std::map<PString, PSmartPtr<OpalBaseMixer>> MixerByIdMap;
+    typedef std::map<PString, std::shared_ptr<OpalBaseMixer>> MixerByIdMap;
     MixerByIdMap m_mixerById;
 
     PString m_activeSpeakerStreamId;

@@ -201,7 +201,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
     mutable PDECLARE_INSTRUMENTED_MUTEX(m_mutex, MediaFileRecorder, 500, 100);
     PFilePath m_tempFile;
     PFilePath m_finalFile;
-    PSmartPtr<PMediaFile> m_file;
+    PMediaFile::Ptr m_file;
     std::vector<uint8_t> m_buffer;
 
     // Audio
@@ -222,7 +222,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
         , m_manager(manager)
       { }
       ~AudioMixer() { StopPushThread(); }
-      virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedAudio(*output); }
+      virtual bool OnMixed(std::unique_ptr<RTP_DataFrame> & output) override { return m_manager.OnMixedAudio(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
     PAtomicSharedPtr<AudioMixer> m_audioMixer;
@@ -249,7 +249,7 @@ class OpalMediaFileRecordManager : public OpalRecordManager
         , m_manager(manager)
       { }
       ~VideoMixer() { StopPushThread(); }
-      virtual bool OnMixed(RTP_DataFrame * & output) override { return m_manager.OnMixedVideo(*output); }
+      virtual bool OnMixed(std::unique_ptr<RTP_DataFrame> & output) override { return m_manager.OnMixedVideo(*output); }
       OpalMediaFileRecordManager & m_manager;
     };
     PAtomicSharedPtr<VideoMixer> m_videoMixer;
@@ -280,8 +280,8 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
   if (!OpalRecordManager::OpenFile(fn))
     return false;
 
-  m_file = PMediaFile::Create(fn);
-  if (m_file == NULL) {
+  m_file.reset(PMediaFile::Create(fn));
+  if (!m_file) {
     PTRACE(2, "Cannot use media file type of " << fn);
     return false;
   }
@@ -406,7 +406,7 @@ bool OpalMediaFileRecordManager::Close()
 
   m_mutex.Wait();
 
-  PSmartPtr<PMediaFile> file = m_file;
+  PMediaFile::Ptr file = m_file;
   m_file = NULL;
 
   if (file) {
