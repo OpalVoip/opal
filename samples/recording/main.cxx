@@ -155,7 +155,7 @@ MyLocalEndPoint::MyLocalEndPoint(OpalManagerConsole & manager)
 
 OpalMediaFormatList MyLocalEndPoint::GetMediaFormats() const
 {
-  if (m_mixer.m_mediaFile.IsNULL())
+  if (!m_mixer.m_mediaFile)
     return OpalLocalEndPoint::GetMediaFormats();
 
   // Override default and force only audio
@@ -170,8 +170,8 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
 {
   if (args.HasOption("mix")) {
     PFilePath filepath = args[0];
-    m_mixer.m_mediaFile = PMediaFile::Create(filepath);
-    if (m_mixer.m_mediaFile.IsNULL() || !m_mixer.m_mediaFile->OpenForWriting(filepath)) {
+    m_mixer.m_mediaFile.reset(PMediaFile::Create(filepath));
+    if (!m_mixer.m_mediaFile || !m_mixer.m_mediaFile->OpenForWriting(filepath)) {
       *m_manager.LockedOutput() << "Could not open media file \"" << args[0] << '"' << endl;
       return false;
     }
@@ -194,7 +194,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
 
 bool MyLocalEndPoint::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
 {
-  if (!m_mixer.m_mediaFile.IsNULL()) {
+  if (m_mixer.m_mediaFile) {
     // Arbitrary, but unique, string is the mixer key, use connections token
     OpalBaseMixer::Key_T mixerKey = connection.GetToken();
 
@@ -218,7 +218,7 @@ bool MyLocalEndPoint::OnWriteMediaFrame(const OpalLocalConnection & connection,
                                         const OpalMediaStream & /*mediaStream*/,
                                         RTP_DataFrame & frame)
 {
-  if (m_mixer.m_mediaFile.IsNULL())
+  if (!m_mixer.m_mediaFile)
     return false; // false means OnWriteMediaData() will get called
 
   m_mixer.QueueStream(connection.GetToken(), frame);
