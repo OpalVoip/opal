@@ -199,6 +199,24 @@ if $BOOTSTRAP; then
                 x264-devel libvpx-devel theora-devel libspandsp-devel \
                 capiutils dahdi festival-devel libsrtp
         fi
+    elif which dnf > /dev/null 2> /dev/null; then
+        if $MINIMAL; then
+            sudo dnf install \
+                gcc-g++ git make autoconf expat-devel openssl-devel \
+                libsrtp opus-devel
+        else
+            sudo dnf config-manager --enable epel
+            sudo dnf install \
+                gcc-c++ git make autoconf \
+                ncurses-devel libpcap-devel expat-devel openssl-devel \
+                cyrus-sasl-devel openldap-devel unixODBC-devel SDL2-devel \
+                lua-devel nodejs-libs \
+                libavcodec-free-devel libavformat-free-devel libswscale-free-devel \
+                gstreamer1-devel gstreamer1-plugins-base-devel \
+                gsm-devel speex-devel opus-devel \
+                libvpx-devel libtheora-devel spandsp-devel \
+                libsrtp
+        fi
     elif which brew > /dev/null 2> /dev/null; then
         brew install \
             autoconf libpcap expat openssl@3 cyrus-sasl openldap unixodbc \
