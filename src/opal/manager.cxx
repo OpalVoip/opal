@@ -58,7 +58,7 @@
 #include <ptclib/pssl.h>
 
 #include "../../version.h"
-#include "../../revision.h"
+#include <revision.h>
 
 
 static const char * const DefaultMediaFormatOrder[] = {

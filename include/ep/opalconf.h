@@ -85,7 +85,7 @@ class OpalConfConnection : public OpalMixerConnection
     );
 
     virtual bool SendUserInputString(const PString & value) override;
-    virtual PStringSet GetRoles() const;
+    virtual PStringSet GetRoles() const override;
 
     enum ParticipantType
     {
