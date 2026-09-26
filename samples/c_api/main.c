@@ -103,7 +103,7 @@ char * CurrentCallToken;
 char * HeldCallToken;
 char * PlayScript;
 
-#if __STDC_VERSION__ < 202311L
+#if __STDC_VERSION__ < 202311L && !defined(bool)
 typedef enum bool { false, true } bool;
 #endif
 

@@ -823,7 +823,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     virtual void OnNodeStatusChanged(
       const OpalMixerNode & node,            ///< Node that has changed state
       OpalConferenceState::ChangeType change ///< Change that occurred
-    );
+    ) override;
   //@}
 
   protected:
