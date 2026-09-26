@@ -2382,7 +2382,7 @@ void* BFCP_Server::WatchDog(void* st_thread)
 
     /* Free all the elements from the floors list */
     bfcpServer->remove_floor_list(list_floors);
-    return NULL;
+    return 0;
 }
 
 /* Handle an incoming FloorRequest message */

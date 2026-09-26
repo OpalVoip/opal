@@ -247,8 +247,7 @@ if(OPAL_FAX)
 endif()
 
 if(OPAL_BFCP)
-  list(APPEND OPAL_SOURCES
-    src/sdp/bfcpinterface.cxx
+  set(_opal_bfcp_sources
     src/sdp/BFCP/libbfcp/BFCPconnection.cpp
     src/sdp/BFCP/libbfcp/BFCP_fsm.cpp
     src/sdp/BFCP/libbfcp/bfcpsrvctl/bfcpsrv/bfcp_user_list.cpp
@@ -260,6 +259,17 @@ if(OPAL_BFCP)
     src/sdp/BFCP/libbfcp/bfcpmsg/bfcp_messages_parse.c
     src/sdp/BFCP/libbfcp/bfcpmsg/bfcp_messages_build.c
     src/sdp/BFCP/libbfcp/bfcpmsg/bfcp_messages.c)
+  list(APPEND OPAL_SOURCES src/sdp/bfcpinterface.cxx ${_opal_bfcp_sources})
 endif()
 
 list(TRANSFORM OPAL_SOURCES PREPEND "${OPAL_SOURCE_DIR}/")
+
+# Vendored BFCP checks WIN32. MinGW defines _WIN32 and leaves WIN32 unset,
+# so the Unix headers (arpa/inet.h) are selected.
+if(OPAL_BFCP AND WIN32)
+  set(_opal_bfcp_abs "")
+  foreach(_src IN LISTS _opal_bfcp_sources)
+    list(APPEND _opal_bfcp_abs "${OPAL_SOURCE_DIR}/${_src}")
+  endforeach()
+  set_source_files_properties(${_opal_bfcp_abs} PROPERTIES COMPILE_DEFINITIONS "WIN32")
+endif()

@@ -62,18 +62,16 @@ opal_add_plugin(lpc10 audio audio/LPC_10/lpc_10_codec.c ${_lpc10})
 target_include_directories(lpc10_ptplugin PRIVATE audio/LPC_10 audio/LPC_10/src)
 # Vendored f2c sources contain nested block comments.
 target_compile_options(lpc10_ptplugin PRIVATE -Wno-comment)
-include(CheckIncludeFiles)
-check_include_files(malloc.h OPAL_HAVE_MALLOC_H)
-if(NOT OPAL_HAVE_MALLOC_H)
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compat/malloc.h"
+# f2c.h #defines abs(). A system malloc.h that includes stdlib.h then fails
+# to declare abs(). This header declares the allocators and nothing else.
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compat/malloc.h"
 "#include <stddef.h>
 void *malloc(size_t);
 void *calloc(size_t, size_t);
 void *realloc(void *, size_t);
 void free(void *);
 ")
-  target_include_directories(lpc10_ptplugin BEFORE PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/compat")
-endif()
+target_include_directories(lpc10_ptplugin BEFORE PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/compat")
 
 opal_add_plugin(gsm0610 audio
   audio/GSM0610/gsm06_10_codec.c
@@ -109,6 +107,83 @@ target_compile_options(h261_vic_ptplugin PRIVATE -Wno-register)
 
 find_package(PkgConfig QUIET)
 
+# Homebrew static archives are "current ar archive random library": Mach-O
+# objects, which the MinGW linker cannot read.
+function(opal_path_is_host_binary path result)
+  set(${result} FALSE PARENT_SCOPE)
+  if(NOT path OR NOT EXISTS "${path}" OR IS_DIRECTORY "${path}")
+    return()
+  endif()
+  if(path MATCHES "\\.(dylib|so)(\\.[0-9.]+)?$")
+    set(${result} TRUE PARENT_SCOPE)
+    return()
+  endif()
+  find_program(OPAL_FILE_COMMAND file)
+  if(NOT OPAL_FILE_COMMAND)
+    return()
+  endif()
+  execute_process(
+    COMMAND "${OPAL_FILE_COMMAND}" -b "${path}"
+    OUTPUT_VARIABLE _kind
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+  if(_kind MATCHES "Mach-O|random library")
+    set(${result} TRUE PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(opal_pkg_is_target_library prefix result)
+  set(_ok TRUE)
+  if(WIN32)
+    if("${${prefix}_LDFLAGS}" MATCHES "-framework")
+      set(_ok FALSE)
+    endif()
+    set(_files "")
+    foreach(_lib IN LISTS ${prefix}_LINK_LIBRARIES ${prefix}_LIBRARIES)
+      if(EXISTS "${_lib}" AND NOT IS_DIRECTORY "${_lib}")
+        list(APPEND _files "${_lib}")
+      endif()
+    endforeach()
+    foreach(_dir IN LISTS ${prefix}_LIBRARY_DIRS)
+      foreach(_name IN LISTS ${prefix}_LIBRARIES)
+        foreach(_cand IN ITEMS
+            "${_dir}/lib${_name}.a"
+            "${_dir}/lib${_name}.dll.a"
+            "${_dir}/lib${_name}.dylib"
+            "${_dir}/lib${_name}.so"
+            "${_dir}/${_name}")
+          if(EXISTS "${_cand}")
+            list(APPEND _files "${_cand}")
+          endif()
+        endforeach()
+      endforeach()
+    endforeach()
+    if(TARGET PkgConfig::${prefix})
+      foreach(_prop IN ITEMS IMPORTED_LOCATION IMPORTED_LOCATION_RELEASE IMPORTED_LOCATION_DEBUG)
+        get_target_property(_loc "PkgConfig::${prefix}" "${_prop}")
+        if(_loc)
+          list(APPEND _files "${_loc}")
+        endif()
+      endforeach()
+      get_target_property(_iface "PkgConfig::${prefix}" INTERFACE_LINK_LIBRARIES)
+      if(_iface)
+        foreach(_dep IN LISTS _iface)
+          if(EXISTS "${_dep}" AND NOT IS_DIRECTORY "${_dep}")
+            list(APPEND _files "${_dep}")
+          endif()
+        endforeach()
+      endif()
+    endif()
+    foreach(_file IN LISTS _files)
+      opal_path_is_host_binary("${_file}" _host)
+      if(_host)
+        set(_ok FALSE)
+      endif()
+    endforeach()
+  endif()
+  set(${result} "${_ok}" PARENT_SCOPE)
+endfunction()
+
 # Probe a pkg-config module and publish both the FOUND flag and PkgConfig::<prefix>.
 function(opal_try_pkg prefix)
   if(NOT PKG_CONFIG_FOUND)
@@ -116,7 +191,16 @@ function(opal_try_pkg prefix)
     return()
   endif()
   pkg_check_modules(${prefix} IMPORTED_TARGET ${ARGN})
-  set(${prefix}_FOUND "${${prefix}_FOUND}" PARENT_SCOPE)
+  set(_found "${${prefix}_FOUND}")
+  if(_found AND WIN32)
+    opal_pkg_is_target_library(${prefix} _usable)
+    if(NOT _usable)
+      message(STATUS "OPAL: ignoring host pkg-config result for ${ARGN}; not a Windows library")
+      set(_found FALSE)
+      set(${prefix}_FOUND FALSE CACHE INTERNAL "" FORCE)
+    endif()
+  endif()
+  set(${prefix}_FOUND "${_found}" PARENT_SCOPE)
 endfunction()
 
 function(opal_link_pkg target prefix)
@@ -194,6 +278,9 @@ if(OPAL_PC_SPEEX_FOUND)
   opal_link_pkg(speex_ptplugin OPAL_PC_SPEEX)
 else()
   file(GLOB _speex audio/Speex/libspeex/*.c)
+  # modes_noglobals.c is an alternate build of modes.c. jitter.c, stereo.c,
+  # and the test programs are not part of the plugin.
+  list(FILTER _speex EXCLUDE REGEX "/(modes_noglobals|jitter|stereo|test[^.]*).c$")
   opal_add_plugin(speex audio audio/Speex/speexcodec.cxx ${_speex})
   target_include_directories(speex_ptplugin PRIVATE audio/Speex/libspeex)
   target_compile_definitions(speex_ptplugin PRIVATE OPAL_SYSTEM_SPEEX=0)
