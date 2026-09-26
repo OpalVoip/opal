@@ -319,9 +319,6 @@
     <ProjectReference Include="..\..\plugins\video\openh264\openh264_2022.vcxproj">
       <Project>{e513a4f2-5341-4cae-a643-d47975ae291c}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\plugins\video\VP8-WebM\vp8_webm_2022.vcxproj">
-      <Project>{f663f1b8-24d5-4baa-8a3c-e76a5ac619d4}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\win32\opal_lib_2022.vcxproj">
       <Project>{11fb12b5-b5eb-4dff-bd6f-2a0bdf187c22}</Project>
     </ProjectReference>
