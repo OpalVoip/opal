@@ -45,6 +45,16 @@ Useful options, passed on the first cmake command:
   -DOPAL_PLUGINS=OFF            library only, no codec plugins
   -DCMAKE_BUILD_TYPE=Debug      single-config generators (Ninja, Makefiles)
 
+Single-config generators also accept:
+
+  cmake --build build --target debug
+  cmake --build build --target both
+
+"debug" configures a second tree in build/debug with CMAKE_BUILD_TYPE=Debug.
+That build keeps PTRACE, the same way PTLib's debug target does. When
+<ptlib>/debug already contains a PTLib CMake package, the debug tree links
+that library. "both" builds the default tree and the debug tree.
+
 Visual Studio and other multi-config generators use --config instead:
 
   cmake --build build --config Release
@@ -60,13 +70,15 @@ Install produces:
 MinGW and Cygwin install plugins into a plugins directory under the
 prefix. A program looks there when it is started with that layout.
 
-A downstream project then uses:
+The build directory is also a CMake package, so a downstream project can
+use it without an install step:
 
   find_package(OPAL CONFIG REQUIRED)
   target_link_libraries(myapp PRIVATE OPAL::opal)
 
-OPALConfig.cmake loads PTLib, so the PTLib package has to be findable
-too. Pass the same prefix, or set PTLib_DIR, when PTLib lives elsewhere.
+Point OPAL_DIR at that build directory, or pass it as a prefix. OPALConfig.cmake
+loads PTLib, so the PTLib package has to be findable too. Set PTLib_DIR when
+PTLib was not installed.
 
 Plugins in the build tree land in build/plugins/{audio,video,fax}. The
 path compiled into libopal is the install directory. To load the plugins

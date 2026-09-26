@@ -1,6 +1,10 @@
 # PTLib is a required dependency. Point CMake at an install prefix or a
 # PTLib CMake build directory:
 #   cmake -B build -DOPAL_PTLIB_DIR=<ptlib-prefix-or-build>
+#
+# The default target is Release. Other targets:
+#   cmake --build build --target debug   # Debug tree in build/debug
+#   cmake --build build --target both     # Release and Debug
 cmake_minimum_required(VERSION 3.20)
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.h" _opal_version_h)
@@ -26,6 +30,20 @@ project(OPAL
   VERSION "${OPAL_VERSION_MAJOR}.${OPAL_VERSION_MINOR}.${OPAL_VERSION_PATCH}"
   DESCRIPTION "Open Phone Abstraction Library"
   LANGUAGES C CXX)
+
+# Single-config generators (Makefiles, Ninja) have no build type until one is
+# chosen. Release stays the default target; debug and both are added below.
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
+    "Build type for the default target. The debug and both targets build Debug separately."
+    FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    Release Debug RelWithDebInfo MinSizeRel)
+endif()
+if(CMAKE_GENERATOR STREQUAL "Ninja Multi-Config" AND NOT CMAKE_DEFAULT_BUILD_TYPE)
+  set(CMAKE_DEFAULT_BUILD_TYPE Release CACHE STRING
+    "Configuration built by default for the Ninja Multi-Config generator." FORCE)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -202,3 +220,9 @@ install(FILES
 install(EXPORT OPALTargets
   NAMESPACE OPAL::
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/OPAL")
+# Build-tree package so a consumer can find_package(OPAL) without installing.
+export(EXPORT OPALTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/OPALTargets.cmake"
+  NAMESPACE OPAL::)
+
+include(cmake/OPALBuildVariants.cmake)
