@@ -438,14 +438,6 @@ bool OpalPCSSEndPoint::CreateVideoInputDevice(const OpalConnection & connection,
     }
   }
 
-  PSafePtr<OpalConnection> other = connection.GetOtherPartyConnection();
-  if (other == NULL)
-    return false;
-
-  if (connection.GetPhase() < OpalConnection::ConnectedPhase &&
-          other->GetPhase() < OpalConnection::ConnectedPhase)
-    return false;
-
   return OpalLocalEndPoint::CreateVideoInputDevice(connection, mediaFormat, device, autoDelete);
 }
 
