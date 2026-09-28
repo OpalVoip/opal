@@ -79,13 +79,9 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)intermediate\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)intermediate\</IntDir>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\Lib\$(Platform)\include;..\..\..\include;..\..\..\..\ptlib\Lib\$(Platform)\include;..\..\..\..\ptlib\include;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\Lib\$(Platform)\include;..\..\..\include;..\..\..\..\ptlib\Lib\$(Platform)\include;..\..\..\..\ptlib\include;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\lib;..\..\..\..\ptlib\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\lib;..\..\..\..\ptlib\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\lib;..\..\..\..\ptlib\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\lib;..\..\..\..\ptlib\lib;$(LibraryPath)</LibraryPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\Lib\$(Platform)\include;..\..\..\include;..\..\..\..\ptlib\Lib\$(Platform)\include;..\..\..\..\ptlib\include;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\..\Lib\$(Platform)\include;..\..\..\include;..\..\..\..\ptlib\Lib\$(Platform)\include;..\..\..\..\ptlib\include;$(IncludePath)</IncludePath>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">sipim</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">sipim</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">sipim</TargetName>
