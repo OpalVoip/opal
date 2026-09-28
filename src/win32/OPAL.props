@@ -3,6 +3,8 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <OpalGitRootDir Condition="'$(OpalGitRootDir)' == ''">$(SolutionDir).git</OpalGitRootDir>
+    <PTLIBDIR Condition="'$(PTLIBDIR)' == ''">$(MSBuildThisFileDirectory)..\..\..\ptlib</PTLIBDIR>
+    <OPALDIR>$(MSBuildThisFileDirectory)..\..</OPALDIR>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\external')">$(ProjectDir)..\..\external</EXTERNALDIR>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\external')">$(ProjectDir)..\..\..\external</EXTERNALDIR>
     <EXTERNALDIR Condition="'$(EXTERNALDIR)' == '' AND Exists('$(ProjectDir)..\..\..\..\external')">$(ProjectDir)..\..\..\..\external</EXTERNALDIR>
@@ -35,22 +37,27 @@
     <OPENH264VER Condition="'$(OPENH264VER)' == ''">2.3.1</OPENH264VER>
     <VPXDIR Condition="'$(VPXDIR)' == ''">$(ProjectDir)..\..\..\external\vpx-vp8</VPXDIR>
     <SPANDSPDIR Condition="'$(SPANDSPDIR)' == ''">$(ProjectDir)..\..\..\external\spandsp-0.0.6</SPANDSPDIR>
-    <PTLIBDIR Condition="'$(PTLIBDIR)' == ''">$(ProjectDir)..\..\..\PTLib</PTLIBDIR>
     <LIB32PATH>$(VCPKG32DIR)\bin;$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB32PATH>
     <LIB64PATH>$(VCPKG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB64PATH>
     <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\$(Platform)\$(Configuration)
-PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
+PATH=$(WXDIR)\lib\vc14x_x64_dll;$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <ClCompile>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-  </ItemDefinitionGroup>
+  <PropertyGroup>
+    <IncludePath>$(OPALDIR)\lib\$(Platform)\include;$(OPALDIR)\include;$(PTLIBDIR)\lib\$(Platform)\include;$(PTLIBDIR)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OPALDIR)\lib;$(PTLIBDIR)\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup />
   <ItemGroup>
     <BuildMacro Include="OpalGitRootDir">
       <Value>$(OpalGitRootDir)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="PTLIBDIR">
+      <Value>$(PTLIBDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OPALDIR">
+      <Value>$(OPALDIR)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="EXTERNALDIR">
@@ -106,24 +113,24 @@ PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="AWSDIR">
-        <Value>$(AWSDIR)</Value>
-        <EnvironmentVariable>true</EnvironmentVariable>
+      <Value>$(AWSDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="AWS32DBGDIR">
-        <Value>$(AWS32DBGDIR)</Value>
-        <EnvironmentVariable>true</EnvironmentVariable>
+      <Value>$(AWS32DBGDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="AWS64DBGDIR">
-        <Value>$(AWS64DBGDIR)</Value>
-        <EnvironmentVariable>true</EnvironmentVariable>
+      <Value>$(AWS64DBGDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="AWS32RELDIR">
-        <Value>$(AWS32RELDIR)</Value>
-        <EnvironmentVariable>true</EnvironmentVariable>
+      <Value>$(AWS32RELDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="AWS64RELDIR">
-        <Value>$(AWS64RELDIR)</Value>
-        <EnvironmentVariable>true</EnvironmentVariable>
+      <Value>$(AWS64RELDIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="WXDIR">
       <Value>$(WXDIR)</Value>
@@ -135,10 +142,6 @@ PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
     </BuildMacro>
     <BuildMacro Include="SPANDSPDIR">
       <Value>$(SPANDSPDIR)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
-    <BuildMacro Include="PTLIBDIR">
-      <Value>$(PTLIBDIR)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="LIB32PATH">

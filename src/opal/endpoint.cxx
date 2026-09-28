@@ -649,21 +649,22 @@ void OpalEndPoint::SetMediaCryptoSuites(const PStringArray & security)
   PStringArray valid = GetAllMediaCryptoSuites();
   PAssert(!valid.IsEmpty(), PInvalidParameter);
 
+  m_mediaCryptoSuites.RemoveAll();
+
   if (security.GetSize() == 1 && (security[0] *= ('!' + OpalMediaCryptoSuite::ClearText()))) {
-    m_mediaCryptoSuites.RemoveAll();
-    for (PINDEX i = 1; i < valid.GetSize(); ++i)
+    for (PINDEX i = 1; i < valid.GetSize(); ++i) // Zero is always Clear
       m_mediaCryptoSuites.AppendString(valid[i]);
   }
   else {
     for (PINDEX i = 0; i < security.GetSize(); ++i) {
       PINDEX found = valid.GetValuesIndex(security[i]);
-      if (found != P_MAX_INDEX)
+      if (found != P_MAX_INDEX && m_mediaCryptoSuites.GetValuesIndex(valid[found]) == P_MAX_INDEX)
         m_mediaCryptoSuites.AppendString(valid[found]);
     }
   }
 
   if (m_mediaCryptoSuites.IsEmpty())
-    m_mediaCryptoSuites.AppendString(valid[0]);
+    m_mediaCryptoSuites.AppendString(valid[0]); // Must be at least Clear
 }
 
 
