@@ -2184,9 +2184,10 @@ bool H235SecurityAlgorithmCapability::OnSendingPDU(H245_EncryptionAuthentication
   cap.IncludeOptionalField(H245_EncryptionAuthenticationAndIntegrity::e_encryptionCapability);
   cap.m_encryptionCapability.SetSize(m_cryptoSuites.GetSize());
 
-  for (PINDEX i = 0; i < m_cryptoSuites.GetSize(); ++i) {
+  PINDEX i = 0;
+  for (OpalMediaCryptoSuite::List::const_iterator it = m_cryptoSuites.begin(); it != m_cryptoSuites.end(); ++it,++i) {
     cap.m_encryptionCapability[i].SetTag(H245_MediaEncryptionAlgorithm::e_algorithm);
-    (PASN_ObjectId &)cap.m_encryptionCapability[i] = m_cryptoSuites[i].GetOID();
+    (PASN_ObjectId &)cap.m_encryptionCapability[i] = it->GetOID();
   }
 
   return true;
@@ -2289,8 +2290,8 @@ bool H235SecurityGenericCapability::OnSendingPDU(H245_EncryptionAuthenticationAn
     return false;
 
   H235_SRTP_SrtpCryptoCapability srtpCap;
-  for (PINDEX i = 0; i < m_cryptoSuites.GetSize(); ++i) {
-    const OpalMediaCryptoSuite & cryptoSuite = m_cryptoSuites[i]; // Singleton, no need to destroy
+  for (OpalMediaCryptoSuite::List::const_iterator it = m_cryptoSuites.begin(); it != m_cryptoSuites.end(); ++it) {
+    const OpalMediaCryptoSuite & cryptoSuite = *it; // Singleton, no need to destroy
     if (cryptoSuite.GetOID() != NULL) {
       PINDEX pos = srtpCap.GetSize();
       srtpCap.SetSize(pos+1);
