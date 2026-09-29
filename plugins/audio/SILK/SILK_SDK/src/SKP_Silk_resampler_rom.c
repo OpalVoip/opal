@@ -39,15 +39,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Tables for 2x downsampler. Values above 32767 intentionally wrap to a negative value. */
 const SKP_int16 SKP_Silk_resampler_down2_0 = 9872;
-const SKP_int16 SKP_Silk_resampler_down2_1 = 39809;
+const SKP_int16 SKP_Silk_resampler_down2_1 = (SKP_int16)39809;
 
 /* Tables for 2x upsampler, low quality. Values above 32767 intentionally wrap to a negative value. */
 const SKP_int16 SKP_Silk_resampler_up2_lq_0 = 8102;
-const SKP_int16 SKP_Silk_resampler_up2_lq_1 = 36783;
+const SKP_int16 SKP_Silk_resampler_up2_lq_1 = (SKP_int16)36783;
 
 /* Tables for 2x upsampler, high quality. Values above 32767 intentionally wrap to a negative value. */
-const SKP_int16 SKP_Silk_resampler_up2_hq_0[ 2 ] = {  4280, 33727 };
-const SKP_int16 SKP_Silk_resampler_up2_hq_1[ 2 ] = { 16295, 54015 };
+const SKP_int16 SKP_Silk_resampler_up2_hq_0[ 2 ] = {  4280, (SKP_int16)33727 };
+const SKP_int16 SKP_Silk_resampler_up2_hq_1[ 2 ] = { 16295, (SKP_int16)54015 };
 /* Matlab code for the notch filter coefficients: */
 /* B = [1, 0.12, 1];  A = [1, 0.055, 0.8]; G = 0.87; freqz(G * B, A, 2^14, 16e3); axis([0, 8000, -10, 1]);  */
 /* fprintf('\t%6d, %6d, %6d, %6d\n', round(B(2)*2^16), round(-A(2)*2^16), round((1-A(3))*2^16), round(G*2^15)) */

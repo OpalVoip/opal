@@ -138,7 +138,7 @@ static int MergeProfileAndLevelCallback(char ** result, const char * dest, const
   unsigned srcPL = strtoul(src, NULL, 10);
 
   char buffer[10];
-  sprintf(buffer, "%u", MergeProfileAndLevelOption(dstPL, srcPL));
+  snprintf(buffer, sizeof(buffer), "%u", MergeProfileAndLevelOption(dstPL, srcPL));
   *result = strdup(buffer);
 
   return 1;

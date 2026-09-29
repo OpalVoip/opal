@@ -1295,7 +1295,7 @@ Word16 E_MAIN_encode(Word16 * mode, Word16 speech16k[], Word16 prms[],
          if ((l_tmp > MIN_16) & (l_tmp < 32768))
          {
             exc[i + i_subfr] = (Word16)l_tmp;
-            s_tmp = (Word16)abs(l_tmp);
+            s_tmp = (Word16)labs(l_tmp);
 
             if (s_tmp > s_max)
             {

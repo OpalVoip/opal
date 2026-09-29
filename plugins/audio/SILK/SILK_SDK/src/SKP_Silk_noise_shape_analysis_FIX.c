@@ -218,7 +218,7 @@ void SKP_Silk_noise_shape_analysis_FIX(
     /* Gain tweaking */
     /*****************/
     /* Increase gains during low speech activity and put lower limit on gains */
-    gain_mult_Q16 = SKP_Silk_log2lin( -SKP_SMLAWB( -16 << 7, SNR_adj_dB_Q7,           10486 ) ); // 10486_Q16 = 0.16_Q0
+    gain_mult_Q16 = SKP_Silk_log2lin( -SKP_SMLAWB( -(16 << 7), SNR_adj_dB_Q7,           10486 ) ); // 10486_Q16 = 0.16_Q0
     gain_add_Q16  = SKP_Silk_log2lin(  SKP_SMLAWB(  16 << 7, NOISE_FLOOR_dB_Q7,       10486 ) ); // 10486_Q16 = 0.16_Q0
     tmp32         = SKP_Silk_log2lin(  SKP_SMLAWB(  16 << 7, RELATIVE_MIN_GAIN_dB_Q7, 10486 ) ); // 10486_Q16 = 0.16_Q0
     tmp32 = SKP_SMULWW( psEnc->avgGain_Q16, tmp32 );

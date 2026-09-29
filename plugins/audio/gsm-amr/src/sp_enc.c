@@ -3004,8 +3004,8 @@ static void Norm_Corr( Float32 exc[], Float32 xn[], Float32 h[], Word32 t_min,
  *    Interpolating the normalized correlation with 1/3 or 1/6 resolution.
  *
  *    The interpolation is performed using an FIR filter b24
- *    based on a Hamming windowed sin(x)/x function truncated at ±23
- *    and padded with zeros at ±24 (b24(24) = 0). The filter has its
+ *    based on a Hamming windowed sin(x)/x function truncated at ?23
+ *    and padded with zeros at ?24 (b24(24) = 0). The filter has its
  *    cut-off frequency (-3 dB) at 3 600 Hz in the over-sampled domain.
  *    The interpolated values of R(k) for the fractions -3/6 to 3/6
  *    are obtained using the interpolation formula:
@@ -3296,7 +3296,7 @@ static Word32 Enc_lag6( Word32 T0, Word32 T0_frac, Word32 T0_min, Word16
  *
  *    Closed-loop pitch analysis is performed around
  *    the open-loop pitch estimates on a subframe basis.
- *    In the first (and third) subframe the range Top±3,
+ *    In the first (and third) subframe the range Top?3,
  *    bounded by 18...143, is searched. For the other subframes,
  *    closed-loop pitch analysis is performed around the integer pitch
  *    selected in the previous subframe, as described above.
@@ -3320,8 +3320,8 @@ static Word32 Enc_lag6( Word32 T0, Word32 T0_frac, Word32 T0_min, Word16
  *    The fractional pitch search is performed by interpolating
  *    the normalized correlation R(k) and searching for its maximum.
  *    The interpolation is performed using an FIR filter b24
- *    based on a Hamming windowed sin(x)/x function truncated at ±23
- *    and padded with zeros at ±24 (b24(24) = 0). The filter has its
+ *    based on a Hamming windowed sin(x)/x function truncated at ?23
+ *    and padded with zeros at ?24 (b24(24) = 0). The filter has its
  *    cut-off frequency (-3 dB) at 3 600 Hz in the over-sampled domain.
  *    The interpolated values of R(k) for the fractions -3/6 to 3/6
  *    are obtained using the interpolation formula:
@@ -3529,7 +3529,7 @@ static Word32 Pitch_fr( Word32 *T0_prev_subframe, enum Mode mode, Word32 T_op[],
  *    n = 0, ...,39, t = 0, ...,5.
  *
  *    The interpolation filter b60 is based on a Hamming windowed sin(x)/x
- *    function truncated at ± 59 and padded with zeros at ± 60 (b60(60)=0)).
+ *    function truncated at ? 59 and padded with zeros at ? 60 (b60(60)=0)).
  *    The filter has a cut-off frequency (-3 dB) at 3 600 Hz in
  *    the over-sampled domain.
  *
@@ -7352,12 +7352,12 @@ static void MR475_update_unq_pred( Word32 *past_qua_en, Float32 gcode0, Float32
       }
    }
    energy = (Word32)(qua_ener * 1024 + 0.5F);
-   max = abs(energy - qua_gain_code[0]);
+   max = labs(energy - qua_gain_code[0]);
    index = 0;
    /* find match from table */
    for ( i = 1; i < NB_QUA_CODE+VQ_SIZE_HIGHRATES+VQ_SIZE_LOWRATES+MR475_VQ_SIZE*2+3; i++ )
    {
-      s = abs(energy - qua_gain_code[i]);
+      s = labs(energy - qua_gain_code[i]);
       if (s < max){
          max = s;
          index = i;
@@ -9602,7 +9602,7 @@ static void vad_pitch_detection( vadState *st, Word32 T_op[] )
    lagcount = 0;
 
    for ( i = 0; i < 2; i++ ) {
-      if ( abs( st->oldlag - T_op[i] ) < LTHRESH ) {
+      if ( labs( st->oldlag - T_op[i] ) < LTHRESH ) {
          lagcount += 1;
       }
 

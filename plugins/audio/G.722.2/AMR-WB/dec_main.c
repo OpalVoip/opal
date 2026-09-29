@@ -788,7 +788,7 @@ Word32 D_MAIN_decode(Word16 mode, Word16 prms[], Word16 synth16k[],
          if((L_tmp > MIN_16) & (L_tmp < 32768))
          {
             exc[i + i_subfr] = (Word16)L_tmp;
-            tmp = (Word16)(abs(L_tmp));
+            tmp = (Word16)(labs(L_tmp));
 
             if(tmp > max)
             {
