@@ -30,6 +30,7 @@ opal.xcodeproj/xcuserdata
 /make/opal_config.mak
 /build/
 /build-*/
+/vcpkg_installed/
 /make/7za.exe
 /include/opal_config.h
 /src/csharp/csharp_swig_wrapper.inc

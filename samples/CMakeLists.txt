@@ -35,19 +35,40 @@ if(OPAL_HAVE_PTLIB_GSTREAMER)
 endif()
 
 # OpenPhone needs wxWidgets and the wxrc compiler for openphone.xrc.
+# Unix installs expose both through wx-config. A Windows source tree is the
+# directory in WXDIR, which is the same variable the Visual Studio projects use.
+# vcpkg's toolchain wrapper finds the libraries itself and installs wxrc in
+# tools/wxwidgets, so WXDIR must not hide that root.
 find_program(OPAL_WX_CONFIG NAMES wx-config
   HINTS /opt/homebrew/bin /usr/local/bin /opt/local/bin)
-if(OPAL_WX_CONFIG)
+if(OPAL_WX_CONFIG AND NOT VCPKG_TOOLCHAIN)
   set(wxWidgets_CONFIG_EXECUTABLE "${OPAL_WX_CONFIG}")
-  find_package(wxWidgets QUIET COMPONENTS core base adv xrc html xml net)
 endif()
+if(WIN32 AND NOT wxWidgets_ROOT_DIR AND DEFINED ENV{WXDIR} AND NOT VCPKG_TOOLCHAIN)
+  set(wxWidgets_ROOT_DIR "$ENV{WXDIR}")
+endif()
+find_package(wxWidgets QUIET COMPONENTS core base adv xrc html xml net)
 if(wxWidgets_FOUND)
-  find_program(OPAL_WXRC NAMES wxrc
-    HINTS "${wxWidgets_ROOT_DIR}/bin" /opt/homebrew/bin /usr/local/bin /opt/local/bin)
-  if(NOT OPAL_WXRC)
-    get_filename_component(_wx_bin "${OPAL_WX_CONFIG}" DIRECTORY)
-    find_program(OPAL_WXRC NAMES wxrc HINTS "${_wx_bin}")
+  set(_wxrc_hints
+    "${wxWidgets_ROOT_DIR}/tools/wxwidgets"
+    "${wxWidgets_ROOT_DIR}/bin"
+    "$ENV{WXDIR}/tools/wxwidgets"
+    "$ENV{WXDIR}/bin"
+    /opt/homebrew/bin /usr/local/bin /opt/local/bin)
+  if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+    list(APPEND _wxrc_hints
+      "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/wxwidgets")
   endif()
+  # A previous configure caches a failed search and will not try the new hints.
+  if(NOT OPAL_WXRC)
+    unset(OPAL_WXRC CACHE)
+  endif()
+  find_program(OPAL_WXRC NAMES wxrc wxrc.exe HINTS ${_wxrc_hints})
+  if(NOT OPAL_WXRC AND OPAL_WX_CONFIG)
+    get_filename_component(_wx_bin "${OPAL_WX_CONFIG}" DIRECTORY)
+    find_program(OPAL_WXRC NAMES wxrc wxrc.exe HINTS "${_wx_bin}")
+  endif()
+  unset(_wxrc_hints)
 endif()
 if(wxWidgets_FOUND AND OPAL_WXRC)
   set(_openphone_xrc_cxx "${CMAKE_CURRENT_BINARY_DIR}/openphone.cxx")
@@ -66,6 +87,8 @@ if(wxWidgets_FOUND AND OPAL_WXRC)
   target_compile_options(openphone PRIVATE ${_wx_cxx_flags})
   target_link_libraries(openphone PRIVATE opal ${wxWidgets_LIBRARIES})
   message(STATUS "OpenPhone will be built with wxWidgets ${wxWidgets_VERSION_STRING}")
+elseif(NOT wxWidgets_FOUND)
+  message(STATUS "OpenPhone skipped; wxWidgets was not found")
 else()
-  message(STATUS "OpenPhone skipped; wx-config and wxrc were not found")
+  message(STATUS "OpenPhone skipped; wxrc was not found")
 endif()

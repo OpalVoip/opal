@@ -2,6 +2,11 @@
 # PTLib CMake build directory:
 #   cmake -B build -DOPAL_PTLIB_DIR=<ptlib-prefix-or-build>
 #
+# Optional codec libraries can come from vcpkg. Point CMake at a vcpkg checkout:
+#   cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
+# Default manifest features are libsrtp and speexdsp. Other features are
+# listed in vcpkg.json.
+#
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug
 #   cmake --build build --target both     # Release and Debug
@@ -24,6 +29,22 @@ if(_opal_build_type STREQUAL "AlphaCode")
   string(APPEND OPAL_VERSION "-alpha")
 elseif(_opal_build_type STREQUAL "BetaCode")
   string(APPEND OPAL_VERSION "-beta")
+endif()
+
+# vcpkg installs manifest dependencies when its toolchain loads inside project().
+# A classic "vcpkg install wxwidgets" is not on that search path. OpenPhone needs
+# the wxwidgets feature, so turn it on before that install runs.
+if(OPAL_BUILD_SAMPLES)
+  set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
+  if(NOT _opal_vcpkg_features AND DEFINED ENV{VCPKG_MANIFEST_FEATURES})
+    set(_opal_vcpkg_features "$ENV{VCPKG_MANIFEST_FEATURES}")
+  endif()
+  string(REPLACE "," ";" _opal_vcpkg_features "${_opal_vcpkg_features}")
+  if(NOT "wxwidgets" IN_LIST _opal_vcpkg_features)
+    list(APPEND _opal_vcpkg_features wxwidgets)
+  endif()
+  set(VCPKG_MANIFEST_FEATURES "${_opal_vcpkg_features}")
+  unset(_opal_vcpkg_features)
 endif()
 
 project(OPAL
@@ -224,5 +245,14 @@ install(EXPORT OPALTargets
 export(EXPORT OPALTargets
   FILE "${CMAKE_CURRENT_BINARY_DIR}/OPALTargets.cmake"
   NAMESPACE OPAL::)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/uninstall.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+  @ONLY)
+add_custom_target(uninstall
+  COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+  COMMENT "Removing the files installed from this build"
+  VERBATIM)
 
 include(cmake/OPALBuildVariants.cmake)

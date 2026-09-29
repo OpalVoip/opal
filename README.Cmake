@@ -37,6 +37,16 @@ or a PTLib CMake build directory that contains PTLibConfig.cmake:
   cmake --build build
   cmake --install build --prefix /usr/local
 
+Remove the files from that install with:
+
+  cmake --build build --target uninstall
+
+Use the same privileges as the install. A prefix such as /usr/local needs
+sudo on both commands. uninstall reads install_manifest.txt in the build
+tree, so it removes the last prefix this tree was installed to. Empty
+directories created for those files are removed. The prefix itself is left
+in place.
+
 Useful options, passed on the first cmake command:
 
   -DBUILD_SHARED_LIBS=OFF       static library
@@ -160,6 +170,28 @@ The copies in the repository are placeholders, so configure skips it
 until those sources are present.
 
 
+vcpkg
+-----
+
+vcpkg.json lists the optional libraries. PTLib has its own manifest in
+the PTLib tree; use the same toolchain file for both configures. The
+default features are libsrtp and speexdsp. Point CMake at a vcpkg checkout:
+
+  cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
+
+Extra features, comma separated:
+
+  -DVCPKG_MANIFEST_FEATURES=opus,speex,ffmpeg,vpx,theora,x264,openh264
+
+-DOPAL_BUILD_SAMPLES=ON also enables the wxwidgets feature, which supplies
+wxWidgets and wxrc for OpenPhone. A separate "vcpkg install wxwidgets" is
+not visible in manifest mode. Reconfigure after changing features so vcpkg
+can install them. wxrc is taken from that install's tools/wxwidgets directory.
+
+CELT and SpanDSP are not in the vcpkg registry, so those two plugins
+still need a library CMake can find with pkg-config.
+
+
 macOS
 -----
 
@@ -191,7 +223,8 @@ Build PTLib with the same generator, then generate an x64 solution:
 Multi-config builds pass --config Release or --config Debug on both the
 build and the install command.
 
-When PTLib was built with vcpkg, add the same toolchain file:
+Optional libraries are easiest through vcpkg. Add the toolchain file to
+the first command. See the vcpkg section for the codec features.
 
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 

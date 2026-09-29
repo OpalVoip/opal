@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "opal",
+  "version-semver": "4.0.0-alpha",
+  "description": "Open Phone Abstraction Library",
+  "homepage": "https://github.com/opalvoip/opal",
+  "builtin-baseline": "ee6a47dac031930715bea2e6dfb9ad60caaa5d83",
+  "default-features": [
+    "libsrtp",
+    "speexdsp"
+  ],
+  "features": {
+    "libsrtp": {
+      "description": "SRTP via libsrtp and OpenSSL",
+      "dependencies": [
+        {
+          "name": "libsrtp",
+          "features": ["openssl"]
+        }
+      ]
+    },
+    "speexdsp": {
+      "description": "Acoustic echo cancellation via SpeexDSP",
+      "dependencies": ["speexdsp"]
+    },
+    "opus": {
+      "description": "Opus audio codec plugin",
+      "dependencies": ["opus"]
+    },
+    "speex": {
+      "description": "Speex audio codec from the system library",
+      "dependencies": ["speex"]
+    },
+    "ffmpeg": {
+      "description": "H.263, H.264, H.265, and MPEG-4 plugins via libavcodec",
+      "dependencies": ["ffmpeg"]
+    },
+    "vpx": {
+      "description": "VP8 plugin via libvpx",
+      "dependencies": ["libvpx"]
+    },
+    "theora": {
+      "description": "Theora video plugin",
+      "dependencies": ["libtheora"]
+    },
+    "x264": {
+      "description": "H.264 plugin via libx264 and libavcodec",
+      "dependencies": ["x264", "ffmpeg"]
+    },
+    "openh264": {
+      "description": "H.264 plugin via OpenH264",
+      "dependencies": ["openh264"]
+    },
+    "wxwidgets": {
+      "description": "wxWidgets and wxrc for the OpenPhone sample",
+      "dependencies": ["wxwidgets"]
+    }
+  }
+}
