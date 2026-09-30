@@ -78,7 +78,7 @@ if(wxWidgets_FOUND AND OPAL_WXRC)
             -c -o "${_openphone_xrc_cxx}"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/openphone/openphone.xrc"
     VERBATIM)
-  add_executable(openphone openphone/main.cxx "${_openphone_xrc_cxx}")
+  add_executable(openphone WIN32 openphone/main.cxx "${_openphone_xrc_cxx}")
   target_include_directories(openphone PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/openphone"
     ${wxWidgets_INCLUDE_DIRS})
