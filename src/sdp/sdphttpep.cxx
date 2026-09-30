@@ -96,10 +96,10 @@ PSafePtr<OpalConnection> OpalSDPHTTPEndPoint::MakeConnection(OpalCall & call,
                                                              unsigned int options,
                                                              OpalConnection::StringOptions * stringOptions)
 {
-  PString urlStr = StripPrefixName(party);
+  PString urlStr = m_prefixName.starts_with("http:") || m_prefixName.starts_with("https:") ? party : StripPrefixName(party);
   PURL destURL;
-  if (!urlStr.IsEmpty() && !destURL.Parse(urlStr, "http")) {
-    PTRACE(2, "Cannot parse as URL destination string \"" << urlStr << '"');
+  if (urlStr.IsEmpty() || !destURL.Parse(urlStr, "https")) {
+    PTRACE(2, "Cannot parse as URL destination string: " << urlStr.ToLiteral());
     return NULL;
   }
 
@@ -278,6 +278,7 @@ PBoolean OpalSDPHTTPConnection::SetUpConnection()
 
   PMIMEInfo outMIME, replyMIME;
   outMIME.SetAt(PHTTP::ContentTypeTag(), OpalSDPEndPoint::ContentType());
+  outMIME.Merge(PStringToString(m_stringOptions.Get(OPAL_OPT_HTTP_HEADERS)), PMIMEInfo::e_MergeOverwrite);
 
   PString answer;
   if (!http.PostData(url, outMIME, offer, replyMIME, answer)) {
