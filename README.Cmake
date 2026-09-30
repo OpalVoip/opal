@@ -56,6 +56,15 @@ Useful options, passed on the first cmake command:
   -DOPAL_BUILD_SAMPLES=ON       sample programs, including OpenPhone
                                 when wx-config and wxrc are found
   -DOPAL_PLUGINS=OFF            library only, no codec plugins
+  -DOPAL_T38_CAPABILITY=OFF     omit T.38 and fax, including the
+                                SpanDSP plugin and the fax sample
+  -DOPAL_OPALMIN=ON             omit obsolete codecs, T.38, fax,
+                                RFC 4175, T.120, Skinny, and line
+                                interface devices (LID, CAPI, DAHDI)
+  -DOPAL_OBSOLETE_CODECS=OFF    omit Speex, iLBC, LPC-10, H.261,
+                                G.722, G.722.1, G.722.2, G.726, G.728,
+                                GSM 06.10, Theora, G.723.1, and
+                                VoiceAge G.729
   -DCMAKE_BUILD_TYPE=Debug      single-config generators (Ninja, Makefiles)
 
 Single-config generators also accept:
@@ -145,7 +154,11 @@ These plugins are built from sources in the tree:
 
 Speex is built from the system library when pkg-config finds speex, and
 from plugins/audio/Speex/libspeex otherwise. The target is speex_ptplugin
-in either case.
+in either case. -DOPAL_OBSOLETE_CODECS=OFF omits Speex, iLBC, LPC-10, H.261,
+G.722, G.722.1, G.722.2, G.726, G.728, GSM 06.10, Theora, G.723.1, and VoiceAge G.729.
+SpeexDSP acoustic echo cancellation stays. On Windows, G.723.1 ACM is built
+with that switch left on, and VoiceAge G.729 is built when va_g729/va_g729a.h
+has been unpacked beside the plugin.
 
 These plugins are added when pkg-config finds the named module. Configure
 prints a skip line when the module is absent. Install the library and run

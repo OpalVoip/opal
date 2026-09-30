@@ -117,8 +117,11 @@ static struct GstInitInfo {
 } const DefaultMediaFormatToGStreamer[] = {
   { OPAL_G711_ULAW_64K, "rtppcmudepay",  "mulawdec",    "rtppcmupay",         "mulawenc"   },
   { OPAL_G711_ALAW_64K, "rtppcmadepay",  "alawdec",     "rtppcmapay",         "alawenc"    },
+#if OPAL_OBSOLETE_CODECS
   { OPAL_GSM0610,       "rtpgsmdepay",   "gsmdec",      "rtpgsmpay",          "gsmenc"     },
+#endif
   { OPAL_GSMAMR,        "rtpamrdepay",   "amrnbdec",    "rtpamrpay",          "amrnbenc"   },
+#if OPAL_OBSOLETE_CODECS
   { OPAL_G7222,         "rtpamrdepay",   "amrwbdec",    "rtpamrpay",          "amrwbenc"   },
 #if P_GSTREAMER_1_0_API
   { OPAL_G722,          "rtpg722depay",  "avdec_g722",  "rtpg722pay",         "avenc_g722" },
@@ -131,11 +134,16 @@ static struct GstInitInfo {
   { OPAL_G726_32K,      "rtpg726depay",  "ffdec_g726",  "rtpg726pay",         "ffenc_g726 bitrate=32000" },
   { OPAL_G726_24K,      "rtpg726depay",  "ffdec_g726",  "rtpg726pay",         "ffenc_g726 bitrate=24000" },
 #endif
+#endif
+#if OPAL_OBSOLETE_CODECS
   { OPAL_SPEEX_NB,      "rtpspeexdepay", "speexdec",    "rtpspeexpay",        "speexenc mode=nb" },
   { OPAL_SPEEX_WB,      "rtpspeexdepay", "speexdec",    "rtpspeexpay",        "speexenc mode=wb" },
+#endif
 #if OPAL_VIDEO
 #if P_GSTREAMER_1_0_API
+#if OPAL_OBSOLETE_CODECS
   { OPAL_H261,          "",              "avdec_h261",  "",                   "avenc_h261" },
+#endif
   { OPAL_H263,          "rtph263depay",  "avdec_h263",  "rtph263pay",         "avenc_h263"
                                                                               " rtp-payload-size={" OPAL_GST_MTU "}"
                                                                               " max-key-interval=125"
@@ -190,7 +198,9 @@ static struct GstInitInfo {
                                                                              " quant-type=1"
   },
 #else
+#if OPAL_OBSOLETE_CODECS
   { OPAL_H261,          "",              "ffdec_h261",  "",                   "ffenc_h261" },
+#endif
   { OPAL_H263,          "rtph263depay",  "ffdec_h263",  "rtph263pay",         "ffenc_h263"
                                                                               " rtp-payload-size={" OPAL_GST_MTU "}"
                                                                               " max-key-interval=125"
@@ -479,7 +489,7 @@ static void OutputRTPCaps(ostream & description, const OpalMediaFormat & mediaFo
   description << "application/x-rtp,"
                  "media=" << mediaFormat.GetMediaType() << ","
                  "payload=" << (unsigned)mediaFormat.GetPayloadType() << ","
-                 "clock-rate=" << (mediaFormat == OpalG722 ? 16000 : mediaFormat.GetClockRate()) << ","
+                 "clock-rate=" << (mediaFormat.GetName() == OPAL_G722 ? 16000 : mediaFormat.GetClockRate()) << ","
                  "encoding-name=" << mediaFormat.GetEncodingName();
 }
 
@@ -595,13 +605,13 @@ static void OutputRawAudioCaps(ostream & desc, const OpalMediaFormat & mediaForm
   desc << "audio/x-raw, "
           "format=S16LE, "
           "channels=" << mediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1) << ", "
-          "rate=" << (mediaFormat == OpalG722 ? 16000 : mediaFormat.GetClockRate());
+          "rate=" << (mediaFormat.GetName() == OPAL_G722 ? 16000 : mediaFormat.GetClockRate());
 #else
   desc << "audio/x-raw-int, "
           "depth=16, "
           "width=16, "
           "channels=" << mediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1) << ", "
-          "rate=" << (mediaFormat == OpalG722 ? 16000 : mediaFormat.GetClockRate()) << ", "
+          "rate=" << (mediaFormat.GetName() == OPAL_G722 ? 16000 : mediaFormat.GetClockRate()) << ", "
           "signed=true, "
           "endianness=1234";
 #endif

@@ -47,6 +47,7 @@
 #include <wx/notebook.h>
 #include <wx/progdlg.h>
 #include <wx/xrc/xmlres.h>
+#include <wx/statbox.h>
 #include <wx/cmdline.h>
 
 #include <ptclib/pstun.h>
@@ -60,7 +61,9 @@
 #include <ep/opalmixer.h>
 #include <ep/skinnyep.h>
 #include <sip/sippres.h>
+#if OPAL_LID
 #include <lids/lidep.h>
+#endif
 #include <lids/capi_ep.h>
 #include <codec/vidcodec.h>
 #include <rtp/srtp_session.h>
@@ -354,8 +357,10 @@ static const char * const DefaultRoutes[] = {
 #if OPAL_IVR
     ".*:#  = ivr:", // A hash from anywhere goes to IVR
 #endif
+#if OPAL_LID
     "pots:.*\\*.*\\*.* = sip:<dn2ip>",
     "pots:.* = sip:<da>",
+#endif
     "pc:.*   = sip:<da>",
 
 #if OPAL_FAX
@@ -365,16 +370,24 @@ static const char * const DefaultRoutes[] = {
     ".*:.*\t.*:(t38|838)@.*|(t38|838) = t38:*;receive",
 #endif
 
+#if OPAL_LID
     "h323:.*  = pots:<dn>",
+#endif
     "h323:.*  = pc:*",
 
+#if OPAL_LID
     "h323s:.* = pots:<dn>",
+#endif
     "h323s:.* = pc:*",
 
+#if OPAL_LID
     "sip:.*   = pots:<dn>",
+#endif
     "sip:.*   = pc:*",
 
+#if OPAL_LID
     "sips:.*  = pots:<dn>",
+#endif
     "sips:.*  = pc:*"
 };
 
@@ -793,7 +806,9 @@ MyManager::MyManager()
   , m_splitter(NULL)
   , m_speedDials(NULL)
   , pcssEP(NULL)
+#if OPAL_LID
   , potsEP(NULL)
+#endif
 #if OPAL_H323
   , h323EP(NULL)
 #endif
@@ -1046,7 +1061,9 @@ bool MyManager::Initialise(bool startMinimised)
   m_imEP = new OpalIMEndPoint(*this);
 #endif
 
+#if OPAL_LID
   potsEP = new OpalLineEndPoint(*this);
+#endif
   pcssEP = new MyPCSSEndPoint(*this);
 
   PwxString str;
@@ -1243,7 +1260,9 @@ bool MyManager::Initialise(bool startMinimised)
     DisableDetectInBandDTMF(onoff);
 
   UpdateAudioVideoDevices();
+#if OPAL_LID
   StartLID();
+#endif
 
 
   ////////////////////////////////////////
@@ -1641,6 +1660,7 @@ bool MyManager::Initialise(bool startMinimised)
 }
 
 
+#if OPAL_LID
 void MyManager::StartLID()
 {
   wxConfigBase * config = wxConfig::Get();
@@ -1671,6 +1691,7 @@ void MyManager::StartLID()
       LogWindow << "Could not configure Line Interface Device to country \"" << country << '"' << endl;
   }
 }
+#endif // OPAL_LID
 
 
 void MyManager::SetNAT(const PwxString & method, bool active, const PwxString & server, int priority)
@@ -1843,7 +1864,9 @@ void MyManager::OnClose(wxCloseEvent & /*event*/)
     }
   }
 
+#if OPAL_LID
   potsEP = NULL;
+#endif
   m_activeCall.SetNULL();
   m_callsOnHold.clear();
   m_registrationsMutex.Wait();
@@ -3025,7 +3048,11 @@ PSafePtr<OpalConnection> MyManager::GetNetworkConnection(PSafetyMode mode)
 
 bool MyManager::HasHandset() const
 {
+#if OPAL_LID
   return potsEP != NULL && potsEP->GetLine("*") != NULL;
+#else
+  return false;
+#endif
 }
 
 
@@ -4392,7 +4419,9 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
   // Audio fields
   EVT_COMBOBOX(wxXmlResource::GetXRCID(SoundPlayerKey), OptionsDialog::ChangedSoundPlayer)
   EVT_COMBOBOX(wxXmlResource::GetXRCID(SoundRecorderKey), OptionsDialog::ChangedSoundRecorder)
+#if OPAL_LID
   EVT_COMBOBOX(wxXmlResource::GetXRCID(LineInterfaceDeviceKey), OptionsDialog::SelectedLID)
+#endif
   EVT_BUTTON(XRCID("TestPlayer"), OptionsDialog::TestPlayer)
   EVT_BUTTON(XRCID("TestRecorder"), OptionsDialog::TestRecorder)
   EVT_COMBOBOX(XRCID("MusicOnHold"), OptionsDialog::ChangedMusicOnHold)
@@ -4509,6 +4538,7 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   , m_SIPoptions(manager, manager->sipEP)
 {
   PINDEX i;
+  PStringList devices;
   wxChoice * choice;
   wxComboBox * combo;
 
@@ -4665,12 +4695,13 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   m_AudioOnRing = MediaDeviceNameToScreen(m_manager.pcssEP->GetSoundChannelOnRingDevice());
 
   // Fill line interface combo box with available devices and set selection
+#if OPAL_LID
   FindWindowByNameAs(m_selectedAEC, this, AECKey);
   FindWindowByNameAs(m_selectedCountry, this, CountryKey);
   m_selectedCountry->SetValidator(wxGenericValidator(&m_Country));
   FindWindowByNameAs(m_selectedLID, this, LineInterfaceDeviceKey);
   m_selectedLID->SetValidator(wxGenericValidator(&m_LineInterfaceDevice));
-  PStringList devices = OpalLineInterfaceDevice::GetAllDevices();
+  devices = OpalLineInterfaceDevice::GetAllDevices();
   if (devices.IsEmpty()) {
     m_LineInterfaceDevice = "<< None available >>";
     m_selectedLID->Append(m_LineInterfaceDevice);
@@ -4712,6 +4743,30 @@ OptionsDialog::OptionsDialog(MyManager * manager)
       m_selectedCountry->Disable();
     }
   }
+#else
+  wxWindow * lidDevice = FindWindowByName(LineInterfaceDeviceKey);
+  wxStaticBox * lidBox = lidDevice != NULL ? wxDynamicCast(lidDevice->GetParent(), wxStaticBox) : NULL;
+  if (lidBox != NULL) {
+    lidBox->Hide();
+    if (wxSizer * sizer = lidBox->GetContainingSizer())
+      sizer->Show(lidBox, false);
+  }
+  else {
+    static const wxChar * const lidWindows[] = {
+      LineInterfaceDeviceKey, AECKey, CountryKey,
+      wxT("label_21"), wxT("label_22"), wxT("label_23")
+    };
+    for (PINDEX n = 0; n < PARRAYSIZE(lidWindows); ++n) {
+      wxWindow * control = FindWindowByName(lidWindows[n]);
+      if (control == NULL)
+        continue;
+      control->Hide();
+      if (wxSizer * sizer = control->GetContainingSizer())
+        sizer->Show(control, false);
+    }
+  }
+  Layout();
+#endif
 
   ////////////////////////////////////////
   // Video fields
@@ -5213,12 +5268,14 @@ bool OptionsDialog::TransferDataFromWindow()
 
   SAVE_FIELD(DisableDetectInBandDTMF, m_manager.DisableDetectInBandDTMF);
 
+#if OPAL_LID
   if (m_LineInterfaceDevice.StartsWith(wxT("<<")) && m_LineInterfaceDevice.EndsWith(wxT(">>")))
     m_LineInterfaceDevice.Empty();
   config->Write(LineInterfaceDeviceKey, m_LineInterfaceDevice);
   config->Write(AECKey, m_AEC);
   config->Write(CountryKey, m_Country);
   m_manager.StartLID();
+#endif
 
   ////////////////////////////////////////
   // Video fields
@@ -5874,6 +5931,7 @@ void OptionsDialog::TestRecorder(wxCommandEvent & /*event*/)
 }
 
 
+#if OPAL_LID
 void OptionsDialog::SelectedLID(wxCommandEvent & /*event*/)
 {
   bool enabled = m_selectedLID->GetSelection() > 0;
@@ -5898,6 +5956,7 @@ void OptionsDialog::SelectedLID(wxCommandEvent & /*event*/)
     delete lidToDelete;
   }
 }
+#endif // OPAL_LID
 
 
 ////////////////////////////////////////

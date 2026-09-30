@@ -203,6 +203,10 @@
 // G.711 Packet Loss Concealment
 #undef  OPAL_G711PLC
 
+// Speex, iLBC, H.261, G.722, GSM 06.10, Theora, G.726, G.723.1, and
+// VoiceAge G.729. Off omits their media formats and plugins.
+#undef  OPAL_OBSOLETE_CODECS
+
 #if PTRACING
   #undef OPAL_JITTER_BUFFER_LATENCY_CHECK
 #endif

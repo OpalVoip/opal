@@ -64,7 +64,9 @@
 
 class MyManager;
 
+#if OPAL_LID
 class OpalLineEndPoint;
+#endif
 class OpalCapiEndPoint;
 class OpalIVREndPoint;
 class OpalMixerEndPoint;
@@ -752,7 +754,9 @@ class OptionsDialog : public wxDialog
     void ChangedSoundRecorder(wxCommandEvent & /*event*/);
     void TestPlayer(wxCommandEvent & /*event*/);
     void TestRecorder(wxCommandEvent & /*event*/);
+#if OPAL_LID
     void SelectedLID(wxCommandEvent & /*event*/);
+#endif
     void ChangedMusicOnHold(wxCommandEvent & /*event*/);
     void ChangedAudioOnRing(wxCommandEvent & /*event*/);
 
@@ -1249,8 +1253,10 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     SpeedDialInfo * GetSelectedSpeedDial() const;
 
     MyPCSSEndPoint   * pcssEP;
+#if OPAL_LID
     OpalLineEndPoint * potsEP;
     void StartLID();
+#endif
 
     void SetNAT(const PwxString & method, bool active, const PwxString & server, int priority);
 

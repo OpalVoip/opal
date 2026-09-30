@@ -27,6 +27,8 @@
  */
 
 #include <ptlib.h>
+
+#include <opal_config.h>
 #include <ep/skinnyep.h>
 
 #if OPAL_SKINNY
@@ -68,6 +70,7 @@ static PString CreateToken(const OpalSkinnyEndPoint::PhoneDevice & phone, unsign
 static POrdinalToString::Initialiser const CodecCodes[] = {
   {   2, OPAL_G711_ALAW_64K  },
   {   4, OPAL_G711_ULAW_64K  },
+#if OPAL_OBSOLETE_CODECS
   {   6, OPAL_G722           },
   {   9, OPAL_G7231          },
   {  10, OPAL_G728           },
@@ -75,14 +78,19 @@ static POrdinalToString::Initialiser const CodecCodes[] = {
   {  12, OPAL_G729A          },
   {  15, OPAL_G729B          },
   {  16, OPAL_G729AB         },
+#endif
+#if OPAL_OBSOLETE_CODECS
   {  40, OPAL_G7221_32K      },
   {  41, OPAL_G7221_24K      },
   {  80, OPAL_GSM0610        },
   {  82, OPAL_G726_32K       },
   {  83, OPAL_G726_24K       },
   {  84, OPAL_G726_16K       },
+#endif
 #if OPAL_VIDEO
+#if OPAL_OBSOLETE_CODECS
   { 100, OPAL_H261 },
+#endif
   { 101, OPAL_H263           },
   { 103, OPAL_H264           },
   { 106, OPAL_FECC_RTP       },

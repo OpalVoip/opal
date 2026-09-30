@@ -32,17 +32,7 @@ set(OPAL_SOURCES
   src/im/rfc4103.cxx
   src/codec/g711codec.cxx
   src/codec/g711.c
-  src/codec/g722mf.cxx
-  src/codec/g7221mf.cxx
-  src/codec/g7222mf.cxx
-  src/codec/g7231mf.cxx
-  src/codec/g726mf.cxx
-  src/codec/g728mf.cxx
-  src/codec/g729mf.cxx
-  src/codec/gsm0610mf.cxx
   src/codec/gsmamrmf.cxx
-  src/codec/iLBCmf.cxx
-  src/codec/speexmf.cxx
   src/codec/opusmf.cxx
   src/t38/t38mf.cxx
   src/codec/rfc2833.cxx
@@ -50,6 +40,20 @@ set(OPAL_SOURCES
   src/codec/silencedetect.cxx
   src/codec/opalpluginmgr.cxx
 )
+
+if(OPAL_OBSOLETE_CODECS)
+  list(APPEND OPAL_SOURCES
+    src/codec/g722mf.cxx
+    src/codec/g7221mf.cxx
+    src/codec/g7222mf.cxx
+    src/codec/g7231mf.cxx
+    src/codec/g726mf.cxx
+    src/codec/g728mf.cxx
+    src/codec/g729mf.cxx
+    src/codec/gsm0610mf.cxx
+    src/codec/iLBCmf.cxx
+    src/codec/speexmf.cxx)
+endif()
 
 if(OPAL_HAVE_PTLIB_CLI)
   list(APPEND OPAL_SOURCES src/opal/console_mgr.cxx)
@@ -204,12 +208,14 @@ endif()
 if(OPAL_VIDEO)
   list(APPEND OPAL_SOURCES
     src/codec/vidcodec.cxx
-    src/codec/h261mf.cxx
     src/codec/h263mf.cxx
     src/codec/h264mf.cxx
     src/codec/h265mf.cxx
     src/codec/vp8mf.cxx
     src/codec/mpeg4mf.cxx)
+  if(OPAL_OBSOLETE_CODECS)
+    list(APPEND OPAL_SOURCES src/codec/h261mf.cxx)
+  endif()
 endif()
 if(OPAL_RFC4175)
   list(APPEND OPAL_SOURCES src/codec/rfc4175.cxx)

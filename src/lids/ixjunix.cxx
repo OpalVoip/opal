@@ -756,6 +756,7 @@ static const struct {
   { OPAL_PCM16,         480, 480, LINEAR16, 30, false },   // 480 bytes = 240 samples = 30ms
   { OPAL_G711_ULAW_64K, 240, 240, ULAW,     30, false },   // 240 bytes = 240 samples = 30ms
   { OPAL_G711_ALAW_64K, 240, 240, ALAW,     30, false },   // 240 bytes = 240 samples = 30ms
+#if OPAL_OBSOLETE_CODECS
   { OPAL_G728,           60,  60, G728,     30, false },   // 60 bytes  = 12 frames   = 30ms
   { OPAL_G729A,          10,  10, G729,     10, false },   // 10 bytes = 1 frame = 10 ms
   { OPAL_G729AB,         10,  10, G729B,    10,  true },   // 10 bytes = 1 frame = 10 ms
@@ -763,6 +764,7 @@ static const struct {
   { OPAL_G7231_6k3,      24,  24, G723_63,  30, false },   // 24 bytes = 1 frame = 30 ms
   { OPAL_G7231A_5k3 ,    24,  20, G723_53,  30,  true },   // 20 bytes = 1 frame = 30 ms
   { OPAL_G7231A_6k3,     24,  24, G723_63,  30,  true }    // 24 bytes = 1 frame = 30 ms
+#endif
 };
 
 

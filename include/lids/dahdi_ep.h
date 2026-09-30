@@ -36,7 +36,9 @@
 
 #include <ptlib.h>
 #include <ptlib/mutex.h>
+#if P_POP3SMTP
 #include <ptclib/inetmail.h>
+#endif
 #include <ptclib/dtmf.h>
 
 #include <lids/lid.h>

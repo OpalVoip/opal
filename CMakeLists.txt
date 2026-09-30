@@ -47,6 +47,19 @@ if(OPAL_BUILD_SAMPLES)
   unset(_opal_vcpkg_features)
 endif()
 
+# Speex and Theora are optional features, not defaults. Echo cancellation
+# uses the separate speexdsp feature, which stays installed.
+if((DEFINED OPAL_OBSOLETE_CODECS AND NOT OPAL_OBSOLETE_CODECS) OR OPAL_OPALMIN)
+  set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
+  if(NOT _opal_vcpkg_features AND DEFINED ENV{VCPKG_MANIFEST_FEATURES})
+    set(_opal_vcpkg_features "$ENV{VCPKG_MANIFEST_FEATURES}")
+  endif()
+  string(REPLACE "," ";" _opal_vcpkg_features "${_opal_vcpkg_features}")
+  list(REMOVE_ITEM _opal_vcpkg_features speex theora)
+  set(VCPKG_MANIFEST_FEATURES "${_opal_vcpkg_features}")
+  unset(_opal_vcpkg_features)
+endif()
+
 project(OPAL
   VERSION "${OPAL_VERSION_MAJOR}.${OPAL_VERSION_MINOR}.${OPAL_VERSION_PATCH}"
   DESCRIPTION "Open Phone Abstraction Library"

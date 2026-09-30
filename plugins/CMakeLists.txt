@@ -38,43 +38,48 @@ if(NOT WIN32)
   file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/plugin_config.h" "#define HAVE_UNISTD_H 1\n")
 endif()
 
-opal_add_plugin(g726 audio
-  audio/G726/g726codec.c
-  audio/G726/g711.c
-  audio/G726/g726/g726_16.c
-  audio/G726/g726/g726_24.c
-  audio/G726/g726/g726_32.c
-  audio/G726/g726/g726_40.c
-  audio/G726/g726/g72x.c)
-target_include_directories(g726_ptplugin PRIVATE audio/G726)
+if(OPAL_OBSOLETE_CODECS)
+  opal_add_plugin(g726 audio
+    audio/G726/g726codec.c
+    audio/G726/g711.c
+    audio/G726/g726/g726_16.c
+    audio/G726/g726/g726_24.c
+    audio/G726/g726/g726_32.c
+    audio/G726/g726/g726_40.c
+    audio/G726/g726/g72x.c)
+  target_include_directories(g726_ptplugin PRIVATE audio/G726)
 
-opal_add_plugin(g722 audio
-  audio/G722/g722codec.c
-  audio/G722/VoIPCodecs/g722_encode.c
-  audio/G722/VoIPCodecs/g722_decode.c
-  audio/G722/VoIPCodecs/bitstream.c)
-target_include_directories(g722_ptplugin PRIVATE audio/G722 audio/G722/VoIPCodecs)
+  opal_add_plugin(g722 audio
+    audio/G722/g722codec.c
+    audio/G722/VoIPCodecs/g722_encode.c
+    audio/G722/VoIPCodecs/g722_decode.c
+    audio/G722/VoIPCodecs/bitstream.c)
+  target_include_directories(g722_ptplugin PRIVATE audio/G722 audio/G722/VoIPCodecs)
+endif()
 
 opal_add_plugin(ima_adpcm audio audio/IMA_ADPCM/ima_adpcm.c)
 
-file(GLOB _lpc10 audio/LPC_10/src/*.c)
-opal_add_plugin(lpc10 audio audio/LPC_10/lpc_10_codec.c ${_lpc10})
-target_include_directories(lpc10_ptplugin PRIVATE audio/LPC_10 audio/LPC_10/src)
-# Vendored f2c sources contain nested block comments.
-if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-  target_compile_options(lpc10_ptplugin PRIVATE -Wno-comment)
-endif()
-# f2c.h #defines abs(). A system malloc.h that includes stdlib.h then fails
-# to declare abs(). This header declares the allocators and nothing else.
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compat/malloc.h"
+if(OPAL_OBSOLETE_CODECS)
+  file(GLOB _lpc10 audio/LPC_10/src/*.c)
+  opal_add_plugin(lpc10 audio audio/LPC_10/lpc_10_codec.c ${_lpc10})
+  target_include_directories(lpc10_ptplugin PRIVATE audio/LPC_10 audio/LPC_10/src)
+  # Vendored f2c sources contain nested block comments.
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(lpc10_ptplugin PRIVATE -Wno-comment)
+  endif()
+  # f2c.h #defines abs(). A system malloc.h that includes stdlib.h then fails
+  # to declare abs(). This header declares the allocators and nothing else.
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compat/malloc.h"
 "#include <stddef.h>
 void *malloc(size_t);
 void *calloc(size_t, size_t);
 void *realloc(void *, size_t);
 void free(void *);
 ")
-target_include_directories(lpc10_ptplugin BEFORE PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/compat")
+  target_include_directories(lpc10_ptplugin BEFORE PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/compat")
+endif()
 
+if(OPAL_OBSOLETE_CODECS)
 opal_add_plugin(gsm0610 audio
   audio/GSM0610/gsm06_10_codec.c
   audio/GSM0610/src/gsm_create.c
@@ -93,20 +98,23 @@ opal_add_plugin(gsm0610 audio
   audio/GSM0610/src/table.c)
 target_include_directories(gsm0610_ptplugin PRIVATE audio/GSM0610/inc)
 target_compile_definitions(gsm0610_ptplugin PRIVATE WAV49 NeedFunctionPrototypes=1)
+endif()
 
-opal_add_plugin(h261_vic video
-  video/H.261-vic/h261vic.cxx
-  video/H.261-vic/vic/encoder-h261.cxx
-  video/H.261-vic/vic/transmitter.cxx
-  video/H.261-vic/vic/vid_coder.cxx
-  video/H.261-vic/vic/p64encoder.cxx
-  video/H.261-vic/vic/p64.cxx
-  video/H.261-vic/vic/dct.cxx
-  video/H.261-vic/vic/huffcode.c
-  video/H.261-vic/vic/bv.c)
-target_include_directories(h261_vic_ptplugin PRIVATE video/common video/H.261-vic/vic)
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-  target_compile_options(h261_vic_ptplugin PRIVATE -Wno-register)
+if(OPAL_OBSOLETE_CODECS)
+  opal_add_plugin(h261_vic video
+    video/H.261-vic/h261vic.cxx
+    video/H.261-vic/vic/encoder-h261.cxx
+    video/H.261-vic/vic/transmitter.cxx
+    video/H.261-vic/vic/vid_coder.cxx
+    video/H.261-vic/vic/p64encoder.cxx
+    video/H.261-vic/vic/p64.cxx
+    video/H.261-vic/vic/dct.cxx
+    video/H.261-vic/vic/huffcode.c
+    video/H.261-vic/vic/bv.c)
+  target_include_directories(h261_vic_ptplugin PRIVATE video/common video/H.261-vic/vic)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(h261_vic_ptplugin PRIVATE -Wno-register)
+  endif()
 endif()
 
 find_package(PkgConfig QUIET)
@@ -229,17 +237,19 @@ endif()
 
 # --- Audio codecs with sources in the tree ---
 
-file(GLOB _g7221 audio/G.722.1/libg722_1/src/*.c)
-list(FILTER _g7221 EXCLUDE REGEX "/make_")
-opal_add_plugin(g7221 audio audio/G.722.1/G7221Codec.c ${_g7221})
-target_include_directories(g7221_ptplugin PRIVATE
-  audio/G.722.1/libg722_1/src
-  audio/G.722.1/libg722_1/src/generated)
-target_link_libraries(g7221_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
+if(OPAL_OBSOLETE_CODECS)
+  file(GLOB _g7221 audio/G.722.1/libg722_1/src/*.c)
+  list(FILTER _g7221 EXCLUDE REGEX "/make_")
+  opal_add_plugin(g7221 audio audio/G.722.1/G7221Codec.c ${_g7221})
+  target_include_directories(g7221_ptplugin PRIVATE
+    audio/G.722.1/libg722_1/src
+    audio/G.722.1/libg722_1/src/generated)
+  target_link_libraries(g7221_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
 
-file(GLOB _g7222 audio/G.722.2/AMR-WB/*.c)
-opal_add_plugin(g7222 audio audio/G.722.2/G7222Codec.cpp ${_g7222})
-target_include_directories(g7222_ptplugin PRIVATE audio/G.722.2 audio/G.722.2/AMR-WB)
+  file(GLOB _g7222 audio/G.722.2/AMR-WB/*.c)
+  opal_add_plugin(g7222 audio audio/G.722.2/G7222Codec.cpp ${_g7222})
+  target_include_directories(g7222_ptplugin PRIVATE audio/G.722.2 audio/G.722.2/AMR-WB)
+endif()
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/audio/SBC/sbc.h" _sbc_header)
 if(_sbc_header MATCHES "#ifndef|#define|#include")
@@ -257,9 +267,11 @@ target_include_directories(silk_ptplugin PRIVATE
   audio/SILK/SILK_SDK/src)
 target_link_libraries(silk_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
 
-file(GLOB _ilbc audio/iLBC/iLBC/*.c)
-opal_add_plugin(iLBC audio audio/iLBC/ilbccodec.c ${_ilbc})
-target_include_directories(iLBC_ptplugin PRIVATE audio/iLBC audio/iLBC/iLBC)
+if(OPAL_OBSOLETE_CODECS)
+  file(GLOB _ilbc audio/iLBC/iLBC/*.c)
+  opal_add_plugin(iLBC audio audio/iLBC/ilbccodec.c ${_ilbc})
+  target_include_directories(iLBC_ptplugin PRIVATE audio/iLBC audio/iLBC/iLBC)
+endif()
 
 file(GLOB _isac audio/iSAC/iSAC/*.c)
 opal_add_plugin(iSAC audio audio/iSAC/iSACcodec.c ${_isac})
@@ -276,19 +288,40 @@ target_include_directories(gsmamrcodec_ptplugin PRIVATE audio/gsm-amr audio/gsm-
 target_compile_definitions(gsmamrcodec_ptplugin PRIVATE VAD1)
 target_link_libraries(gsmamrcodec_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
 
-if(OPAL_PC_SPEEX_FOUND)
-  opal_add_plugin(speex audio audio/Speex/speexcodec.cxx)
-  target_compile_definitions(speex_ptplugin PRIVATE OPAL_SYSTEM_SPEEX=1)
-  opal_link_pkg(speex_ptplugin OPAL_PC_SPEEX)
-else()
-  file(GLOB _speex audio/Speex/libspeex/*.c)
-  # modes_noglobals.c is an alternate build of modes.c. jitter.c, stereo.c,
-  # and the test programs are not part of the plugin.
-  list(FILTER _speex EXCLUDE REGEX "/(modes_noglobals|jitter|stereo|test[^.]*).c$")
-  opal_add_plugin(speex audio audio/Speex/speexcodec.cxx ${_speex})
-  target_include_directories(speex_ptplugin PRIVATE audio/Speex/libspeex)
-  target_compile_definitions(speex_ptplugin PRIVATE OPAL_SYSTEM_SPEEX=0)
-  target_link_libraries(speex_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
+# G.723.1 via the Windows Audio Compression Manager, and VoiceAge G.729 when
+# its SDK has been unpacked next to the plugin. Both are obsolete codecs.
+if(OPAL_OBSOLETE_CODECS AND WIN32)
+  opal_add_plugin(g7231acm audio audio/G7231ACM/g7231acm.cxx)
+  if(NOT MSVC)
+    target_link_libraries(g7231acm_ptplugin PRIVATE msacm32)
+  endif()
+
+  set(_voiceage "${CMAKE_CURRENT_SOURCE_DIR}/audio/VoiceAgeG729/va_g729/va_g729a.h")
+  if(EXISTS "${_voiceage}")
+    opal_add_plugin(VoiceAgeG729 audio audio/VoiceAgeG729/g729codec.c)
+    target_include_directories(VoiceAgeG729_ptplugin PRIVATE audio/VoiceAgeG729)
+    target_link_libraries(VoiceAgeG729_ptplugin PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/audio/VoiceAgeG729/va_g729/va_g729a.lib")
+  else()
+    message(STATUS "OPAL audio plugin VoiceAgeG729 skipped; va_g729/va_g729a.h was not found")
+  endif()
+endif()
+
+if(OPAL_OBSOLETE_CODECS)
+  if(OPAL_PC_SPEEX_FOUND)
+    opal_add_plugin(speex audio audio/Speex/speexcodec.cxx)
+    target_compile_definitions(speex_ptplugin PRIVATE OPAL_SYSTEM_SPEEX=1)
+    opal_link_pkg(speex_ptplugin OPAL_PC_SPEEX)
+  else()
+    file(GLOB _speex audio/Speex/libspeex/*.c)
+    # modes_noglobals.c is an alternate build of modes.c. jitter.c, stereo.c,
+    # and the test programs are not part of the plugin.
+    list(FILTER _speex EXCLUDE REGEX "/(modes_noglobals|jitter|stereo|test[^.]*).c$")
+    opal_add_plugin(speex audio audio/Speex/speexcodec.cxx ${_speex})
+    target_include_directories(speex_ptplugin PRIVATE audio/Speex/libspeex)
+    target_compile_definitions(speex_ptplugin PRIVATE OPAL_SYSTEM_SPEEX=0)
+    target_link_libraries(speex_ptplugin PRIVATE ${OPAL_PLUGIN_LIBM})
+  endif()
 endif()
 
 if(OPAL_PC_OPUS_FOUND)
@@ -307,12 +340,14 @@ endif()
 
 # --- Fax ---
 
-if(OPAL_PC_SPANDSP_FOUND)
-  opal_add_plugin(spandsp fax fax/fax_spandsp/spandsp_fax.cpp)
-  target_compile_definitions(spandsp_ptplugin PRIVATE __STDC_LIMIT_MACROS)
-  opal_link_pkg(spandsp_ptplugin OPAL_PC_SPANDSP)
-else()
-  message(STATUS "OPAL fax plugin spandsp skipped; libspandsp was not found")
+if(OPAL_FAX)
+  if(OPAL_PC_SPANDSP_FOUND)
+    opal_add_plugin(spandsp fax fax/fax_spandsp/spandsp_fax.cpp)
+    target_compile_definitions(spandsp_ptplugin PRIVATE __STDC_LIMIT_MACROS)
+    opal_link_pkg(spandsp_ptplugin OPAL_PC_SPANDSP)
+  else()
+    message(STATUS "OPAL fax plugin spandsp skipped; libspandsp was not found")
+  endif()
 endif()
 
 # --- Video codecs ---
@@ -352,14 +387,16 @@ else()
   message(STATUS "OPAL FFmpeg video plugins skipped; libavcodec was not found")
 endif()
 
-if(OPAL_PC_THEORA_FOUND)
-  opal_add_plugin(theora video
-    video/THEORA/theora_plugin.cxx
-    video/THEORA/theora_frame.cxx)
-  target_include_directories(theora_ptplugin PRIVATE video/common video/THEORA)
-  opal_link_pkg(theora_ptplugin OPAL_PC_THEORA)
-else()
-  message(STATUS "OPAL video plugin theora skipped; libtheora was not found")
+if(OPAL_OBSOLETE_CODECS)
+  if(OPAL_PC_THEORA_FOUND)
+    opal_add_plugin(theora video
+      video/THEORA/theora_plugin.cxx
+      video/THEORA/theora_frame.cxx)
+    target_include_directories(theora_ptplugin PRIVATE video/common video/THEORA)
+    opal_link_pkg(theora_ptplugin OPAL_PC_THEORA)
+  else()
+    message(STATUS "OPAL video plugin theora skipped; libtheora was not found")
+  endif()
 endif()
 
 if(OPAL_PC_VPX_FOUND)

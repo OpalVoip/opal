@@ -63,11 +63,14 @@
 
 static const char * const DefaultMediaFormatOrder[] = {
   OPAL_OPUS48,
+#if OPAL_OBSOLETE_CODECS
   OPAL_G7222,
   OPAL_G7221_32K,
   OPAL_G7221_24K,
   OPAL_G722,
+#endif
   OPAL_GSMAMR,
+#if OPAL_OBSOLETE_CODECS
   OPAL_G7231_6k3,
   OPAL_G729B,
   OPAL_G729AB,
@@ -80,6 +83,7 @@ static const char * const DefaultMediaFormatOrder[] = {
   OPAL_G726_32K,
   OPAL_G726_24K,
   OPAL_G726_16K,
+#endif
   OPAL_G711_ULAW_64K,
   OPAL_G711_ALAW_64K,
 #if OPAL_VIDEO
@@ -91,7 +95,9 @@ static const char * const DefaultMediaFormatOrder[] = {
   OPAL_MPEG4,
   OPAL_H263plus,
   OPAL_H263,
+#if OPAL_OBSOLETE_CODECS
   OPAL_H261,
+#endif
 #endif
 #if OPAL_T38_CAPABILITY
   OPAL_T38_RTP,
@@ -108,8 +114,10 @@ static const char * const DefaultMediaFormatOrder[] = {
 };
 
 static const char * const DefaultMediaFormatMask[] = {
+#if OPAL_OBSOLETE_CODECS
   OPAL_iLBC"-13k3",
   OPAL_iLBC"-15k2",
+#endif
 #if OPAL_RFC4175
   OPAL_RFC4175_YCbCr420,
   OPAL_RFC4175_RGB,
