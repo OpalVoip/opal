@@ -2,8 +2,10 @@ Building OPAL with CMake
 ========================
 
 CMake builds OPAL on macOS, Windows, Linux, MinGW-w64, Android, and iOS.
-The library target is opal, the installed file is libopal (opal.dll on
-Windows), and consumers use the imported target OPAL::opal. OPAL links
+The library target is opal, and consumers use the imported target OPAL::opal.
+On macOS and Linux the shared library is libopal, a debug build is libopal_d,
+and a static build adds _s (libopal_s or libopal_d_s). Windows names are
+unchanged, so the DLL is still opal.dll. OPAL links
 PTLib::ptlib, so build PTLib with CMake first. See README.Cmake in the
 PTLib tree.
 

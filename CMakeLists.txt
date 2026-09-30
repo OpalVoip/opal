@@ -132,8 +132,17 @@ opal_write_config_header(
   "${CMAKE_CURRENT_BINARY_DIR}/include/opal_config.h")
 
 add_library(opal ${OPAL_SOURCES})
+# Unix debug libraries are libopal_d, static libraries add _s (libopal_s, libopal_d_s).
+# Windows names are left unchanged.
+set(_opal_output_name opal)
+if(NOT WIN32)
+  set(_opal_output_name "opal$<$<CONFIG:Debug>:_d>")
+  if(NOT BUILD_SHARED_LIBS)
+    string(APPEND _opal_output_name "_s")
+  endif()
+endif()
 set_target_properties(opal PROPERTIES
-  OUTPUT_NAME opal
+  OUTPUT_NAME "${_opal_output_name}"
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}")
 target_include_directories(opal
@@ -192,6 +201,16 @@ string(REPLACE "@CFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@CXXFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@LDFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@LIBS@" "" _opal_pc "${_opal_pc}")
+set(_opal_pc_suffix "")
+if(NOT WIN32)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND _opal_pc_suffix "_d")
+  endif()
+  if(NOT BUILD_SHARED_LIBS)
+    string(APPEND _opal_pc_suffix "_s")
+  endif()
+endif()
+string(REPLACE "suffix=" "suffix=${_opal_pc_suffix}" _opal_pc "${_opal_pc}")
 
 macro(opal_pc_set name enabled)
   set(_pc_value no)
