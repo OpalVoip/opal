@@ -62,10 +62,24 @@ OpalResample::OpalResample(const OpalMediaFormat & inputMediaFormat,
 
   int error = 1;
 
-#if LIBAVFORMAT_VERSION_MAJOR > 58
+#if LIBSWRESAMPLE_VERSION_MAJOR > 6
   AVChannelLayout out_layout, in_layout;
-  av_channel_layout_default(&out_layout, outChannels);
-  av_channel_layout_default(&in_layout, inChannels);
+  switch (outChannels) {
+    case 1: out_layout = AV_CHANNEL_LAYOUT_MONO; break;
+    case 2: out_layout = AV_CHANNEL_LAYOUT_STEREO; break;
+    case 4: out_layout = AV_CHANNEL_LAYOUT_QUAD; break;
+    case 5: out_layout = AV_CHANNEL_LAYOUT_5POINT0; break;
+    case 6: out_layout = AV_CHANNEL_LAYOUT_5POINT1; break;
+    default: out_layout = {};
+  }
+  switch (inChannels) {
+    case 1: in_layout = AV_CHANNEL_LAYOUT_MONO; break;
+    case 2: in_layout = AV_CHANNEL_LAYOUT_STEREO; break;
+    case 4: in_layout = AV_CHANNEL_LAYOUT_QUAD; break;
+    case 5: in_layout = AV_CHANNEL_LAYOUT_5POINT0; break;
+    case 6: in_layout = AV_CHANNEL_LAYOUT_5POINT1; break;
+    default: in_layout = {};
+  }
 
   m_swrContext = NULL;
   error = swr_alloc_set_opts2(&m_swrContext,
