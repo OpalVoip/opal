@@ -131,18 +131,37 @@ opal_write_config_header(
   "${OPAL_SOURCE_DIR}/include/opal_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/include/opal_config.h")
 
+# MSVC writes no import library unless symbols are exported. Samples link opal.lib.
+if(MSVC)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 add_library(opal ${OPAL_SOURCES})
-# Unix debug libraries are libopal_d, static libraries add _s (libopal_s, libopal_d_s).
-# Windows names are left unchanged.
-set(_opal_output_name opal)
-if(NOT WIN32)
-  set(_opal_output_name "opal$<$<CONFIG:Debug>:_d>")
-  if(NOT BUILD_SHARED_LIBS)
-    string(APPEND _opal_output_name "_s")
+# Unix: libopal, debug libopal_d, static libopal_s / libopal_d_s.
+# 64-bit MSVC matches the Visual Studio projects: opal64 / opal64d, and
+# opal64s / opal64sd when the library is static. Other Windows toolchains
+# keep opal.
+set(_opal_output opal)
+set(_opal_output_debug opal)
+if(MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  if(BUILD_SHARED_LIBS)
+    set(_opal_output opal64)
+    set(_opal_output_debug opal64d)
+  else()
+    set(_opal_output opal64s)
+    set(_opal_output_debug opal64sd)
+  endif()
+elseif(NOT WIN32)
+  if(BUILD_SHARED_LIBS)
+    set(_opal_output_debug opal_d)
+  else()
+    set(_opal_output opal_s)
+    set(_opal_output_debug opal_d_s)
   endif()
 endif()
 set_target_properties(opal PROPERTIES
-  OUTPUT_NAME "${_opal_output_name}"
+  OUTPUT_NAME "${_opal_output}"
+  OUTPUT_NAME_DEBUG "${_opal_output_debug}"
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}")
 target_include_directories(opal
@@ -201,16 +220,11 @@ string(REPLACE "@CFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@CXXFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@LDFLAGS@" "" _opal_pc "${_opal_pc}")
 string(REPLACE "@LIBS@" "" _opal_pc "${_opal_pc}")
-set(_opal_pc_suffix "")
-if(NOT WIN32)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    string(APPEND _opal_pc_suffix "_d")
-  endif()
-  if(NOT BUILD_SHARED_LIBS)
-    string(APPEND _opal_pc_suffix "_s")
-  endif()
+set(_opal_pc_lib "${_opal_output}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(_opal_pc_lib "${_opal_output_debug}")
 endif()
-string(REPLACE "suffix=" "suffix=${_opal_pc_suffix}" _opal_pc "${_opal_pc}")
+string(REPLACE "-lopal\${suffix}" "-l${_opal_pc_lib}" _opal_pc "${_opal_pc}")
 
 macro(opal_pc_set name enabled)
   set(_pc_value no)

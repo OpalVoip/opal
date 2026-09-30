@@ -61,7 +61,9 @@ file(GLOB _lpc10 audio/LPC_10/src/*.c)
 opal_add_plugin(lpc10 audio audio/LPC_10/lpc_10_codec.c ${_lpc10})
 target_include_directories(lpc10_ptplugin PRIVATE audio/LPC_10 audio/LPC_10/src)
 # Vendored f2c sources contain nested block comments.
-target_compile_options(lpc10_ptplugin PRIVATE -Wno-comment)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  target_compile_options(lpc10_ptplugin PRIVATE -Wno-comment)
+endif()
 # f2c.h #defines abs(). A system malloc.h that includes stdlib.h then fails
 # to declare abs(). This header declares the allocators and nothing else.
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/compat/malloc.h"
@@ -103,7 +105,9 @@ opal_add_plugin(h261_vic video
   video/H.261-vic/vic/huffcode.c
   video/H.261-vic/vic/bv.c)
 target_include_directories(h261_vic_ptplugin PRIVATE video/common video/H.261-vic/vic)
-target_compile_options(h261_vic_ptplugin PRIVATE -Wno-register)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  target_compile_options(h261_vic_ptplugin PRIVATE -Wno-register)
+endif()
 
 find_package(PkgConfig QUIET)
 

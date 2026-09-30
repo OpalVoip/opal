@@ -5,6 +5,8 @@ include(CheckSymbolExists)
 
 # Ask the compiler which macros ptlib_config.h actually defines. The header
 # contains #define lines that only apply on Windows, so a text search is wrong.
+# The probe emits a string for each defined name. Preprocessor expansion would
+# replace a bare P_SSL with its value, and gcc -dM is not accepted by cl.
 function(opal_collect_includes target out_var)
   set(_acc "")
   if(NOT TARGET "${target}")
@@ -42,10 +44,15 @@ opal_collect_includes(PTLib::ptlib _ptlib_incs)
 if(_ptlib_incs)
   list(REMOVE_DUPLICATES _ptlib_incs)
 endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set(_inc_flag "/I")
+else()
+  set(_inc_flag "-I")
+endif()
 set(_probe_flags "")
 set(_found_config FALSE)
 foreach(_dir IN LISTS _ptlib_incs)
-  list(APPEND _probe_flags "-I${_dir}")
+  list(APPEND _probe_flags "${_inc_flag}${_dir}")
   if(EXISTS "${_dir}/ptlib_config.h")
     set(_found_config TRUE)
   endif()
@@ -54,10 +61,24 @@ if(NOT _found_config)
   message(FATAL_ERROR "Found PTLib but could not read ptlib_config.h")
 endif()
 
+set(_ptlib_probe_names
+  P_SSL P_ASN P_EXPAT P_AUDIO P_VIDEO P_WAVFILE P_DTMF P_HAS_IPV6
+  P_DNS_RESOLVER P_LDAP P_VXML P_CONFIG_FILE P_HTTP P_CLI P_HTTPSVC
+  P_GSTREAMER P_NAT P_STUN P_STUNSRVR)
+set(_probe_src "#include <ptlib_config.h>\n")
+foreach(_name IN LISTS _ptlib_probe_names)
+  string(APPEND _probe_src
+    "#if defined(${_name})\nOPAL_PTLIB_MACRO \"${_name}\"\n#endif\n")
+endforeach()
 set(_probe "${CMAKE_BINARY_DIR}/CMakeFiles/opal_ptlib_probe.cxx")
-file(WRITE "${_probe}" "#include <ptlib_config.h>\n")
+file(WRITE "${_probe}" "${_probe_src}")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set(_probe_cmd "${CMAKE_CXX_COMPILER}" /nologo /EP /std:c++20 ${_probe_flags} "${_probe}")
+else()
+  set(_probe_cmd "${CMAKE_CXX_COMPILER}" -E -P ${_probe_flags} -x c++ -std=c++20 "${_probe}")
+endif()
 execute_process(
-  COMMAND ${CMAKE_CXX_COMPILER} -E -dM ${_probe_flags} -x c++ -std=c++20 "${_probe}"
+  COMMAND ${_probe_cmd}
   OUTPUT_VARIABLE OPAL_PTLIB_MACROS
   ERROR_VARIABLE _probe_err
   RESULT_VARIABLE _probe_rc)
@@ -67,7 +88,7 @@ endif()
 
 function(opal_ptlib_macro name out)
   set(_found FALSE)
-  if(OPAL_PTLIB_MACROS MATCHES "(^|\n)#define[ \t]+${name}[ \t]")
+  if(OPAL_PTLIB_MACROS MATCHES "(^|\n)OPAL_PTLIB_MACRO[ \t]+\"${name}\"")
     set(_found TRUE)
   endif()
   set(${out} ${_found} PARENT_SCOPE)
