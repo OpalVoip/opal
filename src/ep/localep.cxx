@@ -218,12 +218,20 @@ bool OpalLocalEndPoint::OnReadMediaData(OpalLocalConnection & /*connection*/,
 
 
 bool OpalLocalEndPoint::OnWriteMediaData(const OpalLocalConnection & /*connection*/,
-                                         const OpalMediaStream & /*mediaStream*/,
+                                         const OpalMediaStream & mediaStream,
                                          const void * /*data*/,
                                          PINDEX length,
                                          PINDEX & written)
 {
   written = length;
+
+  if (length == 0) {
+    // Fake the writing of inserted silent audio
+    OpalMediaFormat mediaFormat = mediaStream.GetMediaFormat();
+    if (mediaFormat.GetMediaType() == OpalMediaType::Audio())
+      written = std::max(mediaFormat.GetFrameTime(), 10 * mediaFormat.GetTimeUnits()) * sizeof(uint16_t);
+  }
+
   return true;
 }
 
