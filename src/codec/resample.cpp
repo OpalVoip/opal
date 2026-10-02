@@ -62,7 +62,7 @@ OpalResample::OpalResample(const OpalMediaFormat & inputMediaFormat,
 
   int error = 1;
 
-#if LIBSWRESAMPLE_VERSION_MAJOR > 6
+#if LIBSWRESAMPLE_VERSION_MAJOR > 4
   AVChannelLayout out_layout, in_layout;
   switch (outChannels) {
     case 1: out_layout = AV_CHANNEL_LAYOUT_MONO; break;
