@@ -42,6 +42,10 @@
   };
   P_POP_MSVC_WARNINGS()
   P_POP_GCC_WARNING()
+
+  #ifdef P_SWRESAMPLE_LIB
+    #pragma comment(lib, P_SWRESAMPLE_LIB)
+  #endif
 #endif // P_FFMPEG
 
 
