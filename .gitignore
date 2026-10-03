@@ -137,6 +137,7 @@ opal.xcodeproj/xcuserdata
 /plugins/fax/fax_spandsp/tiff*/
 /plugins/fax/fax_spandsp/jpeg*.tar*
 /plugins/fax/fax_spandsp/jpeg*/
+/plugins/video/VP8-WebM/vcpkg_installed
 /samples/openphone/openphone.app/
 /samples/openphone/resource.cpp
 /samples/openphone/openphone.cxx
