@@ -68,12 +68,14 @@
       <PreprocessorDefinitions>PTRACING=2;P_64BIT;_DLL;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ImportLibrary>$(TargetDir)$(TargetName).lib</ImportLibrary>
       <ModuleDefinitionFile>$(IntDir)$(TargetName).def</ModuleDefinitionFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>opal64sd.lib;ptlib64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>swresample.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(FFMPEG64DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>
@@ -92,6 +94,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>PTRACING=2;P_64BIT;_DLL;NDEBUG%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -100,7 +103,8 @@
       <ImportLibrary>$(TargetDir)$(TargetName).lib</ImportLibrary>
       <ModuleDefinitionFile>$(IntDir)$(TargetName).def</ModuleDefinitionFile>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies>opal64s.lib;ptlib64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>swresample.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(FFMPEG64DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>

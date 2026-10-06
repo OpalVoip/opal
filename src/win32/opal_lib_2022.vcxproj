@@ -74,6 +74,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -99,6 +100,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -173,6 +175,7 @@
       <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EnableParallelCodeGeneration>
       <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableParallelCodeGeneration>
     </ClCompile>
+    <ClCompile Include="..\ep\opalconf.cxx" />
     <ClCompile Include="..\ep\sockep.cxx" />
     <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_gcm_ossl.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -971,6 +974,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\codec\resample.h" />
     <ClInclude Include="..\..\include\ep\lyncep.h" />
+    <ClInclude Include="..\..\include\ep\opalconf.h" />
     <ClInclude Include="..\..\include\ep\sockep.h" />
     <ClInclude Include="..\..\include\sdp\ice.h" />
     <ClInclude Include="..\..\include\sdp\sdphttpep.h" />

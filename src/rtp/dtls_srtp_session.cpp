@@ -411,9 +411,9 @@ bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
   if (!ok) {
     PTRACE_IF(2, channel.GetErrorCode() != PChannel::NotOpen,
               *this << "error in DTLS handshake:"
-              " code=" << channel.GetErrorCode(PChannel::LastGeneralError) << ","
-              " number=" << channel.GetErrorNumber(PChannel::LastGeneralError) << ","
-              " text=\"" << channel.GetErrorText(PChannel::LastGeneralError) << '"');
+              " code=" << channel.GetErrorCode() << ","
+              " number=" << channel.GetErrorNumber() << ","
+              " text=\"" << channel.GetErrorText() << '"');
     return false;
   }
 
