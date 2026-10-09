@@ -258,6 +258,7 @@ PFACTORY_SYNONYM(OpalMediaSessionFactory, OpalSRTPSession, SAVPF, OpalSRTPSessio
 template <const char FactoryName[],
           const char Description[],
           PINDEX CipherBits,
+          PINDEX SaltBits,
           const char * DTLSName,
           const char OID[],
           void (*CryptoPolicySet)(struct srtp_crypto_policy_t *)>
@@ -269,6 +270,7 @@ template <const char FactoryName[],
     virtual const PCaselessString & GetFactoryName() const override { return MyFactoryName(); }
     virtual const char * GetDescription() const override { return Description; }
     virtual PINDEX GetCipherKeyBits() const override { return CipherBits; }
+    virtual PINDEX GetAuthSaltBits() const override { return SaltBits; }
     virtual const char * GetDTLSName() const override { return DTLSName; }
 #if OPAL_H235_6 || OPAL_H235_8
     virtual const char * GetOID() const override { return OID; }
@@ -277,23 +279,23 @@ template <const char FactoryName[],
     virtual void SetCryptoPolicy(struct srtp_crypto_policy_t & policy) const override { CryptoPolicySet(&policy); }
 };
 
-#define DEFINE_CRYPTO_SUITE(name, desc, bits, dtls, oid, libFn) \
+#define DEFINE_CRYPTO_SUITE(name, desc, bits, salt, dtls, oid, libFn) \
   namespace OpalSRTPCryptoSuite_##name { \
     extern const char FactoryName[] = #name; \
     extern const char Description[] = desc; \
     extern const char DTLSName[] = dtls; \
     extern const char OID[] = oid; \
-    typedef OpalSRTPCryptoSuiteTemplate<FactoryName, Description, bits, DTLSName, OID, libFn> Suite; \
+    typedef OpalSRTPCryptoSuiteTemplate<FactoryName, Description, bits, salt, DTLSName, OID, libFn> Suite; \
     PFACTORY_CREATE(OpalMediaCryptoSuiteFactory, Suite, Suite::MyFactoryName(), true); \
   }
 
-DEFINE_CRYPTO_SUITE(AES_CM_128_HMAC_SHA1_80, "SRTP: AES-128 & SHA1-80", 128, "SRTP_AES128_CM_SHA1_80", "0.0.8.235.0.4.91", srtp_crypto_policy_set_rtp_default);
-DEFINE_CRYPTO_SUITE(AES_CM_128_HMAC_SHA1_32, "SRTP: AES-128 & SHA1-32", 128, "SRTP_AES128_CM_SHA1_32", "0.0.8.235.0.4.92", srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32);
-DEFINE_CRYPTO_SUITE(AES_CM_256_HMAC_SHA1_80, "SRTP: AES-256 & SHA1-80", 256, "",                       "0.0.8.235.0.4.93", srtp_crypto_policy_set_aes_cm_256_hmac_sha1_80);
-DEFINE_CRYPTO_SUITE(AES_CM_256_HMAC_SHA1_32, "SRTP: AES-256 & SHA1-32", 256, "",                       "0.0.8.235.0.4.94", srtp_crypto_policy_set_aes_cm_256_hmac_sha1_32);
+DEFINE_CRYPTO_SUITE(AES_CM_128_HMAC_SHA1_80, "SRTP: AES-128 & SHA1-80", 128, SRTP_SALT_LEN*8, "SRTP_AES128_CM_SHA1_80", "0.0.8.235.0.4.91", srtp_crypto_policy_set_rtp_default);
+DEFINE_CRYPTO_SUITE(AES_CM_128_HMAC_SHA1_32, "SRTP: AES-128 & SHA1-32", 128, SRTP_SALT_LEN*8, "SRTP_AES128_CM_SHA1_32", "0.0.8.235.0.4.92", srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32);
+DEFINE_CRYPTO_SUITE(AES_CM_256_HMAC_SHA1_80, "SRTP: AES-256 & SHA1-80", 256, SRTP_SALT_LEN*8, "", "0.0.8.235.0.4.93", srtp_crypto_policy_set_aes_cm_256_hmac_sha1_80);
+DEFINE_CRYPTO_SUITE(AES_CM_256_HMAC_SHA1_32, "SRTP: AES-256 & SHA1-32", 256, SRTP_SALT_LEN*8, "", "0.0.8.235.0.4.94", srtp_crypto_policy_set_aes_cm_256_hmac_sha1_32);
 #if OPAL_AEAD_CRYPTO_SUITES  // libsrtp2 header says these are there, but doesn't link
-DEFINE_CRYPTO_SUITE(AEAD_AES_128_GCM,        "SRTP: AES-128 GCM",       128, "",                       "0.0.8.235.0.4.95", srtp_crypto_policy_set_aes_gcm_128_16_auth);
-DEFINE_CRYPTO_SUITE(AEAD_AES_256_GCM,        "SRTP: AES-256 GCM",       256, "",                       "0.0.8.235.0.4.96", srtp_crypto_policy_set_aes_gcm_256_16_auth);
+DEFINE_CRYPTO_SUITE(AEAD_AES_128_GCM, "SRTP: AES-128 GCM", 128, SRTP_AEAD_SALT_LEN*8, "", "0.0.8.235.0.4.95", srtp_crypto_policy_set_aes_gcm_128_16_auth);
+DEFINE_CRYPTO_SUITE(AEAD_AES_256_GCM, "SRTP: AES-256 GCM", 256, SRTP_AEAD_SALT_LEN*8, "", "0.0.8.235.0.4.96", srtp_crypto_policy_set_aes_gcm_256_16_auth);
 #endif
 
 
