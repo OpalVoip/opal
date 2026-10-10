@@ -212,7 +212,9 @@ public:
 
     av_dict_set(&m_options, "preset", "ultrafast", 0);
     av_dict_set(&m_options, "tune", "zerolatency", 0);
-    av_dict_set(&m_options, "crf", "35", 0);
+    // SetEncoderOptions applies a target bit rate. libx264 refuses to open
+    // when CRF is set as well, which drops the video stream whenever the
+    // frame size is not CIF and the codec has to be reopened.
 
     dynamic_cast<H264Frame *>(m_fullFrame)->SetPacketisationMode(m_isH323 ? m_packetisationModeH323 : m_packetisationModeSDP);
     SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
