@@ -5,6 +5,12 @@
   "description": "Open Phone Abstraction Library",
   "homepage": "https://github.com/opalvoip/opal",
   "builtin-baseline": "ee6a47dac031930715bea2e6dfb9ad60caaa5d83",
+  "dependencies": [
+    "openssl",
+    "expat",
+    "sdl2",
+    "libjpeg-turbo"
+  ],
   "default-features": [
     "libsrtp",
     "speexdsp"

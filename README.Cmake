@@ -190,19 +190,23 @@ vcpkg
 -----
 
 vcpkg.json lists the optional libraries. PTLib has its own manifest in
-the PTLib tree; use the same toolchain file for both configures. The
-default features are libsrtp and speexdsp. Point CMake at a vcpkg checkout:
+the PTLib tree; use the same toolchain file for both configures and leave
+manifest mode on (do not pass -DVCPKG_MANIFEST_MODE=OFF). Each tree gets
+its own build/vcpkg_installed. OPAL's manifest always installs openssl,
+expat, sdl2, and libjpeg-turbo so PTLibConfig.cmake's find_dependency
+calls succeed. The default features are libsrtp and speexdsp. Point CMake
+at a vcpkg checkout:
 
-  cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
+  cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> "-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake"
 
 Extra features, comma separated:
 
   -DVCPKG_MANIFEST_FEATURES=opus,speex,ffmpeg,vpx,theora,x264,openh264
 
 -DOPAL_BUILD_SAMPLES=ON also enables the wxwidgets feature, which supplies
-wxWidgets and wxrc for OpenPhone. A separate "vcpkg install wxwidgets" is
-not visible in manifest mode. Reconfigure after changing features so vcpkg
-can install them. wxrc is taken from that install's tools/wxwidgets directory.
+wxWidgets and wxrc for OpenPhone. Reconfigure after changing features so
+vcpkg can install them. wxrc is taken from that install's tools/wxwidgets
+directory.
 
 CELT and SpanDSP are not in the vcpkg registry, so those two plugins
 still need a library CMake can find with pkg-config.
