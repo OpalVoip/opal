@@ -1,11 +1,17 @@
 function(opal_sample target)
-  add_executable(${target} ${ARGN})
+  cmake_parse_arguments(OPAL_SAMPLE "WIN32" "" "" ${ARGN})
+  if(OPAL_SAMPLE_WIN32)
+    add_executable(${target} WIN32 ${OPAL_SAMPLE_UNPARSED_ARGUMENTS})
+  else()
+    add_executable(${target} ${OPAL_SAMPLE_UNPARSED_ARGUMENTS})
+  endif()
   target_link_libraries(${target} PRIVATE opal)
 endfunction()
 
 opal_sample(c_api c_api/main.c)
 if(OPAL_HAVE_PTLIB_HTTPSVC)
-  opal_sample(opalsrv
+  # PHTTPServiceProcess uses WinMain on Windows (see PCREATE_PROCESS in svcproc.h).
+  opal_sample(opalsrv WIN32
     server/main.cxx server/custom.cxx server/h323serv.cxx
     server/sipserv.cxx server/status.cxx server/cdr.cxx)
 endif()

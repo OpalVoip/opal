@@ -65,9 +65,13 @@ void Test::Expect(bool condition, const PString & name)
 PNatCandidate Test::MakeCandidate(PNatCandidate::Types type, const PString & address, WORD port, unsigned component)
 {
   PIPSocket::Address ip(address);
+  // Keep both branches as const PString & so MSVC can resolve the ternary
+  // against Foundation(..., const PString & server).
+  static const PString stunServer("stun.example");
+  const PString & server = type == PNatCandidate::HostType ? PString::Empty() : stunServer;
   PNatCandidate candidate(type,
                           (PNatMethod::Component)component,
-                          OpalICEAgent::Foundation(type, address, "udp", type == PNatCandidate::HostType ? PString::Empty() : "stun.example"),
+                          OpalICEAgent::Foundation(type, address, "udp", server),
                           OpalICEAgent::CandidatePriority(type, ip.GetVersion() == 6 ? 32768 : 65535, component),
                           "udp");
   candidate.m_baseTransportAddress.SetAddress(ip, port);
