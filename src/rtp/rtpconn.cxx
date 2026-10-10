@@ -201,6 +201,11 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
 
       session->OfferCryptoSuite(cryptoSuiteName);
 
+      // Session ids keep climbing when this runs again for a re-INVITE, so the
+      // id can be past the size guessed from the media-type count. Debug
+      // vector<bool> turns that into a breakpoint (0x80000003).
+      if (session->GetSessionID() >= openedMediaSessions.size())
+        openedMediaSessions.resize(session->GetSessionID() + 1);
       openedMediaSessions[session->GetSessionID()] = true;
     }
   }

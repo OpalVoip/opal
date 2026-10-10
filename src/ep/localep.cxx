@@ -593,6 +593,7 @@ void OpalLocalConnection::AcceptIncoming()
 
 void OpalLocalConnection::InternalAcceptIncoming()
 {
+  PProcess::CrashMark("InternalAcceptIncoming");
   PTRACE(4, "Accepting (internal) incoming call " << *this);
   PThread::Sleep(100);
 
@@ -600,9 +601,13 @@ void OpalLocalConnection::InternalAcceptIncoming()
     if (!m_stringOptions.GetBoolean(OPAL_OPT_EXPLICIT_ALERTING, false))
       AlertingIncoming();
     InternalOnConnected();
+    PProcess::CrashMark("InternalAcceptIncoming: starting media");
     AutoStartMediaStreams();
+    PProcess::CrashMark("InternalAcceptIncoming: media started");
     UnlockReadWrite();
   }
+  else
+    PProcess::CrashMark("InternalAcceptIncoming: lock failed");
 }
 
 
