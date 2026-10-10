@@ -89,6 +89,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(MSVC)
   add_compile_options(/Zc:__cplusplus /FS)
 endif()
+# cmake --build --parallel N is msbuild /m:N. That switch schedules projects,
+# and the library is one vcxproj, so its sources would still compile one at a
+# time. UseMultiToolTask makes /m the limit on cl.exe instead.
+if(MSVC)
+  list(APPEND CMAKE_VS_GLOBALS
+    "UseMultiToolTask=true"
+    "EnforceProcessCountAcrossBuilds=true")
+endif()
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
