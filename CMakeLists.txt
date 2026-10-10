@@ -81,6 +81,13 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Keep __cplusplus accurate so PTLib's atomic.h does not redefine
+# std::atomic<std::shared_ptr> already provided by the MSVC STL.
+# /FS serialises writes to a shared vc*.pdb under parallel Debug compiles.
+if(MSVC)
+  add_compile_options(/Zc:__cplusplus /FS)
+endif()
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
