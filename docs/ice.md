@@ -43,6 +43,16 @@ Offer-ICE=true
 ICE-Lite=false
 ```
 
+## OpenPhone
+
+In OpenPhone use **Edit → Options → Networking**. The **ICE** controls sit in the **NAT/Firewall** section next to the STUN/TURN method list:
+
+- **Offer ICE in SDP** sets `Offer-ICE`
+- **Full ICE agent** clears `ICE-Lite` (unchecked keeps the historical lite answerer)
+- **Trickle ICE** sets `Trickle-ICE`
+
+Activate a STUN or TURN method and set its server in that same section. Applying with full ICE enabled and no active STUN or TURN server shows a warning; Apply still succeeds so host-only LAN ICE remains possible. Advanced options such as `ICE-Relay-Only` and `ICE-Consent` stay under SIP → More Options….
+
 ## What the agent does
 
 Host candidates come from the bound socket. A wildcard bind also advertises
@@ -207,6 +217,7 @@ Not implemented:
 - `src/sdp/ice_agent.cxx` — checklist state machine
 - `src/sdp/sdp.cxx` — existing candidate SDP, unchanged on the wire for ICE-Lite
 - `src/opal/mediasession.cxx` — `UseNatTraversal()` so full ICE keeps a host socket
+- `samples/openphone/` — Networking → ICE options UI
 - PTLib `pstun.h` / `pstun.cxx` — Binding indication, shared tie-breaker,
   short-term integrity without an empty REALM
 - `samples/test/ice/main.cxx` — `icetest`

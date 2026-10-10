@@ -54,6 +54,12 @@
 #include <ptclib/pwavfile.h>
 #include <ptclib/dtmf.h>
 
+#if OPAL_ICE
+#include <sdp/sdp.h>
+#include <sdp/ice.h>
+#include <rtp/rtp_session.h>
+#endif
+
 #include <opal/mediasession.h>
 #include <opal/patch.h>
 #include <opal/transcoders.h>
@@ -166,6 +172,10 @@ static const wxChar NatMethodsGroup[] = wxT("/Networking/NAT Methods");
 DEF_FIELD(NATActive);
 DEF_FIELD(NATServer);
 DEF_FIELD(NATPriority);
+
+DEF_FIELD(OfferICE);
+DEF_FIELD(FullICE);
+DEF_FIELD(TrickleICE);
 
 DEF_FIELD(NATHandling);
 DEF_FIELD(NATRouter);
@@ -4633,6 +4643,22 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   FindWindow(wxT("NatServer"))->SetValidator(wxGenericValidator(&m_NatInfo.m_server));
   FindWindow(wxT("NatPriority"))->SetValidator(wxGenericValidator(&m_NatInfo.m_priority));
 
+#if OPAL_ICE && OPAL_SIP
+  {
+    const OpalConnection::StringOptions & iceOpts = m_manager.sipEP->GetDefaultStringOptions();
+    INIT_FIELD(OfferICE, iceOpts.GetBoolean(OPAL_OPT_OFFER_ICE, false));
+    INIT_FIELD(FullICE, !iceOpts.GetBoolean(OPAL_OPT_ICE_LITE, true));
+    INIT_FIELD(TrickleICE, iceOpts.GetBoolean(OPAL_OPT_TRICKLE_ICE, true));
+  }
+#else
+  INIT_FIELD(OfferICE, false);
+  INIT_FIELD(FullICE, false);
+  INIT_FIELD(TrickleICE, true);
+  FindWindow(OfferICEKey)->Disable();
+  FindWindow(FullICEKey)->Disable();
+  FindWindow(TrickleICEKey)->Disable();
+#endif
+
   FindWindowByNameAs(m_AddInterface, this, wxT("AddInterface"))->Disable();
   FindWindowByNameAs(m_RemoveInterface, this, wxT("RemoveInterface"))->Disable();
   FindWindowByNameAs(m_InterfaceProtocol, this, wxT("InterfaceProtocol"));
@@ -5194,6 +5220,7 @@ bool OptionsDialog::TransferDataFromWindow()
   if (m_NatMethodSelected >= 0)
     dynamic_cast<NatWrapper &>(*m_NatMethods->GetClientObject(m_NatMethodSelected)) = m_NatInfo;
 
+  bool hasStunOrTurn = false;
   for (size_t i = 0; i < m_NatMethods->GetCount(); i++) {
     NatWrapper & wrap = dynamic_cast<NatWrapper &>(*m_NatMethods->GetClientObject(i));
     config->SetPath(NatMethodsGroup);
@@ -5202,7 +5229,22 @@ bool OptionsDialog::TransferDataFromWindow()
     config->Write(NATServerKey, wrap.m_server);
     config->Write(NATPriorityKey, wrap.m_priority);
     m_manager.SetNAT(wrap.m_method, wrap.m_active, wrap.m_server, wrap.m_priority);
+    if (wrap.m_active && !wrap.m_server.IsEmpty() &&
+        (wrap.m_method == PSTUNClient::MethodName()
+#if P_TURN
+         || wrap.m_method == PTURNClient::MethodName()
+#endif
+        ))
+      hasStunOrTurn = true;
   }
+
+#if OPAL_ICE
+  if (m_OfferICE && m_FullICE && !hasStunOrTurn) {
+    wxMessageBox(wxT("Full ICE is enabled but no active STUN or TURN server is configured.\n"
+                     "Set a server under Networking → NAT/Firewall, or host-only ICE will be used."),
+                 OpenPhoneString, wxOK|wxICON_WARNING);
+  }
+#endif
 
   config->DeleteGroup(LocalInterfacesGroup);
   config->SetPath(LocalInterfacesGroup);
@@ -5444,6 +5486,10 @@ bool OptionsDialog::TransferDataFromWindow()
 #if OPAL_PTLIB_SSL
   m_H323options.SaveSecurityFields(config, H323SignalingSecurityKey, H323MediaCryptoSuitesKey);
 #endif
+#if OPAL_ICE
+  m_H323options.SetStringOptionValue(OPAL_OPT_ICE_LITE, m_FullICE ? "false" : "true");
+  m_H323options.SetStringOptionValue(OPAL_OPT_TRICKLE_ICE, m_TrickleICE ? "true" : "false");
+#endif
   m_H323options.SaveOptions(config, H323StringOptionsGroup);
 
   config->Write(GatekeeperTTLKey, m_GatekeeperTTL);
@@ -5487,6 +5533,13 @@ bool OptionsDialog::TransferDataFromWindow()
 
 #if OPAL_PTLIB_SSL
   m_SIPoptions.SaveSecurityFields(config, SIPSignalingSecurityKey, SIPMediaCryptoSuitesKey);
+#endif
+#if OPAL_ICE
+  m_SIPoptions.SetStringOptionValue(OPAL_OPT_OFFER_ICE, m_OfferICE ? "true" : "false");
+  m_SIPoptions.SetStringOptionValue(OPAL_OPT_ICE_LITE, m_FullICE ? "false" : "true");
+  m_SIPoptions.SetStringOptionValue(OPAL_OPT_TRICKLE_ICE, m_TrickleICE ? "true" : "false");
+  if (m_OfferICE)
+    m_SIPoptions.SetStringOptionValue(OPAL_OPT_DISABLE_ICE, "false");
 #endif
   m_SIPoptions.SaveOptions(config, SIPStringOptionsGroup);
 
@@ -6861,6 +6914,18 @@ void NetOptionsDialog::SaveOptions(wxConfigBase * config, const wxChar * stringO
     }
   }
   config->SetPath(oldPath);
+}
+
+
+void NetOptionsDialog::SetStringOptionValue(const PString & key, const PString & value)
+{
+  PwxString label(key);
+  for (int row = 0; row < m_stringOptions->GetNumberRows(); ++row) {
+    if (m_stringOptions->GetRowLabelValue(row) == label) {
+      m_stringOptions->SetCellValue(row, 0, PwxString(value));
+      return;
+    }
+  }
 }
 
 

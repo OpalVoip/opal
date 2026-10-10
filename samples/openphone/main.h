@@ -636,6 +636,7 @@ class NetOptionsDialog : public wxDialog
 
     wxGrid * m_stringOptions;
     void SaveOptions(wxConfigBase * config, const wxChar * stringOptionsGroup);
+    void SetStringOptionValue(const PString & key, const PString & value);
 
     friend class OptionsDialog;
 
@@ -707,6 +708,10 @@ class OptionsDialog : public wxDialog
       PwxString m_server;
       int       m_priority;
     } m_NatInfo;
+
+    bool            m_OfferICE;
+    bool            m_FullICE;
+    bool            m_TrickleICE;
 
     void BandwidthClass(wxCommandEvent & /*event*/);
 #if OPAL_PTLIB_SSL
