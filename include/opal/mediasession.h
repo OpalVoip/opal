@@ -688,6 +688,12 @@ class OpalUDPMediaTransport : public OpalMediaTransport
     virtual bool InternalSetRemoteAddress(const PIPSocket::AddressAndPort & ap, SubChannels subchannel, RemoteAddressSources source);
     virtual bool InternalOpenPinHole(PUDPSocket & socket);
 
+    /**Create STUN/TURN sockets in Open().
+       Full ICE gathers reflexive and relay candidates itself and must keep a
+       host-bound UDP socket, so it returns false.
+      */
+    virtual bool UseNatTraversal() const;
+
     bool m_localHasRestrictedNAT;
     vector<PUDPSocket *> m_socketCache;
 };

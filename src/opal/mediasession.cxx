@@ -1415,6 +1415,12 @@ static void SetMinBufferSize(PUDPSocket & sock, int bufType, int newSize)
 }
 
 
+bool OpalUDPMediaTransport::UseNatTraversal() const
+{
+  return true;
+}
+
+
 bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
                                  PINDEX subchannelCount,
                                  const PString & localInterface,
@@ -1449,7 +1455,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
             " interface=\"" << localInterface << "\" local=" << bindingIP << " remote=" << remoteIP);
 
 #if OPAL_PTLIB_NAT
-  if (!manager.IsLocalAddress(remoteIP)) {
+  if (UseNatTraversal() && !manager.IsLocalAddress(remoteIP)) {
     PNatMethod * natMethod = manager.GetNatMethods().GetMethod(bindingIP, this);
     if (natMethod != NULL) {
       static PTimeInterval const TimeToLive(0, 10);

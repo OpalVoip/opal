@@ -161,7 +161,8 @@ if(OPAL_SDP)
     src/sdp/sdpep.cxx
     src/sdp/sdphttpep.cxx
     src/sdp/sdp.cxx
-    src/sdp/ice.cxx)
+    src/sdp/ice.cxx
+    src/sdp/ice_agent.cxx)
   if(OPAL_T38_CAPABILITY)
     list(APPEND OPAL_SOURCES src/t38/sipt38.cxx)
   endif()
