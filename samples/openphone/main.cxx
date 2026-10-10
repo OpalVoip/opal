@@ -670,6 +670,9 @@ void OpenPhoneApp::Main()
 
 bool OpenPhoneApp::OnInit()
 {
+  PProcess::ResetCrashLog();
+  PProcess::CrashMark("OpenPhone started");
+
   // make sure various URL types are registered to this application
   {
     PString urlTypes("sip\nh323\nsips\nh323s");
@@ -2575,6 +2578,7 @@ void MyManager::MakeCall(const PwxString & address, const PwxString & local, Opa
 
 bool MyManager::AnswerCall()
 {
+  PProcess::CrashMark("AnswerCall");
   if (PAssert(!m_incomingToken.IsEmpty(), PLogicError)) {
     StopRingSound();
 
@@ -2584,9 +2588,12 @@ bool MyManager::AnswerCall()
     PString token = m_incomingToken.p_str();
     m_incomingToken.clear();
 
-    return pcssEP->AcceptIncomingConnection(token);
+    bool accepted = pcssEP->AcceptIncomingConnection(token);
+    PProcess::CrashMark(accepted ? "AnswerCall: accepted" : "AnswerCall: accept failed");
+    return accepted;
   }
 
+  PProcess::CrashMark("AnswerCall: no incoming call");
   return false;
 }
 
@@ -2727,10 +2734,12 @@ PBoolean MyManager::OnIncomingConnection(OpalConnection & connection, unsigned o
 
 void MyManager::OnEstablishedCall(OpalCall & call)
 {
+  PProcess::CrashMark("OnEstablishedCall");
   m_activeCall = &call;
 
   LogWindow << "Established call from " << call.GetPartyA() << " to " << call.GetPartyB() << endl;
   PostEvent(wxEvtEstablished, call.GetToken());
+  PProcess::CrashMark("OnEstablishedCall: posted");
 
 #if OPAL_FAX
   if (m_currentAnswerMode == AnswerFax)
@@ -2751,6 +2760,7 @@ void MyManager::OnEstablishedCall(OpalCall & call)
 
 void MyManager::OnEvtEstablished(wxCommandEvent & theEvent)
 {
+  PProcess::CrashMark("OnEvtEstablished");
   SetBalloonText(PString::Empty());
 
   PwxString token(theEvent.GetString());
@@ -2776,13 +2786,16 @@ void MyManager::OnEvtEstablished(wxCommandEvent & theEvent)
 
   // Because this can take some time, construct it before we delete the previous
   // page to avoid ugly scenes on the screen
+  PProcess::CrashMark("OnEvtEstablished: creating in-call panel");
   InCallPanel * inCallPanel = new InCallPanel(*this, m_activeCall, m_tabs);
+  PProcess::CrashMark("OnEvtEstablished: in-call panel created");
 
   if (tabIndex < m_tabs->GetPageCount())
     m_tabs->DeletePage(tabIndex);
 
   PwxString title = m_activeCall->IsNetworkOriginated() ? m_activeCall->GetPartyA() : m_activeCall->GetPartyB();
   m_tabs->AddPage(inCallPanel, title, true);
+  PProcess::CrashMark("OnEvtEstablished: page added");
 }
 
 
@@ -3011,6 +3024,9 @@ void MyManager::OnClosedMediaStream(const OpalMediaStream & stream)
     return;
 
   PVideoOutputDevice * device = videoStream->GetVideoOutputDevice();
+  if (device == NULL)
+    return;
+
   VideoWindowInfo newWindowInfo(device);
   device->Close();
 
@@ -7633,7 +7649,9 @@ CallPanelBase::CallPanelBase(MyManager & manager,
   : m_manager(manager)
   , m_call(call)
 {
+  PProcess::CrashMark("CallPanelBase: loading");
   wxXmlResource::Get()->LoadPanel(this, parent, resource);
+  PProcess::CrashMark("CallPanelBase: loaded");
 }
 
 
@@ -7663,6 +7681,7 @@ void AnswerPanel::SetPartyNames(const PwxString & calling, const PwxString & cal
 
 void AnswerPanel::OnAnswer(wxCommandEvent & /*event*/)
 {
+  PProcess::CrashMark("AnswerPanel::OnAnswer");
   FindWindowByName(wxT("AnswerCall"))->Disable();
   if (m_manager.AnswerCall())
     FindWindowByName(wxT("RejectCall"))->SetLabel(wxT("Hang Up"));
@@ -7744,6 +7763,7 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   , m_vuTimer(this, VU_UPDATE_TIMER_ID)
   , m_updateStatistics(0)
 {
+  PProcess::CrashMark("InCallPanel: begin");
   SET_CTRL_VAR(Hold);
   SET_CTRL_VAR(Conference);
   SET_CTRL_VAR(SpeakerHandset);
@@ -7754,8 +7774,10 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   SET_CTRL_VAR(SpeakerGauge);
   SET_CTRL_VAR(MicrophoneGauge);
   SET_CTRL_VAR(CallTime);
+  PProcess::CrashMark("InCallPanel: controls");
 
 #if OPAL_HAS_H281
+  PProcess::CrashMark("InCallPanel: fecc");
   for (PVideoControlInfo::Types type = PVideoControlInfo::BeginTypes; type < PVideoControlInfo::EndTypes; ++type) {
     for (unsigned dir = 0; dir < 2; ++dir) {
       static const wxChar * const feccNames[PVideoControlInfo::NumTypes][2] = {
@@ -7774,12 +7796,18 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
 #endif // OPAL_HAS_H281
 
   OnHoldChanged(false);
+  PProcess::CrashMark("InCallPanel: hold");
 
   m_vuTimer.Start(250);
+  PProcess::CrashMark("InCallPanel: timer");
 
+  PProcess::CrashMark("InCallPanel: RxAudio");
   m_pages[RxAudio].Init(this, RxAudio, OpalMediaType::Audio(), true );
+  PProcess::CrashMark("InCallPanel: TxAudio");
   m_pages[TxAudio].Init(this, TxAudio, OpalMediaType::Audio(), false);
+  PProcess::CrashMark("InCallPanel: RxVideo");
   m_pages[RxVideo].Init(this, RxVideo, OpalMediaType::Video(), true );
+  PProcess::CrashMark("InCallPanel: TxVideo");
   m_pages[TxVideo].Init(this, TxVideo, OpalMediaType::Video(), false);
 #if OPAL_FAX
   m_pages[RxFax  ].Init(this, RxFax  , OpalMediaType::Fax(),   false);
@@ -7791,6 +7819,7 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   PSafePtr<OpalLocalConnection> connection = call->GetConnectionAs<OpalLocalConnection>();
   if (connection != NULL)
     connection->SetFarEndCameraCapabilityChangedNotifier(PCREATE_NOTIFIER(OnChangedFECC));
+  PProcess::CrashMark("InCallPanel: end");
 }
 
 
@@ -8078,11 +8107,15 @@ void InCallPanel::UpdateStatistics()
   for (i = 0; i < RxFax; i++)
     m_pages[i].UpdateSession(network);
 
+#if OPAL_FAX
+  // Fax pages are only constructed when fax is enabled. NumPages still
+  // includes them, and UpdateSession enables m_window with no null check.
   PSafePtr<OpalLocalConnection> local;
   if (m_manager.GetConnection(local, PSafeReadOnly)) {
     for (; i < NumPages; i++)
       m_pages[i].UpdateSession(local);
   }
+#endif
 }
 
 
