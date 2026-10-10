@@ -194,14 +194,14 @@ the PTLib tree; use the same toolchain file for both configures and leave
 manifest mode on (do not pass -DVCPKG_MANIFEST_MODE=OFF). Each tree gets
 its own build/vcpkg_installed. OPAL's manifest always installs openssl,
 expat, sdl2, and libjpeg-turbo so PTLibConfig.cmake's find_dependency
-calls succeed. The default features are libsrtp and speexdsp. Point CMake
-at a vcpkg checkout:
+calls succeed. The default features are libsrtp, speexdsp, and ffmpeg.
+Point CMake at a vcpkg checkout:
 
   cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> "-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake"
 
 Extra features, comma separated:
 
-  -DVCPKG_MANIFEST_FEATURES=opus,speex,ffmpeg,vpx,theora,x264,openh264
+  -DVCPKG_MANIFEST_FEATURES=opus,speex,vpx,theora,x264,openh264
 
 -DOPAL_BUILD_SAMPLES=ON also enables the wxwidgets feature, which supplies
 wxWidgets and wxrc for OpenPhone. Reconfigure after changing features so

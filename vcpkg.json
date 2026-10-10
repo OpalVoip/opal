@@ -13,7 +13,8 @@
   ],
   "default-features": [
     "libsrtp",
-    "speexdsp"
+    "speexdsp",
+    "ffmpeg"
   ],
   "features": {
     "libsrtp": {
