@@ -14,6 +14,12 @@
 #   cmake --build build --target both     # Release and Debug
 cmake_minimum_required(VERSION 3.20)
 
+# Quiet vcpkg FindFFMPEG's empty append_dependencies(NAMES "").
+if(POLICY CMP0174)
+  cmake_policy(SET CMP0174 NEW)
+endif()
+set(CMAKE_POLICY_DEFAULT_CMP0174 NEW)
+
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.h" _opal_version_h)
 string(REGEX MATCH "#define MAJOR_VERSION ([0-9]+)" _ "${_opal_version_h}")
 set(OPAL_VERSION_MAJOR "${CMAKE_MATCH_1}")
@@ -216,6 +222,9 @@ if(OPAL_SRTP_LINK)
 endif()
 if(OPAL_AEC_LINK)
   target_link_libraries(opal PUBLIC ${OPAL_AEC_LINK})
+endif()
+if(OPAL_FFMPEG_LINK)
+  target_link_libraries(opal PRIVATE ${OPAL_FFMPEG_LINK})
 endif()
 if(CMAKE_DL_LIBS)
   target_link_libraries(opal PUBLIC ${CMAKE_DL_LIBS})

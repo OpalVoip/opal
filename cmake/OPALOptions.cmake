@@ -64,7 +64,7 @@ endif()
 set(_ptlib_probe_names
   P_SSL P_ASN P_EXPAT P_AUDIO P_VIDEO P_WAVFILE P_DTMF P_HAS_IPV6
   P_DNS_RESOLVER P_LDAP P_VXML P_CONFIG_FILE P_HTTP P_CLI P_HTTPSVC
-  P_GSTREAMER P_NAT P_STUN P_STUNSRVR)
+  P_GSTREAMER P_NAT P_STUN P_STUNSRVR P_FFMPEG)
 set(_probe_src "#include <ptlib_config.h>\n")
 foreach(_name IN LISTS _ptlib_probe_names)
   string(APPEND _probe_src
@@ -123,6 +123,7 @@ opal_ptlib_macro(P_GSTREAMER OPAL_HAVE_PTLIB_GSTREAMER)
 opal_ptlib_macro(P_NAT OPAL_HAVE_PTLIB_NAT)
 opal_ptlib_macro(P_STUN OPAL_HAVE_PTLIB_STUN)
 opal_ptlib_macro(P_STUNSRVR OPAL_HAVE_PTLIB_STUNSRVR)
+opal_ptlib_macro(P_FFMPEG OPAL_HAVE_PTLIB_FFMPEG)
 
 foreach(pair IN ITEMS
     "SSL;P_SSL"
@@ -231,6 +232,31 @@ if(OPAL_CAPI)
 endif()
 
 find_package(PkgConfig QUIET)
+
+# resample.cpp uses libswresample when PTLib was built with P_FFMPEG. PTLib
+# links FFmpeg privately, so OPAL must link it itself for the shared DLL.
+set(OPAL_FFMPEG_LINK "")
+if(OPAL_HAVE_PTLIB_FFMPEG)
+  find_package(FFMPEG QUIET)
+  if(FFMPEG_FOUND AND FFMPEG_LIBRARIES)
+    if(NOT TARGET OPAL_ffmpeg)
+      add_library(OPAL_ffmpeg INTERFACE IMPORTED GLOBAL)
+      set_target_properties(OPAL_ffmpeg PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${FFMPEG_INCLUDE_DIRS}")
+      target_link_libraries(OPAL_ffmpeg INTERFACE ${FFMPEG_LIBRARIES})
+    endif()
+    set(OPAL_FFMPEG_LINK OPAL_ffmpeg)
+  elseif(PKG_CONFIG_FOUND)
+    pkg_check_modules(OPAL_PC_SWR IMPORTED_TARGET libswresample)
+    if(OPAL_PC_SWR_FOUND)
+      set(OPAL_FFMPEG_LINK PkgConfig::OPAL_PC_SWR)
+    endif()
+  endif()
+  if(NOT OPAL_FFMPEG_LINK)
+    message(FATAL_ERROR
+      "PTLib was built with P_FFMPEG but FFmpeg/libswresample was not found for OPAL")
+  endif()
+endif()
 
 set(OPAL_SRTP_ENABLED FALSE)
 set(OPAL_SRTP_LINK "")
