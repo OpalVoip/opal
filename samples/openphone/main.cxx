@@ -1835,7 +1835,7 @@ void MyManager::RecreateSpeedDials(SpeedDialViews view)
 
   for (set<SpeedDialInfo>::iterator it = m_speedDialInfo.begin(); it != m_speedDialInfo.end(); ++it) {
     long index = m_speedDials->InsertItem(INT_MAX, it->m_Name);
-    m_speedDials->SetItemData(index, (intptr_t)&*it);
+    m_speedDials->SetItemPtrData(index, (wxUIntPtr)&*it);
     UpdateSpeedDial(index, *it, false);
   }
 
@@ -2232,7 +2232,9 @@ void MyManager::OnNewSpeedDial(wxCommandEvent & WXUNUSED(event))
 {
   SpeedDialInfo info;
   info.m_Name = MakeUniqueSpeedDialName(m_speedDials, wxT("New Speed Dial"));
-  EditSpeedDial(INT_MAX);
+  if (!UpdateSpeedDial(INT_MAX, info, false))
+    return;
+  EditSpeedDial(m_speedDials->FindItem(-1, info.m_Name));
 }
 
 
@@ -2487,10 +2489,13 @@ bool MyManager::UpdateSpeedDial(int index, const SpeedDialInfo & newInfo, bool s
       return false;
 
     index = m_speedDials->InsertItem(INT_MAX, newInfo.m_Name);
-    m_speedDials->SetItemData(index, (intptr_t)&*result.first);
+    // SetItemData takes a 32-bit long and truncates pointers on Win64.
+    m_speedDials->SetItemPtrData(index, (wxUIntPtr)&*result.first);
   }
 
   SpeedDialInfo * oldInfo = (SpeedDialInfo *)m_speedDials->GetItemData(index);
+  if (oldInfo == NULL)
+    return false;
 
   if (saveConfig) {
     wxConfigBase * config = wxConfig::Get();
