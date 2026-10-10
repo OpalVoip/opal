@@ -45,16 +45,15 @@
 #define OPAL_OPT_ICE_TIMEOUT "ICE-Timeout"
 
 /**Enable ICE-Lite.
-   Defaults to true.
-   NOTE!!! This is all that is supported at this time, do not set to false
-           unless you are developing full ICE support ....
+   Defaults to true, which preserves the historical answer-only behaviour.
+   Set to false to run a full RFC 8445 ICE agent on this media transport.
 */
 #define OPAL_OPT_ICE_LITE "ICE-Lite"
 
 /**Execute trickle ICE.
    Defaults to true.
-   NOTE!!! As only ICE-Lite is supported at this time, this effectively
-           means if a end-of-candidates entry is appended to offers/answers.
+   When full ICE is enabled, candidates learned after the offer are included
+   in a later offer. End-of-candidates is emitted once gathering finishes.
 */
 #define OPAL_OPT_TRICKLE_ICE "Trickle-ICE"
 
@@ -62,6 +61,192 @@
    Defaults to false.
 */
 #define OPAL_OPT_NETWORK_COST_ICE "Network-Cost-ICE"
+
+/**Offer and check only relay candidates.
+   Defaults to false. Host and server-reflexive candidates are still gathered
+   when this is false.
+*/
+#define OPAL_OPT_ICE_RELAY_ONLY "ICE-Relay-Only"
+
+/**RFC 7675 consent freshness.
+   Defaults to false. When true, media stops if authenticated consent expires.
+   Intended for DTLS-SRTP / WebRTC transports. Classic SIP ICE uses STUN
+   binding indications as NAT keepalives and does not stop media.
+*/
+#define OPAL_OPT_ICE_CONSENT "ICE-Consent"
+
+/**Time to wait for STUN and TURN gathering before end-of-candidates.
+   Defaults to 5 seconds. Gathering never runs on the SIP signalling thread.
+*/
+#define OPAL_OPT_ICE_GATHER_TIMEOUT "ICE-Gather-Timeout"
+
+
+/** RFC 8445 checklist for one ICE component.
+    The media transport owns the sockets. This object owns candidate lists,
+    pair states, nomination and restart, and can be driven without a network.
+*/
+class OpalICEAgent : public PObject
+{
+    PCLASSINFO(OpalICEAgent, PObject);
+  public:
+    enum State {
+      New,
+      Gathering,
+      Checking,
+      Connected,
+      Completed,
+      Failed,
+      Closed
+    };
+
+    enum PairState {
+      Frozen,
+      Waiting,
+      InProgress,
+      Succeeded,
+      FailedPair
+    };
+
+    enum Role {
+      UnknownRole,
+      Controlling,
+      Controlled,
+      Lite
+    };
+
+    struct Pair {
+      PNatCandidate local;
+      PNatCandidate remote;
+      PairState     state;
+      bool          nominated;
+      bool          triggered;
+      bool          nominateOnSend;
+      unsigned      attempts;
+      PTime         lastSent;
+      PBYTEArray    transactionId;
+      int           rttMs;
+      uint64_t      priority;
+
+      Pair()
+        : state(Frozen)
+        , nominated(false)
+        , triggered(false)
+        , nominateOnSend(false)
+        , attempts(0)
+        , rttMs(-1)
+        , priority(0)
+      {
+      }
+    };
+
+    struct InboundResult {
+      bool          handled;
+      bool          nominated;
+      PNatCandidate local;
+      PNatCandidate remote;
+
+      InboundResult() : handled(false), nominated(false) { }
+    };
+
+    struct CheckResult {
+      bool          matched;
+      bool          nominated;
+      bool          roleConflict;
+      bool          checklistFailed;
+      bool          addedPeerReflexive;
+      PNatCandidate local;
+      PNatCandidate remote;
+      int           rttMs;
+
+      CheckResult()
+        : matched(false)
+        , nominated(false)
+        , roleConflict(false)
+        , checklistFailed(false)
+        , addedPeerReflexive(false)
+        , rttMs(-1)
+      {
+      }
+    };
+
+    explicit OpalICEAgent(unsigned component = 1);
+
+    static unsigned TypePreference(PNatCandidate::Types type);
+    static unsigned CandidatePriority(PNatCandidate::Types type, unsigned localPreference, unsigned component);
+    static uint64_t PairPriority(unsigned controllingPriority, unsigned controlledPriority);
+    static PString Foundation(PNatCandidate::Types type, const PString & base, const PString & protocol, const PString & server);
+    static PString Username(const PString & remoteUfrag, const PString & localUfrag);
+    static bool MustSwitchRole(bool localControlling, uint64_t localTieBreak, uint64_t remoteTieBreak);
+    static const char * StateName(State state);
+
+    unsigned GetComponent() const { return m_component; }
+    State GetState() const { return m_state; }
+    Role GetRole() const { return m_role; }
+    bool IsControlling() const { return m_role == Controlling; }
+    bool IsLite() const { return m_role == Lite; }
+    const PString & GetFailureReason() const { return m_failureReason; }
+    const vector<PNatCandidate> & LocalCandidates() const { return m_local; }
+    const vector<Pair> & Checklist() const { return m_pairs; }
+
+    void SetRole(Role role);
+    void SetLocalLite(bool lite);
+    void SetRemoteLite(bool lite);
+    void SetOfferer(bool offerer);
+    void SetRelayOnly(bool relayOnly);
+    void SetConsentRequired(bool required);
+    void AssignRole();
+
+    void AddLocalCandidate(const PNatCandidate & candidate);
+    bool AddRemoteCandidate(const PNatCandidate & candidate);
+    void SetRemoteCredentials(const PString & ufrag, const PString & password);
+    bool RemoteCredentialsChanged(const PString & ufrag) const;
+    void FormChecklist();
+    void Restart();
+    void Close();
+
+    int NextCheck(const PTime & now, const PTimeInterval & rto, unsigned maxAttempts);
+    void NoteCheckSent(int index, const PBYTEArray & transactionId, const PTime & now, bool nominate);
+    CheckResult OnCheckResult(const PBYTEArray & transactionId,
+                              bool success,
+                              unsigned errorCode,
+                              const PIPSocketAddressAndPort & mapped,
+                              const PTime & now);
+    InboundResult OnInboundRequest(const PIPSocketAddressAndPort & from, unsigned remotePriority, bool useCandidate);
+    void Unfreeze(const PString & localFoundation, const PString & remoteFoundation);
+    bool GetNominated(PNatCandidate & local, PNatCandidate & remote) const;
+    bool ConsentExpired(const PTime & now, const PTimeInterval & expiry) const;
+    void NoteConsent(const PTime & now);
+    bool ConsentRequired() const { return m_consentRequired; }
+    void CopyLocalCandidates(PNatCandidateList & candidates) const;
+    void PrintSelectedPath(ostream & strm) const;
+
+  protected:
+    int FindTransaction(const PBYTEArray & transactionId) const;
+    int FindRemoteAddress(const PIPSocketAddressAndPort & address) const;
+    bool KnownLocalAddress(const PIPSocketAddressAndPort & address) const;
+    void SortPairs();
+    void FailIfExhausted();
+    void SelectNominated(int index);
+
+    unsigned              m_component;
+    State                 m_state;
+    Role                  m_role;
+    bool                  m_localLite;
+    bool                  m_remoteLite;
+    bool                  m_offerer;
+    bool                  m_relayOnly;
+    bool                  m_consentRequired;
+    bool                  m_haveConsent;
+    PTime                 m_lastConsent;
+    PString               m_remoteUsername;
+    PString               m_remotePassword;
+    PString               m_failureReason;
+    vector<PNatCandidate> m_local;
+    vector<PNatCandidate> m_remote;
+    vector<Pair>          m_pairs;
+    PNatCandidate         m_selectedLocal;
+    PNatCandidate         m_selectedRemote;
+};
 
 
 /** Class for low level transport of media that uses ICE
@@ -71,6 +256,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     PCLASSINFO(OpalICEMediaTransport, OpalUDPMediaTransport);
   public:
     OpalICEMediaTransport(OpalConnection & connection, const PString & name);
+    ~OpalICEMediaTransport();
 
     P_DECLARE_BITWISE_ENUM(Options, 2, (
       OptNone,
@@ -79,6 +265,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     ));
 
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
+    virtual bool Write(const void * data, PINDEX length, SubChannels subchannel = e_Media, const PIPSocketAddressAndPort * remote = NULL, int * mtu = NULL) override;
     virtual bool IsEstablished() const override;
     virtual void SetCandidates(const PString & user, const PString & pass, const PNatCandidateList & candidates, unsigned options = OptNone) override;
     virtual void AddCandidate(const PNatCandidate & candidate) override;
@@ -98,11 +285,52 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     bool          m_localTrickle;
     bool          m_remoteTrickle;
     bool          m_useNetworkCost;
+    bool          m_offerer;
+    bool          m_relayOnly;
+    bool          m_consentFreshness;
+    bool          m_iceDisabled;
+    bool          m_checklistFailed;
+    bool          m_gatheringComplete;
+    atomic<bool>  m_stopGather;
+    PTimeInterval m_gatherTimeout;
+    PTimer        m_checkTimer;
+    PTimer        m_consentTimer;
+    PThread     * m_gatherThread;
+    vector<PUDPSocket *> m_turnSockets;
+    vector<PUDPSocket *> m_extraSockets;
+    PUDPSocket  * m_allocatingSocket;
 
+    PDECLARE_NOTIFIER(PTimer, OpalICEMediaTransport, OnCheckTimer);
+    PDECLARE_NOTIFIER(PTimer, OpalICEMediaTransport, OnConsentTimer);
+
+    virtual bool UseNatTraversal() const override;
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data) override;
     virtual bool InternalOpenPinHole(PUDPSocket & socket) override;
     virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel) override;
     virtual PTimeInterval GetTimeout(SubChannels subchannel) const override;
+
+    void GatherHostCandidates();
+    void StartGathering();
+  public:
+    void GatherThreadMain();
+  protected:
+    void SendOneCheck();
+    void SendConsentOrKeepalive();
+    void AssignRoles();
+    void ApplyNominated(SubChannels subchannel, const PNatCandidate & local, const PNatCandidate & remote);
+    void TraceSelectedPath(SubChannels subchannel) const;
+    PUDPSocket * SocketForCandidate(SubChannels subchannel, const PNatCandidate & local) const;
+    void NoteTransaction(const PBYTEArray & id, SubChannels subchannel, int pairIndex, bool gather, bool consent);
+    bool TakeTransaction(const PBYTEArray & id, SubChannels & subchannel, int & pairIndex, bool & gather, bool & consent);
+
+    struct PendingTxn {
+      SubChannels subchannel;
+      int         pairIndex;
+      bool        gather;
+      bool        consent;
+    };
+    std::map<std::string, PendingTxn> m_pending;
+    PDECLARE_MUTEX(m_gatherMutex);
 
     enum CandidateStates
     {
@@ -153,6 +381,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
         void GetLocalCandidates(PNatCandidateList & candidates);
         bool AddLocalCandidate(const OpalTransportAddress & address);
         bool HandleICE(const void * buf, PINDEX len);
+        bool HandleICEFull(const void * buf, PINDEX len);
 
         OpalICEMediaTransport & m_owner;
         SubChannels             m_subchannel;
@@ -160,6 +389,10 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
         ChecklistState          m_state;
         CandidatePairs          m_checklist;
         PNatCandidate           m_selectedCandidate;
+        OpalICEAgent            m_agent;
+        PIPSocketAddressAndPort m_lastFrom;
+        bool                    m_haveLastFrom;
+        bool                    m_relaySelected;
     };
     std::vector<ICEChannel *> m_iceChannelCache;
     ICEChannel & GetICEChannel(SubChannels subchannel) const { return *m_iceChannelCache[subchannel]; }
