@@ -4,8 +4,10 @@
 #
 # Optional codec libraries can come from vcpkg. Point CMake at a vcpkg checkout:
 #   cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
-# Default manifest features are libsrtp and speexdsp. Other features are
-# listed in vcpkg.json.
+# Use the same toolchain (and leave VCPKG_MANIFEST_MODE on) as PTLib. The
+# manifest always installs openssl/expat/sdl2/libjpeg-turbo so find_dependency
+# from PTLibConfig.cmake succeeds. Default features are libsrtp and speexdsp;
+# other features are listed in vcpkg.json.
 #
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug
@@ -32,8 +34,7 @@ elseif(_opal_build_type STREQUAL "BetaCode")
 endif()
 
 # vcpkg installs manifest dependencies when its toolchain loads inside project().
-# A classic "vcpkg install wxwidgets" is not on that search path. OpenPhone needs
-# the wxwidgets feature, so turn it on before that install runs.
+# OpenPhone needs the wxwidgets feature; enable it before that install runs.
 if(OPAL_BUILD_SAMPLES)
   set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
   if(NOT _opal_vcpkg_features AND DEFINED ENV{VCPKG_MANIFEST_FEATURES})
