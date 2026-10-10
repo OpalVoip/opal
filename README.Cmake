@@ -193,9 +193,9 @@ vcpkg.json lists the optional libraries. PTLib has its own manifest in
 the PTLib tree; use the same toolchain file for both configures and leave
 manifest mode on (do not pass -DVCPKG_MANIFEST_MODE=OFF). Each tree gets
 its own build/vcpkg_installed. OPAL's manifest always installs openssl,
-expat, sdl2, and libjpeg-turbo so PTLibConfig.cmake's find_dependency
-calls succeed. The default features are libsrtp, speexdsp, and ffmpeg.
-Point CMake at a vcpkg checkout:
+expat, and sdl2 so PTLibConfig.cmake's find_dependency calls succeed.
+The default features are libsrtp, speexdsp, and ffmpeg. Point CMake at
+a vcpkg checkout:
 
   cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> "-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake"
 

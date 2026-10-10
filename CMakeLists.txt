@@ -5,9 +5,9 @@
 # Optional codec libraries can come from vcpkg. Point CMake at a vcpkg checkout:
 #   cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
 # Use the same toolchain (and leave VCPKG_MANIFEST_MODE on) as PTLib. The
-# manifest always installs openssl/expat/sdl2/libjpeg-turbo so find_dependency
-# from PTLibConfig.cmake succeeds. Default features are libsrtp, speexdsp,
-# and ffmpeg; other features are listed in vcpkg.json.
+# manifest always installs openssl/expat/sdl2 so find_dependency from
+# PTLibConfig.cmake succeeds. Default features are libsrtp, speexdsp, and
+# ffmpeg; other features are listed in vcpkg.json.
 #
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug
