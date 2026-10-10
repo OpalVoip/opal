@@ -8,8 +8,7 @@
   "dependencies": [
     "openssl",
     "expat",
-    "sdl2",
-    "libjpeg-turbo"
+    "sdl2"
   ],
   "default-features": [
     "libsrtp",

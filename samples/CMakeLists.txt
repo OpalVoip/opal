@@ -88,6 +88,10 @@ if(wxWidgets_FOUND AND OPAL_WXRC)
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/openphone/openphone.xrc"
     VERBATIM)
   add_executable(openphone WIN32 openphone/main.cxx "${_openphone_xrc_cxx}")
+  if(WIN32)
+    # Embed AppIcon and presence icons for wxICON() on MSW (see openphone.rc).
+    target_sources(openphone PRIVATE openphone/openphone.rc)
+  endif()
   target_include_directories(openphone PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/openphone"
     ${wxWidgets_INCLUDE_DIRS})
