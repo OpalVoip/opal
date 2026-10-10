@@ -48,16 +48,15 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">vp8_webm_ptplugin</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>.\vpx-vp8\vs12_64\x64\$(Configuration);$(VPXDIR)\vs12_64\x64\$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>.\vpx-vp8;$(VPXDIR);..\..\..\include;$(IncludePath)</IncludePath>
     <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>.\vpx-vp8\vs12_64\x64\$(Configuration);$(VPXDIR)\vs12_64\x64\$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>.\vpx-vp8;$(VPXDIR);..\..\..\include;$(IncludePath)</IncludePath>
     <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -122,6 +121,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="vp8_webm.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

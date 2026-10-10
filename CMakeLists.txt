@@ -179,8 +179,8 @@ set_target_properties(opal PROPERTIES
   SOVERSION "${PROJECT_VERSION_MAJOR}")
 target_include_directories(opal
   PUBLIC
-    "$<BUILD_INTERFACE:${OPAL_SOURCE_DIR}/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+    "$<BUILD_INTERFACE:${OPAL_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE
     "${OPAL_SOURCE_DIR}/src"
@@ -272,6 +272,23 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/opal.pc" "${_opal_pc}")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opal.pc"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
+# PUBLIC link dependencies that are pkg-config imported targets exist only
+# in the OPAL build. Recreate them before the exported target is loaded.
+set(_opal_pkg_snippets "")
+if(OPAL_SRTP_ENABLED)
+  list(APPEND _opal_pkg_snippets
+    "pkg_check_modules(OPAL_PC_SRTP REQUIRED IMPORTED_TARGET libsrtp2)")
+endif()
+if(OPAL_PC_SPEEXDSP_FOUND)
+  list(APPEND _opal_pkg_snippets
+    "pkg_check_modules(OPAL_PC_SPEEXDSP REQUIRED IMPORTED_TARGET speexdsp)")
+endif()
+if(_opal_pkg_snippets)
+  list(JOIN _opal_pkg_snippets "\n" OPAL_CMAKE_EXTRA_SNIPPETS)
+  string(PREPEND OPAL_CMAKE_EXTRA_SNIPPETS "find_package(PkgConfig REQUIRED)\n")
+else()
+  set(OPAL_CMAKE_EXTRA_SNIPPETS "")
+endif()
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/OPALConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/OPALConfig.cmake"

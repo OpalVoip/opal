@@ -46,7 +46,11 @@ PATH=$(WXDIR)\lib\vc14x_x64_dll;$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
     <IncludePath>$(OPALDIR)\lib\$(Platform)\include;$(OPALDIR)\include;$(PTLIBDIR)\lib\$(Platform)\include;$(PTLIBDIR)\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(OPALDIR)\lib;$(PTLIBDIR)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="OpalGitRootDir">
       <Value>$(OpalGitRootDir)</Value>

@@ -374,11 +374,28 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
     return false;
 
   bool wasOpen = m_open;
+  AVRational savedTimeBase = { 100, 2997 };
+  AVRational savedFrameRate = { 0, 1 };
+  int64_t savedBitRate = 0;
+  int savedGopSize = 132;
+  int savedBitRateTolerance = 0;
+  int savedRcBufferSize = 0;
+  int savedRcInitialOccupancy = 0;
   if (wasOpen) {
     if ((unsigned)m_context->width == width && (unsigned)m_context->height == height) {
       PTRACE(4, m_prefix, "Resolution is already set to " << width << 'x' << height);
       return true;
     }
+
+    // InitContext replaces the context. Keep the rate control the open codec was using,
+    // otherwise libx264 rejects the reopen with EINVAL when time_base is zero.
+    savedTimeBase = m_context->time_base;
+    savedFrameRate = m_context->framerate;
+    savedBitRate = m_context->bit_rate;
+    savedGopSize = m_context->gop_size;
+    savedBitRateTolerance = m_context->bit_rate_tolerance;
+    savedRcBufferSize = m_context->rc_buffer_size;
+    savedRcInitialOccupancy = m_context->rc_initial_buffer_occupancy;
 
     PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
     CloseCodec();
@@ -440,9 +457,27 @@ bool FFMPEGCodec::SetResolution(unsigned width, unsigned height)
     return false;
   }
 
-  if (wasOpen && !OpenCodec()) {
-    PTRACE(1, m_prefix, "Reopening codec failed");
-    return false;
+  if (wasOpen) {
+    // A fresh context has time_base 0/1. libavcodec then refuses to open
+    // with EINVAL ("The encoder timebase is not set").
+    if (savedTimeBase.num <= 0 || savedTimeBase.den <= 0) {
+      savedTimeBase.num = 100;
+      savedTimeBase.den = 2997;
+    }
+    m_context->time_base = savedTimeBase;
+    m_context->framerate = savedFrameRate;
+    m_context->bit_rate = m_context->rc_min_rate = m_context->rc_max_rate = savedBitRate;
+    m_context->gop_size = savedGopSize;
+    m_context->bit_rate_tolerance = savedBitRateTolerance;
+    m_context->rc_buffer_size = savedRcBufferSize;
+    m_context->rc_initial_buffer_occupancy = savedRcInitialOccupancy;
+    if (!OpenCodec()) {
+      PTRACE(1, m_prefix, "Reopening codec failed at " << width << 'x' << height
+             << " time_base " << m_context->time_base.num << '/' << m_context->time_base.den
+             << " framerate " << m_context->framerate.num << '/' << m_context->framerate.den
+             << " bit_rate " << m_context->bit_rate);
+      return false;
+    }
   }
 
   PTRACE(4, m_prefix, "Resolution set to " << width << 'x' << height);
@@ -460,6 +495,8 @@ void FFMPEGCodec::SetEncoderOptions(unsigned frameTime,
   m_context->framerate.num = frameTime;
   m_context->time_base.den = 2997;
   m_context->time_base.num = frameTime*m_context->time_base.den/PLUGINCODEC_VIDEO_CLOCK;
+  if (m_context->time_base.num <= 0)
+    m_context->time_base.num = 100;
 
   m_context->bit_rate = m_context->rc_min_rate = m_context->rc_max_rate = maxBitRate;
 

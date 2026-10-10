@@ -966,7 +966,7 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
       if (!lock.IsLocked())
         break;
 
-      switch (m_channel->GetErrorCode(PChannel::LastReadError)) {
+      switch (m_channel->GetErrorCode()) {
         case PChannel::BufferTooSmall:
           PTRACE(2, &m_owner, m_owner << m_subchannel << " read packet too large for buffer of " << data.GetSize() << " bytes.");
           break;

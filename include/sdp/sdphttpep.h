@@ -73,6 +73,9 @@
 /// Indicate simulcast is to be used for a new connection
 #define OPAL_SDP_HTTP_SIMULCAST_QUERY_PARAM "simulcast"
 
+/// String option for HTTP headers to add to requests
+#define OPAL_OPT_HTTP_HEADERS "HTTP-Headers"
+
 
 /**Endpoint for SDP over HTTP POST command (used for WebRTC).
   */

@@ -759,6 +759,9 @@
     <ClCompile Include="..\codec\resample.cpp">
       <Filter>Source Files\Codec</Filter>
     </ClCompile>
+    <ClCompile Include="..\ep\opalconf.cxx">
+      <Filter>Source Files\Endpoints</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\codec\echocancel.h">
@@ -1342,6 +1345,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\codec\resample.h">
       <Filter>Header Files\Codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ep\opalconf.h">
+      <Filter>Header Files\Endpoints</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
