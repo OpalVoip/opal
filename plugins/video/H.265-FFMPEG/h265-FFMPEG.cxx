@@ -436,8 +436,7 @@ public:
     //av_dict_set(&m_options, "x265-params", "pass=1", 0);
     av_dict_set(&m_options, "crf", "35", 0);
 
-    SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
-    return SetResolution(m_width, m_height);
+    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
   }
 
 
@@ -463,8 +462,17 @@ public:
                          unsigned & toLen,
                          unsigned & flags)
   {
+    PluginCodec_RTP inRTP(fromPtr, fromLen);
+    PluginCodec_Video_FrameHeader * header = inRTP.GetVideoHeader();
+    if (m_width != header->width || m_height != header->height) {
+      m_width = header->width;
+      m_height = header->height;
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+        return false;
+    }
+
     PluginCodec_RTP dstRTP(toPtr, toLen);
-    if (!EncodeVideoPacket(PluginCodec_RTP(fromPtr, fromLen), dstRTP, flags))
+    if (!EncodeVideoPacket(inRTP, dstRTP, flags))
       return false;
 
     if (m_fullFrame->GetLength() > 0)

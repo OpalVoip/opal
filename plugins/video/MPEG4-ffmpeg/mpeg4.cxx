@@ -383,8 +383,8 @@ class MPEG4_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCodec
     {
       CloseCodec();
 
-      SetResolution(m_width, m_height);
-      SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+        return false;
 
       m_context->max_b_frames = 0; /*don't use b frames*/
       m_context->flags |= AV_CODEC_FLAG_AC_PRED
@@ -401,8 +401,17 @@ class MPEG4_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCodec
                              unsigned & toLen,
                              unsigned & flags)
     {
+      PluginCodec_RTP inRTP(fromPtr, fromLen);
+      PluginCodec_Video_FrameHeader * header = inRTP.GetVideoHeader();
+      if (m_width != header->width || m_height != header->height) {
+        m_width = header->width;
+        m_height = header->height;
+        if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+          return false;
+      }
+
       PluginCodec_RTP dstRTP(toPtr, toLen);
-      if (!EncodeVideoPacket(PluginCodec_RTP(fromPtr, fromLen), dstRTP, flags))
+      if (!EncodeVideoPacket(inRTP, dstRTP, flags))
         return false;
 
       toLen = (unsigned)dstRTP.GetPacketSize();
