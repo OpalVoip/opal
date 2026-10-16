@@ -351,3 +351,25 @@ add_custom_target(uninstall
   VERBATIM)
 
 include(cmake/OPALBuildVariants.cmake)
+
+# Optional binary .deb. Build it with "cmake --build <build> --target package"
+# or "cpack -G DEB" from the build directory. Configure with
+# -DCMAKE_INSTALL_PREFIX=/usr so the package installs under /usr.
+# dpkg-shlibdeps records the dependency on libpt when the PTLib .deb is
+# already installed.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # A hyphen is the Debian revision separator. ~alpha sorts before the release.
+  string(REPLACE "-alpha" "~alpha" CPACK_DEBIAN_PACKAGE_VERSION "${OPAL_VERSION}")
+  string(REPLACE "-beta" "~beta" CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_DEBIAN_PACKAGE_VERSION}")
+  set(CPACK_GENERATOR "DEB")
+  set(CPACK_PACKAGE_NAME "opal")
+  set(CPACK_PACKAGE_VENDOR "OPAL VoIP")
+  set(CPACK_PACKAGE_CONTACT "Craig <craigs@postincrement.com>")
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Phone Abstraction Library")
+  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/mpl-1.0.htm")
+  set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+  include(CPack)
+endif()

@@ -263,6 +263,34 @@ and libsrtp2-dev. wxWidgets is needed for OpenPhone.
   sudo cmake --install build --prefix /usr/local
 
 
+Debian packages
+---------------
+
+A Linux configure can also build one binary .deb. It contains the same
+files as cmake --install: the shared library, codec plugins, headers,
+opal.pc, and the CMake package files. There is no separate development
+package and no source package.
+
+Install the PTLib .deb first, and install dpkg-dev so cpack can run
+dpkg-shlibdeps. Configure with a /usr prefix so the package installs
+libraries where Debian's ldconfig trigger sees them, and so shlibdeps
+can record the dependency on the installed ptlib package.
+
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr -DOPAL_PTLIB_DIR=/usr
+  cmake --build build
+  cmake --build build --target package
+
+The package target writes opal_<version>_<arch>.deb in the build
+directory. "cpack -G DEB" from that directory does the same thing. The
+Debian version uses ~alpha or ~beta in place of the hyphen in the OPAL
+version, so 4.0.0-alpha is packaged as 4.0.0~alpha.
+
+Depends lists libpt and the shared libraries this build actually linked.
+Install the package with:
+
+  sudo dpkg -i build/opal_*.deb
+
+
 MinGW-w64
 ---------
 
