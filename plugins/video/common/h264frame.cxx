@@ -73,29 +73,53 @@ void H264Frame::Allocate(uint32_t numberOfNALs)
 }
 
 
-static void SkipStartCode(const uint8_t * & payload, size_t & length)
+static unsigned StartCodeLength(const uint8_t * data, size_t len)
 {
-  if (memcmp(payload, StartCode, sizeof(StartCode)) == 0) {
-    payload += sizeof(StartCode);
-    length -= sizeof(StartCode);
-  }
-  else if (memcmp(payload, StartCode+1, sizeof(StartCode)-1) == 0) {
-    payload += sizeof(StartCode)-1;
-    length -= sizeof(StartCode)-1;
-  }
+  if (--len == 0 || *data++ != 0)
+    return 0;
+  if (--len == 0 || *data++ != 0)
+    return 0;
+  if (*data == 1)
+    return 3;
+  if (--len == 0 || *data++ != 0)
+    return 0;
+  return *data == 1 ? 4 : 0;
+}
+
+
+static bool SkipStartCode(const uint8_t * & payload, size_t & length)
+{
+  unsigned scl = StartCodeLength(payload, length);
+  if (scl == 0)
+    return false;
+
+  payload += scl;
+  length -= scl;
+  return true;
 }
 
 
 bool H264Frame::Append(const uint8_t * data, size_t len)
 {
-  return AddNALU(*data, len, data);
+  if (!SkipStartCode(data, len))
+    return AddNALU(*data, len, data);
+
+  const uint8_t * nalu = data;
+  while (len > 0) {
+    while (len > 0 && StartCodeLength(data, len) == 0) {
+      ++data;
+      --len;
+    }
+    if (!AddNALU(*nalu, data - nalu, nalu))
+      return false;
+    SkipStartCode(data, len);
+    nalu = data;
+  }
+  return true;
 }
 
 bool H264Frame::AddNALU(uint8_t type, size_t length, const uint8_t * payload)
 {
-  if (payload != NULL)
-    SkipStartCode(payload, length);
-
   if (m_numberOfNALsInFrame + 1 >= m_NALs.size())
     m_NALs.resize(m_numberOfNALsInFrame + 1);
 
@@ -471,14 +495,19 @@ bool H264Frame::AddDataToEncodedFrame(const uint8_t *data, size_t payloadSize, u
 {
   if (addHeader) 
   {
-    PTRACE(6, GetName(), "Adding a NAL unit of " << payloadSize << " bytes to buffer (type " << (int)(header & 0x1f) << ")"); 
-    if (((header & 0x1f) == H264_NAL_TYPE_SEQ_PARAM) && (payloadSize >= 3))
-      SetSPS(data);
+    unsigned nalu_type = header & 0x1f;
+    PTRACE(6, GetName(), "Adding a NAL unit of " << payloadSize << " bytes to buffer (type " << nalu_type << ")");
+    switch (nalu_type) {
+      case H264_NAL_TYPE_SEQ_PARAM:
+        SetSPS(data);
+      case H264_NAL_TYPE_PIC_PARAM:
+        OpalPluginFrame::Append(StartCode, sizeof(StartCode));
+        break;
+      default:
+        OpalPluginFrame::Append(StartCode+1, sizeof(StartCode)-1);
+    }
 
-    // add 00 00 01 [headerbyte] header
-    if (!OpalPluginFrame::Append(StartCode, sizeof(StartCode)) ||
-        !AddNALU(header & 0x1f, payloadSize + 1, NULL) ||
-        !OpalPluginFrame::Append(&header, 1))
+    if (!AddNALU(nalu_type, payloadSize + 1, NULL) || !OpalPluginFrame::Append(&header, 1))
       return false;
   }
   else {

@@ -177,8 +177,6 @@ static H265_PluginMediaFormat const MyMediaFormatInfo_ff("ff" OPAL_H265);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static uint8_t naluPrefix[4] = { 0, 0, 0, 1 };
-
 class H265Frame : public OpalPluginFrame
 {
   size_t m_naluStart;
@@ -204,10 +202,25 @@ public:
     return OpalPluginFrame::Reset(len);
   }
 
+  unsigned GetPrefixLength(size_t offset)
+  {
+    const uint8_t * data = m_buffer + offset;
+    size_t len = m_length - offset;
+    if (--len == 0 || *data++ != 0)
+      return 0;
+    if (--len == 0 || *data++ != 0)
+      return 0;
+    if (*data == 1)
+      return 3;
+    if (--len == 0 || *data++ != 0)
+      return 0;
+    return *data == 1 ? 4 : 0;
+  }
+
   size_t GetNaluSize(size_t start)
   {
     for (size_t nextNalu = start+1; nextNalu < m_length - 4; ++nextNalu) {
-      if (memcmp(m_buffer+nextNalu, naluPrefix, sizeof(naluPrefix)) == 0)
+      if (GetPrefixLength(nextNalu) != 0)
         return nextNalu - start;
     }
     return m_length - start;
@@ -217,16 +230,15 @@ public:
   {
     flags = 0;
 
-    if (m_length < 5) {
-      rtp.SetPayloadSize(0);
-      flags |= PluginCodec_ReturnCoderLastFrame;
+    if (m_naluStart >= m_length)
       return false;
-    }
 
-    if (m_naluStart == 0) {
-      if (memcmp(m_buffer, naluPrefix, sizeof(naluPrefix)) != 0)
+    if (m_naluStart == 0 || m_length < 5) {
+      m_naluStart = GetPrefixLength(0);
+      if (m_naluStart == 0) {
+        PTRACE(3, MY_CODEC_LOG, "Frame does not start with NALU prefix");
         return false;
-      m_naluStart = sizeof(naluPrefix);
+      }
     }
 
     switch (m_buffer[m_naluStart] >> 1) {
@@ -240,52 +252,46 @@ public:
     }
 
     size_t naluSize = GetNaluSize(m_naluStart);
-    if (naluSize > m_maxPayloadSize - 3) {
-      naluSize = m_maxPayloadSize - 3;
+    size_t maxFragmentSize = m_maxPayloadSize - 3;
+    if (m_fu || naluSize > maxFragmentSize) {
+      naluSize = std::min(maxFragmentSize, naluSize);
       uint8_t fuPrefix[] = { 49 << 1, 0, (uint8_t)(m_fu ? 0 : 0x80) };
       if (!rtp.CopyPayload(fuPrefix, 3) || !rtp.CopyPayload(m_buffer + m_naluStart, naluSize, 3))
         return false;
+      m_fu = naluSize == maxFragmentSize;
       m_naluStart += naluSize;
-      m_fu = true;
+      naluSize = 0;
     }
-    else if (m_fu) {
-      m_fu = false;
+    else if (naluSize + GetNaluSize(m_naluStart + naluSize + 3) + 6 >= m_maxPayloadSize) {
       if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize))
         return false;
-      m_naluStart += naluSize + sizeof(naluPrefix);
+      m_naluStart += naluSize;
+      m_naluStart += GetPrefixLength(m_naluStart);
     }
     else {
-      size_t nextNaluSize = GetNaluSize(m_naluStart + naluSize + sizeof(naluPrefix));
-      if (naluSize + nextNaluSize + 6 >= m_maxPayloadSize) {
-        if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize))
+      uint8_t apNaluPrefix[] = { 48 << 1, 0 };
+      if (!rtp.CopyPayload(apNaluPrefix, sizeof(apNaluPrefix)))
+        return false;
+      size_t offset = sizeof(apNaluPrefix);
+      while (offset + naluSize + 2 < m_maxPayloadSize) {
+        uint8_t apPrefix[] = { (uint8_t)(naluSize >> 8), (uint8_t)naluSize };
+        if (!rtp.CopyPayload(apPrefix, sizeof(apPrefix), offset))
           return false;
-        m_naluStart += naluSize + sizeof(naluPrefix);
-      }
-      else {
-        uint8_t apNaluPrefix[] = { 48 << 1, 0 };
-        if (!rtp.CopyPayload(apNaluPrefix, sizeof(apNaluPrefix)))
+        offset += 2;
+        if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize, offset))
           return false;
-        size_t offset = sizeof(apNaluPrefix);
-        while (offset + naluSize + nextNaluSize + 2 < m_maxPayloadSize) {
-          uint8_t apPrefix[] = { (uint8_t)(naluSize >> 8), (uint8_t)naluSize };
-          if (!rtp.CopyPayload(apPrefix, sizeof(apPrefix), offset))
-            return false;
-          offset += 2;
-          if (!rtp.CopyPayload(m_buffer + m_naluStart, naluSize, offset))
-            return false;
-          offset += naluSize;
-          m_naluStart += naluSize + sizeof(naluPrefix);
-          naluSize = nextNaluSize;
-          nextNaluSize = GetNaluSize(m_naluStart + naluSize + sizeof(naluPrefix));
-        }
+        offset += naluSize;
+        m_naluStart += naluSize;
+        m_naluStart += GetPrefixLength(m_naluStart);
+        naluSize = GetNaluSize(m_naluStart);
       }
+      naluSize = 0;
     }
 
-    if (m_naluStart < m_length)
-      return true;
+    if (m_naluStart + naluSize >= m_length)
+      flags |= PluginCodec_ReturnCoderLastFrame;
 
-    flags |= PluginCodec_ReturnCoderLastFrame;
-    return Reset();
+    return true;
   }
 
   bool AppendNALU(const uint8_t * nalu, size_t naluSize)
@@ -300,6 +306,7 @@ public:
         break;
     }
 
+    static uint8_t naluPrefix[4] = { 0, 0, 0, 1 };
     return Append(naluPrefix, sizeof(naluPrefix)) && Append(nalu, naluSize);
   }
 
@@ -437,8 +444,7 @@ public:
     // SetEncoderOptions applies a target bit rate. The encoder refuses to
     // open when CRF is set as well, so a non-default frame size never starts.
 
-    SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
-    return SetResolution(m_width, m_height);
+    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
   }
 
 
@@ -464,8 +470,17 @@ public:
                          unsigned & toLen,
                          unsigned & flags)
   {
+    PluginCodec_RTP inRTP(fromPtr, fromLen);
+    PluginCodec_Video_FrameHeader * header = inRTP.GetVideoHeader();
+    if (m_width != header->width || m_height != header->height) {
+      m_width = header->width;
+      m_height = header->height;
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+        return false;
+    }
+
     PluginCodec_RTP dstRTP(toPtr, toLen);
-    if (!EncodeVideoPacket(PluginCodec_RTP(fromPtr, fromLen), dstRTP, flags))
+    if (!EncodeVideoPacket(inRTP, dstRTP, flags))
       return false;
 
     if (m_fullFrame->GetLength() > 0)

@@ -510,8 +510,9 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
 
       ClampResolution();
 
-      SetResolution(m_width, m_height);
-      SetEncoderOptions(m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+        return false;
+
       PTRACE(4, m_prefix, "Packetization is " << m_fullFrame->GetName());
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)

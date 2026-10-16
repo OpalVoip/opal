@@ -127,13 +127,20 @@ include(cmake/OPALConfigHeader.cmake)
 set(OPAL_PTLIB_DIR "" CACHE PATH
   "PTLib install prefix, or a PTLib CMake build directory.")
 if(OPAL_PTLIB_DIR)
+  # Force the cache entry. A plain set() loses to a stale PTLib_DIR from a
+  # previous configure that found /usr/local (headers without CrashMark).
   if(EXISTS "${OPAL_PTLIB_DIR}/PTLibConfig.cmake")
-    set(PTLib_DIR "${OPAL_PTLIB_DIR}")
+    set(PTLib_DIR "${OPAL_PTLIB_DIR}" CACHE PATH
+      "Directory containing PTLibConfig.cmake" FORCE)
   else()
     list(PREPEND CMAKE_PREFIX_PATH "${OPAL_PTLIB_DIR}")
   endif()
 endif()
 find_package(PTLib CONFIG REQUIRED)
+# Apple Clang searches /usr/local/include before -isystem dirs. Imported
+# targets default to -isystem, so an older installed PTLib would win over the
+# sibling build from OPAL_PTLIB_DIR (and hide symbols such as CrashMark).
+set_property(TARGET PTLib::ptlib PROPERTY SYSTEM FALSE)
 find_package(PkgConfig QUIET)
 
 include(cmake/OPALOptions.cmake)

@@ -100,7 +100,7 @@ class FFMPEGCodec
     AVCodecContext * m_context;
     AVDictionary   * m_options;
     AVFrame        * m_picture;
-    AVPacket         m_packet;
+    AVPacket       * m_packet;
     void           * m_alignedYUV[3];
     OpalPluginFrame *m_fullFrame;
     bool             m_open;
@@ -122,8 +122,9 @@ class FFMPEGCodec
     virtual bool InternalInitEncoder(const AVCodec * codec);
     virtual bool InternalInitDecoder(const AVCodec * codec);
 
-    bool SetResolution(unsigned width, unsigned height);
-    void SetEncoderOptions(
+    bool SetEncoderOptions(
+      unsigned frameWidth,
+      unsigned frameHeight,
       unsigned frameTime,
       unsigned maxBitRate,
       unsigned maxRTPSize,
