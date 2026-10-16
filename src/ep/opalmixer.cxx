@@ -2058,22 +2058,21 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
   // Marker indicates we have the whole video frame
   output->SetMarker(true);
 
-  bool pushedOne = false;
+  bool hasOneStream = false;
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
     if (stream == NULL)
       continue;
 
-    if (stream->IsPaused()) {
-      pushedOne = true;
+    hasOneStream = true;
+    if (stream->IsPaused())
       continue;
-    }
 
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
     if (mediaFormat == OpalYUV420P) {
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
-      if (stream->PushPacket(*output))
-        pushedOne = true;
+      if (!stream->PushPacket(*output))
+        CloseOne(stream);
       stream.SetSafetyMode(PSafeReadOnly); // restore lock
     }
     else {
@@ -2159,17 +2158,17 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
 
       for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame) {
-        if (stream->PushPacket(*frame))
-          pushedOne = true;
-        else
+        if (!stream->PushPacket(*frame)) {
+          CloseOne(stream);
           break;
+        }
       }
 
       stream.SetSafetyMode(PSafeReadOnly); // restore lock
     }
   }
 
-  return pushedOne;
+  return hasOneStream;
 }
 
 OpalVideoStreamMixer::Key_T OpalVideoStreamMixer::GetActiveSpeaker() const
