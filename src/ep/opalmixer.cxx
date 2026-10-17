@@ -858,6 +858,10 @@ OpalMediaFormatList OpalMixerEndPoint::GetMediaFormats() const
   OpalMediaFormatList formats;
   formats += OpalPCM16;
 #if OPAL_VIDEO
+  for (const auto & fmt : OpalMediaFormat::GetAllRegisteredMediaFormats()) {
+    if (fmt.IsTransportable() && fmt.GetMediaType() == OpalMediaType::Video())
+      formats += fmt;
+  }
   formats += OpalYUV420P;
 #endif
   return formats;
@@ -1926,6 +1930,7 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
   }
 
   if (cache.m_transcoder == NULL) {
+    PTRACE(5, "Creating transcoder using:\n" << setw(-1) << mediaFormat);
     cache.m_transcoder = OpalTranscoder::Create(OpalPCM16, mediaFormat);
     if (cache.m_transcoder == NULL) {
       PTRACE(2, "Could not create transcoder to "
@@ -2106,6 +2111,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
         OpalTranscoder * transcoder = m_transcoders.GetAt(keyPackets);
         if (transcoder == NULL) {
           mediaFormat.SetOptionInteger(OpalMediaFormat::FrameTimeOption(), m_periodTS);
+          PTRACE(5, "Creating transcoder using:\n" << setw(-1) << mediaFormat);
           transcoder = OpalTranscoder::Create(OpalYUV420P, mediaFormat);
           if (transcoder == NULL) {
             PTRACE(2, "Could not create transcoder to " << mediaFormat << " for stream id " << stream->GetID());
