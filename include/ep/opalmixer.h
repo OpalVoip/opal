@@ -1069,17 +1069,21 @@ class OpalMixerMediaStream : public OpalMediaStream
 
 #if OPAL_VIDEO
     bool CheckMixedVideoSize(unsigned width, unsigned height);
+    void KeyFrameNeeded() { m_needsKeyFrame.exchange(true); }
+    bool NeedsKeyFrame() { return m_needsKeyFrame.exchange(false); }
 #endif
 
   protected:
     virtual void InternalClose() override;
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
+    virtual bool InternalExecuteCommand(const OpalMediaCommand & command);
 
     PSafePtr<OpalMixerNode> m_node;
     bool m_listenOnly;
 #if OPAL_VIDEO
     unsigned m_mixedVideoWidth;
     unsigned m_mixedVideoHeight;
+    std::atomic<bool> m_needsKeyFrame;
 #endif
     RTP_DataFrame m_txPacket;
 };

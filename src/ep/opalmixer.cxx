@@ -1192,6 +1192,7 @@ OpalMixerMediaStream::OpalMixerMediaStream(OpalConnection & conn,
 #if OPAL_VIDEO
   , m_mixedVideoWidth(0)
   , m_mixedVideoHeight(0)
+  , m_needsKeyFrame(true)
 #endif
 {
   /* We are a bit sneaky here. OpalCall::OpenSourceMediaStream will have
@@ -1279,6 +1280,14 @@ PBoolean OpalMixerMediaStream::RequiresPatchThread() const
 bool OpalMixerMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init & init)
 {
   return IsSink() && m_node->SetJitterBufferSize(GetID(), init);
+}
+
+
+bool OpalMixerMediaStream::InternalExecuteCommand(const OpalMediaCommand & command)
+{
+  if (IsSource() && dynamic_cast<const OpalVideoUpdatePicture *>(&command) != NULL)
+    m_needsKeyFrame = true;
+  return OpalMediaStream::InternalExecuteCommand(command);
 }
 
 
@@ -2071,6 +2080,16 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 
   // Marker indicates we have the whole video frame
   output->SetMarker(true);
+
+  // If any of the output streams need a key frame, generate one. In particular if just recently added.
+  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
+    PSafePtr<OpalMixerMediaStream> stream = it->second;
+    if (stream != NULL && !stream->IsPaused() && stream->NeedsKeyFrame()) {
+      for (TranscoderMap::iterator itt = m_transcoders.begin(); itt != m_transcoders.end(); ++itt)
+        itt->second.ExecuteCommand(OpalVideoUpdatePicture());
+      break;
+    }
+  }
 
   bool hasOneStream = false;
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
