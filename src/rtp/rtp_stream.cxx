@@ -414,21 +414,27 @@ PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
   }
 #endif
 
-  m_timestamp = packet.GetTimestamp();
+  // SRTP protects the packet in place, and the session rewrites the RTP header
+  // in place. The video mixer encodes one mixed frame and passes that same
+  // object to every listener, so each transport sends from a private copy.
+  RTP_DataFrame sending(packet.GetPointer(), packet.GetPacketSize(), true);
+  sending.SetMetaData(packet.GetMetaData());
 
-  if (m_rewriteHeaders && packet.GetPayloadSize() == 0
+  m_timestamp = sending.GetTimestamp();
+
+  if (m_rewriteHeaders && sending.GetPayloadSize() == 0
 #if OPAL_VIDEO
-          && (!packet.GetMarker() || GetMediaFormat().GetMediaType() != OpalMediaType::Video())
+          && (!sending.GetMarker() || GetMediaFormat().GetMediaType() != OpalMediaType::Video())
 #endif
       )
     return true; // Ignore empty packets, except for video with marker, which can plausibly be empty
 
   if (m_syncSource != 0)
-    packet.SetSyncSource(m_syncSource);
+    sending.SetSyncSource(m_syncSource);
 
   PSimpleTimer failsafe(m_connection.GetEndPoint().GetManager().GetTxMediaTimeout());
   while (IsOpen()) {
-    switch (m_rtpSession.WriteData(packet, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
+    switch (m_rtpSession.WriteData(sending, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
       case OpalRTPSession::e_AbortTransport :
         return false;
 

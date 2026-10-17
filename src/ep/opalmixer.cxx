@@ -2138,6 +2138,8 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
 
+      // One encoded frame for this format and size. Each PushPacket sends a
+      // copy, so SRTP on one destination does not alter the packet for the next.
       for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame)
         stream->PushPacket(*frame);
 
