@@ -34,6 +34,7 @@
 #if OPAL_HAS_MIXER
 
 #include <opal/patch.h>
+#include <codec/vidcodec.h>
 #include <rtp/rtp.h>
 #include <rtp/jitter.h>
 #include <ptlib/vconvert.h>
@@ -2035,6 +2036,16 @@ bool OpalVideoStreamMixer::SetFrameRate(unsigned rate)
 }
 
 
+static bool ListenerCanReceive(OpalMixerMediaStream & stream)
+{
+  OpalMediaPatchPtr patch = stream.GetPatch();
+  if (patch == NULL)
+    return false;
+  OpalMediaStreamPtr sink = patch->GetSink();
+  return sink != NULL && sink->IsEstablished();
+}
+
+
 bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 {
   typedef std::map<PString, RTP_DataFrameList> CachedPackets;
@@ -2045,6 +2056,25 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
   // Marker indicates we have the whole video frame
   output->SetMarker(true);
 
+  // A listener that joins a running encode would otherwise receive only
+  // predicted frames. Ask for one intra frame until that listener can
+  // actually receive it.
+  bool wantIntra = false;
+  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
+    PSafePtr<OpalMixerMediaStream> stream = it->second;
+    if (stream != NULL && !stream->IsPaused() && m_keyframeSent.find(stream->GetID()) == m_keyframeSent.end())
+      wantIntra = true;
+  }
+  if (wantIntra) {
+    for (TranscoderMap::iterator it = m_transcoders.begin(); it != m_transcoders.end(); ++it)
+      it->second.ExecuteCommand(OpalVideoUpdatePicture());
+  }
+
+  // More than one listener shares an encoded frame. Each send copies that
+  // frame so SRTP can protect it in place. A single listener sends the
+  // original. Either way the packet goes out as soon as it has been encoded.
+  const bool copyPackets = m_outputStreams.GetSize() > 1;
+
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
     if (stream == NULL || stream->IsPaused())
@@ -2053,8 +2083,20 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
     if (mediaFormat == OpalYUV420P) {
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
-      stream->PushPacket(*output);
-      stream.SetSafetyMode(PSafeReadOnly); // restore lock
+      if (copyPackets) {
+        RTP_DataFrame copy(output->GetPointer(), output->GetPacketSize(), true);
+        copy.SetMetaData(output->GetMetaData());
+        stream->PushPacket(copy);
+      }
+      else
+        stream->PushPacket(*output);
+      if (ListenerCanReceive(*stream)) {
+        if (m_keyframePending.find(stream->GetID()) != m_keyframePending.end())
+          m_keyframeSent += stream->GetID();
+        else
+          m_keyframePending += stream->GetID();
+      }
+      stream.SetSafetyMode(PSafeReadOnly);
     }
     else {
       unsigned width, height;
@@ -2137,13 +2179,22 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
       }
 
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
-
-      // One encoded frame for this format and size. Each PushPacket sends a
-      // copy, so SRTP on one destination does not alter the packet for the next.
-      for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame)
-        stream->PushPacket(*frame);
-
-      stream.SetSafetyMode(PSafeReadOnly); // restore lock
+      for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame) {
+        if (copyPackets) {
+          RTP_DataFrame copy(frame->GetPointer(), frame->GetPacketSize(), true);
+          copy.SetMetaData(frame->GetMetaData());
+          stream->PushPacket(copy);
+        }
+        else
+          stream->PushPacket(*frame);
+      }
+      if (ListenerCanReceive(*stream)) {
+        if (m_keyframePending.find(stream->GetID()) != m_keyframePending.end())
+          m_keyframeSent += stream->GetID();
+        else
+          m_keyframePending += stream->GetID();
+      }
+      stream.SetSafetyMode(PSafeReadOnly);
     }
   }
 

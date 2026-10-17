@@ -1158,6 +1158,8 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
   protected:
     typedef PDictionary<PString, OpalTranscoder> TranscoderMap;
     TranscoderMap m_transcoders;
+    PStringSet m_keyframePending;
+    PStringSet m_keyframeSent;
 };
 #endif // OPAL_VIDEO
 

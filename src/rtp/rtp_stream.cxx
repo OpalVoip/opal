@@ -414,42 +414,34 @@ PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
   }
 #endif
 
-  // SRTP protects the packet in place, and the session rewrites the RTP header
-  // in place. The video mixer encodes one mixed frame and passes that same
-  // object to every listener, so each transport sends from a private copy.
-  RTP_DataFrame sending(packet.GetPointer(), packet.GetPacketSize(), true);
-  sending.SetMetaData(packet.GetMetaData());
+  m_timestamp = packet.GetTimestamp();
 
-  m_timestamp = sending.GetTimestamp();
-
-  if (m_rewriteHeaders && sending.GetPayloadSize() == 0
+  if (m_rewriteHeaders && packet.GetPayloadSize() == 0
 #if OPAL_VIDEO
-          && (!sending.GetMarker() || GetMediaFormat().GetMediaType() != OpalMediaType::Video())
+          && (!packet.GetMarker() || GetMediaFormat().GetMediaType() != OpalMediaType::Video())
 #endif
       )
     return true; // Ignore empty packets, except for video with marker, which can plausibly be empty
 
   if (m_syncSource != 0)
-    sending.SetSyncSource(m_syncSource);
+    packet.SetSyncSource(m_syncSource);
 
-  PSimpleTimer failsafe(m_connection.GetEndPoint().GetManager().GetTxMediaTimeout());
-  while (IsOpen()) {
-    switch (m_rtpSession.WriteData(sending, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
-      case OpalRTPSession::e_AbortTransport :
-        return false;
+  if (!IsOpen())
+    return false;
 
-      case OpalRTPSession::e_ProcessPacket :
-        return true;
+  switch (m_rtpSession.WriteData(packet, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
+    case OpalRTPSession::e_AbortTransport :
+      return false;
 
-      case OpalRTPSession::e_IgnorePacket :
-        PTRACE(m_throttleWriteData, m_rtpSession << "write data delayed on  " << *this);
-        PThread::Sleep(20);
-        break;
-    }
-    if (failsafe.HasExpired()) {
-        PTRACE(2, m_rtpSession << "write data failed, delayed for too long on  " << *this);
-        return false;
-    }
+    case OpalRTPSession::e_ProcessPacket :
+      return true;
+
+    case OpalRTPSession::e_IgnorePacket :
+      // Not established yet, or SRTP keys are not applied yet. Drop the
+      // packet. The mixer thread writes every destination, and sleeping
+      // here holds video back from listeners that are already connected.
+      PTRACE(m_throttleWriteData, m_rtpSession << "write data not ready on " << *this);
+      return true;
   }
 
   return false;
