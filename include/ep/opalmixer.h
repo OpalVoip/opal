@@ -1036,6 +1036,12 @@ class OpalMixerMediaStream : public OpalMediaStream
       RTP_DataFrame & packet
     ) override;
 
+    /**Pushes a frame to the patch
+      */
+    virtual bool PushPacket(
+      RTP_DataFrame & packet
+    );
+
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
@@ -1075,6 +1081,7 @@ class OpalMixerMediaStream : public OpalMediaStream
     unsigned m_mixedVideoWidth;
     unsigned m_mixedVideoHeight;
 #endif
+    RTP_DataFrame m_txPacket;
 };
 
 
