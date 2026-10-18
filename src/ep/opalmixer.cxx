@@ -1258,9 +1258,7 @@ PBoolean OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
 
 bool OpalMixerMediaStream::PushPacket(RTP_DataFrame & packet)
 {
-  if (m_txPacket.GetPayloadType() != packet.GetPayloadType())
-    m_txPacket.CopyHeader(packet);
-  m_txPacket.SetPayload(packet.GetPayloadPtr(), packet.GetPayloadSize());
+  m_txPacket.Copy(packet);
   return OpalMediaStream::PushPacket(m_txPacket);
 }
 
