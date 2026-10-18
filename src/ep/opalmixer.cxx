@@ -1259,9 +1259,9 @@ PBoolean OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
 
 bool OpalMixerMediaStream::PushPacket(RTP_DataFrame & packet)
 {
-  if (m_txPacket.GetPayloadType() != packet.GetPayloadType())
-    m_txPacket.CopyHeader(packet);
-  m_txPacket.SetPayload(packet.GetPayloadPtr(), packet.GetPayloadSize());
+  // Each listener keeps its own frame. SRTP rewrites that frame in place, and
+  // the timestamp and marker are different on every packet.
+  m_txPacket.Copy(packet);
   return OpalMediaStream::PushPacket(m_txPacket);
 }
 
@@ -2092,14 +2092,9 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     }
   }
 
-  bool hasOneStream = false;
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
-    if (stream == NULL)
-      continue;
-
-    hasOneStream = true;
-    if (stream->IsPaused())
+    if (stream == NULL || stream->IsPaused())
       continue;
 
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
@@ -2203,7 +2198,8 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     }
   }
 
-  return hasOneStream;
+  // A false return ends the push thread, and it is not started again.
+  return true;
 }
 
 OpalVideoStreamMixer::Key_T OpalVideoStreamMixer::GetActiveSpeaker() const
