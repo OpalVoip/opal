@@ -608,8 +608,8 @@ class PluginCodec_VideoFormat : public PluginCodec_MediaFormat<NAME>
       unsigned     maxBandwidth,
       OptionsTable options = NULL
     ) : Parent(PLUGINCODEC_RAW_VIDEO, formatName, payloadName, description, maxBandwidth, options)
-      , m_maxWidth(1920)
-      , m_maxHeight(1200)
+      , m_maxWidth(8192)
+      , m_maxHeight(4320)
     {
       this->m_flags = PluginCodec_MediaTypeVideo /* audio codec */
                     | PluginCodec_InputTypeRTP   /* raw input data */
