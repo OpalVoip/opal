@@ -393,11 +393,11 @@ static bool MyToCustomised(PluginCodec_OptionMap & original, PluginCodec_OptionM
   unsigned frameTime = original.GetUnsigned(PLUGINCODEC_OPTION_FRAME_TIME);
   unsigned maxMacroBlocks = PluginCodec_Utilities::GetMacroBlocks(maxWidth, maxHeight);
   if (maxMacroBlocks > 0) {
-    while (levelIndex > 1 && LevelInfo[levelIndex].m_MaxFrameSize > maxMacroBlocks)
+    while (levelIndex > 1 && LevelInfo[levelIndex-1].m_MaxFrameSize > maxMacroBlocks)
       --levelIndex;
     PTRACE(4, MY_CODEC_LOG, "Max resolution " << maxWidth << 'x' << maxHeight
            << " and frame rate " << frameTime << " (" << (PLUGINCODEC_VIDEO_CLOCK/frameTime) << "fps)"
-              " selected index " << levelIndex);
+              " selected index " << levelIndex << " \"" << LevelInfo[levelIndex].m_Name << '"');
   }
   else {
     PTRACE(4, MY_CODEC_LOG, "Level \"" << str << "\" selected index " << levelIndex);
