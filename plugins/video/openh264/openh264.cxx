@@ -673,7 +673,7 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
     H264_Encoder(const PluginCodec_Definition * defn)
       : BaseClass(defn)
       , m_profile((EProfileIdc)DefaultProfileInt)
-      , m_level(LEVEL_3_1)
+      , m_level(LEVEL_4_0)
       , m_constraints(0)
       , m_usageType(CAMERA_VIDEO_REAL_TIME)
       , m_complexityMode(LOW_COMPLEXITY)
