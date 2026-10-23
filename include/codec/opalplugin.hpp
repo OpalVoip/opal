@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <map>
 #include <string>
@@ -328,11 +329,11 @@ public:
     if (!ClampResolution(maxWidth, maxHeight, maxMacroBlocks))
       return false;
 
-      ClampMax(maxWidth,  original, changed, widthKey);
+    ClampMax(maxWidth,  original, changed, widthKey);
     ClampMax(maxHeight, original, changed, heightKey);
-      ClampMax(maxWidth,  original, changed, maxWidthKey);
+    ClampMax(maxWidth,  original, changed, maxWidthKey);
     ClampMax(maxHeight, original, changed, maxHeightKey);
-      ClampMax(maxWidth,  original, changed, minWidthKey);
+    ClampMax(maxWidth,  original, changed, minWidthKey);
     ClampMax(maxHeight, original, changed, minHeightKey);
     return true;
   }
@@ -570,8 +571,8 @@ class PluginCodec_VideoFormat : public PluginCodec_MediaFormat<NAME>
       unsigned     maxBandwidth,
       OptionsTable options = NULL
     ) : Parent(PLUGINCODEC_RAW_VIDEO, formatName, payloadName, description, maxBandwidth, options)
-      , m_maxWidth(MaxWidth)
-      , m_maxHeight(MaxHeight)
+      , m_maxWidth(PluginCodec_Utilities::MaxWidth)
+      , m_maxHeight(PluginCodec_Utilities::MaxHeight)
     {
       this->m_flags = PluginCodec_MediaTypeVideo /* audio codec */
                     | PluginCodec_InputTypeRTP   /* raw input data */
