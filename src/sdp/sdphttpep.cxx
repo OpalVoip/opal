@@ -331,6 +331,28 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     return request.SendResponse("Releasing connection " + GetIdentifier());
   }
 
+  if (operation == OPAL_SDP_HTTP_OP_OFFER) {
+    if (!IsEstablished())
+      return request.OnError(PHTTP::ServiceUnavailable, "Connection is not established");
+
+    PCaselessString contentType = request.inMIME(PHTTP::ContentTypeTag());
+    if (contentType != OpalSDPEndPoint::ContentType())
+      return request.OnError(PHTTP::NoneAcceptable, "Must be " + OpalSDPEndPoint::ContentType());
+
+    PAutoPtr<SDPSessionDescription> offer(m_endpoint.CreateSDP(0, 0, OpalTransportAddress()));
+    if (offer.get() == NULL || !offer->Decode(request.GetEntityBody(), GetLocalMediaFormats()) || offer->GetMediaDescriptions().IsEmpty())
+      return request.OnError(PHTTP::BadRequest, "HTTP body does not have acceptable SDP");
+
+    PAutoPtr<SDPSessionDescription> answer(m_endpoint.CreateSDP(0, 0, OpalTransportAddress()));
+    if (answer.get() == NULL || !OnSendAnswerSDP(*offer, *answer))
+      return request.OnError(PHTTP::NoneAcceptable, "Could not answer the new offer");
+
+    PString sdp = answer->Encode();
+    request.outMIME.Set(PHTTP::ContentTypeTag(), OpalSDPEndPoint::ContentType());
+    request.outMIME.Set(OPAL_SDP_HTTP_ID_HEADER, GetIdentifier());
+    return request.SendResponse(sdp);
+  }
+
   if (operation == OPAL_SDP_HTTP_OP_STATUS) {
     PHTML html;
     html << PHTML::HTML()

@@ -982,7 +982,8 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
       return false;
 
     size_t bundleIndex = 0;
-    if (incomingMedia->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
+    if (!GetStringOptions().GetBoolean(OPAL_OPT_SEPARATE_BUNDLE_STREAMS) &&
+        incomingMedia->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
       for (bundleIndex = rtpStreamIndex-1; bundleIndex > 0; --bundleIndex) {
         SDPMediaDescription * previousMedia = sdpOffer.GetMediaDescriptionByIndex(bundleIndex);
         if (previousMedia->GetMediaType() == incomingMedia->GetMediaType() &&

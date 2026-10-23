@@ -35,6 +35,8 @@
 
 #include <opal/mediastrm.h>
 
+#include <deque>
+
 
 class OpalRTPSession;
 class OpalRTPConnection;
@@ -101,6 +103,12 @@ class OpalRTPMediaStream : public OpalMediaStream
       OpalMediaStream & otherStream,  ///< Stream to bypass media data to/from
       bool bypass                     ///< Turn bypass on or off
     ) override;
+
+    /**Write packets queued by media pass-through.
+       Runs without the source RTP session lock, so the two directions of a
+       relay cannot deadlock on each other's sessions.
+      */
+    bool WriteQueuedPassThrough();
 
     /**Read an RTP frame of data from the source media stream.
        The new behaviour simply calls OpalRTPSession::ReadData().
@@ -202,7 +210,10 @@ protected:
     bool                m_rewriteHeaders;
     PString             m_simulcastId;
     unsigned            m_notifierPriority;
+    PMutex              m_passThruMutex;
     OpalMediaStreamPtr  m_passThruStream;
+    std::deque<RTP_DataFrame> m_passThruQueue;
+    bool                m_passThruQueued;
     OpalJitterBuffer  * m_jitterBuffer;
     PTimeInterval       m_readTimeout;
 

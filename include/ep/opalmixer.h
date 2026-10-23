@@ -140,6 +140,11 @@ class OpalBaseMixer : public PObject
       */
     virtual void StartPushThread();
 
+    /**Start the push thread even when no input stream has been added yet.
+       A still-image conference sends video before anyone provides a picture.
+      */
+    void EnsurePushThread();
+
     /**Push collected input through the mixer to output.
        This would normally be called from a thread, on a metronomic basis,
        from a thread started via StartPushThread(), however if m_pushThread
@@ -156,7 +161,14 @@ class OpalBaseMixer : public PObject
       */
     unsigned GetPeriodTS() const { return m_periodTS; }
 
+    /**Mutex that guards the input streams and the published mix strategy.
+       A strategy pointer is replaced only while this mutex is held, and the
+       mix tick holds it across the call into the strategy.
+      */
+    PMutex & GetMutex() { return m_mutex; }
+
   protected:
+    virtual void OnStrategyPublished() { }
     struct Stream : public PObject {
       virtual void QueuePacket(const RTP_DataFrame & rtp) = 0;
       std::queue<RTP_DataFrame> m_queue;
@@ -192,9 +204,12 @@ class OpalBaseMixer : public PObject
     samples are placed in adjacent pairs in the output, rather than summing
     them.
   */
+class OpalAudioMixerStrategy;
+
 class OpalAudioMixer : public OpalBaseMixer
 {
     PCLASSINFO(OpalAudioMixer, OpalBaseMixer);
+    friend class OpalAudioMixerStrategy;
   public:
     OpalAudioMixer(
       bool stereo = false,    ///< Indicate stereo or mixed mono mode
@@ -204,7 +219,7 @@ class OpalAudioMixer : public OpalBaseMixer
       const PTimeInterval & activeSpakerDeadband = 0 ///< Period for active speaker detection
     );
 
-    ~OpalAudioMixer() { StopPushThread(); }
+    ~OpalAudioMixer();
 
     /** Remove an input stream from mixer.
       */
@@ -265,6 +280,11 @@ class OpalAudioMixer : public OpalBaseMixer
     virtual bool MixStreams(RTP_DataFrame & frame) override;
     virtual size_t GetOutputSize() const override;
 
+    /**Published audio strategy. The mixer mutex is held by the caller.
+      */
+    virtual OpalAudioMixerStrategy & GetAudioStrategy();
+
+  public:
     bool PreMixStreams(); // Return value is active speaker changed
     void MixStereo(RTP_DataFrame & frame);
     void MixAdditive(RTP_DataFrame & frame, const short * audioToSubtract);
@@ -280,6 +300,56 @@ class OpalAudioMixer : public OpalBaseMixer
     Key_T         m_activeSpeakerKey;
     PTimeInterval m_activeSpeakerDeadband;
     PTimeInterval m_activeSpeakerTime;
+
+    OpalAudioMixerStrategy * m_audioStrategy;
+    std::unique_ptr<OpalAudioMixerStrategy> m_ownedAudioStrategy;
+};
+
+
+/**How an audio mixer combines its input streams.
+   The active instance is published under OpalBaseMixer::m_mutex.
+  */
+class OpalAudioMixerStrategy
+{
+  public:
+    virtual ~OpalAudioMixerStrategy() { }
+
+    virtual bool Mix(OpalAudioMixer & mixer, RTP_DataFrame & frame) = 0;
+    virtual void MixListener(OpalAudioMixer & mixer, RTP_DataFrame & frame, const short * audioToSubtract) = 0;
+    virtual bool IsStereo() const = 0;
+    virtual bool IsPassThrough() const { return false; }
+};
+
+
+class OpalAdditiveAudioStrategy : public OpalAudioMixerStrategy
+{
+  public:
+    virtual bool Mix(OpalAudioMixer & mixer, RTP_DataFrame & frame) override;
+    virtual void MixListener(OpalAudioMixer & mixer, RTP_DataFrame & frame, const short * audioToSubtract) override;
+    virtual bool IsStereo() const override { return false; }
+};
+
+
+class OpalStereoAudioStrategy : public OpalAudioMixerStrategy
+{
+  public:
+    virtual bool Mix(OpalAudioMixer & mixer, RTP_DataFrame & frame) override;
+    virtual void MixListener(OpalAudioMixer & mixer, RTP_DataFrame & frame, const short * audioToSubtract) override;
+    virtual bool IsStereo() const override { return true; }
+};
+
+
+/**Forwards encoded audio instead of summing it.
+   Conference nodes keep the additive strategy so each listener still hears
+   one stream with their own audio removed.
+  */
+class OpalPassThroughAudioStrategy : public OpalAudioMixerStrategy
+{
+  public:
+    virtual bool Mix(OpalAudioMixer & mixer, RTP_DataFrame & frame) override;
+    virtual void MixListener(OpalAudioMixer & mixer, RTP_DataFrame & frame, const short * audioToSubtract) override;
+    virtual bool IsStereo() const override { return false; }
+    virtual bool IsPassThrough() const override { return true; }
 };
 
 
@@ -293,9 +363,12 @@ class OpalAudioMixer : public OpalBaseMixer
    output data frame. A number of different patterns for positioning the sub
    images are available in the Styles enum.
   */
+class OpalVideoMixerStrategy;
+
 class OpalVideoMixer : public OpalBaseMixer
 {
     PCLASSINFO(OpalVideoMixer, OpalBaseMixer);
+    friend class OpalVideoMixerStrategy;
   public:
     enum Styles {
       eSideBySideLetterbox, /**< Two images side by side with black bars top and bottom.
@@ -328,7 +401,7 @@ class OpalVideoMixer : public OpalBaseMixer
       bool pushThread = true  ///< A push thread is to be created
     );
 
-    ~OpalVideoMixer() { StopPushThread(); }
+    ~OpalVideoMixer();
 
     /**Get output video frame width.
       */
@@ -361,6 +434,39 @@ class OpalVideoMixer : public OpalBaseMixer
       */
     virtual Key_T GetActiveSpeaker() const;
 
+    Styles GetStyle() const { return m_style; }
+
+    /**Number of queued input streams. Caller holds the mixer mutex.
+      */
+    size_t GetInputCount() const { return m_inputStreams.size(); }
+
+    /**Layout object for a style value. eUser uses the same grid as an unspecified style.
+      */
+    static std::unique_ptr<class OpalVideoLayoutStrategy> CreateLayout(Styles style);
+
+    /**Published video strategy. Caller holds the mixer mutex.
+       The default is OpalOriginalVideoStrategy. A derived mixer overrides
+       this to publish a different strategy.
+      */
+    virtual OpalVideoMixerStrategy & GetVideoStrategy();
+
+    /**True when GetVideoStrategy published a different instance. Caller holds the mixer mutex.
+      */
+    bool TakeDeliveryChange();
+
+    /**Lock, publish the strategy, and report the previous and next instances.
+      */
+    bool ExchangeStrategy(OpalVideoMixerStrategy * & previous, OpalVideoMixerStrategy * & next);
+
+    /**Copy the YUV frame store into an RTP payload. Caller holds the mixer mutex.
+      */
+    bool CopyMixedFrame(RTP_DataFrame & frame);
+
+    /**Paint a YUV420P image, or the background colour when the buffer is empty.
+       Caller holds the mixer mutex.
+      */
+    void PaintStillFrame(const PBYTEArray & yuv);
+
     struct MixPosition
     {
       MixPosition() : x(0), y(0), w(0), h(0) { }
@@ -384,8 +490,10 @@ protected:
     virtual bool MixStreams(RTP_DataFrame & frame) override;
     virtual size_t GetOutputSize() const override;
 
+  public:
     virtual bool MixVideo();
 
+  protected:
     virtual bool GetMixPosition(
       const PString & id,
       bool firstStream,
@@ -402,8 +510,210 @@ protected:
 
     unsigned   m_mixLeftStartPosition;
 
+    OpalVideoMixerStrategy * m_videoStrategy;
+    std::unique_ptr<OpalVideoMixerStrategy> m_ownedVideoStrategy;
+    bool m_deliveryChanged;
+
   P_REMOVE_VIRTUAL(bool,StartMix(unsigned&,unsigned&,unsigned&,unsigned&,unsigned&),false);
   P_REMOVE_VIRTUAL(bool,NextMix(unsigned&,unsigned&,unsigned&,unsigned&,unsigned&),false);
+};
+
+
+/**Rectangle placement for one input of a transcoded mix.
+  */
+class OpalVideoLayoutStrategy
+{
+  public:
+    virtual ~OpalVideoLayoutStrategy() { }
+
+    virtual bool GetMixPosition(
+      OpalVideoMixer & mixer,
+      const OpalVideoMixer::Key_T & key,
+      bool firstStream,
+      OpalVideoMixer::MixPosition & pos
+    ) = 0;
+};
+
+
+class OpalGridVideoLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    OpalGridVideoLayout() : m_left(0) { }
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    unsigned m_left;
+};
+
+
+class OpalSideBySideLetterboxLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    OpalSideBySideLetterboxLayout() : m_left(0) { }
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    unsigned m_left;
+    OpalGridVideoLayout m_grid;
+};
+
+
+class OpalSideBySideScaledLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    OpalSideBySideScaledLayout() : m_left(0) { }
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    unsigned m_left;
+    OpalGridVideoLayout m_grid;
+};
+
+
+class OpalStackedPillarboxLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    OpalStackedPillarboxLayout() : m_left(0) { }
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    unsigned m_left;
+    OpalGridVideoLayout m_grid;
+};
+
+
+class OpalStackedScaledLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    OpalStackedScaledLayout() : m_left(0) { }
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    unsigned m_left;
+    OpalGridVideoLayout m_grid;
+};
+
+
+class OpalActiveSpeakerLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    virtual bool GetMixPosition(OpalVideoMixer & mixer, const OpalVideoMixer::Key_T & key, bool firstStream, OpalVideoMixer::MixPosition & pos) override;
+};
+
+
+class OpalMixerNode;
+
+/**What a video mixer sends, and how a transcoded frame is arranged.
+   The mixer publishes one instance under OpalBaseMixer::m_mutex. Slow work
+   (pass-through, image files, extra sessions) is done from Activate and
+   Deactivate after that mutex is released.
+  */
+class OpalVideoMixerStrategy
+{
+  public:
+    virtual ~OpalVideoMixerStrategy() { }
+
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) = 0;
+    virtual bool WantsTranscode() const = 0;
+    virtual OpalVideoLayoutStrategy & Layout() = 0;
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) { (void)node; (void)mixer; }
+    virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) { (void)node; (void)mixer; }
+    virtual void SetForceTranscode(bool on) { (void)on; }
+};
+
+
+class OpalTranscodeVideoStrategy : public OpalVideoMixerStrategy
+{
+  public:
+    explicit OpalTranscodeVideoStrategy(std::unique_ptr<OpalVideoLayoutStrategy> layout);
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
+    virtual bool WantsTranscode() const override { return true; }
+    virtual OpalVideoLayoutStrategy & Layout() override { return *m_layout; }
+
+  private:
+    std::unique_ptr<OpalVideoLayoutStrategy> m_layout;
+};
+
+
+/**Historic mixer behaviour: decode, paint one YUV frame, encode one stream.
+  */
+class OpalOriginalVideoStrategy : public OpalTranscodeVideoStrategy
+{
+  public:
+    explicit OpalOriginalVideoStrategy(std::unique_ptr<OpalVideoLayoutStrategy> layout)
+      : OpalTranscodeVideoStrategy(std::move(layout)) { }
+};
+
+
+class OpalStillImageVideoStrategy : public OpalVideoMixerStrategy
+{
+  public:
+    explicit OpalStillImageVideoStrategy(const PString & image);
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
+    virtual bool WantsTranscode() const override { return true; }
+    virtual OpalVideoLayoutStrategy & Layout() override { return m_layout; }
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+    virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+
+  private:
+    PString m_image;
+    PBYTEArray m_frame;
+    OpalGridVideoLayout m_layout;
+};
+
+
+class OpalPairRelayVideoStrategy : public OpalVideoMixerStrategy
+{
+  public:
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
+    virtual bool WantsTranscode() const override { return false; }
+    virtual OpalVideoLayoutStrategy & Layout() override { return m_layout; }
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+    virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+
+  private:
+    OpalGridVideoLayout m_layout;
+};
+
+
+class OpalMultiStreamRelayStrategy : public OpalVideoMixerStrategy
+{
+  public:
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
+    virtual bool WantsTranscode() const override { return false; }
+    virtual OpalVideoLayoutStrategy & Layout() override { return m_layout; }
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+    virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+
+  private:
+    OpalGridVideoLayout m_layout;
+};
+
+
+/**Example selector: still image, pair relay, multi-stream relay, then the original mix.
+   Not used unless a derived mixer returns it from GetVideoStrategy.
+  */
+class OpalParticipantCountVideoStrategy : public OpalVideoMixerStrategy
+{
+  public:
+    OpalParticipantCountVideoStrategy(const PString & stillImage,
+                                      std::unique_ptr<OpalVideoLayoutStrategy> layout);
+    virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
+    virtual bool WantsTranscode() const override;
+    virtual OpalVideoLayoutStrategy & Layout() override;
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+    virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
+    virtual void SetForceTranscode(bool on) override;
+
+  private:
+    OpalVideoMixerStrategy & Select(const OpalMixerNode & node);
+
+    OpalStillImageVideoStrategy m_still;
+    OpalPairRelayVideoStrategy m_pair;
+    OpalMultiStreamRelayStrategy m_multi;
+    OpalOriginalVideoStrategy m_original;
+    OpalVideoMixerStrategy * m_active;
+    bool m_forceTranscode;
 };
 
 #endif // OPAL_VIDEO
@@ -449,6 +759,7 @@ struct OpalMixerNodeInfo
   unsigned m_width;               ///< Width of mixed video
   unsigned m_height;              ///< Height of mixed video
   unsigned m_rate;                ///< Frame rate of mixed video
+  PString  m_stillImage;          ///< JPEG, BMP or PNG for OpalStillImageVideoStrategy
 #endif
   bool     m_mediaPassThru;       /**< Enable media pass through to optimise mixer node
                                        with precisely two attached connections. */
@@ -1165,6 +1476,16 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     virtual bool SetFrameRate(unsigned rate) override;
     virtual bool OnMixed(std::unique_ptr<RTP_DataFrame> & output) override;
     virtual Key_T GetActiveSpeaker() const override;
+    virtual void SetForceTranscode(bool on);
+    OpalMixerNode & GetMixerNode() const { return m_node; }
+
+  protected:
+    virtual void OnStrategyPublished() override;
+
+    // A missing sink is the interval before the RTP patch is attached. Closing
+    // the stream there drops the negotiated codec. Ask for another key frame
+    // and try again on the next tick.
+    bool PushMixedPacket(const PSafePtr<OpalMixerMediaStream> & stream, RTP_DataFrame & packet);
 
   protected:
     typedef PDictionary<PString, OpalTranscoder> TranscoderMap;
@@ -1284,6 +1605,28 @@ class OpalMixerNode : public PSafeObject
     virtual void GetConferenceState(
       OpalConferenceState & state  ///< Conference state information
     ) const;
+
+#if OPAL_VIDEO
+    /**Publish the video strategy for the current participant count and apply it
+       after the mixer mutex is released.
+      */
+    void UpdateVideoDelivery(bool force = false);
+
+    /**Link or clear two-party video pass-through. Audio stays mixed.
+       waiting is set when the video streams are not open yet.
+      */
+    bool TryVideoPairRelay(bool enable, bool & waiting);
+
+    /**Encoded relay for three or four participants. False means the formats
+       do not match or a session could not be opened, and the caller falls
+       back to a transcoded mix. True with waiting means try again when media starts.
+      */
+    bool StartMultiStreamRelay(bool & waiting);
+    void StopMultiStreamRelay();
+    void SetForceTranscode(bool on);
+    void RequestVideoKeyFrames();
+    bool RelayEncodedVideo() const { return m_relayEncodedVideo.load(); }
+#endif
   //@}
 
   /**@name Member variable access */
@@ -1379,6 +1722,20 @@ class OpalMixerNode : public PSafeObject
 
     PString m_activeSpeakerStreamId;
     PString m_activeSpeakerURL;
+
+#if OPAL_VIDEO
+    atomic<bool> m_applyingDelivery;
+    atomic<bool> m_deliveryDirty;
+    atomic<bool> m_relayEncodedVideo;
+    unsigned m_relayPartyCount;
+    PDECLARE_MUTEX(m_relayMutex);
+    std::map<PString, PString> m_relaySourceOf;
+
+    void ForwardEncodedVideo(const OpalMixerMediaStream & from, const RTP_DataFrame & packet);
+    void RenegotiateParticipants(bool separateBundle);
+    void CloseVideoStreams(OpalConnection & connection);
+    void ReopenMixedVideo();
+#endif
 };
 
 

@@ -167,3 +167,4 @@ nbproject/private/
 .vscode/*.log
 /samples/opalshark/__pycache__
 *.bak
+ptlib-crash.log

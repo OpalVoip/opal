@@ -54,18 +54,10 @@ public:
   OpalConfVideoMixer(OpalMixerNode & node);
   ~OpalConfVideoMixer() { StopPushThread(); }
 
-  virtual bool GetMixPosition(
-    const PString & id,
-    bool firstStream,
-    MixPosition & pos
-  ) override;
-
-  typedef std::list<PSafePtr<OpalMixerConnection>> OrderedConnections;
+  virtual OpalVideoMixerStrategy & GetVideoStrategy() override;
 
 private:
-  OrderedConnections m_order;
-  typedef std::map<PString, MixPosition> MixPositions;
-  MixPositions m_positions;
+  OpalOriginalVideoStrategy m_original;
 };
 
 #endif // OPAL_VIDEO

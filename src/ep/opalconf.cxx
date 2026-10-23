@@ -216,14 +216,40 @@ OpalVideoStreamMixer * OpalConfEndPoint::CreateVideoMixer(OpalMixerNode & node)
 
 ////////////////////////////////////////////////////////////////
 
+class OpalConfVideoLayout : public OpalVideoLayoutStrategy
+{
+  public:
+    typedef std::list<PSafePtr<OpalMixerConnection>> OrderedConnections;
+
+    virtual bool GetMixPosition(OpalVideoMixer & mixer,
+                                const OpalVideoMixer::Key_T & key,
+                                bool firstStream,
+                                OpalVideoMixer::MixPosition & pos) override;
+
+  private:
+    OrderedConnections m_order;
+    std::map<PString, OpalVideoMixer::MixPosition> m_positions;
+    OpalGridVideoLayout m_grid;
+};
+
+
+static std::unique_ptr<OpalVideoLayoutStrategy> ConferenceLayout(const OpalMixerNode & node)
+{
+  if (node.GetNodeInfo().m_style == OpalVideoMixer::eUser)
+    return std::unique_ptr<OpalVideoLayoutStrategy>(new OpalConfVideoLayout);
+  return OpalVideoMixer::CreateLayout(node.GetNodeInfo().m_style);
+}
+
+
 OpalConfVideoMixer::OpalConfVideoMixer(OpalMixerNode & node)
   : OpalVideoStreamMixer(node)
+  , m_original(ConferenceLayout(node))
 {
 }
 
 
 #if PTRACING
-ostream & operator<<(ostream & strm, const OpalConfVideoMixer::OrderedConnections & connections)
+ostream & operator<<(ostream & strm, const OpalConfVideoLayout::OrderedConnections & connections)
 {
   bool comma = false;
   for (auto connection = connections.begin(); connection != connections.end(); ++connection) {
@@ -238,26 +264,28 @@ ostream & operator<<(ostream & strm, const OpalConfVideoMixer::OrderedConnection
 #endif
 
 
-bool OpalConfVideoMixer::GetMixPosition(const PString & id, bool firstStream, MixPosition & pos)
+bool OpalConfVideoLayout::GetMixPosition(OpalVideoMixer & mixer,
+                                         const OpalVideoMixer::Key_T & key,
+                                         bool firstStream,
+                                         OpalVideoMixer::MixPosition & pos)
 {
-  if (m_style != eUser)
-    return OpalVideoStreamMixer::GetMixPosition(id, firstStream, pos);
+  OpalVideoStreamMixer * streamMixer = dynamic_cast<OpalVideoStreamMixer *>(&mixer);
+  if (streamMixer == NULL)
+    return m_grid.GetMixPosition(mixer, key, firstStream, pos);
+
+  OpalMixerNode & node = streamMixer->GetMixerNode();
 
   if (firstStream) {
-    // Calculate all the positions on first stream. First we need to maintain
-    // an order of connections based on last active speaker.
-
 #if PTRACING
     bool changed = false;
 #endif
 
-    auto connections = m_node.GetConnections();
+    auto connections = node.GetConnections();
     if (connections.IsEmpty()) {
       m_order.clear();
       return false;
     }
 
-    // Add new connections
     for (auto connection = connections.begin(); connection != connections.end(); ++connection) {
       if (std::find(m_order.begin(), m_order.end(), &*connection) == m_order.end()) {
         m_order.push_back(&*connection);
@@ -267,7 +295,6 @@ bool OpalConfVideoMixer::GetMixPosition(const PString & id, bool firstStream, Mi
       }
     }
 
-    // Remove absent connections
     for (auto connection = m_order.begin(); connection != m_order.end(); ) {
       if (connections.FindWithLock(**connection, PSafeReference) != NULL)
         ++connection;
@@ -282,7 +309,7 @@ bool OpalConfVideoMixer::GetMixPosition(const PString & id, bool firstStream, Mi
     if (m_order.empty())
       return false;
 
-    PString activeSpeaker = m_node.GetActiveSpeakerURL();
+    PString activeSpeaker = node.GetActiveSpeakerURL();
     if ((*m_order.begin())->GetRemotePartyURL() != activeSpeaker) {
       for (auto connection = m_order.begin(); connection != m_order.end(); ++connection) {
         if ((*connection)->GetRemotePartyURL() == activeSpeaker) {
@@ -298,28 +325,39 @@ bool OpalConfVideoMixer::GetMixPosition(const PString & id, bool firstStream, Mi
 
     PTRACE_IF(3, changed, "Order of connections changed: " << m_order);
 
-    // Now calculate positions for each video stream based on the above order
     m_positions.clear();
-    MixPosition lastPosition;
+    OpalVideoMixer::MixPosition lastPosition;
+    bool firstTile = true;
     for (OrderedConnections::iterator connection = m_order.begin(); connection != m_order.end(); ++connection) {
       OpalMediaStreamPtr videoStream = (*connection)->GetMediaStream(OpalMediaType::Video(), false);
       if (videoStream == NULL)
         continue;
 
-      // We use the base class function to calculate the position in a simple NxN grid
-      if (!OpalVideoMixer::GetMixPosition(PString::Empty(), connection == m_order.begin(), lastPosition))
+      if (!m_grid.GetMixPosition(mixer, PString::Empty(), firstTile, lastPosition))
         break;
+      firstTile = false;
       m_positions[videoStream->GetID()] = lastPosition;
     }
   }
 
-  // Return the pre-calculated positions as the mixer asks for each stream to position
-  MixPositions::const_iterator it = m_positions.find(id);
+  std::map<PString, OpalVideoMixer::MixPosition>::const_iterator it = m_positions.find(key);
   if (it == m_positions.end())
     return false;
 
   pos = it->second;
   return true;
+}
+
+
+OpalVideoMixerStrategy & OpalConfVideoMixer::GetVideoStrategy()
+{
+  // Caller holds m_mutex. Conference ordering stays in the layout; delivery
+  // stays the original single mix unless a derived mixer publishes another strategy.
+  if (m_videoStrategy != &m_original) {
+    m_videoStrategy = &m_original;
+    m_deliveryChanged = true;
+  }
+  return *m_videoStrategy;
 }
 
 #endif // OPAL_VIDEO

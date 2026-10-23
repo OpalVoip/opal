@@ -112,6 +112,12 @@
 */
 #define OPAL_OPT_BUNDLE_ONLY "SDP-Bundle-Only"
 
+/**Give each bundled m-line its own RTP session so a conference can send one
+   encoded video stream per remote participant.
+   Defaults to false, which keeps one RTP session per media type.
+  */
+#define OPAL_OPT_SEPARATE_BUNDLE_STREAMS "Separate-Bundle-Streams"
+
 /**Enable multiple sync sources in single session.
 This allows multiple SSRC values to be attached to a single SDP media
 descriptor, m= line. Each SSRC must use the same media format selected for

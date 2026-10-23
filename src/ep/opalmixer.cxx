@@ -217,6 +217,24 @@ void OpalBaseMixer::StartPushThread()
 }
 
 
+void OpalBaseMixer::EnsurePushThread()
+{
+  if (!m_pushThread)
+    return;
+
+  PWaitAndSignal mutex(m_mutex);
+  if (m_workerThread != NULL)
+    return;
+
+  m_threadRunning = true;
+  m_workerThread = new PThreadObj<OpalBaseMixer>(*this,
+                                                 &OpalBaseMixer::PushThreadMain,
+                                                 false,
+                                                 "OpalMixer",
+                                                 PThread::HighestPriority);
+}
+
+
 void OpalBaseMixer::StopPushThread(bool lock)
 {
   bool oldPushThread = m_pushThread;
@@ -259,7 +277,11 @@ bool OpalBaseMixer::OnPush()
     m_pushFrame->SetPayloadType(RTP_DataFrame::MaxPayloadType);
   }
 
-  return ReadMixed(*m_pushFrame) && OnMixed(m_pushFrame);
+  if (!ReadMixed(*m_pushFrame))
+    return false;
+
+  OnStrategyPublished();
+  return OnMixed(m_pushFrame);
 }
 
 
@@ -282,8 +304,29 @@ OpalAudioMixer::OpalAudioMixer(bool stereo,
   , m_left(NULL)
   , m_right(NULL)
   , m_activeSpeakerDeadband(activeSpeakerDeadband)
+  , m_audioStrategy(NULL)
 {
   m_mixedAudio.resize(m_periodTS);
+}
+
+
+OpalAudioMixer::~OpalAudioMixer()
+{
+  StopPushThread();
+}
+
+
+OpalAudioMixerStrategy & OpalAudioMixer::GetAudioStrategy()
+{
+  // Caller holds m_mutex.
+  bool stereo = m_stereo && m_inputStreams.size() <= 2;
+  if (m_audioStrategy == NULL || m_audioStrategy->IsStereo() != stereo) {
+    m_ownedAudioStrategy.reset(stereo
+      ? static_cast<OpalAudioMixerStrategy *>(new OpalStereoAudioStrategy)
+      : static_cast<OpalAudioMixerStrategy *>(new OpalAdditiveAudioStrategy));
+    m_audioStrategy = m_ownedAudioStrategy.get();
+  }
+  return *m_audioStrategy;
 }
 
 
@@ -436,15 +479,7 @@ bool OpalAudioMixer::PreMixStreams()
 bool OpalAudioMixer::MixStreams(RTP_DataFrame & frame)
 {
   // Expected to already be mutexed
-
-  if (m_stereo && m_inputStreams.size() <= 2)
-    MixStereo(frame);
-  else {
-    PreMixStreams();
-    frame.SetPayloadSize(0);
-    MixAdditive(frame, NULL);
-  }
-  return true;
+  return GetAudioStrategy().Mix(*this, frame);
 }
 
 
@@ -577,6 +612,8 @@ OpalVideoMixer::OpalVideoMixer(Styles style, unsigned width, unsigned height, un
   , m_bgFillGreen(0)
   , m_bgFillBlue(0)
   , m_lastStreamCount(0)
+  , m_videoStrategy(NULL)
+  , m_deliveryChanged(false)
 {
   SetFrameSize(width, height);
 }
@@ -618,18 +655,70 @@ OpalBaseMixer::Stream * OpalVideoMixer::CreateStream()
 }
 
 
-bool OpalVideoMixer::MixStreams(RTP_DataFrame & frame)
+OpalVideoMixer::~OpalVideoMixer()
 {
-  if (!MixVideo())
-    return false;
+  StopPushThread();
+}
 
+
+OpalVideoMixerStrategy & OpalVideoMixer::GetVideoStrategy()
+{
+  // Caller holds m_mutex.
+  if (m_videoStrategy == NULL) {
+    m_ownedVideoStrategy.reset(new OpalOriginalVideoStrategy(CreateLayout(m_style)));
+    m_videoStrategy = m_ownedVideoStrategy.get();
+    m_deliveryChanged = true;
+  }
+  return *m_videoStrategy;
+}
+
+
+bool OpalVideoMixer::TakeDeliveryChange()
+{
+  bool changed = m_deliveryChanged;
+  m_deliveryChanged = false;
+  return changed;
+}
+
+
+bool OpalVideoMixer::ExchangeStrategy(OpalVideoMixerStrategy * & previous, OpalVideoMixerStrategy * & next)
+{
+  PWaitAndSignal lock(m_mutex);
+  previous = m_videoStrategy;
+  next = &GetVideoStrategy();
+  return TakeDeliveryChange() || previous != next;
+}
+
+
+bool OpalVideoMixer::CopyMixedFrame(RTP_DataFrame & frame)
+{
   frame.SetPayloadSize(GetOutputSize());
   PluginCodec_Video_FrameHeader * video = (PluginCodec_Video_FrameHeader *)frame.GetPayloadPtr();
   video->width = m_width;
   video->height = m_height;
   memcpy(OpalVideoFrameDataPtr(video), m_frameStore, m_frameStore.GetSize());
-
   return true;
+}
+
+
+void OpalVideoMixer::PaintStillFrame(const PBYTEArray & yuv)
+{
+  PINDEX bytes = PVideoFrameInfo::CalculateFrameBytes(m_width, m_height);
+  if (yuv.GetSize() < bytes) {
+    PColourConverter::FillYUV420P(0, 0, m_width, m_height, m_width, m_height,
+                                  m_frameStore.GetPointer(),
+                                  m_bgFillRed, m_bgFillGreen, m_bgFillBlue);
+    return;
+  }
+
+  memcpy(m_frameStore.GetPointer(), yuv, bytes);
+}
+
+
+bool OpalVideoMixer::MixStreams(RTP_DataFrame & frame)
+{
+  // Expected to already be mutexed.
+  return GetVideoStrategy().Mix(*this, frame);
 }
 
 
@@ -671,100 +760,8 @@ bool OpalVideoMixer::MixVideo()
 
 bool OpalVideoMixer::GetMixPosition(const PString & key, bool firstStream, MixPosition & pos)
 {
-  if (m_style == eActiveSpeaker) {
-    pos.x = pos.y = pos.w = pos.h = 0;
-
-    Key_T activeSpeaker = GetActiveSpeaker();
-    if ((firstStream && activeSpeaker.empty()) || key == activeSpeaker) {
-      pos.w = m_width;
-      pos.h = m_height;
-    }
-
-    return true;
-  }
-
-  if (!firstStream) {
-    pos.x += pos.w;
-    if (pos.x + pos.w <= m_width)
-      return true;
-
-    pos.x = m_mixLeftStartPosition;
-    pos.y += pos.h;
-    return pos.y + pos.h <= m_height;
-  }
-
-  switch (m_inputStreams.size() > 2 ? eGrid : m_style) {
-    case eSideBySideLetterbox:
-      pos.x = m_mixLeftStartPosition = 0;
-      pos.y = m_height / 4;
-      pos.w = m_width / 2;
-      pos.h = m_height / 2;
-      break;
-
-    case eSideBySideScaled:
-      pos.x = m_mixLeftStartPosition = 0;
-      pos.y = 0;
-      pos.w = m_width / 2;
-      pos.h = m_height;
-      break;
-
-    case eStackedPillarbox:
-      pos.x = m_mixLeftStartPosition = m_width / 4;
-      pos.y = 0;
-      pos.w = m_width / 2;
-      pos.h = m_height / 2;
-      break;
-
-    case eStackedScaled:
-      pos.x = m_mixLeftStartPosition = 0;
-      pos.y = 0;
-      pos.w = m_width;
-      pos.h = m_height / 2;
-      break;
-
-    default:
-      pos.x = m_mixLeftStartPosition = 0;
-      pos.y = 0;
-      switch (m_inputStreams.size()) {
-        case 0:
-        case 1:
-          pos.w = m_width;
-          pos.h = m_height;
-          break;
-
-        case 2:
-          pos.y = m_height / 4;
-          // Fall into next case
-
-        case 3:
-        case 4:
-          pos.w = m_width / 2;
-          pos.h = m_height / 2;
-          break;
-
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-          pos.w = m_width / 3;
-          pos.h = m_height / 3;
-          break;
-
-        default:
-          if (m_inputStreams.size() <= 16) {
-            pos.w = m_width / 4;
-            pos.h = m_height / 4;
-          }
-          else {
-            pos.w = m_width / 5;
-            pos.h = m_height / 5;
-          }
-          break;
-      }
-  }
-
-  return true;
+  // Expected to already be mutexed.
+  return GetVideoStrategy().Layout().GetMixPosition(*this, key, firstStream, pos);
 }
 
 
@@ -1116,6 +1113,9 @@ void OpalMixerConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 {
   OpalLocalConnection::OnStartMediaPatch(patch);
   m_node->UseMediaPassThrough(patch.GetSource().GetSessionID());
+#if OPAL_VIDEO
+  m_node->UpdateVideoDelivery(true);
+#endif
 }
 
 
@@ -1205,8 +1205,10 @@ OpalMixerMediaStream::OpalMixerMediaStream(OpalConnection & conn,
      connections. */
   if (IsSink()) {
 #if OPAL_VIDEO
-    if (m_mediaFormat.GetMediaType() == OpalMediaType::Video())
-      m_mediaFormat = OpalYUV420P;
+    if (m_mediaFormat.GetMediaType() == OpalMediaType::Video()) {
+      if (!m_node->RelayEncodedVideo())
+        m_mediaFormat = OpalYUV420P;
+    }
     else
 #endif
       m_mediaFormat = OpalPCM16;
@@ -1313,6 +1315,12 @@ OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
   , m_shuttingDown(false)
   , m_info(info.Clone())
   , m_audioMixer(manager.CreateAudioMixer(*this))
+#if OPAL_VIDEO
+  , m_applyingDelivery(false)
+  , m_deliveryDirty(false)
+  , m_relayEncodedVideo(false)
+  , m_relayPartyCount(0)
+#endif
 {
   PTRACE_CONTEXT_ID_NEW();
 
@@ -1423,6 +1431,10 @@ void OpalMixerNode::AttachConnection(OpalMixerConnection * connection)
   m_connections.Append(connection);
 
   UseMediaPassThrough(0);
+#if OPAL_VIDEO
+  SetForceTranscode(false);
+  UpdateVideoDelivery(true);
+#endif
 
   if (LockReadOnly()) {
     m_manager.OnNodeStatusChanged(*this, OpalConferenceState::UserAdded);
@@ -1441,6 +1453,11 @@ void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
   else {
     PTRACE(2, "Connection " << *connection << " not present in mixer node " << *this);
   }
+
+#if OPAL_VIDEO
+  SetForceTranscode(false);
+  UpdateVideoDelivery(true);
+#endif
 
   if (LockReadOnly()) {
     m_manager.OnNodeStatusChanged(*this, OpalConferenceState::UserRemoved);
@@ -1475,10 +1492,14 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
       it = m_videoMixers.emplace(role, m_manager.CreateVideoMixer(*this)).first;
     m_mixerById[id] = it->second;
 
-    if (stream->IsSink())
-      return it->second->AddStream(id);
+    if (stream->IsSink()) {
+      bool opened = it->second->AddStream(id);
+      UpdateVideoDelivery(true);
+      return opened;
+    }
 
     it->second->Append(stream);
+    UpdateVideoDelivery(true);
     return true;
   }
 #endif // OPAL_VIDEO
@@ -1565,6 +1586,15 @@ bool OpalMixerNode::SetJitterBufferSize(const OpalBaseMixer::Key_T & key, const 
 
 bool OpalMixerNode::WritePacket(const OpalMixerMediaStream & stream, const RTP_DataFrame & input)
 {
+#if OPAL_VIDEO
+  if (m_relayEncodedVideo.load() &&
+      stream.GetMediaFormat().GetMediaType() == OpalMediaType::Video() &&
+      stream.GetMediaFormat() != OpalYUV420P) {
+    ForwardEncodedVideo(stream, input);
+    return true;
+  }
+#endif
+
   PString id = stream.GetID();
   MixerByIdMap::iterator it = m_mixerById.find(id);
   return it == m_mixerById.end() || it->second->QueueStream(id, input);
@@ -1904,7 +1934,15 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
 
   switch (cache.m_state) {
     case CachedAudio::Collecting :
-      MixAdditive(cache.m_raw, audioToSubtract);
+      if (GetAudioStrategy().IsPassThrough()) {
+        m_mutex.Signal();
+        MIXER_DEBUG_OUT(",,,");
+        return;
+      }
+      if (GetAudioStrategy().IsStereo())
+        MixAdditive(cache.m_raw, audioToSubtract);
+      else
+        GetAudioStrategy().MixListener(*this, cache.m_raw, audioToSubtract);
       cache.m_state = CachedAudio::Collected;
       m_mutex.Signal();
       break;
@@ -2072,8 +2110,49 @@ bool OpalVideoStreamMixer::SetFrameRate(unsigned rate)
 }
 
 
+void OpalVideoStreamMixer::SetForceTranscode(bool on)
+{
+  PWaitAndSignal lock(m_mutex);
+  if (m_videoStrategy != NULL)
+    m_videoStrategy->SetForceTranscode(on);
+}
+
+
+void OpalVideoStreamMixer::OnStrategyPublished()
+{
+  bool changed;
+  {
+    PWaitAndSignal lock(m_mutex);
+    changed = m_deliveryChanged;
+  }
+  if (changed)
+    m_node.UpdateVideoDelivery();
+}
+
+
+bool OpalVideoStreamMixer::PushMixedPacket(const PSafePtr<OpalMixerMediaStream> & stream, RTP_DataFrame & packet)
+{
+  if (stream->PushPacket(packet))
+    return true;
+
+  if (stream->IsOpen()) {
+    stream->ExecuteCommand(OpalVideoUpdatePicture());
+    return false;
+  }
+
+  CloseOne(stream);
+  return false;
+}
+
+
 bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 {
+  {
+    PWaitAndSignal lock(m_mutex);
+    if (m_videoStrategy != NULL && !m_videoStrategy->WantsTranscode())
+      return true;
+  }
+
   typedef std::map<PString, RTP_DataFrameList> CachedPackets;
   CachedPackets cachedPackets;
   typedef std::map<unsigned, RTP_DataFrame> CachedFrameStore;
@@ -2100,8 +2179,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
     if (mediaFormat == OpalYUV420P) {
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
-      if (!stream->PushPacket(*output))
-        CloseOne(stream);
+      PushMixedPacket(stream, *output);
       stream.SetSafetyMode(PSafeReadOnly); // restore lock
     }
     else {
@@ -2188,10 +2266,8 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
 
       for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame) {
-        if (!stream->PushPacket(*frame)) {
-          CloseOne(stream);
+        if (!PushMixedPacket(stream, *frame))
           break;
-        }
       }
 
       stream.SetSafetyMode(PSafeReadOnly); // restore lock

@@ -58,6 +58,7 @@ OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
   , m_rtpSession(rtp)
   , m_rewriteHeaders(true)
   , m_notifierPriority(100)
+  , m_passThruQueued(false)
   , m_jitterBuffer(NULL)
   , m_readTimeout(PMaxTimeInterval)
 #if OPAL_VIDEO
@@ -194,23 +195,30 @@ bool OpalRTPMediaStream::SetMediaPassThrough(OpalMediaStream & otherStream, bool
   if (IsSink())
     return otherStream.SetMediaPassThrough(*this, bypass);
 
-  if (bypass) {
-    if (m_passThruStream != NULL) {
-      PTRACE(2, "Media pass through already in place from " << *this << " to " << *m_passThruStream);
-      return false;
-    }
+  {
+    PWaitAndSignal lock(m_passThruMutex);
+    if (bypass) {
+      if (m_passThruStream == &otherStream)
+        return OpalMediaStream::SetMediaPassThrough(otherStream, true);
 
-    PTRACE(3, "Media pass through set from " << *this << " to " << otherStream);
-    m_passThruStream = &otherStream;
-  }
-  else {
-    if (m_passThruStream == NULL) {
-      PTRACE(2, "No media pass through in effect on " << *this);
-      return false;
-    }
+      if (m_passThruStream != NULL) {
+        PTRACE(2, "Media pass through already in place from " << *this << " to " << *m_passThruStream);
+        return false;
+      }
 
-    PTRACE(2, "Media pass through ceased from " << *this << " to " << *m_passThruStream);
-    m_passThruStream.SetNULL();
+      PTRACE(3, "Media pass through set from " << *this << " to " << otherStream);
+      m_passThruStream = &otherStream;
+    }
+    else {
+      if (m_passThruStream == NULL) {
+        PTRACE(2, "No media pass through in effect on " << *this);
+        return false;
+      }
+
+      PTRACE(2, "Media pass through ceased from " << *this << " to " << *m_passThruStream);
+      m_passThruStream.SetNULL();
+      m_passThruQueue.clear();
+    }
   }
 
   return OpalMediaStream::SetMediaPassThrough(otherStream, bypass);
@@ -321,17 +329,69 @@ void OpalRTPMediaStream::OnReceivedPacket(OpalRTPSession &, OpalRTPSession::Data
           (m_simulcastId.empty() || data.m_frame.GetSimulcastId() == m_simulcastId))
     SetSyncSource(data.m_frame.GetSyncSource());
 
-  if (m_passThruStream == NULL) {
+  bool relay = false;
+  bool schedule = false;
+  {
+    // The receive path holds this session's lock. Writing the other session
+    // here deadlocks when both directions relay at once, so the packet is
+    // queued and written after this function returns.
+    PWaitAndSignal lock(m_passThruMutex);
+    relay = m_passThruStream != NULL;
+    if (relay) {
+      m_passThruQueue.emplace_back();
+      m_passThruQueue.back().Copy(data.m_frame);
+      if (!m_passThruQueued) {
+        m_passThruQueued = true;
+        schedule = true;
+      }
+    }
+  }
+
+  if (!relay) {
     if (m_jitterBuffer != NULL)
       m_jitterBuffer->WriteData(data.m_frame);
     return;
   }
 
-  if (m_passThruStream->WritePacket(data.m_frame))
-    return;
+  if (schedule)
+    m_connection.GetEndPoint().GetManager().QueueDecoupledEvent(
+      new PSafeWorkNoArg<OpalRTPMediaStream, bool>(this, &OpalRTPMediaStream::WriteQueuedPassThrough));
+}
 
-  PTRACE(3, "Media pass through write error from " << *this << " to " << *m_passThruStream);
-  m_passThruStream.SetNULL();
+
+bool OpalRTPMediaStream::WriteQueuedPassThrough()
+{
+  for (;;) {
+    std::deque<RTP_DataFrame> batch;
+    OpalMediaStreamPtr sink;
+    {
+      PWaitAndSignal lock(m_passThruMutex);
+      batch.swap(m_passThruQueue);
+      sink = m_passThruStream;
+      if (batch.empty() || sink == NULL) {
+        m_passThruQueued = false;
+        return true;
+      }
+    }
+
+    for (std::deque<RTP_DataFrame>::iterator frame = batch.begin(); frame != batch.end(); ++frame) {
+      if (sink->IsOpen() && sink->WritePacket(*frame))
+        continue;
+
+      PTRACE_IF(3, sink->IsOpen(), "Media pass through write error from " << *this << " to " << *sink);
+      PWaitAndSignal lock(m_passThruMutex);
+      m_passThruStream.SetNULL();
+      m_passThruQueue.clear();
+      m_passThruQueued = false;
+      return true;
+    }
+
+    PWaitAndSignal lock(m_passThruMutex);
+    if (m_passThruQueue.empty()) {
+      m_passThruQueued = false;
+      return true;
+    }
+  }
 }
 
 

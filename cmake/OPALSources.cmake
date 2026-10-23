@@ -65,6 +65,7 @@ if(OPAL_HAS_MIXER)
   list(APPEND OPAL_SOURCES
     src/opal/recording.cxx
     src/ep/opalmixer.cxx
+    src/ep/mixer_strategy.cxx
     src/ep/opalconf.cxx)
 endif()
 if(OPAL_HAS_PCSS)
