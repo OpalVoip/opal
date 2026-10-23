@@ -2745,7 +2745,7 @@ PBoolean H323_UserInputCapability::OnSendingPDU(H245_Capability & pdu) const
 }
 
 
-PBoolean H323_UserInputCapability::OnSendingPDU(H245_DataType &) const
+PBoolean H323_UserInputCapability::OnSendingPDU(H245_DataType &, CommandType) const
 {
   PTRACE(1, "H323\tCannot have UserInputCapability in DataType");
   return false;
