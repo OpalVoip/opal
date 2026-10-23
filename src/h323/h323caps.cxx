@@ -290,7 +290,7 @@ H323Channel * H323Capability::CreateChannel(H323Connection &,
 
 
 #if OPAL_H235_6 || OPAL_H235_8
-PBoolean H323Capability::OnSendingPDU(H245_DataType & pdu) const
+PBoolean H323Capability::OnSendingPDU(H245_DataType & pdu, CommandType /*type*/) const
 {
   if (m_cryptoCapability != NULL) {
     H245_H235Media & h235 = pdu;
@@ -298,7 +298,7 @@ PBoolean H323Capability::OnSendingPDU(H245_DataType & pdu) const
       return false;
   }
 #else
-PBoolean H323Capability::OnSendingPDU(H245_DataType & /*pdu*/) const
+PBoolean H323Capability::OnSendingPDU(H245_DataType & /*pdu*/, CommandType /*type*/) const
 {
 #endif
 
@@ -973,11 +973,11 @@ PBoolean H323AudioCapability::OnSendingPDU(H245_Capability & cap) const
 }
 
 
-PBoolean H323AudioCapability::OnSendingPDU(H245_DataType & dataType) const
+PBoolean H323AudioCapability::OnSendingPDU(H245_DataType & dataType, CommandType type) const
 {
   H245_AudioCapability * cap;
   H323SetMediaCapability<H245_DataType::e_audioData, H245_H235Media_mediaType::e_audioData>(*this, dataType, cap);
-  return H323RealTimeCapability::OnSendingPDU(dataType) && OnSendingPDU(*cap, GetTxFramesInPacket(), e_OLC);
+  return H323RealTimeCapability::OnSendingPDU(dataType, type) && OnSendingPDU(*cap, GetTxFramesInPacket(), type);
 }
 
 
@@ -1301,11 +1301,11 @@ PBoolean H323VideoCapability::OnSendingPDU(H245_Capability & cap) const
 }
 
 
-PBoolean H323VideoCapability::OnSendingPDU(H245_DataType & dataType) const
+PBoolean H323VideoCapability::OnSendingPDU(H245_DataType & dataType, CommandType type) const
 {
   H245_VideoCapability * cap;
   H323SetMediaCapability<H245_DataType::e_videoData, H245_H235Media_mediaType::e_videoData>(*this, dataType, cap);
-  return H323RealTimeCapability::OnSendingPDU(dataType) && OnSendingPDU(*cap, e_OLC);
+  return H323RealTimeCapability::OnSendingPDU(dataType, type) && OnSendingPDU(*cap, type);
 }
 
 
@@ -2398,12 +2398,12 @@ PBoolean H323DataCapability::OnSendingPDU(H245_Capability & cap) const
 }
 
 
-PBoolean H323DataCapability::OnSendingPDU(H245_DataType & dataType) const
+PBoolean H323DataCapability::OnSendingPDU(H245_DataType & dataType, CommandType type) const
 {
   H245_DataApplicationCapability * cap;
   H323SetMediaCapability<H245_DataType::e_data, H245_H235Media_mediaType::e_data>(*this, dataType, cap);
   m_maxBitRate.SetH245(cap->m_maxBitRate);
-  return H323Capability::OnSendingPDU(dataType) && OnSendingPDU(*cap, e_OLC);
+  return H323Capability::OnSendingPDU(dataType, type) && OnSendingPDU(*cap, type);
 }
 
 

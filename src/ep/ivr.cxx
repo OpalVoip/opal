@@ -550,7 +550,7 @@ PBoolean OpalIVRMediaStream::Open()
     if (m_vxmlSession.Open(m_mediaFormat.IsTransportable() ? m_mediaFormat.GetName() : PString(VXML_PCM16),
                            m_mediaFormat.GetClockRate(),
                            m_mediaFormat.GetOptionInteger(OpalAudioFormat::ChannelsOption(), 1)))
-      return true;
+      return OpalMediaStream::Open();
 
     PTRACE(1, "Cannot open VXML engine, incompatible media format: " << m_mediaFormat);
     return false;
