@@ -504,9 +504,13 @@ void OpalMediaPatch::Sink::GetStatistics(OpalMediaStatistics & statistics, bool 
     }
 
 #if OPAL_VIDEO
-    VideoStatsMap::const_iterator itVid = m_videoStatistics.find(statistics.m_SSRC);
-    if (itVid != m_videoStatistics.end())
-      statistics.OpalVideoStatistics::operator=(itVid->second);
+    if (!m_videoStatistics.empty()) {
+      VideoStatsMap::const_iterator itVid = m_videoStatistics.find(statistics.m_SSRC);
+      if (itVid != m_videoStatistics.end())
+        statistics.OpalVideoStatistics::operator=(itVid->second);
+      else
+        statistics.OpalVideoStatistics::operator=(m_videoStatistics.begin()->second);
+    }
 #endif
   }
 
@@ -1091,6 +1095,9 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
   if (videoCodec != NULL && !m_intermediateFrames.IsEmpty()) {
     PWaitAndSignal mutex(m_statsMutex);
     m_videoStatistics[0].IncrementFrames(videoCodec->WasLastFrameIFrame());
+    RTP_SyncSourceId ssrc = sourceFrame.GetSyncSource();
+    if (ssrc != 0)
+      m_videoStatistics[ssrc].IncrementFrames(videoCodec->WasLastFrameIFrame());
   }
 #endif // OPAL_VIDEO && OPAL_STATISTICS
 
