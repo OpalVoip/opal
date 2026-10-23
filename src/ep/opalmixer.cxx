@@ -42,9 +42,6 @@
 #include <sip/sipcon.h>
 
 
-#define DETAIL_LOG_LEVEL 6
-
-
 #if OPAL_MIXER_AUDIO_DEBUG
 class PAudioMixerDebug
 {
@@ -650,8 +647,10 @@ bool OpalVideoMixer::MixVideo()
 
     firstStream = false;
 
-    if (pos.w == 0 || pos.h == 0)
+    if (pos.w == 0 || pos.h == 0) {
+      PTRACE(5, "Skipping input video stream " << it->first);
       continue;
+    }
 
     VideoStream * vid = dynamic_cast<VideoStream *>(it->second);
     if (vid == NULL)
@@ -798,7 +797,7 @@ void OpalVideoMixer::VideoStream::InsertVideoFrame(const MixPosition & pos)
 
   PluginCodec_Video_FrameHeader * header = (PluginCodec_Video_FrameHeader *)m_queue.front().GetPayloadPtr();
 
-  PTRACE(DETAIL_LOG_LEVEL, "Copying video: " << header->width << 'x' << header->height
+  PTRACE(5, "Copying video: " << header->width << 'x' << header->height
          << " -> " << pos.x << ',' << pos.y << '/' << pos.w << 'x' << pos.h);
 
   PColourConverter::CopyYUV420P(0, 0, header->width, header->height,
