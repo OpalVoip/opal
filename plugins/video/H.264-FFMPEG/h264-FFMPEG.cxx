@@ -214,6 +214,13 @@ public:
     av_dict_set(&m_options, "tune", "zerolatency", 0);
     av_dict_set(&m_options, "crf", "35", 0);
 
+    m_context->profile = m_profile;
+    m_context->level = m_level;
+    if (m_constraints&1)
+      m_context->profile |= AV_PROFILE_H264_CONSTRAINED;
+    if (m_constraints&4)
+      m_context->profile |= AV_PROFILE_H264_INTRA;
+
     dynamic_cast<H264Frame *>(m_fullFrame)->SetPacketisationMode(m_isH323 ? m_packetisationModeH323 : m_packetisationModeSDP);
     return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
   }
