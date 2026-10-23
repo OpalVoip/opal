@@ -225,7 +225,9 @@ PBoolean H323Channel::OnReceivedAckPDU(const H245_OpenLogicalChannelAck & /*pdu*
 
 PBoolean H323Channel::OnSendingPDU(H245_OpenLogicalChannel & open) const
 {
-  return capability->OnSendingPDU(open.m_forwardLogicalChannelParameters.m_dataType);
+  return capability->OnSendingPDU(open.m_forwardLogicalChannelParameters.m_dataType,
+                                  open.HasOptionalField(H245_OpenLogicalChannel::e_reverseLogicalChannelParameters)
+                                      ? H323Capability::H323Capability::e_TCS : H323Capability::e_OLC);
 }
 
 
@@ -779,7 +781,7 @@ PBoolean H323DataChannel::OnSendingPDU(H245_OpenLogicalChannel & open) const
   H245_H2250LogicalChannelParameters & rparam = open.m_reverseLogicalChannelParameters.m_multiplexParameters;
   rparam.m_sessionID = GetSessionID();
 
-  return capability->OnSendingPDU(open.m_reverseLogicalChannelParameters.m_dataType);
+  return capability->OnSendingPDU(open.m_reverseLogicalChannelParameters.m_dataType, H323Capability::e_TCS);
 }
 
 

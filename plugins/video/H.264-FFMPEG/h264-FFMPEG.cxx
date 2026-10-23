@@ -216,6 +216,13 @@ public:
     // when CRF is set as well, which drops the video stream whenever the
     // frame size is not CIF and the codec has to be reopened.
 
+    m_context->profile = m_profile;
+    m_context->level = m_level;
+    if (m_constraints&1)
+      m_context->profile |= AV_PROFILE_H264_CONSTRAINED;
+    if (m_constraints&4)
+      m_context->profile |= AV_PROFILE_H264_INTRA;
+
     dynamic_cast<H264Frame *>(m_fullFrame)->SetPacketisationMode(m_isH323 ? m_packetisationModeH323 : m_packetisationModeSDP);
     return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
   }

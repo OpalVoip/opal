@@ -49,13 +49,13 @@ static const char H264_Flash_FormatName[] = OPAL_H264_Flash;
 static const char H264EncodingName[] = "H264";
 static const char H264FlashEncodingName[] = "H264F";
 
-// Level 3 allows 4CIF at 25fps
+// Level 4 allows HD1080 @ 30fps
 #define DefaultProfileStr          H264_PROFILE_STR_BASELINE
 #define DefaultProfileInt          H264_PROFILE_INT_BASELINE
 #define DefaultProfileH241         64
 #define DefaultLevelStr            H264_LEVEL_STR_4
-#define DefaultLevelInt            31
-#define DefaultLevelH241           71
+#define DefaultLevelInt            40
+#define DefaultLevelH241           85
 #define DefaultSDPProfileAndLevel  "42801f"
 
 #define DefaultSendAccessUnitDelimiters 0  // Many endpoints don't seem to like these, initially false
@@ -189,7 +189,7 @@ static struct LevelInfoStruct {
   { H264_LEVEL_STR_3,    30, 0x00,  64,  1620, 1808,   40500,  10000 * 1200 },
   { H264_LEVEL_STR_3_1,  31, 0x00,  71,  3600, 2704,  108000,  14000 * 1200 },
   { H264_LEVEL_STR_3_2,  32, 0x00,  78,  5120, 3232,  216000,  20000 * 1200 },
-  { H264_LEVEL_STR_4,    40, 0x00,  85,  8100, 4096,  245760,  20000 * 1200 },
+  { H264_LEVEL_STR_4,    40, 0x00,  85,  8192, 4096,  245760,  20000 * 1200 },
   { H264_LEVEL_STR_4_1,  41, 0x00,  92,  8192, 4096,  245760,  50000 * 1200 },
   { H264_LEVEL_STR_4_2,  42, 0x00,  99,  8704, 4208,  522240,  50000 * 1200 },
   { H264_LEVEL_STR_5,    50, 0x00, 106, 22080, 6720,  589824, 135000 * 1200 },
@@ -920,22 +920,19 @@ static bool MyToCustomised(PluginCodec_OptionMap & original, PluginCodec_OptionM
 
   /* While we have selected the desired level, we may need to adjust it
       further due to resolution restrictions. This is due to the fact that
-      we have no other mechnism to prevent the remote from sending, say,
+      we have no other mechanism to prevent the remote from sending, say,
       CIF when we only support QCIF.
     */
   unsigned maxWidth = original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_WIDTH);
   unsigned maxHeight = original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_HEIGHT);
   unsigned frameTime = original.GetUnsigned(PLUGINCODEC_OPTION_FRAME_TIME);
   unsigned maxMacroBlocks = PluginCodec_Utilities::GetMacroBlocks(maxWidth, maxHeight);
-  unsigned macroBlocksPerSecond = maxMacroBlocks*PLUGINCODEC_VIDEO_CLOCK/frameTime;
   if (maxMacroBlocks > 0) {
-    while (levelIndex > 0 &&
-            (LevelInfo[levelIndex].m_MaxFrameSize > maxMacroBlocks ||
-             LevelInfo[levelIndex].m_MaxMBPS > macroBlocksPerSecond))
+    while (levelIndex > 1 && LevelInfo[levelIndex-1].m_MaxFrameSize > maxMacroBlocks)
       --levelIndex;
     PTRACE(4, MY_CODEC_LOG, "Max resolution " << maxWidth << 'x' << maxHeight
            << " and frame rate " << frameTime << " (" << (PLUGINCODEC_VIDEO_CLOCK/frameTime) << "fps)"
-              " selected index " << levelIndex);
+              " selected index " << levelIndex << " \"" << LevelInfo[levelIndex].m_Name << '"');
   }
   else {
     PTRACE(4, MY_CODEC_LOG, "Level \"" << str << "\" selected index " << levelIndex);
@@ -956,6 +953,7 @@ static bool MyToCustomised(PluginCodec_OptionMap & original, PluginCodec_OptionM
   PluginCodec_Utilities::ClampResolution(original, changed, maxWidth, maxHeight, maxMacroBlocks);
 
   // Do this afer the clamping, maxFrameSizeInMB may change
+  unsigned macroBlocksPerSecond = maxMacroBlocks*PLUGINCODEC_VIDEO_CLOCK/frameTime;
   if (maxMacroBlocks > LevelInfo[levelIndex].m_MaxFrameSize) {
     PluginCodec_Utilities::ClampMax(maxMacroBlocks, original, changed, MaxFS_SDP_Name, true);
     PluginCodec_Utilities::ClampMax((maxMacroBlocks+SCALE_FS_H241-1)/SCALE_FS_H241, original, changed, MaxFS_H241_Name, true);

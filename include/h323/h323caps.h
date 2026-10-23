@@ -244,7 +244,8 @@ class H323Capability : public PObject
        The default behaviour is pure.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const;
 
     /**This function is called whenever and outgoing RequestMode
@@ -680,7 +681,8 @@ class H323AudioCapability : public H323RealTimeCapability
        specific PDU type.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const override;
 
     /**This function is called whenever and outgoing RequestMode
@@ -1065,7 +1067,8 @@ class H323VideoCapability : public H323RealTimeCapability
        specific PDU type.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const override;
 
     /**This function is called whenever and outgoing RequestMode
@@ -1900,7 +1903,8 @@ class H323DataCapability : public H323Capability
        specific PDU type.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const override;
 
     /**This function is called whenever and outgoing RequestMode
@@ -2337,7 +2341,8 @@ class H323_UserInputCapability : public H323Capability
        The default behaviour is pure.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
