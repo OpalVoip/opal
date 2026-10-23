@@ -338,6 +338,30 @@ void FFMPEGCodec::CloseCodec()
 }
 
 
+static int EncoderQuantiserMax(const AVCodecContext * context, unsigned tsto)
+{
+  // TSTO is 1..31. H.263 and MPEG-4 quantisers use that range directly.
+  // H.264 and H.265 quantisers run to 51; map the same way as the x264 plugin.
+  unsigned tradeOff = tsto;
+  if (tradeOff < 1)
+    tradeOff = 1;
+  else if (tradeOff > 31)
+    tradeOff = 31;
+
+  int qscaleMax = 31;
+  if (context->codec_id == AV_CODEC_ID_H264 || context->codec_id == AV_CODEC_ID_HEVC)
+    qscaleMax = 51;
+
+  int qmin = context->qmin > 0 ? context->qmin : 0;
+  int qmax = qscaleMax == 51 ? qmin + ((qscaleMax - qmin) * (int)tradeOff) / 32 : (int)tradeOff;
+  if (qmax <= qmin)
+    qmax = qmin + 1;
+  if (qmax > qscaleMax)
+    qmax = qscaleMax;
+  return qmax;
+}
+
+
 bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
                                     unsigned frameHeight,
                                     unsigned frameTime,
@@ -349,20 +373,43 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   if (m_context == NULL)
     return false;
 
+  // AVRational frame rate is num/den. frameTime is the duration of one frame
+  // in 90 kHz ticks, so the rate is 90000/frameTime.
+  AVRational frameRate = { 0, 1 };
+  if (frameTime > 0) {
+    frameRate.num = PLUGINCODEC_VIDEO_CLOCK;
+    frameRate.den = (int)frameTime;
+  }
+
   bool wasOpen = m_open;
   if (wasOpen) {
-    if ((unsigned)m_context->width == frameWidth && (unsigned)m_context->height == frameHeight) {
-      PTRACE(4, m_prefix, "Resolution is already set to " << frameWidth << 'x' << frameHeight);
+    int qmax = EncoderQuantiserMax(m_context, tsto);
+    bool unchanged =
+      (unsigned)m_context->width == frameWidth &&
+      (unsigned)m_context->height == frameHeight &&
+      m_context->bit_rate == (int64_t)maxBitRate &&
+      m_context->framerate.num == frameRate.num &&
+      m_context->framerate.den == frameRate.den &&
+      m_context->qmax == qmax &&
+      (unsigned)m_context->gop_size == keyFramePeriod;
+    if (unchanged) {
+      PTRACE(4, m_prefix, "Encoder parameters already set to "
+             << frameWidth << 'x' << frameHeight << '@'
+             << (frameTime > 0 ? PLUGINCODEC_VIDEO_CLOCK/frameTime : 0));
       return true;
     }
 
-    PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
+    PTRACE(3, m_prefix, "Encoder parameters changed - reopening codec");
+    int profile = m_context->profile;
+    int level = m_context->level;
     CloseCodec();
 
     if (!InitContext()) {
-      PTRACE(1, m_prefix, "Failed to initialise context during resolution change");
+      PTRACE(1, m_prefix, "Failed to initialise context while reopening codec");
       return false;
     }
+    m_context->profile = profile;
+    m_context->level = level;
   }
 
   if (!m_fullFrame->SetSize(frameWidth*frameHeight*2)) {
@@ -402,10 +449,9 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   m_context->coded_height = frameHeight;
 
   if (frameTime > 0) {
-    m_context->framerate.den = PLUGINCODEC_VIDEO_CLOCK;
-    m_context->framerate.num = frameTime;
-    m_context->time_base.den = 2997;
-    m_context->time_base.num = frameTime*m_context->time_base.den/PLUGINCODEC_VIDEO_CLOCK;
+    m_context->framerate = frameRate;
+    m_context->time_base.num = (int)frameTime;
+    m_context->time_base.den = PLUGINCODEC_VIDEO_CLOCK;
   }
 
   m_context->bit_rate = m_context->rc_min_rate = m_context->rc_max_rate = maxBitRate;
@@ -436,9 +482,7 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
 
   m_fullFrame->SetMaxPayloadSize(maxRTPSize);
 
-  m_context->qmax = tsto;
-  if (m_context->qmax <= m_context->qmin)
-    m_context->qmax = m_context->qmin+1;
+  m_context->qmax = EncoderQuantiserMax(m_context, tsto);
 
   m_context->sample_aspect_ratio.num = 1;
   m_context->sample_aspect_ratio.den = 1;
