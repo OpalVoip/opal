@@ -343,7 +343,7 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
                                     unsigned frameTime,
                                     unsigned maxBitRate,
                                     unsigned maxRTPSize,
-                                    unsigned tsto,
+                                    unsigned qmax,
                                     unsigned keyFramePeriod)
 {
   if (m_context == NULL)
@@ -436,10 +436,8 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
 
   m_fullFrame->SetMaxPayloadSize(maxRTPSize);
 
-  m_context->qmax = tsto;
-  if (m_context->qmax <= m_context->qmin)
-    m_context->qmax = m_context->qmin+1;
-
+  m_context->qmin = 1;
+  m_context->qmax = qmax > 1 ? qmax : 1;
   m_context->sample_aspect_ratio.num = 1;
   m_context->sample_aspect_ratio.den = 1;
   m_context->gop_size = keyFramePeriod;
@@ -466,7 +464,7 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
 
   PTRACE(3, m_prefix, "Encoder parameters set: "
          << frameWidth << 'x' << frameHeight << '@' << (PLUGINCODEC_VIDEO_CLOCK/frameTime)
-         << ' ' << maxBitRate << "bps rtp=" << maxRTPSize << " tsto=" << tsto << " gop=" << keyFramePeriod);
+         << ' ' << maxBitRate << "bps rtp=" << maxRTPSize << " qmax=" << qmax << " gop=" << keyFramePeriod);
   return true;
 }
 

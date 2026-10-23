@@ -510,7 +510,7 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
 
       ClampResolution();
 
-      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize*31/100, m_tsto, m_keyFramePeriod))
         return false;
 
       PTRACE(4, m_prefix, "Packetization is " << m_fullFrame->GetName());

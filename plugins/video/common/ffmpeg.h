@@ -128,7 +128,7 @@ class FFMPEGCodec
       unsigned frameTime,
       unsigned maxBitRate,
       unsigned maxRTPSize,
-      unsigned tsto,
+      unsigned qmax,
       unsigned keyFramePeriod
     );
     bool SetOptionsInt(const char * name, const char * value, bool & optionsSame);

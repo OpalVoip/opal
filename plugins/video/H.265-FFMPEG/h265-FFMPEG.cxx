@@ -443,7 +443,7 @@ public:
     //av_dict_set(&m_options, "x265-params", "pass=1", 0);
     av_dict_set(&m_options, "crf", "35", 0);
 
-    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
+    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod);
   }
 
 

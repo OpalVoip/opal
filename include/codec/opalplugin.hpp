@@ -1051,7 +1051,7 @@ class PluginVideoEncoder : public PluginVideoCodec<NAME>
     PluginVideoEncoder(const PluginCodec_Definition * defn)
       : BaseClass(defn)
       , m_maxRTPSize(PluginCodec_RTP_MaxPacketSize)
-      , m_tsto(31)
+      , m_tsto(100)
       , m_keyFramePeriod(0) // Indicates auto/default
     {
     }
@@ -1075,7 +1075,7 @@ class PluginVideoEncoder : public PluginVideoCodec<NAME>
         return this->SetOptionUnsigned(this->m_maxRTPSize, optionValue, 256);
 
       if (strcasecmp(optionName, PLUGINCODEC_OPTION_TEMPORAL_SPATIAL_TRADE_OFF) == 0)
-        return this->SetOptionUnsigned(this->m_tsto, optionValue, 1, 31);
+        return this->SetOptionUnsigned(this->m_tsto, optionValue, 1, 100);
 
       if (strcasecmp(optionName, PLUGINCODEC_OPTION_TX_KEY_FRAME_PERIOD) == 0)
         return this->SetOptionUnsigned(this->m_keyFramePeriod, optionValue, 0);
