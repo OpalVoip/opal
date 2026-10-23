@@ -1320,6 +1320,7 @@ OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
   , m_deliveryDirty(false)
   , m_relayEncodedVideo(false)
   , m_relayInProgress(false)
+  , m_relayApplyPending(false)
   , m_relayPartyCount(0)
 #endif
 {
@@ -1433,6 +1434,7 @@ void OpalMixerNode::AttachConnection(OpalMixerConnection * connection)
 
   UseMediaPassThrough(0);
 #if OPAL_VIDEO
+  RenegotiateParticipants(m_connections.GetSize() >= 3 && m_connections.GetSize() <= 4);
   SetForceTranscode(false);
   UpdateVideoDelivery(true);
 #endif
@@ -1456,6 +1458,7 @@ void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
   }
 
 #if OPAL_VIDEO
+  RenegotiateParticipants(m_connections.GetSize() >= 3 && m_connections.GetSize() <= 4);
   SetForceTranscode(false);
   UpdateVideoDelivery(true);
 #endif
@@ -2150,7 +2153,9 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 {
   {
     PWaitAndSignal lock(m_mutex);
-    if (m_videoStrategy != NULL && !m_videoStrategy->WantsTranscode())
+    // Keep painting the mixed picture until each outgoing stream is carrying
+    // one other participant. Selecting the relay strategy alone does not.
+    if (m_videoStrategy != NULL && !m_videoStrategy->WantsTranscode() && m_node.EncodedRelayActive())
       return true;
   }
 

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <set>
+#include <ptclib/threadpool.h>
 
 #if OPAL_VIDEO
 #include <ptlib/videoio.h>
@@ -711,6 +712,31 @@ bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
 }
 
 
+static void CloseVideoDirection(OpalConnection & connection, bool source)
+{
+  std::vector<OpalMediaStreamPtr> video;
+  PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (IsVideo(*it) && it->IsSource() == source)
+      video.push_back(&*it);
+  }
+  for (std::vector<OpalMediaStreamPtr>::iterator it = video.begin(); it != video.end(); ++it)
+    connection.CloseMediaStream(*it);
+}
+
+
+static unsigned MixerVideoSourceCount(OpalConnection & mixer)
+{
+  unsigned count = 0;
+  PSafeArray<OpalMediaStream> streams = mixer.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (it->IsSource() && IsVideo(*it))
+      ++count;
+  }
+  return count;
+}
+
+
 static unsigned VideoSinkCount(OpalConnection & connection)
 {
   unsigned count = 0;
@@ -761,15 +787,6 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
     return false;
   }
 
-  if (m_relayInProgress.exchange(true))
-    return true;
-
-  struct InProgress
-  {
-    atomic<bool> & flag;
-    ~InProgress() { flag = false; }
-  } inProgress{m_relayInProgress};
-
   struct Party {
     PSafePtr<OpalMixerConnection> mixer;
     PSafePtr<OpalConnection> network;
@@ -818,80 +835,161 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
   if (m_relayEncodedVideo.load() && m_relayPartyCount == parties.size())
     return true;
 
+  unsigned needed = (unsigned)parties.size() - 1;
   for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
-    CloseVideoStreams(*it->mixer);
-    CloseVideoStreams(*it->network);
+    if (MixerVideoSourceCount(*it->mixer) < needed) {
+      // The extra m-lines are still sharing the first video session, so only
+      // the mixed picture has a stream. The next offer separates them.
+      waiting = true;
+      return false;
+    }
   }
 
+  if (m_relayInProgress.load() || m_relayApplyPending.exchange(true))
+    return true;
+
+  m_manager.GetManager().QueueDecoupledEvent(
+    new PSafeWorkNoArg<OpalMixerNode, bool>(this, &OpalMixerNode::ApplyMultiStreamRelay));
+  return true;
+}
+
+
+bool OpalMixerNode::ApplyMultiStreamRelay()
+{
+  m_relayApplyPending = false;
+  if (m_shuttingDown)
+    return true;
+
+  if (m_relayInProgress.exchange(true))
+    return true;
+
+  struct InProgress
+  {
+    atomic<bool> & flag;
+    ~InProgress() { flag = false; }
+  } inProgress{m_relayInProgress};
+
+  bool waiting = false;
+  if (!ArmEncodedRelay(waiting) && !waiting)
+    SetForceTranscode(true);
+  return true;
+}
+
+
+bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
+{
+  waiting = false;
+
+  struct Party {
+    PSafePtr<OpalMixerConnection> mixer;
+    PSafePtr<OpalConnection> network;
+    OpalMediaFormat format;
+    unsigned sessionID;
+    PString sinkId;
+  };
+  std::vector<Party> parties;
+
+  for (auto & connection : m_connections) {
+    PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+    if (network == NULL)
+      continue;
+
+    OpalMediaStreamPtr video = network->GetMediaStream(OpalMediaType::Video(), true);
+    if (video == NULL)
+      continue;
+
+    Party party;
+    party.mixer = &connection;
+    party.network = network;
+    party.format = video->GetMediaFormat();
+    party.sessionID = video->GetSessionID();
+    parties.push_back(party);
+  }
+
+  if (parties.size() < 3 || parties.size() > 4) {
+    waiting = parties.size() < 3;
+    return false;
+  }
+
+  for (size_t i = 1; i < parties.size(); ++i) {
+    if (parties[i].format != parties[0].format) {
+      PTRACE(3, "Video formats differ, falling back to a transcoded mix on " << *this);
+      return false;
+    }
+  }
+
+  unsigned needed = (unsigned)parties.size() - 1;
+  for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
+    if (MixerVideoSourceCount(*it->mixer) < needed) {
+      waiting = true;
+      return false;
+    }
+  }
+
+  // Leave the streams the browsers are already receiving. Only the path that
+  // carries each camera into the mixer has to be reopened without a transcoder.
+  m_relayEncodedVideo = true;
+  m_relayPartyCount = 0;
   {
     PWaitAndSignal lock(m_relayMutex);
     m_relaySourceOf.clear();
   }
-  m_relayEncodedVideo = true;
-  m_relayPartyCount = 0;
-  RenegotiateParticipants(true);
+
+  for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
+    CloseVideoDirection(*it->network, true);
+    CloseVideoDirection(*it->mixer, false);
+  }
 
   for (std::vector<Party>::iterator sender = parties.begin(); sender != parties.end(); ++sender) {
-    if (!sender->mixer->GetCall().OpenSourceMediaStreams(*sender->network,
-                                                         OpalMediaType::Video(),
-                                                         0,
-                                                         sender->format)) {
-      PTRACE(2, "Could not reopen encoded video from " << *sender->network);
-      m_relayEncodedVideo = false;
-      ReopenMixedVideo();
-      return false;
+    if (sender->mixer->GetCall().OpenSourceMediaStreams(*sender->network,
+                                                       OpalMediaType::Video(),
+                                                       sender->sessionID,
+                                                       sender->format)) {
+      OpalMediaStreamPtr sink = sender->mixer->GetMediaStream(OpalMediaType::Video(), false);
+      if (sink != NULL) {
+        sender->sinkId = sink->GetID();
+        continue;
+      }
     }
 
-    OpalMediaStreamPtr sink = sender->mixer->GetMediaStream(OpalMediaType::Video(), false);
-    if (sink == NULL) {
-      PTRACE(2, "Encoded video from " << *sender->network << " did not arrive at the mixer");
-      m_relayEncodedVideo = false;
-      ReopenMixedVideo();
-      return false;
+    PTRACE(2, "Could not reopen encoded video from " << *sender->network);
+    m_relayEncodedVideo = false;
+    m_relayPartyCount = 0;
+    for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
+      CloseVideoDirection(*it->network, true);
+      CloseVideoDirection(*it->mixer, false);
+      it->mixer->GetCall().OpenSourceMediaStreams(*it->network,
+                                                 OpalMediaType::Video(),
+                                                 it->sessionID,
+                                                 it->format);
     }
-    sender->sinkId = sink->GetID();
+    waiting = true;
+    return false;
   }
 
   for (std::vector<Party>::iterator receiver = parties.begin(); receiver != parties.end(); ++receiver) {
+    std::vector<PString> outputs;
+    PSafeArray<OpalMediaStream> streams = receiver->mixer->GetMediaStreams();
+    for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+      if (it->IsSource() && IsVideo(*it))
+        outputs.push_back(it->GetID());
+    }
+
+    size_t index = 0;
     for (std::vector<Party>::iterator sender = parties.begin(); sender != parties.end(); ++sender) {
       if (&*sender->mixer == &*receiver->mixer)
         continue;
-
-      std::set<PString> before;
-      PSafeArray<OpalMediaStream> existing = receiver->mixer->GetMediaStreams();
-      for (PSafeArray<OpalMediaStream>::iterator it = existing.begin(); it != existing.end(); ++it) {
-        if (it->IsSource() && IsVideo(*it))
-          before.insert(it->GetID());
-      }
-
-      if (!receiver->mixer->GetCall().OpenSourceMediaStreams(*receiver->mixer,
-                                                             OpalMediaType::Video(),
-                                                             0,
-                                                             sender->format)) {
-        PTRACE(2, "Could not open a relay video stream towards " << *receiver->network);
-        m_relayEncodedVideo = false;
-        ReopenMixedVideo();
-        return false;
-      }
-
-      OpalMediaStreamPtr created;
-      PSafeArray<OpalMediaStream> streams = receiver->mixer->GetMediaStreams();
-      for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
-        if (it->IsSource() && IsVideo(*it) && before.find(it->GetID()) == before.end()) {
-          created = &*it;
-          break;
-        }
-      }
-
-      if (created == NULL) {
+      if (index >= outputs.size() || sender->sinkId.IsEmpty()) {
         PTRACE(2, "Relay video stream towards " << *receiver->network << " was not created");
         m_relayEncodedVideo = false;
-        ReopenMixedVideo();
+        m_relayPartyCount = 0;
+        waiting = true;
         return false;
       }
 
       PWaitAndSignal lock(m_relayMutex);
-      m_relaySourceOf[created->GetID()] = sender->sinkId;
+      m_relaySourceOf[outputs[index]] = sender->sinkId;
+      ++index;
     }
   }
 
@@ -914,8 +1012,6 @@ void OpalMixerNode::StopMultiStreamRelay()
     m_relaySourceOf.clear();
   }
 
-  RenegotiateParticipants(false);
-  ReopenMixedVideo();
   RequestVideoKeyFrames();
 }
 
