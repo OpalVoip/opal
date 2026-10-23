@@ -2341,7 +2341,8 @@ class H323_UserInputCapability : public H323Capability
        The default behaviour is pure.
      */
     virtual PBoolean OnSendingPDU(
-      H245_DataType & pdu  ///<  PDU to set information on
+      H245_DataType & pdu,  ///<  PDU to set information on
+      CommandType type      ///<  Type of PDU to send in
     ) const override;
 
     /**This function is called whenever and incoming TerminalCapabilitySet
