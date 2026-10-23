@@ -1319,6 +1319,7 @@ OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
   , m_applyingDelivery(false)
   , m_deliveryDirty(false)
   , m_relayEncodedVideo(false)
+  , m_relayInProgress(false)
   , m_relayPartyCount(0)
 #endif
 {

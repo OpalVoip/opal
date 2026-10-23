@@ -1623,6 +1623,10 @@ class OpalMixerNode : public PSafeObject
       */
     bool StartMultiStreamRelay(bool & waiting);
     void StopMultiStreamRelay();
+
+    /**True when every participant already has a video stream for each of the others.
+      */
+    bool MultiStreamReady() const;
     void SetForceTranscode(bool on);
     void RequestVideoKeyFrames();
     bool RelayEncodedVideo() const { return m_relayEncodedVideo.load(); }
@@ -1727,6 +1731,7 @@ class OpalMixerNode : public PSafeObject
     atomic<bool> m_applyingDelivery;
     atomic<bool> m_deliveryDirty;
     atomic<bool> m_relayEncodedVideo;
+    atomic<bool> m_relayInProgress;
     unsigned m_relayPartyCount;
     PDECLARE_MUTEX(m_relayMutex);
     std::map<PString, PString> m_relaySourceOf;

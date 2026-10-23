@@ -104,12 +104,6 @@ class OpalRTPMediaStream : public OpalMediaStream
       bool bypass                     ///< Turn bypass on or off
     ) override;
 
-    /**Write packets queued by media pass-through.
-       Runs without the source RTP session lock, so the two directions of a
-       relay cannot deadlock on each other's sessions.
-      */
-    bool WriteQueuedPassThrough();
-
     /**Read an RTP frame of data from the source media stream.
        The new behaviour simply calls OpalRTPSession::ReadData().
       */
@@ -205,6 +199,9 @@ protected:
     virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
     virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch) override;
     virtual bool InternalExecuteCommand(const OpalMediaCommand & command) override;
+    void EnsurePassThroughThread();
+    void StopPassThroughThread();
+    void PassThroughMain();
 
     OpalRTPSession    & m_rtpSession;
     bool                m_rewriteHeaders;
@@ -213,7 +210,9 @@ protected:
     PMutex              m_passThruMutex;
     OpalMediaStreamPtr  m_passThruStream;
     std::deque<RTP_DataFrame> m_passThruQueue;
-    bool                m_passThruQueued;
+    PThread           * m_passThruThread;
+    atomic<bool>        m_passThruRunning;
+    PSyncPoint          m_passThruSignal;
     OpalJitterBuffer  * m_jitterBuffer;
     PTimeInterval       m_readTimeout;
 
@@ -227,7 +226,10 @@ protected:
 #endif
 
     PDECLARE_RTPDataNotifier(OpalRTPMediaStream, OnReceivedPacket);
+    friend class OpalRTPStreamReceiver;
     OpalRTPSession::DataNotifier m_receiveNotifier;
+    void AttachReceiveNotifier();
+    void DetachReceiveNotifier();
 
 #if OPAL_JITTER_BUFFER_LATENCY_CHECK
     PTimeInterval m_jbLatencyAccumulator;

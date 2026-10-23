@@ -446,7 +446,7 @@ OpalVideoMixerStrategy & OpalParticipantCountVideoStrategy::Select(const OpalMix
       return m_still;
     if (count == 2)
       return m_pair;
-    if (count <= 4)
+    if (count <= 4 && node.MultiStreamReady())
       return m_multi;
   }
   return m_original;
@@ -619,13 +619,34 @@ static bool PairDirectionReady(OpalConnection & from,
 }
 
 
+static void ClearVideoPassThrough(OpalMixerNode & node)
+{
+  std::vector<PSafePtr<OpalConnection>> networks;
+  for (auto & connection : node.GetConnections()) {
+    PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+    if (network != NULL)
+      networks.push_back(network);
+  }
+
+  for (size_t i = 0; i < networks.size(); ++i) {
+    for (size_t j = i + 1; j < networks.size(); ++j)
+      OpalManager::SetMediaPassThrough(*networks[i], *networks[j], false, 0);
+  }
+}
+
+
 bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
 {
   waiting = false;
 
+  if (!enable) {
+    ClearVideoPassThrough(*this);
+    return true;
+  }
+
   if (m_connections.GetSize() != 2) {
-    waiting = enable;
-    return !enable;
+    waiting = true;
+    return false;
   }
 
   PSafePtr<OpalMixerConnection> first = m_connections.GetAt(0, PSafeReference);
@@ -665,12 +686,6 @@ bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
       pending = true;
   }
 
-  if (!enable) {
-    for (std::vector<unsigned>::iterator it = sessions.begin(); it != sessions.end(); ++it)
-      OpalManager::SetMediaPassThrough(*network1, *network2, false, *it);
-    return true;
-  }
-
   if (!sawVideo || pending) {
     waiting = true;
     return false;
@@ -696,9 +711,64 @@ bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
 }
 
 
+static unsigned VideoSinkCount(OpalConnection & connection)
+{
+  unsigned count = 0;
+  PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (!it->IsSource() && IsVideo(*it))
+      ++count;
+  }
+  return count;
+}
+
+
+static bool ParticipantsHaveRelaySinks(const OpalMixerNode & node)
+{
+  PINDEX connectionCount = node.GetConnectionCount();
+  if (connectionCount < 3 || connectionCount > 4)
+    return false;
+
+  unsigned needed = (unsigned)connectionCount - 1;
+  unsigned ready = 0;
+  for (const auto & connection : node.GetConnections()) {
+    PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+    if (network == NULL || network->GetMediaStream(OpalMediaType::Video(), true) == NULL)
+      continue;
+    if (VideoSinkCount(*network) < needed)
+      return false;
+    ++ready;
+  }
+  return ready == (unsigned)connectionCount;
+}
+
+
+bool OpalMixerNode::MultiStreamReady() const
+{
+  return m_relayInProgress.load() || ParticipantsHaveRelaySinks(*this);
+}
+
+
 bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
 {
   waiting = false;
+
+  if (m_relayInProgress.load())
+    return true;
+
+  if (!ParticipantsHaveRelaySinks(*this)) {
+    waiting = m_connections.GetSize() <= 4;
+    return false;
+  }
+
+  if (m_relayInProgress.exchange(true))
+    return true;
+
+  struct InProgress
+  {
+    atomic<bool> & flag;
+    ~InProgress() { flag = false; }
+  } inProgress{m_relayInProgress};
 
   struct Party {
     PSafePtr<OpalMixerConnection> mixer;
