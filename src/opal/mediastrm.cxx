@@ -973,8 +973,10 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     /* Mid-call SSRC change while this sink owns silence insertion
        (JB disabled / m_externalSilence false). RTP timestamps start a new
        continuum, so the inter-SSRC gap can only be reconstructed from
-       wall-clock (realDelta). */
-    RTP_Timestamp pad = std::min(realDelta, failSafeDelta);
+       wall-clock (realDelta). The previous packet already covers the
+       start of the wall-clock gap. */
+    RTP_Timestamp lastFrame = m_lastDataSize/PCM16Size;
+    RTP_Timestamp pad = realDelta > lastFrame ? std::min(realDelta - lastFrame, failSafeDelta) : 0;
     PTRACE(4, "SSRC change wall-clock silence:"
            " real-delta=" << realDelta << ","
            " ts=" << m_timestamp << ","
@@ -985,8 +987,20 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
     m_expectedTimestamp = m_timestamp;
   }
   else if (m_timestamp < m_expectedTimestamp || (m_timestamp - m_expectedTimestamp) > failSafeDelta) {
-    // Timestamp are bad, went backwards or jumped forward more than fail safe time
-    PTRACE(4, "Unexpected change in timestamps: ts=" << m_timestamp << ", expected=" << m_expectedTimestamp);
+    /* Timestamp are bad, went backwards or jumped forward more than fail safe
+       time. They start a new continuum, as on an SSRC change, so the gap can
+       only be reconstructed from wall-clock. The previous packet already
+       covers the start of the gap. A realDelta over the fail safe is a clock
+       step (a backward one wraps), so it is not trusted and no silence is added. */
+    RTP_Timestamp lastFrame = m_lastDataSize/PCM16Size;
+    RTP_Timestamp pad = realDelta > lastFrame && realDelta <= failSafeDelta ? realDelta - lastFrame : 0;
+    PTRACE(4, "Unexpected change in timestamps:"
+           " ts=" << m_timestamp << ","
+           " expected=" << m_expectedTimestamp << ","
+           " real-delta=" << realDelta << ","
+           " pad=" << pad);
+    if (!InternalWriteSilence(m_expectedTimestamp + pad))
+      return false;
     m_expectedTimestamp = m_timestamp;
   }
   else {
@@ -998,8 +1012,28 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
        over 500ms, then we don't trust the indicated timestamp */
     RTP_Timestamp delta = m_timestamp - m_expectedTimestamp;
     if (delta < 120*m_timeUnits && realDelta > 500*m_timeUnits) {
-      PTRACE(4, "Unexpected audio packet delay: ts-delta=" << delta << ", real-delta=" << realDelta);
-      m_expectedTimestamp -= realDelta;
+      /* The gap is the wall-clock time, not that plus the timestamp delta.
+         The previous packet already covers the start of it, as on the
+         SSRC-change path. */
+      RTP_Timestamp lastFrame = m_lastDataSize/PCM16Size;
+      RTP_Timestamp pad = realDelta > lastFrame ? realDelta - lastFrame : 0;
+      PTRACE(4, "Unexpected audio packet delay:"
+             " ts-delta=" << delta << ","
+             " real-delta=" << realDelta << ","
+             " pad=" << pad);
+      m_expectedTimestamp = m_timestamp - pad;
+    }
+    else if (realDelta <= failSafeDelta && delta > realDelta + 500*m_timeUnits) {
+      // Timestamp jumped more than 500ms ahead of the wall clock (mirror of the
+      // above). The previous packet already covers the start of the real gap;
+      // a wrapped realDelta (clock step backward) is above the fail-safe.
+      RTP_Timestamp lastFrame = m_lastDataSize/PCM16Size;
+      RTP_Timestamp pad = realDelta > lastFrame ? realDelta - lastFrame : 0;
+      PTRACE(4, "Unexpected audio timestamp jump:"
+             " ts-delta=" << delta << ","
+             " real-delta=" << realDelta << ","
+             " pad=" << pad);
+      m_expectedTimestamp = m_timestamp - pad;
     }
 
     // If current timestamp later than expected, need to pad with silence.
@@ -1008,7 +1042,12 @@ PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDE
   }
 
   m_lastDataSize = length;
-  return InternalWriteChannel(buffer, length, written);
+  bool restartedAtZero = m_expectedTimestamp == 0;
+  if (!InternalWriteChannel(buffer, length, written))
+    return false;
+  if (restartedAtZero)
+    m_expectedTimestamp = written/PCM16Size; // InternalWriteChannel does not advance from zero
+  return true;
 }
 
 
@@ -1017,9 +1056,12 @@ bool OpalRawMediaStream::InternalWriteSilence(RTP_Timestamp targetTimestamp)
   while (m_expectedTimestamp < targetTimestamp) {
     const PINDEX silenceBytes = std::min((targetTimestamp - m_expectedTimestamp)*PCM16Size, 1000U*m_timeUnits);
     PTRACE(4, "Writing silence: " << silenceBytes << " bytes");
+    RTP_Timestamp previousTimestamp = m_expectedTimestamp;
     PINDEX written;
     if (!InternalWriteChannel(m_silence.GetPointer(silenceBytes), silenceBytes, written))
       return false;
+    if (m_expectedTimestamp == previousTimestamp)
+      m_expectedTimestamp = targetTimestamp; // InternalWriteChannel does not advance from zero, nor on an empty write
   }
   return true;
 }
