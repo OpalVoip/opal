@@ -349,20 +349,39 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   if (m_context == NULL)
     return false;
 
+  // AVRational frame rate is num/den. frameTime is the duration of one frame
+  // in 90 kHz ticks, so the rate is 90000/frameTime.
+  AVRational frameRate;
+  frameRate.num = PLUGINCODEC_VIDEO_CLOCK;
+  frameRate.den = frameTime > 0 ? frameTime : 3000; // Default to 30 fps
+
   bool wasOpen = m_open;
   if (wasOpen) {
-    if ((unsigned)m_context->width == frameWidth && (unsigned)m_context->height == frameHeight) {
-      PTRACE(4, m_prefix, "Resolution is already set to " << frameWidth << 'x' << frameHeight);
+    if ((unsigned)m_context->width == frameWidth &&
+        (unsigned)m_context->height == frameHeight &&
+        m_context->bit_rate == (int64_t)maxBitRate &&
+        m_context->framerate.num == frameRate.num &&
+        m_context->framerate.den == frameRate.den &&
+        m_context->qmax == (int)qmax &&
+        (unsigned)m_context->gop_size == keyFramePeriod) {
+      PTRACE(4, m_prefix, "Encoder parameters already set to "
+             << frameWidth << 'x' << frameHeight << '@' << (PLUGINCODEC_VIDEO_CLOCK/frameRate.den));
       return true;
     }
 
     PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
     CloseCodec();
 
+    int profile = m_context->profile;
+    int level = m_context->level;
+
     if (!InitContext()) {
-      PTRACE(1, m_prefix, "Failed to initialise context during resolution change");
+      PTRACE(1, m_prefix, "Failed to initialise context on options change");
       return false;
     }
+
+    m_context->profile = profile;
+    m_context->level = level;
   }
 
   if (!m_fullFrame->SetSize(frameWidth*frameHeight*2)) {
@@ -401,12 +420,9 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   m_context->coded_width = frameWidth;
   m_context->coded_height = frameHeight;
 
-  if (frameTime > 0) {
-    m_context->framerate.den = PLUGINCODEC_VIDEO_CLOCK;
-    m_context->framerate.num = frameTime;
-    m_context->time_base.den = 2997;
-    m_context->time_base.num = frameTime*m_context->time_base.den/PLUGINCODEC_VIDEO_CLOCK;
-  }
+  m_context->framerate = frameRate;
+  m_context->time_base.den = frameRate.num; // Yes, this is the other way around
+  m_context->time_base.num = frameRate.den;
 
   m_context->bit_rate = m_context->rc_min_rate = m_context->rc_max_rate = maxBitRate;
 
