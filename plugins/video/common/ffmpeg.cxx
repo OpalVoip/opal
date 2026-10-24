@@ -369,11 +369,11 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
       return true;
     }
 
-    PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
-    CloseCodec();
-
     int profile = m_context->profile;
     int level = m_context->level;
+
+    PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
+    CloseCodec();
 
     if (!InitContext()) {
       PTRACE(1, m_prefix, "Failed to initialise context on options change");
