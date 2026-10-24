@@ -429,42 +429,35 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
     m_context->bit_rate_tolerance = oneFrameBits;
   }
 
-  m_context->i_quant_factor = (float)-0.6;  // qscale factor between p and i frames
-  m_context->i_quant_offset = (float)0.0;   // qscale offset between p and i frames
-  m_context->max_qdiff = 10;  // was 3      // max q difference between frames
-  m_context->qcompress = 0.5;               // qscale factor between easy & hard scenes (0.0-1.0)
-
-  m_fullFrame->SetMaxPayloadSize(maxRTPSize);
-
   m_context->qmin = 1;
   m_context->qmax = qmax > 1 ? qmax : 1;
+
   m_context->sample_aspect_ratio.num = 1;
   m_context->sample_aspect_ratio.den = 1;
   m_context->gop_size = keyFramePeriod;
   m_context->max_b_frames = 0;
   m_context->refs = 3;
 
+  m_fullFrame->SetMaxPayloadSize(maxRTPSize);
+
   // Dump info
-  PTRACE(5, m_prefix, "Size is " << m_context->width << "x" << m_context->height);
-  PTRACE(5, m_prefix, "GOP is " << m_context->gop_size);
-  PTRACE(5, m_prefix, "time_base set to " << m_context->time_base.num << '/' << m_context->time_base.den
-          << " (" << std::setprecision(2) << ((double)m_context->time_base.den/m_context->time_base.num) << "fps)");
-  PTRACE(5, m_prefix, "bit_rate set to " << m_context->bit_rate);
-  PTRACE(5, m_prefix, "rc_max_rate is " <<  m_context->rc_max_rate);
-  PTRACE(5, m_prefix, "rc_min_rate set to " << m_context->rc_min_rate);
-  PTRACE(5, m_prefix, "bit_rate_tolerance set to " <<m_context->bit_rate_tolerance);
-  PTRACE(5, m_prefix, "qmin set to " << m_context->qmin);
-  PTRACE(5, m_prefix, "qmax set to " << m_context->qmax);
-  PTRACE(5, m_prefix, "payload size set to " << m_fullFrame->GetMaxPayloadSize());
+  PTRACE(3, m_prefix, "Encoder parameters: "
+         << m_context->width << 'x' << m_context->height
+         << " time_base=" << m_context->time_base.num << '/' << m_context->time_base.den
+         << " (" << std::setprecision(2) << ((double)m_context->time_base.den/m_context->time_base.num) << "fps)"
+         << " bit_rate=" << m_context->bit_rate
+         << " tolerance=" <<m_context->bit_rate_tolerance
+         << " rc_buffer=" <<  m_context->rc_buffer_size
+         << " qmin=" << m_context->qmin
+         << " qmax=" << m_context->qmax
+         << " GOP=" << m_context->gop_size
+         << " payload=" << m_fullFrame->GetMaxPayloadSize());
 
   if (wasOpen && !OpenCodec()) {
     PTRACE(1, m_prefix, "Reopening codec failed");
     return false;
   }
 
-  PTRACE(3, m_prefix, "Encoder parameters set: "
-         << frameWidth << 'x' << frameHeight << '@' << (PLUGINCODEC_VIDEO_CLOCK/frameTime)
-         << ' ' << maxBitRate << "bps rtp=" << maxRTPSize << " qmax=" << qmax << " gop=" << keyFramePeriod);
   return true;
 }
 
