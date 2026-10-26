@@ -2593,7 +2593,7 @@ void OpalRTPSession::GetStatistics(OpalMediaStatistics & statistics, Direction d
   if (accumulated.m_jitterCount > 0)
     accumulated.m_averageJitter = (int)(accumulated.m_jitterSum/accumulated.m_jitterCount);
 
-  statistics = accumulated;
+  static_cast<OpalNetworkStatistics &>(statistics) = accumulated;
 }
 
 

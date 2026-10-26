@@ -119,12 +119,12 @@ static struct PluginCodec_Option const TemporalSpatialTradeOff =
   PLUGINCODEC_OPTION_TEMPORAL_SPATIAL_TRADE_OFF, // User visible name
   false,                              // User Read/Only flag
   PluginCodec_AlwaysMerge,            // Merge mode
-  "31",                               // Initial value
+  "50",                               // Initial value
   NULL,                               // FMTP option name
   NULL,                               // FMTP default value
   0,                                  // H.245 generic capability code and bit mask
   "1",                                // Minimum value
-  "31"                                // Maximum value
+  "100"                               // Maximum value
 };
 
 static struct PluginCodec_Option const * const MyOptionTable_265[] = {
@@ -444,7 +444,7 @@ public:
     // SetEncoderOptions applies a target bit rate. The encoder refuses to
     // open when CRF is set as well, so a non-default frame size never starts.
 
-    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
+    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod);
   }
 
 
@@ -475,7 +475,7 @@ public:
     if (m_width != header->width || m_height != header->height) {
       m_width = header->width;
       m_height = header->height;
-      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod))
         return false;
     }
 

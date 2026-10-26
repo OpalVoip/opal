@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <map>
 #include <string>
@@ -211,168 +212,131 @@ typedef std::map<std::string, std::string> PluginCodec_OptionMapBase;
 
 class PluginCodec_Utilities
 {
-  public:
-   static unsigned String2Unsigned(const std::string & str)
-    {
-      return strtoul(str.c_str(), NULL, 10);
-    }
+public:
+  static unsigned String2Unsigned(const std::string & str)
+  {
+    return strtoul(str.c_str(), NULL, 10);
+  }
 
 
-    static void AppendUnsigned2String(unsigned value, std::string & str)
-    {
-      // Not very efficient, but really, really simple
-      if (value > 9)
-        AppendUnsigned2String(value/10, str);
-      str += (char)(value%10 + '0');
-    }
+  static void AppendUnsigned2String(unsigned value, std::string & str)
+  {
+    // Not very efficient, but really, really simple
+    if (value > 9)
+      AppendUnsigned2String(value/10, str);
+    str += (char)(value%10 + '0');
+  }
 
 
-    static void Unsigned2String(unsigned value, std::string & str)
-    {
-      str.clear();
+  static void Unsigned2String(unsigned value, std::string & str)
+  {
+    str.clear();
       AppendUnsigned2String(value,str);
-    }
+  }
 
 
-    static void Change(const char * value,
-                       PluginCodec_OptionMapBase & original,
-                       PluginCodec_OptionMapBase & changed,
-                       const char * option)
-    {
-      PluginCodec_OptionMapBase::iterator it = original.find(option);
-      if (it != original.end() && it->second != value)
-        changed[option] = value;
-    }
+  static void Change(const char * value,
+                     PluginCodec_OptionMapBase & original,
+                     PluginCodec_OptionMapBase & changed,
+                     const char * option)
+  {
+    PluginCodec_OptionMapBase::iterator it = original.find(option);
+    if (it != original.end() && it->second != value)
+      changed[option] = value;
+  }
 
 
-    static void Change(unsigned     value,
+  static void Change(unsigned     value,
                        PluginCodec_OptionMapBase  & original,
                        PluginCodec_OptionMapBase  & changed,
+                     const char * option)
+  {
+    if (String2Unsigned(original[option]) != value)
+      Unsigned2String(value, changed[option]);
+  }
+
+
+  static void ClampMax(unsigned     maximum,
+                         PluginCodec_OptionMapBase  & original,
+                         PluginCodec_OptionMapBase  & changed,
+                       const char * option,
+                       bool forceIfZero = false)
+  {
+    unsigned value = String2Unsigned(original[option]);
+    if (value > maximum || (forceIfZero && value == 0))
+      Unsigned2String(maximum, changed[option]);
+  }
+
+
+  static void ClampMin(unsigned     minimum,
+                         PluginCodec_OptionMapBase  & original,
+                         PluginCodec_OptionMapBase  & changed,
                        const char * option)
-    {
-      if (String2Unsigned(original[option]) != value)
-        Unsigned2String(value, changed[option]);
-    }
+  {
+    unsigned value = String2Unsigned(original[option]);
+    if (value < minimum)
+      Unsigned2String(minimum, changed[option]);
+  }
 
 
-    static void ClampMax(unsigned     maximum,
-                         PluginCodec_OptionMapBase  & original,
-                         PluginCodec_OptionMapBase  & changed,
-                         const char * option,
-                         bool forceIfZero = false)
-    {
-      unsigned value = String2Unsigned(original[option]);
-      if (value > maximum || (forceIfZero && value == 0))
-        Unsigned2String(maximum, changed[option]);
-    }
+  static unsigned GetMacroBlocks(unsigned width, unsigned height)
+  {
+    return ((width+15)/16) * ((height+15)/16);
+  }
 
 
-    static void ClampMin(unsigned     minimum,
-                         PluginCodec_OptionMapBase  & original,
-                         PluginCodec_OptionMapBase  & changed,
-                         const char * option)
-    {
-      unsigned value = String2Unsigned(original[option]);
-      if (value < minimum)
-        Unsigned2String(minimum, changed[option]);
-    }
+  static const unsigned MaxWidth = 7680;
+  static const unsigned MaxHeight = 4320;
 
+  static bool ClampResolution(
+    unsigned & width,
+    unsigned & height,
+    unsigned & maxFrameSize)
+  {
+    if (maxFrameSize == 0)
+      maxFrameSize = GetMacroBlocks(MaxWidth, MaxHeight);
 
-    static unsigned GetMacroBlocks(unsigned width, unsigned height)
-    {
-      return ((width+15)/16) * ((height+15)/16);
-    }
-
-
-    static bool ClampResolution(
-      unsigned & width,
-      unsigned & height,
-      unsigned & maxFrameSize)
-    {
-      static struct {
-        unsigned m_width;
-        unsigned m_height;
-        unsigned m_macroblocks;
-      } MaxVideoResolutions[] = {
-        #define OPAL_PLUGIN_CLAMPED_RESOLUTION(width, height) { width, height, ((width+15)/16) * ((height+15)/16) }
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(4096, 2304),   // 36864 - Cinema 16:9    (H.264 Level 5.1 - 5.2)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(4096, 2160),   // 34560 - DCI HD
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(3840, 2160),   // 32400 -  4k UHDTV
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(3672, 1536),   // 22080 - Cinema 2.39:1 (H.264 Level 5)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(2048, 1080),   //  8704 - 2Kx1080       (H.264 Level 4.2)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(1920, 1080),   //  8192 - 1080p HD      (H.264 Level 4 - 4.1)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(1408, 1152),   //  6336 - 16CIF
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(1280, 1024),   //  5120 - SXGA          (H.264 Level 3.2)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION(1280,  720),   //  3600 - 720p HD       (H.264 Level 3.1)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 720,  576),   //  1620 - 625 SD        (H.264 Level 2.2 - 3)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 704,  576),   //  1584 - 4CIF
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 640,  480),   //  1200 - VGA
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 352,  576),   //   792 - 625 HHR       (H.264 Level 2.1)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 352,  288),   //   396 - CIF           (H.264 Level 1.1 - 2)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 320,  240),   //   300 - QVGA
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 176,  144),   //    99 - QCIF          (H.264 Level 1, 1b)
-        OPAL_PLUGIN_CLAMPED_RESOLUTION( 128,   96)    //    48 - SQCIF
-      };
-      static size_t const LastMaxVideoResolutions = sizeof(MaxVideoResolutions)/sizeof(MaxVideoResolutions[0]) - 1;
-
-      size_t index = 0;
-
-      if (maxFrameSize > 0) {
-        static unsigned const MinWidth = 4*16;  // Four macroblocks wide
-        static unsigned const MinHeight = 3*16; // Three macroblocks high
-
-        unsigned maxWidth  = maxFrameSize*16*16/MinHeight;
-        unsigned maxHeight = maxFrameSize*16*16/MinWidth;
-
-        // Check if total frame size below threshold total of macroblocks.
-        unsigned macroBlocks = GetMacroBlocks(width, height);
-        if (macroBlocks <= maxFrameSize &&
-            width  >= MinWidth  && width  <= maxWidth &&
-            height >= MinHeight && height <= maxHeight)
-          return false;
-
-        while (index < LastMaxVideoResolutions &&
-                (MaxVideoResolutions[index].m_macroblocks > maxFrameSize ||
-                MaxVideoResolutions[index].m_width > maxWidth ||
-                MaxVideoResolutions[index].m_height > maxHeight))
-          ++index;
-      }
-
-      PTRACE(4, "Plugin", "ClampResolution: idx=" << index << ' '
-             << width << 'x' << height << " > " << maxFrameSize << "mb reduced to "
-             << MaxVideoResolutions[index].m_width << 'x' << MaxVideoResolutions[index].m_height
-             << '=' << MaxVideoResolutions[index].m_macroblocks << "mb");
-      width = MaxVideoResolutions[index].m_width;
-      height = MaxVideoResolutions[index].m_height;
-      maxFrameSize = MaxVideoResolutions[index].m_macroblocks;
+    if (GetMacroBlocks(width, height) <= maxFrameSize)
       return true;
-    }
 
-    static bool ClampResolution(
-			PluginCodec_OptionMapBase & original,
-			PluginCodec_OptionMapBase & changed,
-			unsigned maxWidth,
-			unsigned maxHeight,
-      unsigned & maxMacroBlocks,
-      const char * widthKey = PLUGINCODEC_OPTION_FRAME_WIDTH,
-      const char * heightKey = PLUGINCODEC_OPTION_FRAME_HEIGHT,
-      const char * maxWidthKey = PLUGINCODEC_OPTION_MAX_RX_FRAME_WIDTH,
-      const char * maxHeightKey = PLUGINCODEC_OPTION_MAX_RX_FRAME_HEIGHT,
-      const char * minWidthKey = PLUGINCODEC_OPTION_MIN_RX_FRAME_WIDTH,
-      const char * minHeightKey = PLUGINCODEC_OPTION_MIN_RX_FRAME_HEIGHT
-    )
-		{
-      if (!ClampResolution(maxWidth, maxHeight, maxMacroBlocks))
-				return false;
+    double scale = sqrt(maxFrameSize * 16 * 16 / double(width * height));
+    unsigned newWidth = 16 * (unsigned)(width * scale / 16);
+    unsigned newHeight = 8 * (unsigned)(height * scale / 8);
+    unsigned newMaxMB = GetMacroBlocks(newWidth, newHeight);
 
-      ClampMax(maxWidth,  original, changed, widthKey);
-      ClampMax(maxHeight, original, changed, heightKey);
-      ClampMax(maxWidth,  original, changed, maxWidthKey);
-      ClampMax(maxHeight, original, changed, maxHeightKey);
-      ClampMax(maxWidth,  original, changed, minWidthKey);
-      ClampMax(maxHeight, original, changed, minHeightKey);
-			return true;
-		}
+    PTRACE(4, "Plugin", "ClampResolution: " << width << 'x' << height << " > " << maxFrameSize << "mb"
+              " reduced to " << newWidth << 'x' << newHeight << '=' << newMaxMB << "mb");
+    width = newWidth;
+    height = newHeight;
+    maxFrameSize = newMaxMB;
+    return true;
+  }
+
+  static bool ClampResolution(
+    PluginCodec_OptionMapBase & original,
+    PluginCodec_OptionMapBase & changed,
+    unsigned maxWidth,
+    unsigned maxHeight,
+    unsigned & maxMacroBlocks,
+    const char * widthKey = PLUGINCODEC_OPTION_FRAME_WIDTH,
+    const char * heightKey = PLUGINCODEC_OPTION_FRAME_HEIGHT,
+    const char * maxWidthKey = PLUGINCODEC_OPTION_MAX_RX_FRAME_WIDTH,
+    const char * maxHeightKey = PLUGINCODEC_OPTION_MAX_RX_FRAME_HEIGHT,
+    const char * minWidthKey = PLUGINCODEC_OPTION_MIN_RX_FRAME_WIDTH,
+    const char * minHeightKey = PLUGINCODEC_OPTION_MIN_RX_FRAME_HEIGHT
+  )
+  {
+    if (!ClampResolution(maxWidth, maxHeight, maxMacroBlocks))
+      return false;
+
+    ClampMax(maxWidth,  original, changed, widthKey);
+    ClampMax(maxHeight, original, changed, heightKey);
+    ClampMax(maxWidth,  original, changed, maxWidthKey);
+    ClampMax(maxHeight, original, changed, maxHeightKey);
+    ClampMax(maxWidth,  original, changed, minWidthKey);
+    ClampMax(maxHeight, original, changed, minHeightKey);
+    return true;
+  }
 };
 
 
@@ -607,8 +571,8 @@ class PluginCodec_VideoFormat : public PluginCodec_MediaFormat<NAME>
       unsigned     maxBandwidth,
       OptionsTable options = NULL
     ) : Parent(PLUGINCODEC_RAW_VIDEO, formatName, payloadName, description, maxBandwidth, options)
-      , m_maxWidth(8192)
-      , m_maxHeight(4320)
+      , m_maxWidth(PluginCodec_Utilities::MaxWidth)
+      , m_maxHeight(PluginCodec_Utilities::MaxHeight)
     {
       this->m_flags = PluginCodec_MediaTypeVideo /* audio codec */
                     | PluginCodec_InputTypeRTP   /* raw input data */
@@ -1087,7 +1051,7 @@ class PluginVideoEncoder : public PluginVideoCodec<NAME>
     PluginVideoEncoder(const PluginCodec_Definition * defn)
       : BaseClass(defn)
       , m_maxRTPSize(PluginCodec_RTP_MaxPacketSize)
-      , m_tsto(31)
+      , m_tsto(100)
       , m_keyFramePeriod(0) // Indicates auto/default
     {
     }
@@ -1111,7 +1075,7 @@ class PluginVideoEncoder : public PluginVideoCodec<NAME>
         return this->SetOptionUnsigned(this->m_maxRTPSize, optionValue, 256);
 
       if (strcasecmp(optionName, PLUGINCODEC_OPTION_TEMPORAL_SPATIAL_TRADE_OFF) == 0)
-        return this->SetOptionUnsigned(this->m_tsto, optionValue, 1, 31);
+        return this->SetOptionUnsigned(this->m_tsto, optionValue, 1, 100);
 
       if (strcasecmp(optionName, PLUGINCODEC_OPTION_TX_KEY_FRAME_PERIOD) == 0)
         return this->SetOptionUnsigned(this->m_keyFramePeriod, optionValue, 0);

@@ -338,36 +338,12 @@ void FFMPEGCodec::CloseCodec()
 }
 
 
-static int EncoderQuantiserMax(const AVCodecContext * context, unsigned tsto)
-{
-  // TSTO is 1..31. H.263 and MPEG-4 quantisers use that range directly.
-  // H.264 and H.265 quantisers run to 51; map the same way as the x264 plugin.
-  unsigned tradeOff = tsto;
-  if (tradeOff < 1)
-    tradeOff = 1;
-  else if (tradeOff > 31)
-    tradeOff = 31;
-
-  int qscaleMax = 31;
-  if (context->codec_id == AV_CODEC_ID_H264 || context->codec_id == AV_CODEC_ID_HEVC)
-    qscaleMax = 51;
-
-  int qmin = context->qmin > 0 ? context->qmin : 0;
-  int qmax = qscaleMax == 51 ? qmin + ((qscaleMax - qmin) * (int)tradeOff) / 32 : (int)tradeOff;
-  if (qmax <= qmin)
-    qmax = qmin + 1;
-  if (qmax > qscaleMax)
-    qmax = qscaleMax;
-  return qmax;
-}
-
-
 bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
                                     unsigned frameHeight,
                                     unsigned frameTime,
                                     unsigned maxBitRate,
                                     unsigned maxRTPSize,
-                                    unsigned tsto,
+                                    unsigned qmax,
                                     unsigned keyFramePeriod)
 {
   if (m_context == NULL)
@@ -375,39 +351,35 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
 
   // AVRational frame rate is num/den. frameTime is the duration of one frame
   // in 90 kHz ticks, so the rate is 90000/frameTime.
-  AVRational frameRate = { 0, 1 };
-  if (frameTime > 0) {
-    frameRate.num = PLUGINCODEC_VIDEO_CLOCK;
-    frameRate.den = (int)frameTime;
-  }
+  AVRational frameRate;
+  frameRate.num = PLUGINCODEC_VIDEO_CLOCK;
+  frameRate.den = frameTime > 0 ? frameTime : 3000; // Default to 30 fps
 
   bool wasOpen = m_open;
   if (wasOpen) {
-    int qmax = EncoderQuantiserMax(m_context, tsto);
-    bool unchanged =
-      (unsigned)m_context->width == frameWidth &&
-      (unsigned)m_context->height == frameHeight &&
-      m_context->bit_rate == (int64_t)maxBitRate &&
-      m_context->framerate.num == frameRate.num &&
-      m_context->framerate.den == frameRate.den &&
-      m_context->qmax == qmax &&
-      (unsigned)m_context->gop_size == keyFramePeriod;
-    if (unchanged) {
+    if ((unsigned)m_context->width == frameWidth &&
+        (unsigned)m_context->height == frameHeight &&
+        m_context->bit_rate == (int64_t)maxBitRate &&
+        m_context->framerate.num == frameRate.num &&
+        m_context->framerate.den == frameRate.den &&
+        m_context->qmax == (int)qmax &&
+        (unsigned)m_context->gop_size == keyFramePeriod) {
       PTRACE(4, m_prefix, "Encoder parameters already set to "
-             << frameWidth << 'x' << frameHeight << '@'
-             << (frameTime > 0 ? PLUGINCODEC_VIDEO_CLOCK/frameTime : 0));
+             << frameWidth << 'x' << frameHeight << '@' << (PLUGINCODEC_VIDEO_CLOCK/frameRate.den));
       return true;
     }
 
-    PTRACE(3, m_prefix, "Encoder parameters changed - reopening codec");
     int profile = m_context->profile;
     int level = m_context->level;
+
+    PTRACE(3, m_prefix, "Resolution has changed - reopening codec");
     CloseCodec();
 
     if (!InitContext()) {
-      PTRACE(1, m_prefix, "Failed to initialise context while reopening codec");
+      PTRACE(1, m_prefix, "Failed to initialise context on options change");
       return false;
     }
+
     m_context->profile = profile;
     m_context->level = level;
   }
@@ -448,11 +420,9 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   m_context->coded_width = frameWidth;
   m_context->coded_height = frameHeight;
 
-  if (frameTime > 0) {
-    m_context->framerate = frameRate;
-    m_context->time_base.num = (int)frameTime;
-    m_context->time_base.den = PLUGINCODEC_VIDEO_CLOCK;
-  }
+  m_context->framerate = frameRate;
+  m_context->time_base.den = frameRate.num; // Yes, this is the other way around
+  m_context->time_base.num = frameRate.den;
 
   m_context->bit_rate = m_context->rc_min_rate = m_context->rc_max_rate = maxBitRate;
 
@@ -475,14 +445,8 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
     m_context->bit_rate_tolerance = oneFrameBits;
   }
 
-  m_context->i_quant_factor = (float)-0.6;  // qscale factor between p and i frames
-  m_context->i_quant_offset = (float)0.0;   // qscale offset between p and i frames
-  m_context->max_qdiff = 10;  // was 3      // max q difference between frames
-  m_context->qcompress = 0.5;               // qscale factor between easy & hard scenes (0.0-1.0)
-
-  m_fullFrame->SetMaxPayloadSize(maxRTPSize);
-
-  m_context->qmax = EncoderQuantiserMax(m_context, tsto);
+  m_context->qmin = 1;
+  m_context->qmax = qmax > 1 ? qmax : 1;
 
   m_context->sample_aspect_ratio.num = 1;
   m_context->sample_aspect_ratio.den = 1;
@@ -490,27 +454,26 @@ bool FFMPEGCodec::SetEncoderOptions(unsigned frameWidth,
   m_context->max_b_frames = 0;
   m_context->refs = 3;
 
+  m_fullFrame->SetMaxPayloadSize(maxRTPSize);
+
   // Dump info
-  PTRACE(5, m_prefix, "Size is " << m_context->width << "x" << m_context->height);
-  PTRACE(5, m_prefix, "GOP is " << m_context->gop_size);
-  PTRACE(5, m_prefix, "time_base set to " << m_context->time_base.num << '/' << m_context->time_base.den
-          << " (" << std::setprecision(2) << ((double)m_context->time_base.den/m_context->time_base.num) << "fps)");
-  PTRACE(5, m_prefix, "bit_rate set to " << m_context->bit_rate);
-  PTRACE(5, m_prefix, "rc_max_rate is " <<  m_context->rc_max_rate);
-  PTRACE(5, m_prefix, "rc_min_rate set to " << m_context->rc_min_rate);
-  PTRACE(5, m_prefix, "bit_rate_tolerance set to " <<m_context->bit_rate_tolerance);
-  PTRACE(5, m_prefix, "qmin set to " << m_context->qmin);
-  PTRACE(5, m_prefix, "qmax set to " << m_context->qmax);
-  PTRACE(5, m_prefix, "payload size set to " << m_fullFrame->GetMaxPayloadSize());
+  PTRACE(3, m_prefix, "Encoder parameters: "
+         << m_context->width << 'x' << m_context->height
+         << " time_base=" << m_context->time_base.num << '/' << m_context->time_base.den
+         << " (" << std::setprecision(2) << ((double)m_context->time_base.den/m_context->time_base.num) << "fps)"
+         << " bit_rate=" << m_context->bit_rate
+         << " tolerance=" <<m_context->bit_rate_tolerance
+         << " rc_buffer=" <<  m_context->rc_buffer_size
+         << " qmin=" << m_context->qmin
+         << " qmax=" << m_context->qmax
+         << " GOP=" << m_context->gop_size
+         << " payload=" << m_fullFrame->GetMaxPayloadSize());
 
   if (wasOpen && !OpenCodec()) {
     PTRACE(1, m_prefix, "Reopening codec failed");
     return false;
   }
 
-  PTRACE(3, m_prefix, "Encoder parameters set: "
-         << frameWidth << 'x' << frameHeight << '@' << (PLUGINCODEC_VIDEO_CLOCK/frameTime)
-         << ' ' << maxBitRate << "bps rtp=" << maxRTPSize << " tsto=" << tsto << " gop=" << keyFramePeriod);
   return true;
 }
 

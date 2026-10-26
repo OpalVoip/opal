@@ -224,7 +224,7 @@ public:
       m_context->profile |= AV_PROFILE_H264_INTRA;
 
     dynamic_cast<H264Frame *>(m_fullFrame)->SetPacketisationMode(m_isH323 ? m_packetisationModeH323 : m_packetisationModeSDP);
-    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod);
+    return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod);
   }
 
 
@@ -255,7 +255,7 @@ public:
     if (m_width != header->width || m_height != header->height) {
       m_width = header->width;
       m_height = header->height;
-      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto, m_keyFramePeriod))
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod))
         return false;
     }
 
