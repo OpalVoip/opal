@@ -1321,6 +1321,7 @@ OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
   , m_relayEncodedVideo(false)
   , m_relayInProgress(false)
   , m_relayApplyPending(false)
+  , m_relayAwaitingKeyFrame(false)
   , m_relayPartyCount(0)
 #endif
 {

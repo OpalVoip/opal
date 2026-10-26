@@ -461,7 +461,10 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
                                                   OpalTransportAddress & localAddress,
                                                        BundleMergeInfo & bundleMergeInfo)
 {
-  if (mediaDescription.GetPort() == 0) {
+  // Bundle-only m-lines are offered with port 0 and share the tagged m-line.
+  bool shareBundle = mediaDescription.IsBundleOnly() ||
+                     mediaDescription.IsGroupMember(OpalMediaSession::GetBundleGroupId());
+  if (mediaDescription.GetPort() == 0 && !(shareBundle && bundleMergeInfo.m_transport != NULL)) {
     PTRACE(2, "Received disabled/missing media description for " << mediaType);
 
     /* Some remotes return all of the media detail (a= lines) in SDP even though
@@ -493,7 +496,18 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
     return NULL;
 
   bool bundled = session->IsGroupMember(OpalMediaSession::GetBundleGroupId());
-  if (bundled && bundleMergeInfo.m_transport != NULL)
+  if (!bundled && (shareBundle || GetStringOptions().GetBoolean(OPAL_OPT_AV_BUNDLE))) {
+    PString mid = mediaDescription.GetBundleMediaId();
+    if (mid.empty() && mediaDescription.GetIndex() != UINT_MAX)
+      mid = PString(PString::Unsigned, mediaDescription.GetIndex());
+    if (!mid.empty() && session->AddGroup(OpalMediaSession::GetBundleGroupId(), mediaDescription.GetIndex(), mid)) {
+      PTRACE(3, *session << "joining BUNDLE mid \"" << mid << "\" on the shared transport");
+      bundled = true;
+    }
+  }
+
+  // Attach the tagged transport before Open(), so this session cannot bind a new port.
+  if (bundled && bundleMergeInfo.m_transport != NULL && session->GetTransport() != bundleMergeInfo.m_transport)
     session->AttachTransport(bundleMergeInfo.m_transport);
 
   if (!session->Open(GetMediaInterface(), remoteMediaAddress))
@@ -1333,6 +1347,8 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
         }
         PTRACE(4, "Including BUNDLE " << rtpStreamIndex << ", mid=\"" << mid << "\", send SSRC " << RTP_TRACE_SRC(ssrc));
         bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
+        if (ssrc != 0)
+          sendStream->SetSyncSource(ssrc);
       }
     }
 

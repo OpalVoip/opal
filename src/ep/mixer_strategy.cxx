@@ -33,6 +33,7 @@
 
 #if OPAL_SDP
 #include <sdp/sdp.h>
+#include <sdp/sdpep.h>
 #endif
 
 
@@ -568,7 +569,10 @@ void OpalMixerNode::RenegotiateParticipants(bool separateBundle)
       continue;
 
 #if OPAL_SDP
+    // Every m-line stays in one BUNDLE group, so extra video sessions reuse
+    // the tagged m-line's ports instead of opening a socket of their own.
     OpalConnection::StringOptions options = network->GetStringOptions();
+    options.SetBoolean(OPAL_OPT_AV_BUNDLE, true);
     options.SetBoolean(OPAL_OPT_SEPARATE_BUNDLE_STREAMS, separateBundle);
     network->SetStringOptions(options, true, false);
 #else
@@ -995,6 +999,8 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
 
   m_relayPartyCount = (unsigned)parties.size();
   RequestVideoKeyFrames();
+  // The receiver SSRC may not be ready until the next camera packet arrives.
+  m_relayAwaitingKeyFrame = true;
   PTRACE(3, "Relaying encoded video between " << m_relayPartyCount << " participants on " << *this);
   return true;
 }
@@ -1007,6 +1013,7 @@ void OpalMixerNode::StopMultiStreamRelay()
 
   m_relayEncodedVideo = false;
   m_relayPartyCount = 0;
+  m_relayAwaitingKeyFrame = false;
   {
     PWaitAndSignal lock(m_relayMutex);
     m_relaySourceOf.clear();
@@ -1018,30 +1025,36 @@ void OpalMixerNode::StopMultiStreamRelay()
 
 void OpalMixerNode::ForwardEncodedVideo(const OpalMixerMediaStream & from, const RTP_DataFrame & packet)
 {
-  PWaitAndSignal lock(m_relayMutex);
-  const OpalConnection & sender = from.GetConnection();
+  {
+    PWaitAndSignal lock(m_relayMutex);
+    const OpalConnection & sender = from.GetConnection();
 
-  for (auto & connection : m_connections) {
-    if (&connection == &sender)
-      continue;
-
-    PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
-    for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
-      if (!it->IsSource() || !IsVideo(*it))
+    for (auto & connection : m_connections) {
+      if (&connection == &sender)
         continue;
 
-      std::map<PString, PString>::iterator map = m_relaySourceOf.find(it->GetID());
-      if (map == m_relaySourceOf.end() || map->second != from.GetID())
-        continue;
+      PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+      for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+        if (!it->IsSource() || !IsVideo(*it))
+          continue;
 
-      if (it->GetMediaFormat() != from.GetMediaFormat())
-        continue;
+        std::map<PString, PString>::iterator map = m_relaySourceOf.find(it->GetID());
+        if (map == m_relaySourceOf.end() || map->second != from.GetID())
+          continue;
 
-      RTP_DataFrame copy;
-      copy.Copy(packet);
-      it->PushPacket(copy);
+        if (it->GetMediaFormat() != from.GetMediaFormat())
+          continue;
+
+        RTP_DataFrame copy;
+        copy.Copy(packet);
+        it->PushPacket(copy);
+      }
     }
   }
+
+  // Ask again once a camera packet is flowing, so the PLI has a receiver SSRC.
+  if (m_relayAwaitingKeyFrame.exchange(false))
+    RequestVideoKeyFrames();
 }
 
 

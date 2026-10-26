@@ -113,7 +113,9 @@
 #define OPAL_OPT_BUNDLE_ONLY "SDP-Bundle-Only"
 
 /**Give each bundled m-line its own RTP session so a conference can send one
-   encoded video stream per remote participant.
+   encoded video stream per remote participant. The m-lines stay in one
+   BUNDLE group and share the tagged m-line's transport, so every session
+   uses the same ports.
    Defaults to false, which keeps one RTP session per media type.
   */
 #define OPAL_OPT_SEPARATE_BUNDLE_STREAMS "Separate-Bundle-Streams"
@@ -345,13 +347,21 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     virtual void SetAttribute(const PString & attr, const PString & value) override;
     virtual void OutputAttributes(ostream & str) const override;
 
-    virtual Direction GetDirection() const override { return m_mediaAddress.IsEmpty() ? Inactive : m_direction; }
+    virtual Direction GetDirection() const override
+    {
+      // A bundle-only m-line is offered with port 0 and no connection address.
+      // The direction attribute still says whether it is to be sent or received.
+      if (!m_mediaAddress.IsEmpty() || (m_bundleOnly && m_direction != Undefined && m_direction != Inactive))
+        return m_direction;
+      return Inactive;
+    }
 
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
     virtual bool IsGroupMember(const PString & groupId) const { return m_groups.Contains(groupId); }
     virtual PStringArray GetGroups() const { return m_groups.GetKeys(); }
     virtual PString GetGroupMediaId(const PString & groupId) const { return m_groups(groupId); }
+    PString GetBundleMediaId() const;
     virtual void MatchGroupInfo(const GroupDict & groups);
     bool IsBundleOnly() const { return m_bundleOnly; }
 

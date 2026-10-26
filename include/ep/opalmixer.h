@@ -1351,7 +1351,7 @@ class OpalMixerMediaStream : public OpalMediaStream
       */
     virtual bool PushPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
@@ -1387,7 +1387,7 @@ class OpalMixerMediaStream : public OpalMediaStream
   protected:
     virtual void InternalClose() override;
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
-    virtual bool InternalExecuteCommand(const OpalMediaCommand & command);
+    virtual bool InternalExecuteCommand(const OpalMediaCommand & command) override;
 
     PSafePtr<OpalMixerNode> m_node;
     bool m_listenOnly;
@@ -1735,6 +1735,7 @@ class OpalMixerNode : public PSafeObject
     atomic<bool> m_relayEncodedVideo;
     atomic<bool> m_relayInProgress;
     atomic<bool> m_relayApplyPending;
+    atomic<bool> m_relayAwaitingKeyFrame;
     bool ArmEncodedRelay(bool & waiting);
     unsigned m_relayPartyCount;
     PDECLARE_MUTEX(m_relayMutex);
