@@ -625,8 +625,11 @@ bool FFMPEGCodec::DecodeVideoPacket(const PluginCodec_RTP & in, unsigned & flags
     return true;
 
   if (in.GetPayloadSize() == 0 && m_fullFrame->GetLength() == 0) {
-    if (m_picture->data[0] != NULL)
+    if (m_picture->data[0] != NULL) {
       flags |= PluginCodec_ReturnCoderLastFrame;
+      if (m_fullFrame->IsIntraFrame())
+        flags |= PluginCodec_ReturnCoderIFrame;
+    }
     return true; // This happens if needed to make buffer bigger, already have frame to return
   }
 
