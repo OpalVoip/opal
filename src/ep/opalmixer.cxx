@@ -810,7 +810,8 @@ void OpalVideoMixer::VideoStream::InsertVideoFrame(const MixPosition & pos)
                                 header->width, header->height, OpalVideoFrameDataPtr(header),
                                 pos.x, pos.y, pos.w, pos.h,
                                 m_mixer.m_width, m_mixer.m_height, m_mixer.m_frameStore.GetPointer(),
-                                PVideoFrameInfo::eScale);
+                                pos.w < header->width && pos.h < header->height
+                                    ? PVideoFrameInfo::eCropCentre : PVideoFrameInfo::eScaleKeepAspect);
 
   /* To avoid continual build up of frames in queue if input frame rate
      greater than mixer frame, we flush the queue, but keep one to allow for
