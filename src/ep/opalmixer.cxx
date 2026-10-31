@@ -661,6 +661,7 @@ bool OpalVideoMixer::MixVideo()
     pos.w &= 0xfffffffc;
     pos.h &= 0xfffffffc;
     vid->InsertVideoFrame(pos);
+    OnMixedPosition(it->first, pos);
   }
 
   return true;
@@ -763,6 +764,11 @@ bool OpalVideoMixer::GetMixPosition(const PString & key, bool firstStream, MixPo
   }
 
   return true;
+}
+
+
+void OpalVideoMixer::OnMixedPosition(const PString &, const MixPosition &)
+{
 }
 
 
@@ -1472,9 +1478,9 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
     m_mixerById[id] = it->second;
 
     if (stream->IsSink())
-      return it->second->AddStream(id);
+      return it->second->AddInputVideoStream(stream);
 
-    it->second->Append(stream);
+    it->second->AddOutputStream(stream);
     return true;
   }
 #endif // OPAL_VIDEO
@@ -1484,7 +1490,7 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
   if (stream->IsSink())
     return m_audioMixer->AddStream(id);
 
-  m_audioMixer->Append(stream);
+  m_audioMixer->AddOutputStream(stream);
   return true;
 }
 
@@ -1505,15 +1511,15 @@ void OpalMixerNode::DetachStream(OpalMixerMediaStream * stream)
       return;
     }
     if (stream->IsSource())
-      it->second->Remove(stream);
+      it->second->RemoveOutputStream(stream);
     else
-      it->second->RemoveStream(stream->GetID());
+      it->second->RemoveInputVideoStream(stream);
     return;
   }
 #endif
 
   if (stream->IsSource())
-    m_audioMixer->Remove(stream);
+    m_audioMixer->RemoveOutputStream(stream);
   else
     m_audioMixer->RemoveStream(stream->GetID());
 }
@@ -1675,6 +1681,7 @@ PString OpalMixerNode::GetActiveSpeakerURL() const
   return m_activeSpeakerURL;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
 #if OPAL_SIP
@@ -1824,17 +1831,17 @@ OpalMediaStreamMixer::OpalMediaStreamMixer(OpalMixerNode & node)
 }
 
 
-void OpalMediaStreamMixer::Append(const PSafePtr<OpalMixerMediaStream> & stream)
+void OpalMediaStreamMixer::AddOutputStream(const PSafePtr<OpalMixerMediaStream> & stream)
 {
-  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
-    if (it->second == stream)
+  for (const auto & it : m_outputStreams) {
+    if (it.second == stream)
       return;
   }
   m_outputStreams.SetAt(stream->GetID(), stream);
 }
 
 
-void OpalMediaStreamMixer::CloseOne(const PSafePtr<OpalMixerMediaStream> & stream)
+void OpalMediaStreamMixer::CloseOutputStream(const PSafePtr<OpalMixerMediaStream> & stream)
 {
   stream->GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(
                             new PSafeWorkNoArg<OpalMixerMediaStream, bool>(stream, &OpalMediaStream::Close));
@@ -1950,7 +1957,7 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
     if (cache.m_transcoder == NULL) {
       PTRACE(2, "Could not create transcoder to "
              << mediaFormat << " for stream id " << stream->GetID());
-      CloseOne(stream);
+      CloseOutputStream(stream);
       return;
     }
     PTRACE(3, "Created transcoder to " << mediaFormat << " for stream id " << stream->GetID());
@@ -1980,7 +1987,7 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
   }
   else {
     PTRACE(2, "Could not convert audio to " << mediaFormat << " for stream id " << stream->GetID());
-    CloseOne(stream);
+    CloseOutputStream(stream);
   }
 }
 
@@ -1997,15 +2004,15 @@ bool OpalAudioStreamMixer::OnPush()
   if (activeSpeakerChanged)
     m_node.SetActiveSpeaker(m_activeSpeakerKey);
 
-  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
-    PSafePtr<OpalMixerMediaStream> stream = it->second;
+  for (const auto & it : m_outputStreams) {
+    PSafePtr<OpalMixerMediaStream> stream = it.second;
     if (stream == NULL)
       continue;
 
     m_mutex.Wait(); // Signal() call for this mutex is inside PushOne()
 
     // Check for full participant, so can subtract their signal
-    StreamMap_T::iterator inputStream = m_inputStreams.find(it->first);
+    StreamMap_T::iterator inputStream = m_inputStreams.find(it.first);
     if (inputStream != m_inputStreams.end())
       PushOne(stream, m_cache[stream->GetID()], ((AudioStream *)inputStream->second)->m_cacheSamples);
     else {
@@ -2016,16 +2023,17 @@ bool OpalAudioStreamMixer::OnPush()
     }
   }
 
-  for (std::map<PString, CachedAudio>::iterator iterCache = m_cache.begin(); iterCache != m_cache.end(); ++iterCache) {
-    switch (iterCache->second.m_state) {
+  for (auto & iterCache : m_cache) {
+    auto & cacheData = iterCache.second;
+    switch (cacheData.m_state) {
       case CachedAudio::Collected :
-        iterCache->second.m_state = CachedAudio::Collecting;
+        cacheData.m_state = CachedAudio::Collecting;
         break;
 
       case CachedAudio::Completed :
-        iterCache->second.m_raw.SetPayloadSize(0);
-        iterCache->second.m_encoded.SetPayloadSize(0);
-        iterCache->second.m_state = CachedAudio::Collecting;
+        cacheData.m_raw.SetPayloadSize(0);
+        cacheData.m_encoded.SetPayloadSize(0);
+        cacheData.m_state = CachedAudio::Collecting;
         break;
 
       default :
@@ -2044,6 +2052,7 @@ bool OpalAudioStreamMixer::OnPush()
 ///////////////////////////////////////////////////////////////////////////////
 
 #if OPAL_VIDEO
+
 OpalVideoStreamMixer::OpalVideoStreamMixer(OpalMixerNode & node)
   : OpalVideoMixer(node.GetNodeInfo().m_style,
                    node.GetNodeInfo().m_width,
@@ -2079,8 +2088,8 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
   output->SetMarker(true);
 
   // If any of the output streams need a key frame, generate one. In particular if just recently added.
-  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
-    PSafePtr<OpalMixerMediaStream> stream = it->second;
+  for (const auto& it : m_outputStreams) {
+    PSafePtr<OpalMixerMediaStream> stream = it.second;
     if (stream != NULL && !stream->IsPaused() && stream->NeedsKeyFrame()) {
       for (TranscoderMap::iterator itt = m_transcoders.begin(); itt != m_transcoders.end(); ++itt)
         itt->second.ExecuteCommand(OpalVideoUpdatePicture());
@@ -2089,8 +2098,8 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
   }
 
   bool hasOneStream = false;
-  for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
-    PSafePtr<OpalMixerMediaStream> stream = it->second;
+  for (const auto & it : m_outputStreams) {
+    PSafePtr<OpalMixerMediaStream> stream = it.second;
     if (stream == NULL)
       continue;
 
@@ -2102,7 +2111,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     if (mediaFormat == OpalYUV420P) {
       stream.SetSafetyMode(PSafeReference); // OpalMediaStream::PushPacket might block
       if (!stream->PushPacket(*output))
-        CloseOne(stream);
+        CloseOutputStream(stream);
       stream.SetSafetyMode(PSafeReadOnly); // restore lock
     }
     else {
@@ -2140,7 +2149,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
           transcoder = OpalTranscoder::Create(OpalYUV420P, mediaFormat);
           if (transcoder == NULL) {
             PTRACE(2, "Could not create transcoder to " << mediaFormat << " for stream id " << stream->GetID());
-            CloseOne(stream);
+            CloseOutputStream(stream);
             continue;
           }
           PTRACE(3, "Created transcoder to " << mediaFormat << ' '
@@ -2179,7 +2188,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
         RTP_DataFrameList packets;
         if (!transcoder->ConvertFrames(*rawRTP, packets)) {
           PTRACE(2, "Could not convert video to " << mediaFormat << " for stream id " << stream->GetID());
-          CloseOne(stream);
+          CloseOutputStream(stream);
           continue;
         }
 
@@ -2190,7 +2199,7 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
 
       for (RTP_DataFrameList::iterator frame = itPackets->second.begin(); frame != itPackets->second.end(); ++frame) {
         if (!stream->PushPacket(*frame)) {
-          CloseOne(stream);
+          CloseOutputStream(stream);
           break;
         }
       }
@@ -2202,12 +2211,54 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
   return hasOneStream;
 }
 
+
 OpalVideoStreamMixer::Key_T OpalVideoStreamMixer::GetActiveSpeaker() const
 {
   return m_node.GetActiveSpeakerStreamId();
 }
 
-#endif
+
+void OpalVideoStreamMixer::OnMixedPosition(const PString & id, const MixPosition & pos)
+{
+  auto it = m_inputVideoStreams.find(id);
+  if (it == m_inputVideoStreams.end()) {
+    PTRACE(4, "Could not find video stream " << id);
+    return;
+  }
+
+  auto mediaFormat = it->second->GetMediaFormat();
+  if (pos.w == (unsigned)mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameWidthOption()) &&
+      pos.h == (unsigned)mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameHeightOption()))
+    return;
+
+  mediaFormat.SetOptionInteger(OpalVideoFormat::RequestedRxFrameWidthOption(), pos.w);
+  mediaFormat.SetOptionInteger(OpalVideoFormat::RequestedRxFrameHeightOption(), pos.h);
+  it->second->UpdateMediaFormat(mediaFormat);
+}
+
+
+bool OpalVideoStreamMixer::AddInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream)
+{
+  if (!AddStream(stream->GetID()))
+    return false;
+
+  for (const auto & it : m_inputVideoStreams) {
+    if (it.second == stream)
+      return true;
+  }
+
+  m_inputVideoStreams.SetAt(stream->GetID(), stream);
+  return true;
+}
+
+
+void OpalVideoStreamMixer::RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream)
+{
+  m_inputVideoStreams.RemoveAt(stream->GetID());
+  RemoveStream(stream->GetID());
+}
+
+#endif // OPAL_VIDEO
 
 
 //////////////////////////////////////////////////////////////////////////////
