@@ -1287,8 +1287,18 @@ bool OpalMixerMediaStream::InternalSetJitterBuffer(const OpalJitterBuffer::Init 
 
 bool OpalMixerMediaStream::InternalExecuteCommand(const OpalMediaCommand & command)
 {
-  if (IsSource() && dynamic_cast<const OpalVideoUpdatePicture *>(&command) != NULL)
+  if (IsSource() && dynamic_cast<const OpalVideoUpdatePicture *>(&command) != NULL) {
     m_needsKeyFrame = true;
+#if OPAL_VIDEO
+    // In SFU mode OnMixed never reads m_needsKeyFrame. Forward the PLI to the
+    // camera that feeds this outgoing m-line, outside the stream lock.
+    if (m_node != NULL && m_node->EncodedRelayActive()) {
+      PString outputId = GetID();
+      GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(
+        new PSafeWorkArg1<OpalMixerNode, PString>(m_node, outputId, &OpalMixerNode::RequestRelayKeyFrame));
+    }
+#endif
+  }
   return OpalMediaStream::InternalExecuteCommand(command);
 }
 
@@ -1321,6 +1331,8 @@ OpalMixerNode::OpalMixerNode(OpalMixerNodeManager & manager,
   , m_relayInProgress(false)
   , m_relayApplyPending(false)
   , m_relayAwaitingKeyFrame(false)
+  , m_pairRelayActive(false)
+  , m_multiStreamRetryPending(false)
   , m_relayPartyCount(0)
 #endif
 {
@@ -1434,7 +1446,7 @@ void OpalMixerNode::AttachConnection(OpalMixerConnection * connection)
 
   UseMediaPassThrough(0);
 #if OPAL_VIDEO
-  RenegotiateParticipants(m_connections.GetSize() >= 3 && m_connections.GetSize() <= 4);
+  // Mode selection (pair / multi / transcode) owns bundle renegotiation.
   SetForceTranscode(false);
   UpdateVideoDelivery(true);
 #endif
@@ -1458,7 +1470,6 @@ void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
   }
 
 #if OPAL_VIDEO
-  RenegotiateParticipants(m_connections.GetSize() >= 3 && m_connections.GetSize() <= 4);
   SetForceTranscode(false);
   UpdateVideoDelivery(true);
 #endif
@@ -1591,10 +1602,12 @@ bool OpalMixerNode::SetJitterBufferSize(const OpalBaseMixer::Key_T & key, const 
 bool OpalMixerNode::WritePacket(const OpalMixerMediaStream & stream, const RTP_DataFrame & input)
 {
 #if OPAL_VIDEO
-  if (m_relayEncodedVideo.load() &&
-      stream.GetMediaFormat().GetMediaType() == OpalMediaType::Video() &&
+  if (stream.GetMediaFormat().GetMediaType() == OpalMediaType::Video() &&
       stream.GetMediaFormat() != OpalYUV420P) {
-    ForwardEncodedVideo(stream, input);
+    // Encoded video never belongs in the YUV frame store. Relay it when SFU
+    // is armed; otherwise drop it so a late stop does not corrupt the mix.
+    if (m_relayEncodedVideo.load())
+      ForwardEncodedVideo(stream, input);
     return true;
   }
 #endif
@@ -2122,6 +2135,43 @@ void OpalVideoStreamMixer::SetForceTranscode(bool on)
 }
 
 
+unsigned OpalVideoStreamMixer::GetExpectedReceiveVideoStreams()
+{
+  PWaitAndSignal lock(m_mutex);
+  if (m_videoStrategy == NULL)
+    return 1;
+  return m_videoStrategy->GetExpectedReceiveVideoStreams(m_node);
+}
+
+
+unsigned OpalMixerNode::GetExpectedReceiveVideoStreams() const
+{
+  if (m_videoMixers.empty())
+    return 1;
+
+  unsigned streams = 1;
+  for (VideoMixerMap::const_iterator it = m_videoMixers.begin(); it != m_videoMixers.end(); ++it) {
+    if (it->second == NULL)
+      continue;
+    unsigned count = const_cast<OpalVideoStreamMixer &>(*it->second).GetExpectedReceiveVideoStreams();
+    if (count > streams)
+      streams = count;
+  }
+  return streams;
+}
+
+
+unsigned OpalMixerNode::GetDisplayReceiveVideoStreams() const
+{
+  unsigned expected = GetExpectedReceiveVideoStreams();
+  // Clients open the extra m-lines as soon as multi is selected, but the mix
+  // still owns the primary until ArmEncodedRelay. Show one window until then.
+  if (expected > 1 && !EncodedRelayActive())
+    return 1;
+  return expected;
+}
+
+
 void OpalVideoStreamMixer::OnStrategyPublished()
 {
   bool changed;
@@ -2155,7 +2205,12 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     PWaitAndSignal lock(m_mutex);
     // Keep painting the mixed picture until each outgoing stream is carrying
     // one other participant. Selecting the relay strategy alone does not.
-    if (m_videoStrategy != NULL && !m_videoStrategy->WantsTranscode() && m_node.EncodedRelayActive())
+    if (m_videoStrategy != NULL && !m_videoStrategy->WantsTranscode() &&
+        (m_node.RelayEncodedVideo() || m_node.PairRelayActive()))
+      return true;
+
+    // An empty mix frame has no YUV header. Do not try to encode it.
+    if (output->GetPayloadSize() < sizeof(OpalVideoTranscoder::FrameHeader))
       return true;
   }
 
@@ -2177,10 +2232,33 @@ bool OpalVideoStreamMixer::OnMixed(std::unique_ptr<RTP_DataFrame> & output)
     }
   }
 
+  // Extra SFU m-lines may exist before encoded relay is armed. Keep the mix on
+  // one video stream per participant until camera paths switch to encoded SFU.
+  const bool mixOnPrimaryOnly = m_node.GetExpectedReceiveVideoStreams() > 1 &&
+                                !m_node.RelayEncodedVideo();
+
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
     if (stream == NULL || stream->IsPaused())
       continue;
+
+    if (mixOnPrimaryOnly) {
+      // StreamDict is keyed by object address, so GetMediaStream(Video) is
+      // nondeterministic. Keep the mix on the lowest session-id source only.
+      const unsigned session = stream->GetSessionID();
+      bool lowerSessionExists = false;
+      PSafeArray<OpalMediaStream> siblings = stream->GetConnection().GetMediaStreams();
+      for (PSafeArray<OpalMediaStream>::iterator sib = siblings.begin(); sib != siblings.end(); ++sib) {
+        if (sib->IsSource() &&
+            sib->GetMediaFormat().GetMediaType() == OpalMediaType::Video() &&
+            sib->GetSessionID() < session) {
+          lowerSessionExists = true;
+          break;
+        }
+      }
+      if (lowerSessionExists)
+        continue;
+    }
 
     OpalMediaFormat mediaFormat = stream->GetMediaFormat();
     if (mediaFormat == OpalYUV420P) {

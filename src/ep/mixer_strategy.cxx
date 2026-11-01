@@ -23,6 +23,7 @@
 #if OPAL_HAS_MIXER
 
 #include <algorithm>
+#include <climits>
 #include <set>
 #include <ptclib/threadpool.h>
 
@@ -357,8 +358,10 @@ bool OpalStillImageVideoStrategy::Mix(OpalVideoMixer & mixer, RTP_DataFrame & fr
 }
 
 
-void OpalStillImageVideoStrategy::Activate(OpalMixerNode &, OpalVideoMixer & mixer)
+void OpalStillImageVideoStrategy::Activate(OpalMixerNode & node, OpalVideoMixer & mixer)
 {
+  node.RenegotiateParticipants(false);
+
   if (m_frame.IsEmpty()) {
     PBYTEArray loaded;
     LoadStillImage(m_image, mixer.GetFrameWidth(), mixer.GetFrameHeight(), loaded);
@@ -377,21 +380,60 @@ void OpalStillImageVideoStrategy::Deactivate(OpalMixerNode &, OpalVideoMixer & m
 }
 
 
-bool OpalPairRelayVideoStrategy::Mix(OpalVideoMixer &, RTP_DataFrame & frame)
+unsigned OpalVideoMixerStrategy::GetExpectedReceiveVideoStreams(const OpalMixerNode &) const
 {
-  frame.SetPayloadSize(0);
-  return true;
+  return 1;
+}
+
+
+void OpalOriginalVideoStrategy::Activate(OpalMixerNode & node, OpalVideoMixer &)
+{
+  node.RenegotiateParticipants(false);
+}
+
+
+bool OpalPairRelayVideoStrategy::Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame)
+{
+  OpalVideoStreamMixer * streams = dynamic_cast<OpalVideoStreamMixer *>(&mixer);
+  // RTP pass-through or a 3→2 encoded shrink both own the outbound m-lines.
+  if (streams != NULL &&
+      (streams->GetMixerNode().PairRelayActive() ||
+       streams->GetMixerNode().EncodedRelayActive())) {
+    frame.SetPayloadSize(0);
+    return true;
+  }
+
+  if (!mixer.MixVideo())
+    return false;
+  return mixer.CopyMixedFrame(frame);
 }
 
 
 void OpalPairRelayVideoStrategy::Activate(OpalMixerNode & node, OpalVideoMixer &)
 {
-  bool waiting = false;
-  if (node.TryVideoPairRelay(true, waiting))
-    return;
+  // Pair mode uses a single video m-line on each side.
+  node.RenegotiateParticipants(false);
 
-  if (!waiting)
-    node.SetForceTranscode(true);
+  // 3→2 already remapped encoded SFU onto the primary m-lines. Do not tear
+  // that down in favour of RTP pass-through — that path fails after Arm.
+  if (node.EncodedRelayActive() && node.GetConnectionCount() == 2) {
+    node.RequestVideoKeyFrames();
+    return;
+  }
+
+  bool waiting = false;
+  if (node.TryVideoPairRelay(true, waiting)) {
+    node.RequestVideoKeyFrames();
+    return;
+  }
+
+  node.RequestVideoKeyFrames();
+  if (waiting) {
+    node.ScheduleVideoDeliveryRetry();
+    return;
+  }
+
+  node.SetForceTranscode(true);
 }
 
 
@@ -399,19 +441,40 @@ void OpalPairRelayVideoStrategy::Deactivate(OpalMixerNode & node, OpalVideoMixer
 {
   bool waiting = false;
   node.TryVideoPairRelay(false, waiting);
+  // A prior 3→2 shrink may still be feeding encoded relay on the pair. Clear
+  // it before multi/original takes over so Arm can reopen cleanly.
+  if (node.RelayEncodedVideo())
+    node.StopMultiStreamRelay();
   node.RequestVideoKeyFrames();
 }
 
 
-bool OpalMultiStreamRelayStrategy::Mix(OpalVideoMixer &, RTP_DataFrame & frame)
+bool OpalMultiStreamRelayStrategy::Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame)
 {
-  frame.SetPayloadSize(0);
-  return true;
+  OpalVideoStreamMixer * streams = dynamic_cast<OpalVideoStreamMixer *>(&mixer);
+  // Between pair teardown and SFU arm, do not paint a transcoded mix — that is
+  // the flash on 2→3. Hold the last frame until EncodedRelayActive.
+  if (streams != NULL && !streams->GetMixerNode().EncodedRelayActive()) {
+    frame.SetPayloadSize(0);
+    return true;
+  }
+
+  if (streams != NULL && streams->GetMixerNode().RelayEncodedVideo()) {
+    frame.SetPayloadSize(0);
+    return true;
+  }
+
+  if (!mixer.MixVideo())
+    return false;
+  return mixer.CopyMixedFrame(frame);
 }
 
 
 void OpalMultiStreamRelayStrategy::Activate(OpalMixerNode & node, OpalVideoMixer &)
 {
+  // Ask for one RTP session per video m-line only after this mode is selected.
+  node.RenegotiateParticipants(true);
+
   bool waiting = false;
   if (node.StartMultiStreamRelay(waiting))
     return;
@@ -423,7 +486,17 @@ void OpalMultiStreamRelayStrategy::Activate(OpalMixerNode & node, OpalVideoMixer
 
 void OpalMultiStreamRelayStrategy::Deactivate(OpalMixerNode & node, OpalVideoMixer &)
 {
+  // Prefer keeping encoded camera paths and remapping 1:1. Reopening as YUV
+  // and switching to RTP pass-through leaves the remaining window frozen.
+  if (node.GetConnectionCount() == 2 && node.RelayEncodedVideo() && node.ShrinkEncodedRelayToPair()) {
+    node.RenegotiateParticipants(false);
+    node.RequestVideoKeyFrames();
+    return;
+  }
+
   node.StopMultiStreamRelay();
+  node.RenegotiateParticipants(false);
+  node.RequestVideoKeyFrames();
 }
 
 
@@ -431,11 +504,15 @@ void OpalMultiStreamRelayStrategy::Deactivate(OpalMixerNode & node, OpalVideoMix
 
 OpalParticipantCountVideoStrategy::OpalParticipantCountVideoStrategy(
     const PString & stillImage,
-    std::unique_ptr<OpalVideoLayoutStrategy> layout)
+    std::unique_ptr<OpalVideoLayoutStrategy> layout,
+    unsigned multiMax)
   : m_still(stillImage)
   , m_original(std::move(layout))
   , m_active(&m_original)
   , m_forceTranscode(false)
+  , m_multiMax(multiMax < 3 ? 3 : multiMax)
+  , m_transitioning(false)
+  , m_reenterDelivery(false)
 {
 }
 
@@ -448,7 +525,7 @@ OpalVideoMixerStrategy & OpalParticipantCountVideoStrategy::Select(const OpalMix
       return m_still;
     if (count == 2)
       return m_pair;
-    if (count <= 4 && node.MultiStreamReady())
+    if (count >= 3 && (unsigned)count <= m_multiMax)
       return m_multi;
   }
   return m_original;
@@ -473,20 +550,60 @@ OpalVideoLayoutStrategy & OpalParticipantCountVideoStrategy::Layout()
 }
 
 
+unsigned OpalParticipantCountVideoStrategy::GetExpectedReceiveVideoStreams(const OpalMixerNode & node) const
+{
+  if (m_active == &m_multi) {
+    PINDEX count = node.GetConnectionCount();
+    if (count >= 3)
+      return (unsigned)count - 1;
+  }
+  return 1;
+}
+
+
 void OpalParticipantCountVideoStrategy::Activate(OpalMixerNode & node, OpalVideoMixer & mixer)
 {
-  OpalVideoMixerStrategy * previous;
-  OpalVideoMixerStrategy * next;
-  {
-    PWaitAndSignal lock(mixer.GetMutex());
-    previous = m_active;
-    next = &Select(node);
-    m_active = next;
+  // One mode must finish leaving before the next mode starts. Nested delivery
+  // updates wait for the current transition to complete, then run again.
+  if (m_transitioning.exchange(true)) {
+    m_reenterDelivery = true;
+    return;
   }
 
-  if (previous != next && previous != NULL)
-    previous->Deactivate(node, mixer);
-  next->Activate(node, mixer);
+  for (;;) {
+    OpalVideoMixerStrategy * previous;
+    OpalVideoMixerStrategy * next;
+    {
+      PWaitAndSignal lock(mixer.GetMutex());
+      previous = m_active;
+      next = &Select(node);
+    }
+
+    if (previous != next) {
+      if (previous != NULL)
+        previous->Deactivate(node, mixer);
+      {
+        PWaitAndSignal lock(mixer.GetMutex());
+        m_active = next;
+      }
+    }
+
+    if (next != NULL)
+      next->Activate(node, mixer);
+
+    OpalVideoMixerStrategy * again;
+    {
+      PWaitAndSignal lock(mixer.GetMutex());
+      again = &Select(node);
+      if (again == m_active)
+        break;
+    }
+    // Participant count changed while the previous mode was finalising.
+  }
+
+  m_transitioning = false;
+  if (m_reenterDelivery.exchange(false))
+    node.UpdateVideoDelivery(true);
 }
 
 
@@ -514,6 +631,35 @@ void OpalParticipantCountVideoStrategy::SetForceTranscode(bool on)
 static bool IsVideo(const OpalMediaStream & stream)
 {
   return stream.GetMediaFormat().GetMediaType() == OpalMediaType::Video();
+}
+
+
+/**First video stream by session id. StreamDict is keyed by object address, so
+   GetMediaStream(type) is allocation-order dependent and nondeterministic.
+  */
+static OpalMediaStreamPtr LowestSessionVideo(OpalConnection & connection, bool source)
+{
+  OpalMediaStreamPtr best;
+  unsigned bestSession = UINT_MAX;
+  PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (!IsVideo(*it) || it->IsSource() != source)
+      continue;
+    unsigned session = it->GetSessionID();
+    if (best == NULL || session < bestSession) {
+      best = &*it;
+      bestSession = session;
+    }
+  }
+  return best;
+}
+
+
+static bool SameVideoCodec(const OpalMediaFormat & a, const OpalMediaFormat & b)
+{
+  return a.GetMediaType() == OpalMediaType::Video() &&
+         b.GetMediaType() == OpalMediaType::Video() &&
+         a.GetName() == b.GetName();
 }
 
 
@@ -588,7 +734,7 @@ void OpalMixerNode::RequestVideoKeyFrames()
   for (auto & connection : m_connections) {
     PSafeArray<OpalMediaStream> local = connection.GetMediaStreams();
     for (PSafeArray<OpalMediaStream>::iterator it = local.begin(); it != local.end(); ++it) {
-      if (it->IsSource() && IsVideo(*it))
+      if (IsVideo(*it))
         it->ExecuteCommand(OpalVideoUpdatePicture());
     }
 
@@ -596,31 +742,82 @@ void OpalMixerNode::RequestVideoKeyFrames()
     if (network == NULL)
       continue;
 
+    // Prefer the camera (lowest session source) so PLI/FIR reaches each
+    // participant. Also walk the other video streams for SFU/bundle cases.
+    OpalMediaStreamPtr camera = LowestSessionVideo(*network, true);
+    if (camera != NULL)
+      camera->ExecuteCommand(OpalVideoUpdatePicture());
+
     PSafeArray<OpalMediaStream> remote = network->GetMediaStreams();
     for (PSafeArray<OpalMediaStream>::iterator it = remote.begin(); it != remote.end(); ++it) {
-      if (it->IsSource() && IsVideo(*it))
+      if (IsVideo(*it) && (camera == NULL || it->GetID() != camera->GetID()))
         it->ExecuteCommand(OpalVideoUpdatePicture());
     }
   }
 }
 
 
-static bool PairDirectionReady(OpalConnection & from,
+void OpalMixerNode::RequestRelayKeyFrame(PString outputStreamId)
+{
+  PString sinkId;
+  {
+    PWaitAndSignal lock(m_relayMutex);
+    std::map<PString, PString>::iterator map = m_relaySourceOf.find(outputStreamId);
+    if (map == m_relaySourceOf.end())
+      return;
+    sinkId = map->second;
+  }
+
+  for (auto & connection : m_connections) {
+    PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+    for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+      if (it->GetID() != sinkId)
+        continue;
+
+      // Mixer sink receives from the camera. UpdatePicture walks the patch to
+      // the network source and sends PLI/FIR to that participant.
+      it->ExecuteCommand(OpalVideoUpdatePicture());
+
+      PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+      if (network != NULL) {
+        OpalMediaStreamPtr camera = LowestSessionVideo(*network, true);
+        if (camera != NULL)
+          camera->ExecuteCommand(OpalVideoUpdatePicture());
+      }
+      return;
+    }
+  }
+}
+
+
+static bool PairVideoDirection(OpalConnection & from,
                                OpalConnection & to,
-                               unsigned sessionID,
+                               bool enable,
+                               bool & waiting,
                                bool & formatMismatch)
 {
-  OpalMediaStreamPtr source = from.GetMediaStream(sessionID, true);
-  OpalMediaStreamPtr sink = to.GetMediaStream(sessionID, false);
-  if (source == NULL || sink == NULL || source->GetPatch().GetObject() == NULL || sink->GetPatch().GetObject() == NULL)
+  // Match by media type. Session ids are local to each connection and need
+  // not be the same number on both sides of the conference. Always take the
+  // lowest session so pair mode does not depend on StreamDict pointer order.
+  OpalMediaStreamPtr source = LowestSessionVideo(from, true);
+  OpalMediaStreamPtr sink = LowestSessionVideo(to, false);
+  if (source == NULL || sink == NULL ||
+      source->GetPatch().GetObject() == NULL || sink->GetPatch().GetObject() == NULL) {
+    waiting = true;
     return false;
+  }
 
-  if (source->GetMediaFormat() != sink->GetMediaFormat()) {
+  if (!SameVideoCodec(source->GetMediaFormat(), sink->GetMediaFormat())) {
     formatMismatch = true;
     return false;
   }
 
-  return true;
+  // SetMediaPassThrough compares full format objects. After SFU the options on
+  // the camera and the outbound m-line often differ even for the same codec.
+  if (enable && source->GetMediaFormat() != sink->GetMediaFormat())
+    sink->UpdateMediaFormat(source->GetMediaFormat());
+
+  return source->SetMediaPassThrough(*sink, enable);
 }
 
 
@@ -634,8 +831,12 @@ static void ClearVideoPassThrough(OpalMixerNode & node)
   }
 
   for (size_t i = 0; i < networks.size(); ++i) {
-    for (size_t j = i + 1; j < networks.size(); ++j)
-      OpalManager::SetMediaPassThrough(*networks[i], *networks[j], false, 0);
+    for (size_t j = i + 1; j < networks.size(); ++j) {
+      bool waiting = false;
+      bool mismatch = false;
+      PairVideoDirection(*networks[i], *networks[j], false, waiting, mismatch);
+      PairVideoDirection(*networks[j], *networks[i], false, waiting, mismatch);
+    }
   }
 }
 
@@ -645,6 +846,7 @@ bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
   waiting = false;
 
   if (!enable) {
+    m_pairRelayActive = false;
     ClearVideoPassThrough(*this);
     return true;
   }
@@ -657,60 +859,47 @@ bool OpalMixerNode::TryVideoPairRelay(bool enable, bool & waiting)
   PSafePtr<OpalMixerConnection> first = m_connections.GetAt(0, PSafeReference);
   PSafePtr<OpalMixerConnection> second = m_connections.GetAt(1, PSafeReference);
   if (first == NULL || second == NULL) {
-    waiting = enable;
-    return !enable;
+    waiting = true;
+    return false;
   }
 
   PSafePtr<OpalConnection> network1 = first->GetOtherPartyConnection();
   PSafePtr<OpalConnection> network2 = second->GetOtherPartyConnection();
   if (network1 == NULL || network2 == NULL) {
-    waiting = enable;
-    return !enable;
-  }
-
-  bool sawVideo = false;
-  bool pending = false;
-  bool mismatched = false;
-  std::vector<unsigned> sessions;
-
-  PSafeArray<OpalMediaStream> streams = network1->GetMediaStreams();
-  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
-    if (!it->IsSource() || !IsVideo(*it))
-      continue;
-
-    sawVideo = true;
-    unsigned sessionID = it->GetSessionID();
-    sessions.push_back(sessionID);
-
-    bool formatMismatch = false;
-    bool forward = PairDirectionReady(*network1, *network2, sessionID, formatMismatch);
-    bool reverse = PairDirectionReady(*network2, *network1, sessionID, formatMismatch);
-    if (formatMismatch)
-      mismatched = true;
-    else if (!forward || !reverse)
-      pending = true;
-  }
-
-  if (!sawVideo || pending) {
     waiting = true;
     return false;
   }
 
-  if (mismatched) {
+  bool formatMismatch = false;
+  bool forwardWaiting = false;
+  bool reverseWaiting = false;
+  bool forward = PairVideoDirection(*network1, *network2, true, forwardWaiting, formatMismatch);
+  bool reverse = PairVideoDirection(*network2, *network1, true, reverseWaiting, formatMismatch);
+
+  if (formatMismatch) {
+    bool unusedWaiting = false;
+    bool unusedMismatch = false;
+    PairVideoDirection(*network1, *network2, false, unusedWaiting, unusedMismatch);
+    PairVideoDirection(*network2, *network1, false, unusedWaiting, unusedMismatch);
     PTRACE(3, "Pair video formats differ, falling back to a transcoded mix on " << *this);
     return false;
   }
 
-  for (std::vector<unsigned>::iterator it = sessions.begin(); it != sessions.end(); ++it) {
-    if (OpalManager::SetMediaPassThrough(*network1, *network2, true, *it))
-      continue;
-
-    PTRACE(2, "Pair video relay could not bypass session " << *it << " on " << *this);
-    for (std::vector<unsigned>::iterator undo = sessions.begin(); undo != sessions.end(); ++undo)
-      OpalManager::SetMediaPassThrough(*network1, *network2, false, *undo);
+  // Both directions must succeed. SetMediaPassThrough used to return true when
+  // only one side was ready, which left one participant without video.
+  if (!forward || !reverse) {
+    bool unusedWaiting = false;
+    bool unusedMismatch = false;
+    PairVideoDirection(*network1, *network2, false, unusedWaiting, unusedMismatch);
+    PairVideoDirection(*network2, *network1, false, unusedWaiting, unusedMismatch);
+    waiting = forwardWaiting || reverseWaiting || !forward || !reverse;
     return false;
   }
 
+  m_pairRelayActive = true;
+  // Both directions just switched to RTP pass-through; force an intra from
+  // each camera so receivers are not left on a mid-GOP stream from SFU mode.
+  RequestVideoKeyFrames();
   PTRACE(3, "Relaying video between two participants on " << *this);
   return true;
 }
@@ -756,14 +945,14 @@ static unsigned VideoSinkCount(OpalConnection & connection)
 static bool ParticipantsHaveRelaySinks(const OpalMixerNode & node)
 {
   PINDEX connectionCount = node.GetConnectionCount();
-  if (connectionCount < 3 || connectionCount > 4)
+  if (connectionCount < 3)
     return false;
 
   unsigned needed = (unsigned)connectionCount - 1;
   unsigned ready = 0;
   for (const auto & connection : node.GetConnections()) {
     PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
-    if (network == NULL || network->GetMediaStream(OpalMediaType::Video(), true) == NULL)
+    if (network == NULL || LowestSessionVideo(*network, true) == NULL)
       continue;
     if (VideoSinkCount(*network) < needed)
       return false;
@@ -779,6 +968,27 @@ bool OpalMixerNode::MultiStreamReady() const
 }
 
 
+bool OpalMixerNode::RetryMultiStreamRelay()
+{
+  PThread::Sleep(200);
+  m_multiStreamRetryPending = false;
+  if (!m_shuttingDown)
+    UpdateVideoDelivery(true);
+  return true;
+}
+
+
+void OpalMixerNode::ScheduleVideoDeliveryRetry()
+{
+  if (m_shuttingDown)
+    return;
+  if (!m_multiStreamRetryPending.exchange(true)) {
+    m_manager.GetManager().QueueDecoupledEvent(
+      new PSafeWorkNoArg<OpalMixerNode, bool>(this, &OpalMixerNode::RetryMultiStreamRelay));
+  }
+}
+
+
 bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
 {
   waiting = false;
@@ -786,8 +996,15 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
   if (m_relayInProgress.load())
     return true;
 
+  if (m_relayEncodedVideo.load() && m_relayPartyCount == (unsigned)m_connections.GetSize())
+    return true;
+
   if (!ParticipantsHaveRelaySinks(*this)) {
-    waiting = m_connections.GetSize() <= 4;
+    waiting = m_connections.GetSize() >= 3;
+    if (waiting && !m_multiStreamRetryPending.exchange(true)) {
+      m_manager.GetManager().QueueDecoupledEvent(
+        new PSafeWorkNoArg<OpalMixerNode, bool>(this, &OpalMixerNode::RetryMultiStreamRelay));
+    }
     return false;
   }
 
@@ -799,9 +1016,8 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
   };
   std::vector<Party> parties;
 
-  PINDEX connectionCount = m_connections.GetSize();
-  if (connectionCount < 3 || connectionCount > 4) {
-    waiting = connectionCount < 3;
+  if (m_connections.GetSize() < 3) {
+    waiting = true;
     return false;
   }
 
@@ -810,7 +1026,7 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
     if (network == NULL)
       continue;
 
-    OpalMediaStreamPtr video = network->GetMediaStream(OpalMediaType::Video(), true);
+    OpalMediaStreamPtr video = LowestSessionVideo(*network, true);
     if (video == NULL)
       continue;
 
@@ -826,11 +1042,8 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
     return false;
   }
 
-  if (parties.size() > 4)
-    return false;
-
   for (size_t i = 1; i < parties.size(); ++i) {
-    if (parties[i].format != parties[0].format) {
+    if (!SameVideoCodec(parties[i].format, parties[0].format)) {
       PTRACE(3, "Video formats differ, falling back to a transcoded mix on " << *this);
       return false;
     }
@@ -845,6 +1058,10 @@ bool OpalMixerNode::StartMultiStreamRelay(bool & waiting)
       // The extra m-lines are still sharing the first video session, so only
       // the mixed picture has a stream. The next offer separates them.
       waiting = true;
+      if (!m_multiStreamRetryPending.exchange(true)) {
+        m_manager.GetManager().QueueDecoupledEvent(
+          new PSafeWorkNoArg<OpalMixerNode, bool>(this, &OpalMixerNode::RetryMultiStreamRelay));
+      }
       return false;
     }
   }
@@ -876,6 +1093,10 @@ bool OpalMixerNode::ApplyMultiStreamRelay()
   bool waiting = false;
   if (!ArmEncodedRelay(waiting) && !waiting)
     SetForceTranscode(true);
+  else if (waiting && !m_multiStreamRetryPending.exchange(true)) {
+    m_manager.GetManager().QueueDecoupledEvent(
+      new PSafeWorkNoArg<OpalMixerNode, bool>(this, &OpalMixerNode::RetryMultiStreamRelay));
+  }
   return true;
 }
 
@@ -898,7 +1119,7 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
     if (network == NULL)
       continue;
 
-    OpalMediaStreamPtr video = network->GetMediaStream(OpalMediaType::Video(), true);
+    OpalMediaStreamPtr video = LowestSessionVideo(*network, true);
     if (video == NULL)
       continue;
 
@@ -910,13 +1131,13 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
     parties.push_back(party);
   }
 
-  if (parties.size() < 3 || parties.size() > 4) {
-    waiting = parties.size() < 3;
+  if (parties.size() < 3) {
+    waiting = true;
     return false;
   }
 
   for (size_t i = 1; i < parties.size(); ++i) {
-    if (parties[i].format != parties[0].format) {
+    if (!SameVideoCodec(parties[i].format, parties[0].format)) {
       PTRACE(3, "Video formats differ, falling back to a transcoded mix on " << *this);
       return false;
     }
@@ -930,13 +1151,20 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
     }
   }
 
+  // Stable mapping: same join order → same m-line assignment for every arm.
+  std::sort(parties.begin(), parties.end(),
+            [](const Party & a, const Party & b) { return a.mixer->GetToken() < b.mixer->GetToken(); });
+
   // Leave the streams the browsers are already receiving. Only the path that
   // carries each camera into the mixer has to be reopened without a transcoder.
+  // Encoded relay and the mix cannot run together: reopening drops YUV input.
   m_relayEncodedVideo = true;
   m_relayPartyCount = 0;
+  m_relayAwaitingKeyFrame = false;
   {
     PWaitAndSignal lock(m_relayMutex);
     m_relaySourceOf.clear();
+    m_relayStreamsFed.clear();
   }
 
   for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
@@ -949,7 +1177,10 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
                                                        OpalMediaType::Video(),
                                                        sender->sessionID,
                                                        sender->format)) {
-      OpalMediaStreamPtr sink = sender->mixer->GetMediaStream(OpalMediaType::Video(), false);
+      // Bind by the camera's session id. GetMediaStream(Video) is pointer-ordered.
+      OpalMediaStreamPtr sink = sender->mixer->GetMediaStream(sender->sessionID, false);
+      if (sink == NULL)
+        sink = LowestSessionVideo(*sender->mixer, false);
       if (sink != NULL) {
         sender->sinkId = sink->GetID();
         continue;
@@ -959,6 +1190,11 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
     PTRACE(2, "Could not reopen encoded video from " << *sender->network);
     m_relayEncodedVideo = false;
     m_relayPartyCount = 0;
+    m_relayAwaitingKeyFrame = false;
+    {
+      PWaitAndSignal lock(m_relayMutex);
+      m_relayStreamsFed.clear();
+    }
     for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
       CloseVideoDirection(*it->network, true);
       CloseVideoDirection(*it->mixer, false);
@@ -966,18 +1202,22 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
                                                  OpalMediaType::Video(),
                                                  it->sessionID,
                                                  it->format);
+      // OpenSourceMediaStreams builds the patch but does not start it.
+      it->network->StartMediaStreams();
+      it->mixer->StartMediaStreams();
     }
     waiting = true;
     return false;
   }
 
   for (std::vector<Party>::iterator receiver = parties.begin(); receiver != parties.end(); ++receiver) {
-    std::vector<PString> outputs;
+    std::vector<std::pair<unsigned, PString> > outputs;
     PSafeArray<OpalMediaStream> streams = receiver->mixer->GetMediaStreams();
     for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
       if (it->IsSource() && IsVideo(*it))
-        outputs.push_back(it->GetID());
+        outputs.push_back(std::make_pair(it->GetSessionID(), it->GetID()));
     }
+    std::sort(outputs.begin(), outputs.end());
 
     size_t index = 0;
     for (std::vector<Party>::iterator sender = parties.begin(); sender != parties.end(); ++sender) {
@@ -987,20 +1227,32 @@ bool OpalMixerNode::ArmEncodedRelay(bool & waiting)
         PTRACE(2, "Relay video stream towards " << *receiver->network << " was not created");
         m_relayEncodedVideo = false;
         m_relayPartyCount = 0;
+        m_relayAwaitingKeyFrame = false;
+        {
+          PWaitAndSignal lock(m_relayMutex);
+          m_relayStreamsFed.clear();
+        }
         waiting = true;
         return false;
       }
 
       PWaitAndSignal lock(m_relayMutex);
-      m_relaySourceOf[outputs[index]] = sender->sinkId;
+      m_relaySourceOf[outputs[index].second] = sender->sinkId;
       ++index;
     }
   }
 
+  // Patches created by OpenSourceMediaStreams are idle until StartMediaStreams.
+  // Without this, cameras never feed ForwardEncodedVideo and every SFU m-line
+  // stays black after the mix stops.
+  for (std::vector<Party>::iterator it = parties.begin(); it != parties.end(); ++it) {
+    it->network->StartMediaStreams();
+    it->mixer->StartMediaStreams();
+  }
+
   m_relayPartyCount = (unsigned)parties.size();
+  m_relayKeyFrameTimer.SetInterval(500);
   RequestVideoKeyFrames();
-  // The receiver SSRC may not be ready until the next camera packet arrives.
-  m_relayAwaitingKeyFrame = true;
   PTRACE(3, "Relaying encoded video between " << m_relayPartyCount << " participants on " << *this);
   return true;
 }
@@ -1017,14 +1269,119 @@ void OpalMixerNode::StopMultiStreamRelay()
   {
     PWaitAndSignal lock(m_relayMutex);
     m_relaySourceOf.clear();
+    m_relayStreamsFed.clear();
+  }
+
+  // Arm left camera→mixer paths encoded-only. Pair pass-through and a YUV mix
+  // both need those patches rebuilt with RelayEncodedVideo clear so sinks open
+  // as YUV again. Leave the browser-facing mixer sources alone.
+  struct Leg {
+    PSafePtr<OpalMixerConnection> mixer;
+    PSafePtr<OpalConnection> network;
+    unsigned sessionID;
+    OpalMediaFormat format;
+  };
+  std::vector<Leg> legs;
+  for (auto & connection : m_connections) {
+    PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+    if (network == NULL)
+      continue;
+    OpalMediaStreamPtr camera = LowestSessionVideo(*network, true);
+    if (camera == NULL)
+      continue;
+    Leg leg;
+    leg.mixer = &connection;
+    leg.network = network;
+    leg.sessionID = camera->GetSessionID();
+    leg.format = camera->GetMediaFormat();
+    legs.push_back(leg);
+  }
+
+  for (std::vector<Leg>::iterator it = legs.begin(); it != legs.end(); ++it) {
+    CloseVideoDirection(*it->network, true);
+    CloseVideoDirection(*it->mixer, false);
+  }
+
+  for (std::vector<Leg>::iterator it = legs.begin(); it != legs.end(); ++it) {
+    it->mixer->GetCall().OpenSourceMediaStreams(*it->network,
+                                               OpalMediaType::Video(),
+                                               it->sessionID,
+                                               it->format);
+    it->network->StartMediaStreams();
+    it->mixer->StartMediaStreams();
   }
 
   RequestVideoKeyFrames();
 }
 
 
+bool OpalMixerNode::ShrinkEncodedRelayToPair()
+{
+  if (!m_relayEncodedVideo.load() || m_connections.GetSize() != 2)
+    return false;
+
+  struct Party {
+    PSafePtr<OpalMixerConnection> mixer;
+    PSafePtr<OpalConnection> network;
+    PString sinkId;
+    PString primaryOutId;
+  };
+  std::vector<Party> parties;
+
+  for (auto & connection : m_connections) {
+    PSafePtr<OpalConnection> network = connection.GetOtherPartyConnection();
+    if (network == NULL)
+      return false;
+
+    OpalMediaStreamPtr sink = LowestSessionVideo(connection, false);
+    OpalMediaStreamPtr primary = LowestSessionVideo(connection, true);
+    if (sink == NULL || primary == NULL)
+      return false;
+
+    Party party;
+    party.mixer = &connection;
+    party.network = network;
+    party.sinkId = sink->GetID();
+    party.primaryOutId = primary->GetID();
+    parties.push_back(party);
+  }
+
+  if (parties.size() != 2)
+    return false;
+
+  {
+    PWaitAndSignal lock(m_relayMutex);
+    m_relaySourceOf.clear();
+    m_relayStreamsFed.clear();
+    // A sees B's camera on the primary m-line, and B sees A's.
+    m_relaySourceOf[parties[0].primaryOutId] = parties[1].sinkId;
+    m_relaySourceOf[parties[1].primaryOutId] = parties[0].sinkId;
+  }
+
+  m_relayPartyCount = 2;
+  m_relayAwaitingKeyFrame = false;
+  m_relayKeyFrameTimer.SetInterval(500);
+  PTRACE(3, "Shrunk encoded relay to a pair on " << *this);
+  return true;
+}
+
+
 void OpalMixerNode::ForwardEncodedVideo(const OpalMixerMediaStream & from, const RTP_DataFrame & packet)
 {
+  struct Target {
+    OpalMediaStreamPtr stream;
+    PString id;
+    bool awaitingKeyFrame;
+  };
+  std::vector<Target> targets;
+  bool needKeyFrameRequest = false;
+
+  OpalVideoFormat format(from.GetMediaFormat());
+  bool keyFrame = format.IsValid() &&
+                  format.GetFrameType(packet.GetPayloadPtr(),
+                                      packet.GetPayloadSize(),
+                                      m_relayFrameDetector) == OpalVideoFormat::e_IntraFrame;
+
   {
     PWaitAndSignal lock(m_relayMutex);
     const OpalConnection & sender = from.GetConnection();
@@ -1042,18 +1399,40 @@ void OpalMixerNode::ForwardEncodedVideo(const OpalMixerMediaStream & from, const
         if (map == m_relaySourceOf.end() || map->second != from.GetID())
           continue;
 
-        if (it->GetMediaFormat() != from.GetMediaFormat())
+        // Match codec family only. Payload type / option diffs must not drop
+        // the only path that feeds SFU outputs after the mix stops.
+        if (it->GetMediaFormat().GetName() != from.GetMediaFormat().GetName())
           continue;
 
-        RTP_DataFrame copy;
-        copy.Copy(packet);
-        it->PushPacket(copy);
+        Target target;
+        target.stream = &*it;
+        target.id = it->GetID();
+        target.awaitingKeyFrame = m_relayStreamsFed.find(target.id) == m_relayStreamsFed.end();
+        if (target.awaitingKeyFrame && !keyFrame) {
+          needKeyFrameRequest = true;
+          continue;
+        }
+        targets.push_back(target);
       }
+    }
+
+    // Rate-limit PLI storms while any output is still waiting for an intra.
+    if (needKeyFrameRequest && m_relayKeyFrameTimer.HasExpired())
+      m_relayKeyFrameTimer.SetInterval(500);
+    else
+      needKeyFrameRequest = false;
+  }
+
+  for (std::vector<Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
+    RTP_DataFrame copy;
+    copy.Copy(packet);
+    if (it->stream->PushPacket(copy) && keyFrame) {
+      PWaitAndSignal lock(m_relayMutex);
+      m_relayStreamsFed.insert(it->id);
     }
   }
 
-  // Ask again once a camera packet is flowing, so the PLI has a receiver SSRC.
-  if (m_relayAwaitingKeyFrame.exchange(false))
+  if (needKeyFrameRequest)
     RequestVideoKeyFrames();
 }
 

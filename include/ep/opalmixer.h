@@ -39,6 +39,8 @@
 #if OPAL_HAS_MIXER
 
 #include <queue>
+#include <map>
+#include <set>
 
 #include <ep/localep.h>
 #include <codec/vidcodec.h>
@@ -619,6 +621,12 @@ class OpalVideoMixerStrategy
     virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) { (void)node; (void)mixer; }
     virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) { (void)node; (void)mixer; }
     virtual void SetForceTranscode(bool on) { (void)on; }
+
+    /**How many video streams each participant should receive for this mode.
+       One for still/pair/transcode. For multi-stream SFU, participantCount-1
+       after the mode has been selected and has asked for separate streams.
+      */
+    virtual unsigned GetExpectedReceiveVideoStreams(const OpalMixerNode & node) const;
 };
 
 
@@ -642,6 +650,7 @@ class OpalOriginalVideoStrategy : public OpalTranscodeVideoStrategy
   public:
     explicit OpalOriginalVideoStrategy(std::unique_ptr<OpalVideoLayoutStrategy> layout)
       : OpalTranscodeVideoStrategy(std::move(layout)) { }
+    virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
 };
 
 
@@ -690,20 +699,31 @@ class OpalMultiStreamRelayStrategy : public OpalVideoMixerStrategy
 };
 
 
-/**Example selector: still image, pair relay, multi-stream relay, then the original mix.
-   Not used unless a derived mixer returns it from GetVideoStrategy.
+/**Example selector by participant count. Replace this instance (or subclass it)
+   from GetVideoStrategy to change when each mode is used.
+
+   Default criteria:
+     1 participant  - still image
+     2 participants - RTP pass-through
+     3..multiMax    - multi-stream SFU (multiMax defaults to 3)
+     above multiMax - transcoded mix
   */
 class OpalParticipantCountVideoStrategy : public OpalVideoMixerStrategy
 {
   public:
-    OpalParticipantCountVideoStrategy(const PString & stillImage,
-                                      std::unique_ptr<OpalVideoLayoutStrategy> layout);
+    explicit OpalParticipantCountVideoStrategy(const PString & stillImage,
+                                               std::unique_ptr<OpalVideoLayoutStrategy> layout,
+                                               unsigned multiMax = 3);
     virtual bool Mix(OpalVideoMixer & mixer, RTP_DataFrame & frame) override;
     virtual bool WantsTranscode() const override;
     virtual OpalVideoLayoutStrategy & Layout() override;
     virtual void Activate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
     virtual void Deactivate(OpalMixerNode & node, OpalVideoMixer & mixer) override;
     virtual void SetForceTranscode(bool on) override;
+    virtual unsigned GetExpectedReceiveVideoStreams(const OpalMixerNode & node) const override;
+
+    unsigned GetMultiStreamMax() const { return m_multiMax; }
+    void SetMultiStreamMax(unsigned multiMax) { m_multiMax = multiMax < 3 ? 3 : multiMax; }
 
   private:
     OpalVideoMixerStrategy & Select(const OpalMixerNode & node);
@@ -714,6 +734,9 @@ class OpalParticipantCountVideoStrategy : public OpalVideoMixerStrategy
     OpalOriginalVideoStrategy m_original;
     OpalVideoMixerStrategy * m_active;
     bool m_forceTranscode;
+    unsigned m_multiMax;
+    atomic<bool> m_transitioning;
+    atomic<bool> m_reenterDelivery;
 };
 
 #endif // OPAL_VIDEO
@@ -1478,6 +1501,7 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     virtual Key_T GetActiveSpeaker() const override;
     virtual void SetForceTranscode(bool on);
     OpalMixerNode & GetMixerNode() const { return m_node; }
+    unsigned GetExpectedReceiveVideoStreams();
 
   protected:
     virtual void OnStrategyPublished() override;
@@ -1623,15 +1647,41 @@ class OpalMixerNode : public PSafeObject
       */
     bool StartMultiStreamRelay(bool & waiting);
     void StopMultiStreamRelay();
+    /**Keep encoded camera paths and remap to a single primary m-line each way.
+       Used on 3→2 so pair video does not depend on RTP pass-through after SFU.
+      */
+    bool ShrinkEncodedRelayToPair();
 
     /**True when every participant already has a video stream for each of the others.
       */
     bool MultiStreamReady() const;
     void SetForceTranscode(bool on);
     void RequestVideoKeyFrames();
+    /**Ask the camera feeding an SFU output for an intra frame. Used when a
+       receiver's PLI lands on the mixer source instead of the network path.
+      */
+    void RequestRelayKeyFrame(PString outputStreamId);
     bool RelayEncodedVideo() const { return m_relayEncodedVideo.load(); }
     bool EncodedRelayActive() const { return m_relayEncodedVideo.load() && m_relayPartyCount > 0; }
+    /**True once encoded SFU relay is armed. Mix and encoded relay cannot overlap.
+      */
+    bool RelayHandoffComplete() const { return EncodedRelayActive(); }
+    bool PairRelayActive() const { return m_pairRelayActive.load(); }
     bool ApplyMultiStreamRelay();
+    bool RetryMultiStreamRelay();
+    /**Queue another UpdateVideoDelivery after media settles (pair or multi waiting).*/
+    void ScheduleVideoDeliveryRetry();
+    unsigned GetExpectedReceiveVideoStreams() const;
+    /**Windows to show in the UI. Stays 1 until encoded SFU is armed so the
+       mixed preview is not joined by empty multistream tiles during setup.
+      */
+    unsigned GetDisplayReceiveVideoStreams() const;
+
+    /**Enable or clear one RTP session per bundled video m-line. Owned by the
+       multi-stream mode activate/deactivate path so other modes stay on a
+       single video stream.
+      */
+    void RenegotiateParticipants(bool separateBundle);
 #endif
   //@}
 
@@ -1736,13 +1786,17 @@ class OpalMixerNode : public PSafeObject
     atomic<bool> m_relayInProgress;
     atomic<bool> m_relayApplyPending;
     atomic<bool> m_relayAwaitingKeyFrame;
+    atomic<bool> m_pairRelayActive;
+    atomic<bool> m_multiStreamRetryPending;
     bool ArmEncodedRelay(bool & waiting);
     unsigned m_relayPartyCount;
     PDECLARE_MUTEX(m_relayMutex);
     std::map<PString, PString> m_relaySourceOf;
+    std::set<PString> m_relayStreamsFed; // output stream IDs that have seen a keyframe
+    OpalVideoFormat::FrameDetectorPtr m_relayFrameDetector;
+    PSimpleTimer m_relayKeyFrameTimer;
 
     void ForwardEncodedVideo(const OpalMixerMediaStream & from, const RTP_DataFrame & packet);
-    void RenegotiateParticipants(bool separateBundle);
     void CloseVideoStreams(OpalConnection & connection);
     void ReopenMixedVideo();
 #endif
