@@ -3650,7 +3650,7 @@ void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
       if (it->second->GetLastRegistrationTime().IsValid() || now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
         ++it;
       else {
-        PTRACE(2, "Removing discovery endpointi that never registered " << *it->second);
+        PTRACE(2, "Removing discovery endpoint that never registered " << *it->second);
         m_discoveredEndpoints.erase(it++);
       }
     }
