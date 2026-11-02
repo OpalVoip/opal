@@ -1507,15 +1507,11 @@ void OpalMixerNode::DetachStream(OpalMixerMediaStream * stream)
 
 #if OPAL_VIDEO
   if (stream->GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
-    VideoMixerMap::iterator it = m_videoMixers.find(stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole));
-    if (it == m_videoMixers.end()) {
-      PTRACE(3, "Could not find video mixer for stream with id " << id << " in " << *this);
-      return;
+    for (auto & it : m_videoMixers) {
+      if (stream->IsSource() ? it.second->RemoveOutputStream(stream) : it.second->RemoveInputVideoStream(stream))
+        return;
     }
-    if (stream->IsSource())
-      it->second->RemoveOutputStream(stream);
-    else
-      it->second->RemoveInputVideoStream(stream);
+    PTRACE(3, "Could not find video mixer for stream with id " << id << " in " << *this);
     return;
   }
 #endif
@@ -2254,10 +2250,10 @@ bool OpalVideoStreamMixer::AddInputVideoStream(const PSafePtr<OpalMixerMediaStre
 }
 
 
-void OpalVideoStreamMixer::RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream)
+bool OpalVideoStreamMixer::RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream)
 {
-  m_inputVideoStreams.RemoveAt(stream->GetID());
   RemoveStream(stream->GetID());
+  return m_inputVideoStreams.RemoveAt(stream->GetID());
 }
 
 #endif // OPAL_VIDEO
