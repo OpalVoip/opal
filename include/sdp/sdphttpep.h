@@ -61,11 +61,6 @@
     connection*/
 #define OPAL_SDP_HTTP_OP_STATUS        "status"
 
-/**Replace the SDP on an existing connection. The body is a new offer and the
-    response is the answer. Requires "connection-id".
-  */
-#define OPAL_SDP_HTTP_OP_OFFER         "offer"
-
 /// The connnection identifier query parameter used by some operations
 #define OPAL_SDP_HTTP_ID_QUERY_PARAM   "connection-id"
 

@@ -48,32 +48,6 @@
 #define new PNEW
 
 
-/**Keeps the media stream alive for as long as an RTP session can deliver a packet to it.
-   The session stores this notifier by value. Closing the stream removes it, but a receive
-   thread may already have copied the notifier. That copy holds a safe reference so the
-   stream cannot be destroyed until the delivery returns.
-  */
-class OpalRTPStreamReceiver : public PNotifierFunctionTemplate<OpalRTPSession::Data &>
-{
-  public:
-    explicit OpalRTPStreamReceiver(OpalRTPMediaStream * stream)
-      : PNotifierFunctionTemplate<OpalRTPSession::Data &>(stream)
-      , m_stream(*stream)
-      , m_keepAlive(stream)
-    {
-    }
-
-    void Call(PObject & note, OpalRTPSession::Data & extra) const override
-    {
-      m_stream.OnReceivedPacket(static_cast<OpalRTPSession &>(note), extra);
-    }
-
-  private:
-    OpalRTPMediaStream & m_stream;
-    OpalMediaStreamPtr   m_keepAlive;
-};
-
-
 ///////////////////////////////////////////////////////////////////////////////
 
 OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
@@ -84,8 +58,6 @@ OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
   , m_rtpSession(rtp)
   , m_rewriteHeaders(true)
   , m_notifierPriority(100)
-  , m_passThruThread(NULL)
-  , m_passThruRunning(false)
   , m_jitterBuffer(NULL)
   , m_readTimeout(PMaxTimeInterval)
 #if OPAL_VIDEO
@@ -93,6 +65,7 @@ OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
   , m_videoUpdateThrottleTime(-1)
   , m_pictureLossThrottleTime(-1)
 #endif
+  , m_receiveNotifier(PCREATE_RTPDataNotifier(OnReceivedPacket))
 #if OPAL_JITTER_BUFFER_LATENCY_CHECK
   , m_jbLatencySampleCount(0)
 #endif
@@ -134,7 +107,6 @@ PBoolean OpalRTPMediaStream::Open()
                                 m_connection.GetEndPoint().GetManager().GetMaxRtpPayloadSize());
     m_jitterBuffer = OpalJitterBuffer::Create(m_mediaFormat.GetMediaType(), init);
     m_rtpSession.SetJitterBuffer(m_jitterBuffer, m_syncSource);
-    AttachReceiveNotifier();
     m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
     PTRACE(4, "Opening source stream " << *this << " jb=" << *m_jitterBuffer);
   }
@@ -222,31 +194,23 @@ bool OpalRTPMediaStream::SetMediaPassThrough(OpalMediaStream & otherStream, bool
   if (IsSink())
     return otherStream.SetMediaPassThrough(*this, bypass);
 
-  {
-    PWaitAndSignal lock(m_passThruMutex);
-    if (bypass) {
-      if (m_passThruStream == &otherStream)
-        return OpalMediaStream::SetMediaPassThrough(otherStream, true);
-
-      if (m_passThruStream != NULL) {
-        PTRACE(2, "Media pass through already in place from " << *this << " to " << *m_passThruStream);
-        return false;
-      }
-
-      PTRACE(3, "Media pass through set from " << *this << " to " << otherStream);
-      m_passThruStream = &otherStream;
-      EnsurePassThroughThread();
+  if (bypass) {
+    if (m_passThruStream != NULL) {
+      PTRACE(2, "Media pass through already in place from " << *this << " to " << *m_passThruStream);
+      return false;
     }
-    else {
-      if (m_passThruStream == NULL) {
-        PTRACE(2, "No media pass through in effect on " << *this);
-        return false;
-      }
 
-      PTRACE(2, "Media pass through ceased from " << *this << " to " << *m_passThruStream);
-      m_passThruStream.SetNULL();
-      m_passThruQueue.clear();
+    PTRACE(3, "Media pass through set from " << *this << " to " << otherStream);
+    m_passThruStream = &otherStream;
+  }
+  else {
+    if (m_passThruStream == NULL) {
+      PTRACE(2, "No media pass through in effect on " << *this);
+      return false;
     }
+
+    PTRACE(2, "Media pass through ceased from " << *this << " to " << *m_passThruStream);
+    m_passThruStream.SetNULL();
   }
 
   return OpalMediaStream::SetMediaPassThrough(otherStream, bypass);
@@ -280,103 +244,12 @@ void OpalRTPMediaStream::SetReadTimeout(const PTimeInterval & timeout)
   }
 }
 
-void OpalRTPMediaStream::EnsurePassThroughThread()
-{
-  if (m_passThruThread != NULL)
-    return;
-
-  m_passThruRunning = true;
-  m_passThruThread = new PThreadObj<OpalRTPMediaStream>(*this,
-                                                        &OpalRTPMediaStream::PassThroughMain,
-                                                        false,
-                                                        "RTPPassThru",
-                                                        PThread::HighPriority);
-}
-
-
-void OpalRTPMediaStream::StopPassThroughThread()
-{
-  {
-    PWaitAndSignal lock(m_passThruMutex);
-    m_passThruStream.SetNULL();
-    m_passThruQueue.clear();
-  }
-
-  if (m_passThruThread == NULL)
-    return;
-
-  m_passThruRunning = false;
-  m_passThruSignal.Signal();
-  PThread::WaitAndDelete(m_passThruThread);
-}
-
-
-void OpalRTPMediaStream::PassThroughMain()
-{
-  while (m_passThruRunning) {
-    m_passThruSignal.Wait();
-
-    for (;;) {
-      std::deque<RTP_DataFrame> batch;
-      OpalMediaStreamPtr sink;
-      {
-        PWaitAndSignal lock(m_passThruMutex);
-        batch.swap(m_passThruQueue);
-        sink = m_passThruStream;
-        if (batch.empty() || sink == NULL)
-          break;
-      }
-
-      bool failed = false;
-      for (std::deque<RTP_DataFrame>::iterator frame = batch.begin(); frame != batch.end(); ++frame) {
-        if (!m_passThruRunning || !sink->IsOpen() || !sink->WritePacket(*frame)) {
-          failed = true;
-          break;
-        }
-      }
-      if (!failed)
-        continue;
-
-      PTRACE_IF(3, sink->IsOpen(), "Media pass through write error from " << *this << " to " << *sink);
-      PWaitAndSignal lock(m_passThruMutex);
-      m_passThruStream.SetNULL();
-      m_passThruQueue.clear();
-      break;
-    }
-  }
-}
-
-
-void OpalRTPMediaStream::AttachReceiveNotifier()
-{
-  if (m_receiveNotifier.IsNULL())
-    m_receiveNotifier = new OpalRTPStreamReceiver(this);
-}
-
-
-void OpalRTPMediaStream::DetachReceiveNotifier()
-{
-  if (m_receiveNotifier.IsNULL())
-    return;
-
-  // Drop the session's copy first. Any copy already taken by a receive thread
-  // keeps this stream alive until that delivery returns.
-  m_rtpSession.RemoveDataNotifier(m_receiveNotifier);
-  m_receiveNotifier = OpalRTPSession::DataNotifier();
-}
-
-
 void OpalRTPMediaStream::InternalClose()
 {
-  // Stop the relay thread before removing the receive notifier. The receive
-  // callback only queues packets, so closing cannot wait on the session lock
-  // while that callback waits on this stream.
-  StopPassThroughThread();
-  DetachReceiveNotifier();
-
   // Break any I/O blocks and wait for the thread that uses this object to
   // terminate before we allow it to be deleted.
   if (m_jitterBuffer != NULL) {
+    m_rtpSession.RemoveDataNotifier(m_receiveNotifier);
     m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
     m_jitterBuffer->Close();
     // Don't delete m_jitterBuffer as read thread may still be running
@@ -394,7 +267,6 @@ bool OpalRTPMediaStream::InternalSetPaused(bool pause, bool fromUser, bool fromP
       m_rtpSession.RemoveDataNotifier(m_receiveNotifier);
     else if (m_jitterBuffer != NULL) {
       m_jitterBuffer->Restart();
-      AttachReceiveNotifier();
       m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
     }
   }
@@ -449,25 +321,17 @@ void OpalRTPMediaStream::OnReceivedPacket(OpalRTPSession &, OpalRTPSession::Data
           (m_simulcastId.empty() || data.m_frame.GetSimulcastId() == m_simulcastId))
     SetSyncSource(data.m_frame.GetSyncSource());
 
-  bool relay = false;
-  {
-    // The receive path holds this session's lock. The relay thread performs
-    // the write so this callback never locks the other session or this stream.
-    PWaitAndSignal lock(m_passThruMutex);
-    relay = m_passThruStream != NULL;
-    if (relay) {
-      m_passThruQueue.emplace_back();
-      m_passThruQueue.back().Copy(data.m_frame);
-    }
-  }
-
-  if (!relay) {
+  if (m_passThruStream == NULL) {
     if (m_jitterBuffer != NULL)
       m_jitterBuffer->WriteData(data.m_frame);
     return;
   }
 
-  m_passThruSignal.Signal();
+  if (m_passThruStream->WritePacket(data.m_frame))
+    return;
+
+  PTRACE(3, "Media pass through write error from " << *this << " to " << *m_passThruStream);
+  m_passThruStream.SetNULL();
 }
 
 
@@ -562,22 +426,24 @@ PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
   if (m_syncSource != 0)
     packet.SetSyncSource(m_syncSource);
 
-  if (!IsOpen())
-    return false;
+  PSimpleTimer failsafe(m_connection.GetEndPoint().GetManager().GetTxMediaTimeout());
+  while (IsOpen()) {
+    switch (m_rtpSession.WriteData(packet, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
+      case OpalRTPSession::e_AbortTransport :
+        return false;
 
-  switch (m_rtpSession.WriteData(packet, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
-    case OpalRTPSession::e_AbortTransport :
-      return false;
+      case OpalRTPSession::e_ProcessPacket :
+        return true;
 
-    case OpalRTPSession::e_ProcessPacket :
-      return true;
-
-    case OpalRTPSession::e_IgnorePacket :
-      // Not established yet, or SRTP keys are not applied yet. Drop the
-      // packet. The mixer thread writes every destination, and sleeping
-      // here holds video back from listeners that are already connected.
-      PTRACE(m_throttleWriteData, m_rtpSession << "write data not ready on " << *this);
-      return true;
+      case OpalRTPSession::e_IgnorePacket :
+        PTRACE(m_throttleWriteData, m_rtpSession << "write data delayed on  " << *this);
+        PThread::Sleep(20);
+        break;
+    }
+    if (failsafe.HasExpired()) {
+        PTRACE(2, m_rtpSession << "write data failed, delayed for too long on  " << *this);
+        return false;
+    }
   }
 
   return false;

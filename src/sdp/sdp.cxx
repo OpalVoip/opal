@@ -731,22 +731,9 @@ PBoolean SDPMediaDescription::SetAddresses(const OpalTransportAddress & media,
 }
 
 
-PString SDPMediaDescription::GetBundleMediaId() const
-{
-  PString mid = m_groups(OpalMediaSession::GetBundleGroupId());
-  if (mid.IsEmpty() && !m_mids.IsEmpty())
-    mid = m_mids.front();
-  return mid;
-}
-
-
 bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId)
 {
-  // Port 0 in an offer rejects the m-line, except a bundle-only m-line, which
-  // shares the tagged m-line's transport and must be answered on that port.
-  bool bundled = session != NULL && (session->IsGroupMember(OpalMediaSession::GetBundleGroupId()) ||
-                                      (offer != NULL && offer->IsBundleOnly()));
-  if (session == NULL || (offer != NULL && offer->GetPort() == 0 && !bundled)) {
+  if (session == NULL || (offer != NULL && offer->GetPort() == 0)) {
     m_port = 0;
     m_mediaAddress = OpalTransportAddress();
     m_controlAddress = OpalTransportAddress();
@@ -816,10 +803,8 @@ bool SDPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceAr
   session->SetConnectionMode(m_connectionMode);
 
 #if OPAL_ICE
-  // An extra bundled m-line often has no ICE credentials of its own. Applying
-  // that to the shared transport disables ICE for every session on the port.
   OpalMediaTransportPtr transport = session->GetTransport();
-  if (transport != NULL && HasICE()) {
+  if (transport != NULL) {
     OpalICEMediaTransport::Options options;
     if (m_iceOptions.Contains(IceLiteOption))
       options |= OpalICEMediaTransport::OptLite;
@@ -3773,16 +3758,11 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
       mediaDescriptions[i].MatchGroupInfo(m_groups);
 
     WORD firstBundledPort = 0;
-    OpalTransportAddress bundledMedia, bundledControl;
     for (PINDEX i = 0; i < mediaDescriptions.GetSize(); ++i) {
       const SDPMediaDescription & md = mediaDescriptions[i];
       if (md.GetPort() != 0 && md.IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
         firstBundledPort = md.GetPort();
-        if (!md.GetMediaAddress().IsEmpty()) {
-          bundledMedia = md.GetMediaAddress();
-          bundledControl = md.GetControlAddress();
-          break;
-        }
+        break;
       }
     }
 
@@ -3790,11 +3770,8 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
       for (PINDEX i = 0; i < mediaDescriptions.GetSize(); ++i) {
         SDPMediaDescription & md = mediaDescriptions[i];
         if (md.GetPort() == 0 && md.IsBundleOnly() && md.IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
-          if (!bundledMedia.IsEmpty())
-            md.SetAddresses(bundledMedia, bundledControl);
-          else
-            md.SetPort(firstBundledPort);
-          PTRACE(4, "Sharing bundled port " << firstBundledPort << " with session " << (i + 1));
+          md.SetPort(firstBundledPort);
+          PTRACE(4, "Setting port " << firstBundledPort << " on bundle-only session " << (i + 1));
         }
       }
     }

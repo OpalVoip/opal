@@ -35,8 +35,6 @@
 
 #include <opal/mediastrm.h>
 
-#include <deque>
-
 
 class OpalRTPSession;
 class OpalRTPConnection;
@@ -199,20 +197,12 @@ protected:
     virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat) override;
     virtual bool InternalSetPaused(bool pause, bool fromUser, bool fromPatch) override;
     virtual bool InternalExecuteCommand(const OpalMediaCommand & command) override;
-    void EnsurePassThroughThread();
-    void StopPassThroughThread();
-    void PassThroughMain();
 
     OpalRTPSession    & m_rtpSession;
     bool                m_rewriteHeaders;
     PString             m_simulcastId;
     unsigned            m_notifierPriority;
-    PMutex              m_passThruMutex;
     OpalMediaStreamPtr  m_passThruStream;
-    std::deque<RTP_DataFrame> m_passThruQueue;
-    PThread           * m_passThruThread;
-    atomic<bool>        m_passThruRunning;
-    PSyncPoint          m_passThruSignal;
     OpalJitterBuffer  * m_jitterBuffer;
     PTimeInterval       m_readTimeout;
 
@@ -226,10 +216,7 @@ protected:
 #endif
 
     PDECLARE_RTPDataNotifier(OpalRTPMediaStream, OnReceivedPacket);
-    friend class OpalRTPStreamReceiver;
     OpalRTPSession::DataNotifier m_receiveNotifier;
-    void AttachReceiveNotifier();
-    void DetachReceiveNotifier();
 
 #if OPAL_JITTER_BUFFER_LATENCY_CHECK
     PTimeInterval m_jbLatencyAccumulator;

@@ -64,9 +64,7 @@
 
 class MyManager;
 
-#if OPAL_LID
 class OpalLineEndPoint;
-#endif
 class OpalCapiEndPoint;
 class OpalIVREndPoint;
 class OpalMixerEndPoint;
@@ -636,7 +634,6 @@ class NetOptionsDialog : public wxDialog
 
     wxGrid * m_stringOptions;
     void SaveOptions(wxConfigBase * config, const wxChar * stringOptionsGroup);
-    void SetStringOptionValue(const PString & key, const PString & value);
 
     friend class OptionsDialog;
 
@@ -709,10 +706,6 @@ class OptionsDialog : public wxDialog
       int       m_priority;
     } m_NatInfo;
 
-    bool            m_OfferICE;
-    bool            m_FullICE;
-    bool            m_TrickleICE;
-
     void BandwidthClass(wxCommandEvent & /*event*/);
 #if OPAL_PTLIB_SSL
     void FindCertificateAuthority(wxCommandEvent & /*event*/);
@@ -759,9 +752,7 @@ class OptionsDialog : public wxDialog
     void ChangedSoundRecorder(wxCommandEvent & /*event*/);
     void TestPlayer(wxCommandEvent & /*event*/);
     void TestRecorder(wxCommandEvent & /*event*/);
-#if OPAL_LID
     void SelectedLID(wxCommandEvent & /*event*/);
-#endif
     void ChangedMusicOnHold(wxCommandEvent & /*event*/);
     void ChangedAudioOnRing(wxCommandEvent & /*event*/);
 
@@ -1258,10 +1249,8 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     SpeedDialInfo * GetSelectedSpeedDial() const;
 
     MyPCSSEndPoint   * pcssEP;
-#if OPAL_LID
     OpalLineEndPoint * potsEP;
     void StartLID();
-#endif
 
     void SetNAT(const PwxString & method, bool active, const PwxString & server, int priority);
 

@@ -65,7 +65,6 @@ if(OPAL_HAS_MIXER)
   list(APPEND OPAL_SOURCES
     src/opal/recording.cxx
     src/ep/opalmixer.cxx
-    src/ep/mixer_strategy.cxx
     src/ep/opalconf.cxx)
 endif()
 if(OPAL_HAS_PCSS)
@@ -162,8 +161,7 @@ if(OPAL_SDP)
     src/sdp/sdpep.cxx
     src/sdp/sdphttpep.cxx
     src/sdp/sdp.cxx
-    src/sdp/ice.cxx
-    src/sdp/ice_agent.cxx)
+    src/sdp/ice.cxx)
   if(OPAL_T38_CAPABILITY)
     list(APPEND OPAL_SOURCES src/t38/sipt38.cxx)
   endif()

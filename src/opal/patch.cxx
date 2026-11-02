@@ -964,12 +964,6 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
 #endif // OPAL_VIDEO
 #endif // OPAL_STATISTICS
 
-    // The source and sink can share a codec and still have different dynamic
-    // payload types. The SDP answer uses the sink's number.
-    RTP_DataFrame::PayloadTypes sinkPayloadType = m_stream->GetMediaFormat().GetPayloadType();
-    if (sinkPayloadType <= RTP_DataFrame::MaxPayloadType && sourceFrame.GetPayloadType() != sinkPayloadType)
-      sourceFrame.SetPayloadType(sinkPayloadType);
-
     if (!m_stream->WritePacket(sourceFrame))
       return false;
 

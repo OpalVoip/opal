@@ -714,14 +714,6 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnSendData(RewriteMode & rewr
   if (rewrite == e_RewriteNothing)
     return e_ProcessPacket;
 
-  // A session that shares the bundled transport has not seen a packet of its
-  // own yet, so take the keys negotiated by the tagged m-line before sending.
-  if (!IsCryptoSecured(e_Sender)) {
-    OpalMediaTransportPtr transport = m_transport;
-    if (transport != NULL)
-      ApplyKeysToSRTP(*transport);
-  }
-
   PTRACE_PARAM(RTP_SyncSourceId ssrc = frame.GetSyncSource());
   if (!IsCryptoSecured(e_Sender)) {
     OPAL_SRTP_TRACE(2, e_Sender, e_Data, ssrc, 1, "keys not set, cannot protect data");

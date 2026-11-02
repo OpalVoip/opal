@@ -3582,29 +3582,8 @@ OpalMediaTransport * OpalRTPSession::CreateMediaTransport(const PString & name)
 
 bool OpalRTPSession::Open(const PString & localInterface, const OpalTransportAddress & remoteAddress)
 {
-  if (IsOpen()) {
-    if (GetSyncSourceOut() == 0)
-      AddSyncSource(0, e_Sender);
+  if (IsOpen())
     return true;
-  }
-
-  // A bundled session already has the tagged m-line's transport. Open that
-  // socket if needed, and never replace it with a newly bound port.
-  OpalMediaTransportPtr existing = m_transport;
-  if (existing != NULL) {
-    if (!existing->IsOpen() &&
-        !existing->Open(*this, m_singlePortRx ? 1 : 2, localInterface, remoteAddress))
-      return false;
-
-    P_INSTRUMENTED_LOCK_READ_WRITE(return false);
-    if (m_transport == existing) {
-      if (!IsOpen())
-        InternalAttachTransport(existing PTRACE_PARAM(, "bundled"));
-      else if (GetSyncSourceOut() == 0)
-        AddSyncSource(0, e_Sender);
-      return true;
-    }
-  }
 
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 

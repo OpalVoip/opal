@@ -47,18 +47,11 @@
 #include <wx/notebook.h>
 #include <wx/progdlg.h>
 #include <wx/xrc/xmlres.h>
-#include <wx/statbox.h>
 #include <wx/cmdline.h>
 
 #include <ptclib/pstun.h>
 #include <ptclib/pwavfile.h>
 #include <ptclib/dtmf.h>
-
-#if OPAL_ICE
-#include <sdp/sdp.h>
-#include <sdp/ice.h>
-#include <rtp/rtp_session.h>
-#endif
 
 #include <opal/mediasession.h>
 #include <opal/patch.h>
@@ -67,9 +60,7 @@
 #include <ep/opalmixer.h>
 #include <ep/skinnyep.h>
 #include <sip/sippres.h>
-#if OPAL_LID
 #include <lids/lidep.h>
-#endif
 #include <lids/capi_ep.h>
 #include <codec/vidcodec.h>
 #include <rtp/srtp_session.h>
@@ -172,10 +163,6 @@ static const wxChar NatMethodsGroup[] = wxT("/Networking/NAT Methods");
 DEF_FIELD(NATActive);
 DEF_FIELD(NATServer);
 DEF_FIELD(NATPriority);
-
-DEF_FIELD(OfferICE);
-DEF_FIELD(FullICE);
-DEF_FIELD(TrickleICE);
 
 DEF_FIELD(NATHandling);
 DEF_FIELD(NATRouter);
@@ -367,10 +354,8 @@ static const char * const DefaultRoutes[] = {
 #if OPAL_IVR
     ".*:#  = ivr:", // A hash from anywhere goes to IVR
 #endif
-#if OPAL_LID
     "pots:.*\\*.*\\*.* = sip:<dn2ip>",
     "pots:.* = sip:<da>",
-#endif
     "pc:.*   = sip:<da>",
 
 #if OPAL_FAX
@@ -380,24 +365,16 @@ static const char * const DefaultRoutes[] = {
     ".*:.*\t.*:(t38|838)@.*|(t38|838) = t38:*;receive",
 #endif
 
-#if OPAL_LID
     "h323:.*  = pots:<dn>",
-#endif
     "h323:.*  = pc:*",
 
-#if OPAL_LID
     "h323s:.* = pots:<dn>",
-#endif
     "h323s:.* = pc:*",
 
-#if OPAL_LID
     "sip:.*   = pots:<dn>",
-#endif
     "sip:.*   = pc:*",
 
-#if OPAL_LID
     "sips:.*  = pots:<dn>",
-#endif
     "sips:.*  = pc:*"
 };
 
@@ -670,9 +647,6 @@ void OpenPhoneApp::Main()
 
 bool OpenPhoneApp::OnInit()
 {
-  PProcess::ResetCrashLog();
-  PProcess::CrashMark("OpenPhone started");
-
   // make sure various URL types are registered to this application
   {
     PString urlTypes("sip\nh323\nsips\nh323s");
@@ -819,9 +793,7 @@ MyManager::MyManager()
   , m_splitter(NULL)
   , m_speedDials(NULL)
   , pcssEP(NULL)
-#if OPAL_LID
   , potsEP(NULL)
-#endif
 #if OPAL_H323
   , h323EP(NULL)
 #endif
@@ -1074,9 +1046,7 @@ bool MyManager::Initialise(bool startMinimised)
   m_imEP = new OpalIMEndPoint(*this);
 #endif
 
-#if OPAL_LID
   potsEP = new OpalLineEndPoint(*this);
-#endif
   pcssEP = new MyPCSSEndPoint(*this);
 
   PwxString str;
@@ -1273,9 +1243,7 @@ bool MyManager::Initialise(bool startMinimised)
     DisableDetectInBandDTMF(onoff);
 
   UpdateAudioVideoDevices();
-#if OPAL_LID
   StartLID();
-#endif
 
 
   ////////////////////////////////////////
@@ -1673,7 +1641,6 @@ bool MyManager::Initialise(bool startMinimised)
 }
 
 
-#if OPAL_LID
 void MyManager::StartLID()
 {
   wxConfigBase * config = wxConfig::Get();
@@ -1704,7 +1671,6 @@ void MyManager::StartLID()
       LogWindow << "Could not configure Line Interface Device to country \"" << country << '"' << endl;
   }
 }
-#endif // OPAL_LID
 
 
 void MyManager::SetNAT(const PwxString & method, bool active, const PwxString & server, int priority)
@@ -1835,7 +1801,7 @@ void MyManager::RecreateSpeedDials(SpeedDialViews view)
 
   for (set<SpeedDialInfo>::iterator it = m_speedDialInfo.begin(); it != m_speedDialInfo.end(); ++it) {
     long index = m_speedDials->InsertItem(INT_MAX, it->m_Name);
-    m_speedDials->SetItemPtrData(index, (wxUIntPtr)&*it);
+    m_speedDials->SetItemData(index, (intptr_t)&*it);
     UpdateSpeedDial(index, *it, false);
   }
 
@@ -1877,9 +1843,7 @@ void MyManager::OnClose(wxCloseEvent & /*event*/)
     }
   }
 
-#if OPAL_LID
   potsEP = NULL;
-#endif
   m_activeCall.SetNULL();
   m_callsOnHold.clear();
   m_registrationsMutex.Wait();
@@ -2232,9 +2196,7 @@ void MyManager::OnNewSpeedDial(wxCommandEvent & WXUNUSED(event))
 {
   SpeedDialInfo info;
   info.m_Name = MakeUniqueSpeedDialName(m_speedDials, wxT("New Speed Dial"));
-  if (!UpdateSpeedDial(INT_MAX, info, false))
-    return;
-  EditSpeedDial(m_speedDials->FindItem(-1, info.m_Name));
+  EditSpeedDial(INT_MAX);
 }
 
 
@@ -2489,13 +2451,10 @@ bool MyManager::UpdateSpeedDial(int index, const SpeedDialInfo & newInfo, bool s
       return false;
 
     index = m_speedDials->InsertItem(INT_MAX, newInfo.m_Name);
-    // SetItemData takes a 32-bit long and truncates pointers on Win64.
-    m_speedDials->SetItemPtrData(index, (wxUIntPtr)&*result.first);
+    m_speedDials->SetItemData(index, (intptr_t)&*result.first);
   }
 
   SpeedDialInfo * oldInfo = (SpeedDialInfo *)m_speedDials->GetItemData(index);
-  if (oldInfo == NULL)
-    return false;
 
   if (saveConfig) {
     wxConfigBase * config = wxConfig::Get();
@@ -2583,7 +2542,6 @@ void MyManager::MakeCall(const PwxString & address, const PwxString & local, Opa
 
 bool MyManager::AnswerCall()
 {
-  PProcess::CrashMark("AnswerCall");
   if (PAssert(!m_incomingToken.IsEmpty(), PLogicError)) {
     StopRingSound();
 
@@ -2593,12 +2551,9 @@ bool MyManager::AnswerCall()
     PString token = m_incomingToken.p_str();
     m_incomingToken.clear();
 
-    bool accepted = pcssEP->AcceptIncomingConnection(token);
-    PProcess::CrashMark(accepted ? "AnswerCall: accepted" : "AnswerCall: accept failed");
-    return accepted;
+    return pcssEP->AcceptIncomingConnection(token);
   }
 
-  PProcess::CrashMark("AnswerCall: no incoming call");
   return false;
 }
 
@@ -2739,12 +2694,10 @@ PBoolean MyManager::OnIncomingConnection(OpalConnection & connection, unsigned o
 
 void MyManager::OnEstablishedCall(OpalCall & call)
 {
-  PProcess::CrashMark("OnEstablishedCall");
   m_activeCall = &call;
 
   LogWindow << "Established call from " << call.GetPartyA() << " to " << call.GetPartyB() << endl;
   PostEvent(wxEvtEstablished, call.GetToken());
-  PProcess::CrashMark("OnEstablishedCall: posted");
 
 #if OPAL_FAX
   if (m_currentAnswerMode == AnswerFax)
@@ -2765,7 +2718,6 @@ void MyManager::OnEstablishedCall(OpalCall & call)
 
 void MyManager::OnEvtEstablished(wxCommandEvent & theEvent)
 {
-  PProcess::CrashMark("OnEvtEstablished");
   SetBalloonText(PString::Empty());
 
   PwxString token(theEvent.GetString());
@@ -2791,16 +2743,13 @@ void MyManager::OnEvtEstablished(wxCommandEvent & theEvent)
 
   // Because this can take some time, construct it before we delete the previous
   // page to avoid ugly scenes on the screen
-  PProcess::CrashMark("OnEvtEstablished: creating in-call panel");
   InCallPanel * inCallPanel = new InCallPanel(*this, m_activeCall, m_tabs);
-  PProcess::CrashMark("OnEvtEstablished: in-call panel created");
 
   if (tabIndex < m_tabs->GetPageCount())
     m_tabs->DeletePage(tabIndex);
 
   PwxString title = m_activeCall->IsNetworkOriginated() ? m_activeCall->GetPartyA() : m_activeCall->GetPartyB();
   m_tabs->AddPage(inCallPanel, title, true);
-  PProcess::CrashMark("OnEvtEstablished: page added");
 }
 
 
@@ -3079,11 +3028,7 @@ PSafePtr<OpalConnection> MyManager::GetNetworkConnection(PSafetyMode mode)
 
 bool MyManager::HasHandset() const
 {
-#if OPAL_LID
   return potsEP != NULL && potsEP->GetLine("*") != NULL;
-#else
-  return false;
-#endif
 }
 
 
@@ -4450,9 +4395,7 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
   // Audio fields
   EVT_COMBOBOX(wxXmlResource::GetXRCID(SoundPlayerKey), OptionsDialog::ChangedSoundPlayer)
   EVT_COMBOBOX(wxXmlResource::GetXRCID(SoundRecorderKey), OptionsDialog::ChangedSoundRecorder)
-#if OPAL_LID
   EVT_COMBOBOX(wxXmlResource::GetXRCID(LineInterfaceDeviceKey), OptionsDialog::SelectedLID)
-#endif
   EVT_BUTTON(XRCID("TestPlayer"), OptionsDialog::TestPlayer)
   EVT_BUTTON(XRCID("TestRecorder"), OptionsDialog::TestRecorder)
   EVT_COMBOBOX(XRCID("MusicOnHold"), OptionsDialog::ChangedMusicOnHold)
@@ -4569,7 +4512,6 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   , m_SIPoptions(manager, manager->sipEP)
 {
   PINDEX i;
-  PStringList devices;
   wxChoice * choice;
   wxComboBox * combo;
 
@@ -4664,22 +4606,6 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   FindWindow(wxT("NatServer"))->SetValidator(wxGenericValidator(&m_NatInfo.m_server));
   FindWindow(wxT("NatPriority"))->SetValidator(wxGenericValidator(&m_NatInfo.m_priority));
 
-#if OPAL_ICE && OPAL_SIP
-  {
-    const OpalConnection::StringOptions & iceOpts = m_manager.sipEP->GetDefaultStringOptions();
-    INIT_FIELD(OfferICE, iceOpts.GetBoolean(OPAL_OPT_OFFER_ICE, false));
-    INIT_FIELD(FullICE, !iceOpts.GetBoolean(OPAL_OPT_ICE_LITE, true));
-    INIT_FIELD(TrickleICE, iceOpts.GetBoolean(OPAL_OPT_TRICKLE_ICE, true));
-  }
-#else
-  INIT_FIELD(OfferICE, false);
-  INIT_FIELD(FullICE, false);
-  INIT_FIELD(TrickleICE, true);
-  FindWindow(OfferICEKey)->Disable();
-  FindWindow(FullICEKey)->Disable();
-  FindWindow(TrickleICEKey)->Disable();
-#endif
-
   FindWindowByNameAs(m_AddInterface, this, wxT("AddInterface"))->Disable();
   FindWindowByNameAs(m_RemoveInterface, this, wxT("RemoveInterface"))->Disable();
   FindWindowByNameAs(m_InterfaceProtocol, this, wxT("InterfaceProtocol"));
@@ -4742,13 +4668,12 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   m_AudioOnRing = MediaDeviceNameToScreen(m_manager.pcssEP->GetSoundChannelOnRingDevice());
 
   // Fill line interface combo box with available devices and set selection
-#if OPAL_LID
   FindWindowByNameAs(m_selectedAEC, this, AECKey);
   FindWindowByNameAs(m_selectedCountry, this, CountryKey);
   m_selectedCountry->SetValidator(wxGenericValidator(&m_Country));
   FindWindowByNameAs(m_selectedLID, this, LineInterfaceDeviceKey);
   m_selectedLID->SetValidator(wxGenericValidator(&m_LineInterfaceDevice));
-  devices = OpalLineInterfaceDevice::GetAllDevices();
+  PStringList devices = OpalLineInterfaceDevice::GetAllDevices();
   if (devices.IsEmpty()) {
     m_LineInterfaceDevice = "<< None available >>";
     m_selectedLID->Append(m_LineInterfaceDevice);
@@ -4790,30 +4715,6 @@ OptionsDialog::OptionsDialog(MyManager * manager)
       m_selectedCountry->Disable();
     }
   }
-#else
-  wxWindow * lidDevice = FindWindowByName(LineInterfaceDeviceKey);
-  wxStaticBox * lidBox = lidDevice != NULL ? wxDynamicCast(lidDevice->GetParent(), wxStaticBox) : NULL;
-  if (lidBox != NULL) {
-    lidBox->Hide();
-    if (wxSizer * sizer = lidBox->GetContainingSizer())
-      sizer->Show(lidBox, false);
-  }
-  else {
-    static const wxChar * const lidWindows[] = {
-      LineInterfaceDeviceKey, AECKey, CountryKey,
-      wxT("label_21"), wxT("label_22"), wxT("label_23")
-    };
-    for (PINDEX n = 0; n < PARRAYSIZE(lidWindows); ++n) {
-      wxWindow * control = FindWindowByName(lidWindows[n]);
-      if (control == NULL)
-        continue;
-      control->Hide();
-      if (wxSizer * sizer = control->GetContainingSizer())
-        sizer->Show(control, false);
-    }
-  }
-  Layout();
-#endif
 
   ////////////////////////////////////////
   // Video fields
@@ -5241,7 +5142,6 @@ bool OptionsDialog::TransferDataFromWindow()
   if (m_NatMethodSelected >= 0)
     dynamic_cast<NatWrapper &>(*m_NatMethods->GetClientObject(m_NatMethodSelected)) = m_NatInfo;
 
-  bool hasStunOrTurn = false;
   for (size_t i = 0; i < m_NatMethods->GetCount(); i++) {
     NatWrapper & wrap = dynamic_cast<NatWrapper &>(*m_NatMethods->GetClientObject(i));
     config->SetPath(NatMethodsGroup);
@@ -5250,22 +5150,7 @@ bool OptionsDialog::TransferDataFromWindow()
     config->Write(NATServerKey, wrap.m_server);
     config->Write(NATPriorityKey, wrap.m_priority);
     m_manager.SetNAT(wrap.m_method, wrap.m_active, wrap.m_server, wrap.m_priority);
-    if (wrap.m_active && !wrap.m_server.IsEmpty() &&
-        (wrap.m_method == PSTUNClient::MethodName()
-#if P_TURN
-         || wrap.m_method == PTURNClient::MethodName()
-#endif
-        ))
-      hasStunOrTurn = true;
   }
-
-#if OPAL_ICE
-  if (m_OfferICE && m_FullICE && !hasStunOrTurn) {
-    wxMessageBox(wxT("Full ICE is enabled but no active STUN or TURN server is configured.\n"
-                     "Set a server under Networking → NAT/Firewall, or host-only ICE will be used."),
-                 OpenPhoneString, wxOK|wxICON_WARNING);
-  }
-#endif
 
   config->DeleteGroup(LocalInterfacesGroup);
   config->SetPath(LocalInterfacesGroup);
@@ -5331,14 +5216,12 @@ bool OptionsDialog::TransferDataFromWindow()
 
   SAVE_FIELD(DisableDetectInBandDTMF, m_manager.DisableDetectInBandDTMF);
 
-#if OPAL_LID
   if (m_LineInterfaceDevice.StartsWith(wxT("<<")) && m_LineInterfaceDevice.EndsWith(wxT(">>")))
     m_LineInterfaceDevice.Empty();
   config->Write(LineInterfaceDeviceKey, m_LineInterfaceDevice);
   config->Write(AECKey, m_AEC);
   config->Write(CountryKey, m_Country);
   m_manager.StartLID();
-#endif
 
   ////////////////////////////////////////
   // Video fields
@@ -5507,10 +5390,6 @@ bool OptionsDialog::TransferDataFromWindow()
 #if OPAL_PTLIB_SSL
   m_H323options.SaveSecurityFields(config, H323SignalingSecurityKey, H323MediaCryptoSuitesKey);
 #endif
-#if OPAL_ICE
-  m_H323options.SetStringOptionValue(OPAL_OPT_ICE_LITE, m_FullICE ? "false" : "true");
-  m_H323options.SetStringOptionValue(OPAL_OPT_TRICKLE_ICE, m_TrickleICE ? "true" : "false");
-#endif
   m_H323options.SaveOptions(config, H323StringOptionsGroup);
 
   config->Write(GatekeeperTTLKey, m_GatekeeperTTL);
@@ -5554,13 +5433,6 @@ bool OptionsDialog::TransferDataFromWindow()
 
 #if OPAL_PTLIB_SSL
   m_SIPoptions.SaveSecurityFields(config, SIPSignalingSecurityKey, SIPMediaCryptoSuitesKey);
-#endif
-#if OPAL_ICE
-  m_SIPoptions.SetStringOptionValue(OPAL_OPT_OFFER_ICE, m_OfferICE ? "true" : "false");
-  m_SIPoptions.SetStringOptionValue(OPAL_OPT_ICE_LITE, m_FullICE ? "false" : "true");
-  m_SIPoptions.SetStringOptionValue(OPAL_OPT_TRICKLE_ICE, m_TrickleICE ? "true" : "false");
-  if (m_OfferICE)
-    m_SIPoptions.SetStringOptionValue(OPAL_OPT_DISABLE_ICE, "false");
 #endif
   m_SIPoptions.SaveOptions(config, SIPStringOptionsGroup);
 
@@ -6005,7 +5877,6 @@ void OptionsDialog::TestRecorder(wxCommandEvent & /*event*/)
 }
 
 
-#if OPAL_LID
 void OptionsDialog::SelectedLID(wxCommandEvent & /*event*/)
 {
   bool enabled = m_selectedLID->GetSelection() > 0;
@@ -6030,7 +5901,6 @@ void OptionsDialog::SelectedLID(wxCommandEvent & /*event*/)
     delete lidToDelete;
   }
 }
-#endif // OPAL_LID
 
 
 ////////////////////////////////////////
@@ -6938,18 +6808,6 @@ void NetOptionsDialog::SaveOptions(wxConfigBase * config, const wxChar * stringO
 }
 
 
-void NetOptionsDialog::SetStringOptionValue(const PString & key, const PString & value)
-{
-  PwxString label(key);
-  for (int row = 0; row < m_stringOptions->GetNumberRows(); ++row) {
-    if (m_stringOptions->GetRowLabelValue(row) == label) {
-      m_stringOptions->SetCellValue(row, 0, PwxString(value));
-      return;
-    }
-  }
-}
-
-
 #if OPAL_PTLIB_SSL
 void NetOptionsDialog::InitSecurityFields()
 {
@@ -7654,9 +7512,7 @@ CallPanelBase::CallPanelBase(MyManager & manager,
   : m_manager(manager)
   , m_call(call)
 {
-  PProcess::CrashMark("CallPanelBase: loading");
   wxXmlResource::Get()->LoadPanel(this, parent, resource);
-  PProcess::CrashMark("CallPanelBase: loaded");
 }
 
 
@@ -7686,7 +7542,6 @@ void AnswerPanel::SetPartyNames(const PwxString & calling, const PwxString & cal
 
 void AnswerPanel::OnAnswer(wxCommandEvent & /*event*/)
 {
-  PProcess::CrashMark("AnswerPanel::OnAnswer");
   FindWindowByName(wxT("AnswerCall"))->Disable();
   if (m_manager.AnswerCall())
     FindWindowByName(wxT("RejectCall"))->SetLabel(wxT("Hang Up"));
@@ -7768,7 +7623,6 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   , m_vuTimer(this, VU_UPDATE_TIMER_ID)
   , m_updateStatistics(0)
 {
-  PProcess::CrashMark("InCallPanel: begin");
   SET_CTRL_VAR(Hold);
   SET_CTRL_VAR(Conference);
   SET_CTRL_VAR(SpeakerHandset);
@@ -7779,10 +7633,8 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   SET_CTRL_VAR(SpeakerGauge);
   SET_CTRL_VAR(MicrophoneGauge);
   SET_CTRL_VAR(CallTime);
-  PProcess::CrashMark("InCallPanel: controls");
 
 #if OPAL_HAS_H281
-  PProcess::CrashMark("InCallPanel: fecc");
   for (PVideoControlInfo::Types type = PVideoControlInfo::BeginTypes; type < PVideoControlInfo::EndTypes; ++type) {
     for (unsigned dir = 0; dir < 2; ++dir) {
       static const wxChar * const feccNames[PVideoControlInfo::NumTypes][2] = {
@@ -7801,18 +7653,12 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
 #endif // OPAL_HAS_H281
 
   OnHoldChanged(false);
-  PProcess::CrashMark("InCallPanel: hold");
 
   m_vuTimer.Start(250);
-  PProcess::CrashMark("InCallPanel: timer");
 
-  PProcess::CrashMark("InCallPanel: RxAudio");
   m_pages[RxAudio].Init(this, RxAudio, OpalMediaType::Audio(), true );
-  PProcess::CrashMark("InCallPanel: TxAudio");
   m_pages[TxAudio].Init(this, TxAudio, OpalMediaType::Audio(), false);
-  PProcess::CrashMark("InCallPanel: RxVideo");
   m_pages[RxVideo].Init(this, RxVideo, OpalMediaType::Video(), true );
-  PProcess::CrashMark("InCallPanel: TxVideo");
   m_pages[TxVideo].Init(this, TxVideo, OpalMediaType::Video(), false);
 #if OPAL_FAX
   m_pages[RxFax  ].Init(this, RxFax  , OpalMediaType::Fax(),   false);
@@ -7824,7 +7670,6 @@ InCallPanel::InCallPanel(MyManager & manager, const PSafePtr<OpalCall> & call, w
   PSafePtr<OpalLocalConnection> connection = call->GetConnectionAs<OpalLocalConnection>();
   if (connection != NULL)
     connection->SetFarEndCameraCapabilityChangedNotifier(PCREATE_NOTIFIER(OnChangedFECC));
-  PProcess::CrashMark("InCallPanel: end");
 }
 
 
@@ -8112,15 +7957,11 @@ void InCallPanel::UpdateStatistics()
   for (i = 0; i < RxFax; i++)
     m_pages[i].UpdateSession(network);
 
-#if OPAL_FAX
-  // Fax pages are only constructed when fax is enabled. NumPages still
-  // includes them, and UpdateSession enables m_window with no null check.
   PSafePtr<OpalLocalConnection> local;
   if (m_manager.GetConnection(local, PSafeReadOnly)) {
     for (; i < NumPages; i++)
       m_pages[i].UpdateSession(local);
   }
-#endif
 }
 
 

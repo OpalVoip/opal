@@ -806,16 +806,13 @@ unsigned OpalConnection::GetNextSessionID(const OpalMediaType & /*mediaType*/, b
 
 void OpalConnection::AutoStartMediaStreams(bool transfer)
 {
-  PProcess::CrashMark(transfer ? "AutoStartMediaStreams: transfer" : "AutoStartMediaStreams");
   PTRACE(4, "AutoStartMediaStreams("
          << (transfer ? "transfer": (GetPhase() < AlertingPhase ? "alerting" : "normal"))
          << ") on " << *this);
 
   PSafePtr<OpalConnection> otherConnection = GetOtherPartyConnection();
-  if (otherConnection == NULL) {
-    PProcess::CrashMark("AutoStartMediaStreams: no other party");
+  if (otherConnection == NULL)
     return;
-  }
 
   OpalMediaTypeList mediaTypes = OpalMediaType::GetList();
   for (OpalMediaTypeList::iterator iter = mediaTypes.begin(); iter != mediaTypes.end(); ++iter) {
@@ -844,7 +841,6 @@ void OpalConnection::AutoStartMediaStreams(bool transfer)
 
   if (!transfer && GetPhase() >= ConnectedPhase)
     StartMediaStreams();
-  PProcess::CrashMark("AutoStartMediaStreams: done");
 }
 
 

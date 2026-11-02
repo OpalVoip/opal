@@ -461,10 +461,7 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
                                                   OpalTransportAddress & localAddress,
                                                        BundleMergeInfo & bundleMergeInfo)
 {
-  // Bundle-only m-lines are offered with port 0 and share the tagged m-line.
-  bool shareBundle = mediaDescription.IsBundleOnly() ||
-                     mediaDescription.IsGroupMember(OpalMediaSession::GetBundleGroupId());
-  if (mediaDescription.GetPort() == 0 && !(shareBundle && bundleMergeInfo.m_transport != NULL)) {
+  if (mediaDescription.GetPort() == 0) {
     PTRACE(2, "Received disabled/missing media description for " << mediaType);
 
     /* Some remotes return all of the media detail (a= lines) in SDP even though
@@ -496,18 +493,7 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
     return NULL;
 
   bool bundled = session->IsGroupMember(OpalMediaSession::GetBundleGroupId());
-  if (!bundled && (shareBundle || GetStringOptions().GetBoolean(OPAL_OPT_AV_BUNDLE))) {
-    PString mid = mediaDescription.GetBundleMediaId();
-    if (mid.empty() && mediaDescription.GetIndex() != UINT_MAX)
-      mid = PString(PString::Unsigned, mediaDescription.GetIndex());
-    if (!mid.empty() && session->AddGroup(OpalMediaSession::GetBundleGroupId(), mediaDescription.GetIndex(), mid)) {
-      PTRACE(3, *session << "joining BUNDLE mid \"" << mid << "\" on the shared transport");
-      bundled = true;
-    }
-  }
-
-  // Attach the tagged transport before Open(), so this session cannot bind a new port.
-  if (bundled && bundleMergeInfo.m_transport != NULL && session->GetTransport() != bundleMergeInfo.m_transport)
+  if (bundled && bundleMergeInfo.m_transport != NULL)
     session->AttachTransport(bundleMergeInfo.m_transport);
 
   if (!session->Open(GetMediaInterface(), remoteMediaAddress))
@@ -996,8 +982,7 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
       return false;
 
     size_t bundleIndex = 0;
-    if (!GetStringOptions().GetBoolean(OPAL_OPT_SEPARATE_BUNDLE_STREAMS) &&
-        incomingMedia->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
+    if (incomingMedia->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
       for (bundleIndex = rtpStreamIndex-1; bundleIndex > 0; --bundleIndex) {
         SDPMediaDescription * previousMedia = sdpOffer.GetMediaDescriptionByIndex(bundleIndex);
         if (previousMedia->GetMediaType() == incomingMedia->GetMediaType() &&
@@ -1347,8 +1332,6 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
         }
         PTRACE(4, "Including BUNDLE " << rtpStreamIndex << ", mid=\"" << mid << "\", send SSRC " << RTP_TRACE_SRC(ssrc));
         bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
-        if (ssrc != 0)
-          sendStream->SetSyncSource(ssrc);
       }
     }
 

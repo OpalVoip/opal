@@ -54,10 +54,18 @@ public:
   OpalConfVideoMixer(OpalMixerNode & node);
   ~OpalConfVideoMixer() { StopPushThread(); }
 
-  virtual OpalVideoMixerStrategy & GetVideoStrategy() override;
+  virtual bool GetMixPosition(
+    const PString & id,
+    bool firstStream,
+    MixPosition & pos
+  ) override;
+
+  typedef std::list<PSafePtr<OpalMixerConnection>> OrderedConnections;
 
 private:
-  OpalOriginalVideoStrategy m_original;
+  OrderedConnections m_order;
+  typedef std::map<PString, MixPosition> MixPositions;
+  MixPositions m_positions;
 };
 
 #endif // OPAL_VIDEO
@@ -77,7 +85,7 @@ class OpalConfConnection : public OpalMixerConnection
     );
 
     virtual bool SendUserInputString(const PString & value) override;
-    virtual PStringSet GetRoles() const override;
+    virtual PStringSet GetRoles() const;
 
     enum ParticipantType
     {
