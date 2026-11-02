@@ -392,6 +392,11 @@ protected:
       MixPosition & pos
     );
 
+    virtual void OnMixedPosition(
+      const PString & id,
+      const MixPosition & pos
+    );
+
   protected:
     Styles     m_style;
     unsigned   m_width, m_height;
@@ -823,7 +828,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     virtual void OnNodeStatusChanged(
       const OpalMixerNode & node,            ///< Node that has changed state
       OpalConferenceState::ChangeType change ///< Change that occurred
-    ) override;
+    );
   //@}
 
   protected:
@@ -1036,6 +1041,12 @@ class OpalMixerMediaStream : public OpalMediaStream
       RTP_DataFrame & packet
     ) override;
 
+    /**Pushes a frame to the patch
+      */
+    virtual bool PushPacket(
+      RTP_DataFrame & packet
+    );
+
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
@@ -1063,18 +1074,23 @@ class OpalMixerMediaStream : public OpalMediaStream
 
 #if OPAL_VIDEO
     bool CheckMixedVideoSize(unsigned width, unsigned height);
+    void KeyFrameNeeded() { m_needsKeyFrame.exchange(true); }
+    bool NeedsKeyFrame() { return m_needsKeyFrame.exchange(false); }
 #endif
 
   protected:
     virtual void InternalClose() override;
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
+    virtual bool InternalExecuteCommand(const OpalMediaCommand & command);
 
     PSafePtr<OpalMixerNode> m_node;
     bool m_listenOnly;
 #if OPAL_VIDEO
     unsigned m_mixedVideoWidth;
     unsigned m_mixedVideoHeight;
+    std::atomic<bool> m_needsKeyFrame;
 #endif
+    RTP_DataFrame m_txPacket;
 };
 
 
@@ -1082,9 +1098,9 @@ class OpalMediaStreamMixer
 {
   public:
     OpalMediaStreamMixer(OpalMixerNode & node);
-    void Append(const PSafePtr<OpalMixerMediaStream> & stream);
-    void Remove(const PSafePtr<OpalMixerMediaStream> & stream) { m_outputStreams.RemoveAt(stream->GetID()); }
-    void CloseOne(const PSafePtr<OpalMixerMediaStream> & stream);
+    void AddOutputStream(const PSafePtr<OpalMixerMediaStream> & stream);
+    void RemoveOutputStream(const PSafePtr<OpalMixerMediaStream> & stream) { m_outputStreams.RemoveAt(stream->GetID()); }
+    void CloseOutputStream(const PSafePtr<OpalMixerMediaStream> & stream);
 
   protected:
     OpalMixerNode & m_node;
@@ -1154,8 +1170,13 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     virtual bool SetFrameRate(unsigned rate) override;
     virtual bool OnMixed(std::unique_ptr<RTP_DataFrame> & output) override;
     virtual Key_T GetActiveSpeaker() const override;
+    virtual void OnMixedPosition(const PString & id, const MixPosition & pos) override;
 
-  protected:
+    bool AddInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream);
+    void RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream);
+
+protected:
+    StreamDict m_inputVideoStreams;
     typedef PDictionary<PString, OpalTranscoder> TranscoderMap;
     TranscoderMap m_transcoders;
 };

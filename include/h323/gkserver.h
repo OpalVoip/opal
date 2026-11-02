@@ -883,6 +883,10 @@ class H323RegisteredEndPoint : public PSafeObject
     /**Get the creation time for endpoint.
       */
     const PTime & GetCreationTime() const { return m_creationTime; }
+
+    /**Get the last registration time for endpoint.
+      */
+    const PTime & GetLastRegistrationTime() const { return m_lastRegistration; }
   //@}
 
   /**@name H.501 access functions */

@@ -1267,7 +1267,7 @@ bool OpalPluginVideoTranscoder::DecodeFrame(const RTP_DataFrame & src, RTP_DataF
 
     fromLen = marker.GetHeaderSize();
     toLen = m_bufferRTP->GetSize();
-    flags = 0;
+    flags &= ~PluginCodec_ReturnCoderBufferTooSmall;
 
     if (!Transcode((const BYTE *)marker, &fromLen, m_bufferRTP->GetPointer(), &toLen, &flags))
       return false;
