@@ -677,6 +677,7 @@ bool OpalVideoMixer::GetMixPosition(const PString & key, bool firstStream, MixPo
     if ((firstStream && activeSpeaker.empty()) || key == activeSpeaker) {
       pos.w = m_width;
       pos.h = m_height;
+      PTRACE(5, "Using active speaker position: key=" << key);
     }
 
     return true;
@@ -810,7 +811,7 @@ void OpalVideoMixer::VideoStream::InsertVideoFrame(const MixPosition & pos)
                                 header->width, header->height, OpalVideoFrameDataPtr(header),
                                 pos.x, pos.y, pos.w, pos.h,
                                 m_mixer.m_width, m_mixer.m_height, m_mixer.m_frameStore.GetPointer(),
-                                pos.w < header->width && pos.h < header->height
+                                header->width < pos.w && header->height < pos.h
                                     ? PVideoFrameInfo::eCropCentre : PVideoFrameInfo::eScaleKeepAspect);
 
   /* To avoid continual build up of frames in queue if input frame rate
