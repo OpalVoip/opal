@@ -383,7 +383,7 @@ class MPEG4_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCodec
     {
       CloseCodec();
 
-      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*63/100, m_keyFramePeriod))
+      if (!SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*31/100, m_keyFramePeriod))
         return false;
 
       m_context->max_b_frames = 0; /*don't use b frames*/

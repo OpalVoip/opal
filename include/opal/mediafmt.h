@@ -1510,6 +1510,8 @@ class OpalVideoFormat : public OpalMediaFormat
     static const PString & MinRxFrameHeightOption();
     static const PString & MaxRxFrameWidthOption();
     static const PString & MaxRxFrameHeightOption();
+    static const PString & RequestedRxFrameWidthOption();
+    static const PString & RequestedRxFrameHeightOption();
     static const PString & TemporalSpatialTradeOffOption();
     static const PString & TxKeyFramePeriodOption();
     static const PString & RateControlPeriodOption(); // Period over which the rate controller maintains the target bit rate.
