@@ -42,9 +42,6 @@
 #include <sip/sipcon.h>
 
 
-#define DETAIL_LOG_LEVEL 6
-
-
 #if OPAL_MIXER_AUDIO_DEBUG
 class PAudioMixerDebug
 {
@@ -650,8 +647,10 @@ bool OpalVideoMixer::MixVideo()
 
     firstStream = false;
 
-    if (pos.w == 0 || pos.h == 0)
+    if (pos.w == 0 || pos.h == 0) {
+      PTRACE(5, "Skipping input video stream " << it->first);
       continue;
+    }
 
     VideoStream * vid = dynamic_cast<VideoStream *>(it->second);
     if (vid == NULL)
@@ -805,7 +804,7 @@ void OpalVideoMixer::VideoStream::InsertVideoFrame(const MixPosition & pos)
 
   PluginCodec_Video_FrameHeader * header = (PluginCodec_Video_FrameHeader *)m_queue.front().GetPayloadPtr();
 
-  PTRACE(DETAIL_LOG_LEVEL, "Copying video: " << header->width << 'x' << header->height
+  PTRACE(5, "Copying video: " << header->width << 'x' << header->height
          << " -> " << pos.x << ',' << pos.y << '/' << pos.w << 'x' << pos.h);
 
   PColourConverter::CopyYUV420P(0, 0, header->width, header->height,
@@ -866,6 +865,10 @@ OpalMediaFormatList OpalMixerEndPoint::GetMediaFormats() const
   OpalMediaFormatList formats;
   formats += OpalPCM16;
 #if OPAL_VIDEO
+  for (const auto & fmt : OpalMediaFormat::GetAllRegisteredMediaFormats()) {
+    if (fmt.IsTransportable() && fmt.GetMediaType() == OpalMediaType::Video())
+      formats += fmt;
+  }
   formats += OpalYUV420P;
 #endif
   return formats;
@@ -1345,8 +1348,14 @@ void OpalMixerNode::ShutDown()
     it.Release();
 
   PSimpleTimer timer(0,10);
-  while (!m_connections.IsEmpty() && timer.IsRunning())
+  while (!m_connections.IsEmpty()) {
+    if (timer.HasExpired()) {
+      PTRACE(3, "Stopped waiting for " << m_connections.GetSize() << " connections to be released");
+      break;
+    }
     PThread::Sleep(100);
+  }
+  m_connections.RemoveAll();
 
   if (LockReadWrite()) {
     m_audioMixer->RemoveAllStreams();
@@ -1433,6 +1442,9 @@ void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
 
   if (m_connections.Remove(connection))
     UseMediaPassThrough(0, connection);
+  else {
+    PTRACE(2, "Connection " << *connection << " not present in mixer node " << *this);
+  }
 
   if (LockReadOnly()) {
     m_manager.OnNodeStatusChanged(*this, OpalConferenceState::UserRemoved);
@@ -1446,6 +1458,8 @@ void OpalMixerNode::DetachConnection(OpalMixerConnection * connection)
          m_ownerConnection == connection->GetLocalPartyURL() ||
          m_ownerConnection == connection->GetRemotePartyURL())))
     ShutDown();
+
+  PTRACE(4, "Connection " << *connection << " detached from mixer node " << *this);
 }
 
 
@@ -1494,8 +1508,10 @@ void OpalMixerNode::DetachStream(OpalMixerMediaStream * stream)
 #if OPAL_VIDEO
   if (stream->GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
     VideoMixerMap::iterator it = m_videoMixers.find(stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole));
-    if (it == m_videoMixers.end())
+    if (it == m_videoMixers.end()) {
+      PTRACE(3, "Could not find video mixer for stream with id " << id << " in " << *this);
       return;
+    }
     if (stream->IsSource())
       it->second->RemoveOutputStream(stream);
     else
@@ -1938,6 +1954,7 @@ void OpalAudioStreamMixer::PushOne(PSafePtr<OpalMixerMediaStream> & stream,
   }
 
   if (cache.m_transcoder == NULL) {
+    PTRACE(5, "Creating transcoder using:\n" << setw(-1) << mediaFormat);
     cache.m_transcoder = OpalTranscoder::Create(OpalPCM16, mediaFormat);
     if (cache.m_transcoder == NULL) {
       PTRACE(2, "Could not create transcoder to "
