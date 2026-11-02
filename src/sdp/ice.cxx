@@ -37,6 +37,10 @@
 
 #include <ptclib/random.h>
 #include <opal/connection.h>
+
+#include <map>
+#include <set>
+#include <string>
 #include <opal/endpoint.h>
 #include <opal/manager.h>
 
@@ -71,9 +75,59 @@ OpalICEMediaTransport::OpalICEMediaTransport(OpalConnection & connection, const 
   , m_localTrickle(false)
   , m_remoteTrickle(false)
   , m_useNetworkCost(false)
+  , m_offerer(false)
+  , m_relayOnly(false)
+  , m_consentFreshness(false)
+  , m_iceDisabled(false)
+  , m_checklistFailed(false)
+  , m_gatheringComplete(false)
+  , m_stopGather(false)
+  , m_gatherThread(NULL)
+  , m_allocatingSocket(NULL)
 {
   PTRACE_CONTEXT_ID_TO(m_server);
   PTRACE_CONTEXT_ID_TO(m_client);
+  m_checkTimer.SetNotifier(PCREATE_NOTIFIER(OnCheckTimer));
+  m_consentTimer.SetNotifier(PCREATE_NOTIFIER(OnConsentTimer));
+}
+
+
+OpalICEMediaTransport::~OpalICEMediaTransport()
+{
+  m_stopGather = true;
+  m_checkTimer.Stop(false);
+  m_consentTimer.Stop(false);
+
+  for (vector<PUDPSocket *>::iterator it = m_turnSockets.begin(); it != m_turnSockets.end(); ++it) {
+    if (*it != NULL)
+      (*it)->Close();
+  }
+  for (vector<PUDPSocket *>::iterator it = m_extraSockets.begin(); it != m_extraSockets.end(); ++it) {
+    if (*it != NULL)
+      (*it)->Close();
+  }
+  {
+    PWaitAndSignal lock(m_gatherMutex);
+    if (m_allocatingSocket != NULL)
+      m_allocatingSocket->Close();
+  }
+
+  InternalClose();
+
+  delete m_gatherThread;
+  m_gatherThread = NULL;
+
+  for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
+    delete it->m_thread;
+    it->m_thread = NULL;
+  }
+
+  for (vector<PUDPSocket *>::iterator it = m_turnSockets.begin(); it != m_turnSockets.end(); ++it)
+    delete *it;
+  for (vector<PUDPSocket *>::iterator it = m_extraSockets.begin(); it != m_extraSockets.end(); ++it)
+    delete *it;
+  m_turnSockets.clear();
+  m_extraSockets.clear();
 }
 
 
@@ -84,10 +138,9 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
 {
   const PStringOptions & options = session.GetStringOptions();
   m_localLite = options.GetBoolean(OPAL_OPT_ICE_LITE, true);
-  if (!m_localLite) {
-    PTRACE(2, "Only ICE-Lite supported at this time");
-    return false;
-  }
+  m_relayOnly = options.GetBoolean(OPAL_OPT_ICE_RELAY_ONLY, false);
+  m_consentFreshness = options.GetBoolean(OPAL_OPT_ICE_CONSENT, false);
+  m_gatherTimeout = options.GetVar(OPAL_OPT_ICE_GATHER_TIMEOUT, PTimeInterval(0, 5));
 
   m_localTrickle = options.GetBoolean(OPAL_OPT_TRICKLE_ICE, true);
   m_useNetworkCost = options.GetBoolean(OPAL_OPT_NETWORK_COST_ICE);
@@ -106,13 +159,51 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
   // Open the STUN server and set what credentials we have so far
   m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
+
+  if (!m_localLite) {
+    GatherHostCandidates();
+    StartGathering();
+    Start();
+    PTRACE(3, *this << "full ICE agent started, lite=false");
+  }
   return true;
+}
+
+
+bool OpalICEMediaTransport::UseNatTraversal() const
+{
+  return m_localLite;
+}
+
+
+bool OpalICEMediaTransport::Write(const void * data, PINDEX length, SubChannels subchannel, const PIPSocketAddressAndPort * remote, int * mtu)
+{
+  if (!m_localLite && m_consentFreshness && (size_t)subchannel < m_iceChannelCache.size()) {
+    if (GetICEChannel(subchannel).m_agent.ConsentExpired(PTime(), PTimeInterval(0, 30))) {
+      PTRACE(2, *this << "consent expired on " << subchannel << ", not sending media");
+      return false;
+    }
+  }
+
+  if (!m_localLite && (size_t)subchannel < m_iceChannelCache.size() && GetICEChannel(subchannel).m_relaySelected) {
+    PUDPSocket * turn = subchannel < (SubChannels)m_turnSockets.size() ? m_turnSockets[subchannel] : NULL;
+    if (turn == NULL || !turn->IsOpen())
+      return false;
+    if (remote != NULL)
+      turn->SetSendAddress(*remote);
+    return turn->Write(data, length);
+  }
+
+  return OpalUDPMediaTransport::Write(data, length, subchannel, remote, mtu);
 }
 
 
 bool OpalICEMediaTransport::IsEstablished() const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+
+  if (m_checklistFailed)
+    return false;
 
   for (SubChannels subchannel = e_Media; (size_t)subchannel < m_subchannels.size(); ++subchannel) {
     if (GetICEChannel(subchannel).m_state > e_Completed) // Still running
@@ -130,6 +221,9 @@ bool OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEAr
     P_INSTRUMENTED_LOCK_READ_ONLY(return false);
     state = GetICEChannel(subchannel).m_state;
   }
+
+  if (m_checklistFailed)
+    return OpalMediaTransport::InternalRxData(subchannel, data);
 
   switch (state) {
     case e_Disabled :
@@ -169,9 +263,24 @@ void OpalICEMediaTransport::SetCandidates(const PString & user,
 
   if (user.IsEmpty() || pass.IsEmpty()) {
     PTRACE(3, *this << "disabled");
+    m_iceDisabled = true;
+    m_checkTimer.Stop(false);
     for (SubChannels subchannel = e_Media; (size_t)subchannel < m_subchannels.size(); ++subchannel)
       GetICEChannel(subchannel).m_state = e_Disabled;
     return;
+  }
+
+  if (!m_remoteUsername.IsEmpty() && user != m_remoteUsername) {
+    PTRACE(3, *this << "ICE restart, remote ufrag changed");
+    m_localUsername = PBase64::Encode(PRandom::Octets(12));
+    m_localPassword = PBase64::Encode(PRandom::Octets(18));
+    m_checklistFailed = false;
+    m_gatheringComplete = m_localLite;
+    m_pending.clear();
+    for (SubChannels subchannel = e_Media; (size_t)subchannel < m_iceChannelCache.size(); ++subchannel)
+      GetICEChannel(subchannel).m_agent.Restart();
+    if (!m_localLite)
+      StartGathering();
   }
 
   if (user == m_remoteUsername && pass == m_remotePassword && IsEstablished()) {
@@ -185,8 +294,17 @@ void OpalICEMediaTransport::SetCandidates(const PString & user,
   m_remoteTrickle = options & OptTrickle;
 
   for (PNatCandidateList::const_iterator it = remoteCandidates.begin(); it != remoteCandidates.end(); ++it) {
-    if (it->m_component > 0 && (size_t)it->m_component <= m_subchannels.size())
-      GetICEChannel((SubChannels)(it->m_component - 1)).AddRemoteCandidate(*it PTRACE_PARAM(, "offer/answer"));
+    if (it->m_type >= PNatCandidate::FinalType) {
+      PTRACE(4, *this << "remote gathering complete");
+      continue;
+    }
+    if (it->m_component > 0 && (size_t)it->m_component <= m_subchannels.size()) {
+      ICEChannel & channel = GetICEChannel((SubChannels)(it->m_component - 1));
+      if (m_localLite)
+        channel.AddRemoteCandidate(*it PTRACE_PARAM(, "offer/answer"));
+      else if (channel.m_agent.AddRemoteCandidate(*it))
+        PTRACE(4, *this << "remote candidate added: " << *it);
+    }
     else
       PTRACE(3, "Invalid component in candidate: " << *it);
   }
@@ -214,8 +332,25 @@ void OpalICEMediaTransport::SetCandidates(const PString & user,
 
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
   m_client.SetCredentials(m_remoteUsername + ':' + m_localUsername, m_remotePassword, PString::Empty());
+  AssignRoles();
 
   SetRemoteBehindNAT();
+
+  if (!m_localLite) {
+    bool anyRemote = false;
+    for (SubChannels subchannel = e_Media; (size_t)subchannel < m_iceChannelCache.size(); ++subchannel) {
+      ICEChannel & channel = GetICEChannel(subchannel);
+      channel.m_agent.SetRemoteCredentials(user, pass);
+      channel.m_agent.FormChecklist();
+      if (!channel.m_agent.Checklist().empty()) {
+        anyRemote = true;
+        if (channel.m_state == e_Disabled || channel.m_state == e_Completed)
+          channel.m_state = m_offerer ? e_OfferAnswered : e_Answering;
+      }
+    }
+    if (anyRemote)
+      m_checkTimer.RunContinuous(50);
+  }
 
   // If we had an early USE-CANDIDATE before we got this answer to our offer, then we complete now.
   if (offerMade) {
@@ -239,8 +374,18 @@ void OpalICEMediaTransport::AddCandidate(const PNatCandidate & candidate)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
-  if (candidate.m_component > 0 && (size_t)candidate.m_component <= m_subchannels.size())
-    GetICEChannel((SubChannels)(candidate.m_component - 1)).AddRemoteCandidate(candidate PTRACE_PARAM(, "trickle"));
+  if (candidate.m_component > 0 && (size_t)candidate.m_component <= m_subchannels.size()) {
+    ICEChannel & channel = GetICEChannel((SubChannels)(candidate.m_component - 1));
+    if (m_localLite)
+      channel.AddRemoteCandidate(candidate PTRACE_PARAM(, "trickle"));
+    else if (channel.m_agent.AddRemoteCandidate(candidate)) {
+      channel.m_agent.FormChecklist();
+      if (channel.m_state == e_Disabled)
+        channel.m_state = e_Answering;
+      m_checkTimer.RunContinuous(50);
+      PTRACE(4, *this << "trickled remote candidate: " << candidate);
+    }
+  }
   else
     PTRACE(2, *this << "Attempt to add candidate with invalid component: " << candidate);
 }
@@ -316,9 +461,14 @@ bool OpalICEMediaTransport::GetCandidates(PString & user,
                                           PString & pass,
                                           PNatCandidateList & candidates,
                                           unsigned & options,
-                                          bool /*offering*/)
+                                          bool offering)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
+  if (offering)
+    m_offerer = true;
+  if (!m_localLite)
+    AssignRoles();
 
   if (m_subchannels.empty()) {
     PTRACE(3, *this << "cannot make offer when transport not open");
@@ -334,17 +484,23 @@ bool OpalICEMediaTransport::GetCandidates(PString & user,
     return true;
   }
 
-  for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
-    GetICEChannel(it->m_subchannel).GetLocalCandidates(candidates);
+  for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
+    ICEChannel & channel = GetICEChannel(it->m_subchannel);
+    if (m_localLite)
+      channel.GetLocalCandidates(candidates);
+    else
+      channel.m_agent.CopyLocalCandidates(candidates);
+  }
 
-  if (candidates.empty()) {
+  if (candidates.empty() && (m_localLite || !m_localTrickle)) {
     PTRACE(3, *this << "no candidates to offer");
     return false;
   }
 
   if (m_localTrickle) {
     options += OptTrickle;
-    candidates.push_back(PNatCandidate(PNatCandidate::FinalType, PNatMethod::eComponent_Unknown, LiteFoundation));
+    if (m_localLite || m_gatheringComplete)
+      candidates.push_back(PNatCandidate(PNatCandidate::FinalType, PNatMethod::eComponent_Unknown, LiteFoundation));
   }
     
   /* With ICE we start the thread straight away, as we need to respond to STUN
@@ -397,21 +553,8 @@ bool OpalICEMediaTransport::ICEChannel::AddLocalCandidate(const OpalTransportAdd
   if (!address.GetIpAndPort(candidate.m_baseTransportAddress))
     return false;
 
-  candidate.m_priority = (CandidateTypePriority[candidate.m_type] << 24) | (256 - candidate.m_component);
-
-  if (candidate.m_baseTransportAddress.GetAddress().GetVersion() != 6)
-    candidate.m_priority |= 0xffff00;
-  else {
-    /* Incomplete need to get precedence from following table, for now use 50
-          Prefix        Precedence Label
-          ::1/128               50     0
-          ::/0                  40     1
-          2002::/16             30     2
-          ::/96                 20     3
-          ::ffff:0:0/96         10     4
-    */
-    candidate.m_priority |= 50 << 8;
-  }
+  unsigned localPreference = candidate.m_baseTransportAddress.GetAddress().GetVersion() == 6 ? 50 : 0xffff;
+  candidate.m_priority = OpalICEAgent::CandidatePriority(candidate.m_type, localPreference, candidate.m_component);
 
   m_localCandidates.push_back(candidate);
   PTRACE(4, m_owner << m_subchannel << ", added local candidate: " << candidate);
@@ -444,7 +587,13 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
   : m_owner(owner)
   , m_subchannel(subchannel)
   , m_state(e_Disabled)
+  , m_agent((unsigned)subchannel + 1)
+  , m_haveLastFrom(false)
+  , m_relaySelected(false)
 {
+  m_agent.SetLocalLite(owner.m_localLite);
+  m_agent.SetRelayOnly(owner.m_relayOnly);
+  m_agent.SetConsentRequired(owner.m_consentFreshness);
   Open(channel);
 }
 
@@ -458,8 +607,44 @@ PTimeInterval OpalICEMediaTransport::GetTimeout(SubChannels subchannel) const
 PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
-    if (!PIndirectChannel::Read(data, size))
-      return false;
+    PUDPSocket * host = dynamic_cast<PUDPSocket *>(GetBaseReadChannel());
+    PUDPSocket * turn = m_subchannel < (SubChannels)m_owner.m_turnSockets.size() ? m_owner.m_turnSockets[m_subchannel] : NULL;
+    bool turnOpen = turn != NULL && turn->IsOpen();
+    bool extra = !m_owner.m_extraSockets.empty();
+
+    if (host != NULL && (turnOpen || extra) && !m_owner.m_localLite) {
+      PSocket::SelectList ready;
+      ready += *host;
+      if (turnOpen)
+        ready += *turn;
+      for (vector<PUDPSocket *>::iterator it = m_owner.m_extraSockets.begin(); it != m_owner.m_extraSockets.end(); ++it) {
+        if (*it != NULL && (*it)->IsOpen())
+          ready += **it;
+      }
+      if (PSocket::Select(ready, GetReadTimeout()) != PChannel::NoError || ready.IsEmpty()) {
+        SetErrorValues(PChannel::Timeout, 0, PChannel::LastReadError);
+        return false;
+      }
+      PUDPSocket * which = dynamic_cast<PUDPSocket *>(&ready[0]);
+      if (which == NULL || !which->Read(data, size)) {
+        if (which != NULL)
+          SetErrorValues(which->GetErrorCode(PChannel::LastReadError),
+                         which->GetErrorNumber(PChannel::LastReadError),
+                         PChannel::LastReadError);
+        else
+          SetErrorValues(PChannel::NotOpen, 0, PChannel::LastReadError);
+        return false;
+      }
+      SetLastReadCount(which->GetLastReadCount());
+      which->GetLastReceiveAddress(m_lastFrom);
+      m_haveLastFrom = true;
+    }
+    else {
+      if (!PIndirectChannel::Read(data, size))
+        return false;
+      m_haveLastFrom = false;
+    }
+
     if (HandleICE(data, GetLastReadCount()))
       return true;
   }
@@ -480,6 +665,9 @@ bool OpalICEMediaTransport::ICEChannel::HandleICE(const void * data, PINDEX leng
 
   if (m_state == e_Disabled)
     return true;
+
+  if (!m_owner.m_localLite)
+    return HandleICEFull(data, length);
 
   if (m_owner.m_subchannels[m_subchannel].m_remoteGoneError == PChannel::Unavailable)
     m_owner.m_subchannels[m_subchannel].m_remoteGoneError = PChannel::ProtocolFailure;
@@ -650,6 +838,666 @@ bool OpalICEMediaTransport::ICEChannel::HandleICE(const void * data, PINDEX leng
   }
 
   // Don't pass this STUN packet up the protocol stack
+  return false;
+}
+
+
+static std::string IceTransactionKey(const PBYTEArray & id)
+{
+  return std::string((const char *)id.GetPointer(), (size_t)id.GetSize());
+}
+
+
+static bool ResolveStunServer(const PString & server, PIPSocketAddressAndPort & address)
+{
+  if (server.IsEmpty())
+    return false;
+
+  PString host = server;
+  WORD port = 3478;
+  PINDEX colon = server.Find(':');
+  if (colon != P_MAX_INDEX && server.Left(1) != "[") {
+    host = server.Left(colon);
+    port = (WORD)server.Mid(colon + 1).AsUnsigned();
+    if (port == 0)
+      port = 3478;
+  }
+
+  PIPSocket::Address ip;
+  if (!PIPSocket::GetHostAddress(host, ip))
+    return false;
+  address.SetAddress(ip, port);
+  return address.IsValid();
+}
+
+
+void OpalICEMediaTransport::NoteTransaction(const PBYTEArray & id, SubChannels subchannel, int pairIndex, bool gather, bool consent)
+{
+  PendingTxn txn;
+  txn.subchannel = subchannel;
+  txn.pairIndex = pairIndex;
+  txn.gather = gather;
+  txn.consent = consent;
+  m_pending[IceTransactionKey(id)] = txn;
+}
+
+
+bool OpalICEMediaTransport::TakeTransaction(const PBYTEArray & id, SubChannels & subchannel, int & pairIndex, bool & gather, bool & consent)
+{
+  std::map<std::string, PendingTxn>::iterator it = m_pending.find(IceTransactionKey(id));
+  if (it == m_pending.end())
+    return false;
+  subchannel = it->second.subchannel;
+  pairIndex = it->second.pairIndex;
+  gather = it->second.gather;
+  consent = it->second.consent;
+  if (!gather)
+    m_pending.erase(it);
+  return true;
+}
+
+
+void OpalICEMediaTransport::GatherHostCandidates()
+{
+  PIPSocket::InterfaceTable interfaces;
+  bool haveInterfaces = PIPSocket::GetInterfaceTable(interfaces);
+
+  for (SubChannels subchannel = e_Media; (size_t)subchannel < m_subchannels.size(); ++subchannel) {
+    ICEChannel & channel = GetICEChannel(subchannel);
+    channel.m_agent.SetLocalLite(false);
+    channel.m_agent.SetRelayOnly(m_relayOnly);
+    channel.m_agent.SetConsentRequired(m_consentFreshness);
+
+    PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
+    if (socket == NULL)
+      continue;
+
+    PIPSocketAddressAndPort bound;
+    if (!socket->GetLocalAddress(bound))
+      continue;
+
+    unsigned preference = 65535;
+    std::set<std::string> seen;
+    bool wantIPv6 = bound.GetAddress().GetVersion() == 6 || bound.GetAddress().IsAny();
+
+    if (haveInterfaces && (bound.GetAddress().IsAny() || bound.GetAddress().IsLoopback())) {
+      for (PINDEX i = 0; i < interfaces.GetSize(); ++i) {
+        PIPSocket::Address addr = interfaces[i].GetAddress();
+        if (!addr.IsValid() || addr.IsAny() || addr.IsLoopback() || addr.IsMulticast() || addr.IsLinkLocal())
+          continue;
+        if (!wantIPv6 && addr.GetVersion() != 4)
+          continue;
+        if (bound.GetAddress().GetVersion() == 6 && addr.GetVersion() != 6)
+          continue;
+        std::string key = addr.AsString();
+        if (!seen.insert(key).second)
+          continue;
+
+        PNatCandidate candidate(PNatCandidate::HostType,
+                                (PNatMethod::Component)(subchannel + 1),
+                                OpalICEAgent::Foundation(PNatCandidate::HostType, addr.AsString(), "udp", PString::Empty()),
+                                OpalICEAgent::CandidatePriority(PNatCandidate::HostType, preference, subchannel + 1),
+                                "udp");
+        candidate.m_baseTransportAddress.SetAddress(addr, bound.GetPort());
+        channel.m_agent.AddLocalCandidate(candidate);
+        if (preference > 256)
+          preference -= 256;
+        PTRACE(4, *this << "host candidate " << candidate.m_baseTransportAddress);
+      }
+    }
+
+    if (!bound.GetAddress().IsAny()) {
+      PNatCandidate candidate(PNatCandidate::HostType,
+                              (PNatMethod::Component)(subchannel + 1),
+                              OpalICEAgent::Foundation(PNatCandidate::HostType, bound.AsString(), "udp", PString::Empty()),
+                              OpalICEAgent::CandidatePriority(PNatCandidate::HostType, 65535, subchannel + 1),
+                              "udp");
+      candidate.m_baseTransportAddress = bound;
+      channel.m_agent.AddLocalCandidate(candidate);
+    }
+
+    if (channel.m_state == e_Disabled)
+      channel.m_state = e_Offering;
+
+#if P_HAS_IPV6
+    if (wantIPv6 && bound.GetAddress().GetVersion() == 4) {
+      PIPSocket::Address v6any("::");
+      PUDPSocket * v6 = new PUDPSocket((WORD)0, AF_INET6);
+      if (v6any.IsValid() && v6->Listen(v6any, 1, bound.GetPort())) {
+        m_extraSockets.push_back(v6);
+        PIPSocketAddressAndPort v6bound;
+        v6->GetLocalAddress(v6bound);
+        PTRACE(4, *this << "additional IPv6 socket " << v6bound);
+        if (haveInterfaces) {
+          for (PINDEX i = 0; i < interfaces.GetSize(); ++i) {
+            PIPSocket::Address addr = interfaces[i].GetAddress();
+            if (!addr.IsValid() || addr.GetVersion() != 6 || addr.IsLoopback() || addr.IsLinkLocal() || addr.IsMulticast())
+              continue;
+            PNatCandidate candidate(PNatCandidate::HostType,
+                                    (PNatMethod::Component)(subchannel + 1),
+                                    OpalICEAgent::Foundation(PNatCandidate::HostType, addr.AsString(), "udp", PString::Empty()),
+                                    OpalICEAgent::CandidatePriority(PNatCandidate::HostType, preference, subchannel + 1),
+                                    "udp");
+            candidate.m_baseTransportAddress.SetAddress(addr, v6bound.GetPort());
+            channel.m_agent.AddLocalCandidate(candidate);
+          }
+        }
+      }
+      else {
+        delete v6;
+        PTRACE(4, *this << "IPv6 host socket was not created");
+      }
+    }
+#endif
+  }
+}
+
+
+void OpalICEMediaTransport::StartGathering()
+{
+  if (m_localLite)
+    return;
+  if (m_gatherThread != NULL) {
+    if (!m_gatheringComplete)
+      return;
+    delete m_gatherThread;
+    m_gatherThread = NULL;
+  }
+  m_stopGather = false;
+  m_gatheringComplete = false;
+  m_gatherThread = new PThreadObj<OpalICEMediaTransport>(*this, &OpalICEMediaTransport::GatherThreadMain, false, "ICE-Gather");
+}
+
+
+void OpalICEMediaTransport::GatherThreadMain()
+{
+  PTRACE(4, *this << "gathering server-reflexive and relay candidates");
+
+  OpalManager & manager = m_connection.GetEndPoint().GetManager();
+  vector<PIPSocketAddressAndPort> stunServers;
+  PNatMethods & methods = manager.GetNatMethods();
+  for (PINDEX i = 0; i < methods.GetSize(); ++i) {
+    PNatMethod & method = methods[i];
+    if (!method.IsActive())
+      continue;
+    if (method.GetMethodName() != PSTUNClient::MethodName())
+      continue;
+    PIPSocketAddressAndPort server;
+    if (ResolveStunServer(method.GetServer(), server))
+      stunServers.push_back(server);
+  }
+
+  for (SubChannels subchannel = e_Media; (size_t)subchannel < m_subchannels.size() && !m_stopGather; ++subchannel) {
+    PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
+    if (socket == NULL)
+      continue;
+    for (size_t s = 0; s < stunServers.size(); ++s) {
+      PSTUNMessage request(PSTUNMessage::BindingRequest);
+      request.AddFingerprint();
+      {
+        P_INSTRUMENTED_LOCK_READ_WRITE(continue);
+        NoteTransaction(request.GetTransactionID(), subchannel, -1, true, false);
+      }
+      if (!request.Write(*socket, stunServers[s])) {
+        PTRACE(3, *this << "STUN binding send failed for " << stunServers[s]);
+        continue;
+      }
+      PTRACE(4, *this << "sent STUN binding to " << stunServers[s] << " on " << subchannel);
+    }
+  }
+
+#if P_TURN
+  PNatMethod * turnMethod = methods.GetMethodByName(PTURNClient::MethodName());
+  PTURNClient * turnClient = dynamic_cast<PTURNClient *>(turnMethod);
+  if (turnClient != NULL && turnClient->IsActive() && !turnClient->GetServer().IsEmpty()) {
+    for (SubChannels subchannel = e_Media; (size_t)subchannel < m_subchannels.size() && !m_stopGather; ++subchannel) {
+      if (subchannel < (SubChannels)m_turnSockets.size() && m_turnSockets[subchannel] != NULL)
+        continue;
+
+      PIPSocketAddressAndPort bound;
+      PUDPSocket * host = GetSubChannelAsSocket(subchannel);
+      PIPSocket::Address bindAddress = PIPSocket::GetDefaultIpAny();
+      if (host != NULL && host->GetLocalAddress(bound) && !bound.GetAddress().IsAny())
+        bindAddress = bound.GetAddress();
+
+      PTURNUDPSocket * turnSocket = new PTURNUDPSocket((PNatMethod::Component)(subchannel + 1));
+      if (!turnSocket->Listen(bindAddress, 1, 0)) {
+        PTRACE(2, *this << "TURN socket bind failed");
+        delete turnSocket;
+        continue;
+      }
+
+      {
+        PWaitAndSignal lock(m_gatherMutex);
+        m_allocatingSocket = turnSocket;
+      }
+      int code = m_stopGather ? -1 : turnSocket->OpenTURN(*turnClient);
+      {
+        PWaitAndSignal lock(m_gatherMutex);
+        m_allocatingSocket = NULL;
+      }
+      if (code != 0 || m_stopGather) {
+        PTRACE(2, *this << "TURN allocation failed, code=" << code);
+        delete turnSocket;
+        continue;
+      }
+
+      PNatCandidate info;
+      turnSocket->GetCandidateInfo(info);
+      PNatCandidate relay(PNatCandidate::RelayType,
+                          (PNatMethod::Component)(subchannel + 1),
+                          OpalICEAgent::Foundation(PNatCandidate::RelayType, info.m_localTransportAddress.AsString(), "udp", turnClient->GetServer()),
+                          OpalICEAgent::CandidatePriority(PNatCandidate::RelayType, 65535, subchannel + 1),
+                          "udp");
+      relay.m_baseTransportAddress = info.m_localTransportAddress;
+      relay.m_localTransportAddress = info.m_baseTransportAddress;
+      if (!relay.m_baseTransportAddress.IsValid()) {
+        PTRACE(2, *this << "TURN allocation did not produce a relay address");
+        delete turnSocket;
+        continue;
+      }
+
+      bool stored = true;
+      {
+        P_INSTRUMENTED_LOCK_READ_WRITE(stored = false);
+        if (stored) {
+          while (m_turnSockets.size() <= (size_t)subchannel)
+            m_turnSockets.push_back(NULL);
+          m_turnSockets[subchannel] = turnSocket;
+          GetICEChannel(subchannel).m_agent.AddLocalCandidate(relay);
+          if (!m_remoteUsername.IsEmpty())
+            GetICEChannel(subchannel).m_agent.FormChecklist();
+          PTRACE(3, *this << "relay candidate " << relay.m_baseTransportAddress);
+        }
+      }
+      if (!stored) {
+        delete turnSocket;
+        continue;
+      }
+    }
+  }
+#endif
+
+  PTimeInterval waited(0);
+  while (!m_stopGather && waited < m_gatherTimeout) {
+    PThread::Sleep(100);
+    waited += 100;
+  }
+
+  if (!m_stopGather) {
+    P_INSTRUMENTED_LOCK_READ_WRITE(return);
+    m_gatheringComplete = true;
+    PTRACE(3, *this << "candidate gathering complete");
+  }
+}
+
+
+PUDPSocket * OpalICEMediaTransport::SocketForCandidate(SubChannels subchannel, const PNatCandidate & local) const
+{
+  if (local.m_type == PNatCandidate::RelayType) {
+    if (subchannel < (SubChannels)m_turnSockets.size())
+      return m_turnSockets[subchannel];
+    return NULL;
+  }
+
+  unsigned version = 4;
+  if (local.m_type == PNatCandidate::HostType)
+    version = local.m_baseTransportAddress.GetAddress().GetVersion();
+  else if (local.m_localTransportAddress.IsValid())
+    version = local.m_localTransportAddress.GetAddress().GetVersion();
+  else
+    version = local.m_baseTransportAddress.GetAddress().GetVersion();
+
+  PUDPSocket * host = GetSubChannelAsSocket(subchannel);
+  PIPSocketAddressAndPort bound;
+  if (host != NULL && host->GetLocalAddress(bound) && bound.GetAddress().GetVersion() == version)
+    return host;
+
+  for (vector<PUDPSocket *>::const_iterator it = m_extraSockets.begin(); it != m_extraSockets.end(); ++it) {
+    PIPSocketAddressAndPort extra;
+    if (*it != NULL && (*it)->GetLocalAddress(extra) && extra.GetAddress().GetVersion() == version)
+      return *it;
+  }
+  return host;
+}
+
+
+void OpalICEMediaTransport::SendOneCheck()
+{
+  static const PTimeInterval RTO(500);
+  static const unsigned MaxAttempts = 7;
+
+  bool anyFailed = false;
+  bool anyRunning = false;
+  for (SubChannels subchannel = e_Media; (size_t)subchannel < m_iceChannelCache.size(); ++subchannel) {
+    ICEChannel & channel = GetICEChannel(subchannel);
+    OpalICEAgent & agent = channel.m_agent;
+    if (agent.GetState() == OpalICEAgent::Failed) {
+      anyFailed = true;
+      continue;
+    }
+    if (agent.GetState() == OpalICEAgent::Completed)
+      continue;
+    anyRunning = true;
+
+    int index = agent.NextCheck(PTime(), RTO, MaxAttempts);
+    if (agent.GetState() == OpalICEAgent::Failed) {
+      anyFailed = true;
+      PTRACE(2, *this << "ICE failed on " << subchannel << ": " << agent.GetFailureReason());
+      continue;
+    }
+    if (index < 0)
+      continue;
+
+    const OpalICEAgent::Pair & pair = agent.Checklist()[index];
+    bool nominate = agent.IsControlling() && pair.state == OpalICEAgent::Succeeded;
+    PUDPSocket * socket = SocketForCandidate(subchannel, pair.local);
+    if (socket == NULL) {
+      PTRACE(2, *this << "no socket for candidate " << pair.local);
+      continue;
+    }
+
+    if (pair.local.m_type == PNatCandidate::RelayType)
+      socket->SetSendAddress(pair.remote.m_baseTransportAddress);
+
+    const BYTE * existingId = NULL;
+    if (pair.state == OpalICEAgent::InProgress && pair.transactionId.GetSize() >= 12)
+      existingId = pair.transactionId.GetPointer();
+
+    PSTUNMessage request(PSTUNMessage::BindingRequest, existingId);
+    PSTUNIcePriority priority;
+    priority.m_priority = pair.local.m_priority;
+    request.AddAttribute(priority);
+    if (nominate)
+      request.AddAttribute(PSTUNAttribute(PSTUNAttribute::USE_CANDIDATE, 0));
+    m_client.AppendMessageIntegrity(request);
+    request.AddFingerprint();
+
+    bool sent = pair.local.m_type == PNatCandidate::RelayType
+                  ? request.Write(*socket)
+                  : request.Write(*socket, pair.remote.m_baseTransportAddress);
+    if (!sent) {
+      PTRACE(3, *this << "connectivity check send failed to " << pair.remote.m_baseTransportAddress);
+      continue;
+    }
+
+    agent.NoteCheckSent(index, request.GetTransactionID(), PTime(), nominate);
+    NoteTransaction(request.GetTransactionID(), subchannel, index, false, false);
+    PTRACE(4, *this << "check " << (nominate ? "nominate " : "")
+           << pair.local.m_baseTransportAddress << " -> " << pair.remote.m_baseTransportAddress
+           << " priority=" << pair.priority);
+  }
+
+  if (anyFailed && !anyRunning) {
+    m_checklistFailed = true;
+    m_checkTimer.Stop(false);
+    PTRACE(2, *this << "ICE checklist failed; media will not fall back to the SDP address");
+  }
+}
+
+
+void OpalICEMediaTransport::ApplyNominated(SubChannels subchannel, const PNatCandidate & local, const PNatCandidate & remote)
+{
+  ICEChannel & channel = GetICEChannel(subchannel);
+  channel.m_state = e_Completed;
+  channel.m_selectedCandidate = remote;
+  channel.m_relaySelected = local.m_type == PNatCandidate::RelayType;
+  channel.m_agent.NoteConsent(PTime());
+
+  if (channel.m_relaySelected) {
+    PUDPSocket * turn = SocketForCandidate(subchannel, local);
+    if (turn != NULL)
+      turn->SetSendAddress(remote.m_baseTransportAddress);
+  }
+  else
+    InternalSetRemoteAddress(remote.m_baseTransportAddress, subchannel, e_RemoteAddressFromICE);
+
+  bool allDone = true;
+  for (SubChannels other = e_Media; (size_t)other < m_iceChannelCache.size(); ++other) {
+    if (GetICEChannel(other).m_agent.GetState() != OpalICEAgent::Completed)
+      allDone = false;
+  }
+  if (allDone) {
+    m_checkTimer.Stop(false);
+    PTimeInterval keepAlive = m_connection.GetEndPoint().GetManager().GetNatKeepAliveTime();
+    if (keepAlive == 0)
+      keepAlive = m_consentFreshness ? PTimeInterval(0, 5) : PTimeInterval(0, 15);
+    if (m_consentFreshness && keepAlive > PTimeInterval(0, 5))
+      keepAlive = PTimeInterval(0, 5);
+    m_consentTimer.RunContinuous(keepAlive);
+  }
+  TraceSelectedPath(subchannel);
+}
+
+
+void OpalICEMediaTransport::TraceSelectedPath(SubChannels subchannel) const
+{
+  PStringStream strm;
+  GetICEChannel(subchannel).m_agent.PrintSelectedPath(strm);
+  PTRACE(3, *this << subchannel << " selected path\n" << strm);
+}
+
+
+void OpalICEMediaTransport::AssignRoles()
+{
+  bool controlling = m_localLite ? false : (m_offerer || m_remoteLite);
+  for (SubChannels subchannel = e_Media; (size_t)subchannel < m_iceChannelCache.size(); ++subchannel) {
+    OpalICEAgent & agent = GetICEChannel(subchannel).m_agent;
+    agent.SetLocalLite(m_localLite);
+    agent.SetRemoteLite(m_remoteLite);
+    agent.SetOfferer(m_offerer || m_remoteLite);
+    agent.SetRelayOnly(m_relayOnly);
+    agent.SetConsentRequired(m_consentFreshness);
+    agent.AssignRole();
+  }
+
+  PSTUN::IceRole role = PSTUN::IceLite;
+  if (!m_localLite)
+    role = controlling ? PSTUN::IceControlling : PSTUN::IceControlled;
+
+  if (m_server.GetIceRole() == role && m_server.GetIceTieBreak() != 0) {
+    m_client.AdoptIceRole(role, m_server.GetIceTieBreak());
+    return;
+  }
+
+  m_server.SetIceRole(role);
+  m_client.AdoptIceRole(role, m_server.GetIceTieBreak());
+  PTRACE(3, *this << "ICE role " << (role == PSTUN::IceControlling ? "controlling" : role == PSTUN::IceControlled ? "controlled" : "lite"));
+}
+
+
+void OpalICEMediaTransport::OnCheckTimer(PTimer &, P_INT_PTR)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  if (m_stopGather || m_localLite || m_iceDisabled || m_checklistFailed)
+    return;
+  SendOneCheck();
+}
+
+
+void OpalICEMediaTransport::SendConsentOrKeepalive()
+{
+  for (SubChannels subchannel = e_Media; (size_t)subchannel < m_iceChannelCache.size(); ++subchannel) {
+    ICEChannel & channel = GetICEChannel(subchannel);
+    PNatCandidate local, remote;
+    if (!channel.m_agent.GetNominated(local, remote))
+      continue;
+
+    PUDPSocket * socket = SocketForCandidate(subchannel, local);
+    if (socket == NULL)
+      continue;
+
+    if (m_consentFreshness) {
+      PSTUNMessage request(PSTUNMessage::BindingRequest);
+      m_client.AppendMessageIntegrity(request);
+      request.AddFingerprint();
+      bool sent = local.m_type == PNatCandidate::RelayType ? request.Write(*socket) : request.Write(*socket, remote.m_baseTransportAddress);
+      if (sent)
+        NoteTransaction(request.GetTransactionID(), subchannel, -1, false, true);
+      PTRACE(5, *this << "consent check on " << subchannel);
+    }
+    else {
+      PSTUNMessage indication(PSTUNMessage::BindingIndication);
+      indication.AddFingerprint();
+      if (local.m_type == PNatCandidate::RelayType)
+        indication.Write(*socket);
+      else
+        indication.Write(*socket, remote.m_baseTransportAddress);
+      PTRACE(5, *this << "binding indication keepalive on " << subchannel);
+    }
+  }
+}
+
+
+void OpalICEMediaTransport::OnConsentTimer(PTimer &, P_INT_PTR)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  if (m_stopGather || m_iceDisabled)
+    return;
+  SendConsentOrKeepalive();
+}
+
+
+bool OpalICEMediaTransport::ICEChannel::HandleICEFull(const void * data, PINDEX length)
+{
+  if (length < 1)
+    return false;
+
+  if (m_owner.m_subchannels[m_subchannel].m_remoteGoneError == PChannel::Unavailable)
+    m_owner.m_subchannels[m_subchannel].m_remoteGoneError = PChannel::ProtocolFailure;
+
+  const BYTE * byteData = static_cast<const BYTE *>(data);
+  if (byteData[0] > 3) {
+    if (m_agent.ConsentExpired(PTime(), PTimeInterval(0, 30)))
+      return false;
+    return true;
+  }
+
+  PIPSocketAddressAndPort from;
+  if (m_haveLastFrom)
+    from = m_lastFrom;
+  else if (PUDPSocket * socket = m_owner.GetSubChannelAsSocket(m_subchannel))
+    socket->GetLastReceiveAddress(from);
+
+  PSTUNMessage message(byteData, length, from);
+  if (!message.IsValid()) {
+    PTRACE(2, m_owner << m_subchannel << ", discarding invalid STUN from " << from);
+    return false;
+  }
+  if (!message.CheckFingerprint(false) && message.FindAttribute(PSTUNAttribute::FINGERPRINT) != NULL) {
+    PTRACE(2, m_owner << m_subchannel << ", bad STUN fingerprint from " << from);
+    return false;
+  }
+
+  if (message.IsIndication())
+    return false;
+
+  if (message.IsRequest()) {
+    if (!m_owner.m_server.OnReceiveMessage(message, PSTUNServer::SocketInfo(m_owner.GetSubChannelAsSocket(m_subchannel))))
+      return false;
+
+    PSTUN::IceRole serverRole = m_owner.m_server.GetIceRole();
+    if (serverRole == PSTUN::IceControlling || serverRole == PSTUN::IceControlled) {
+      OpalICEAgent::Role agentRole = serverRole == PSTUN::IceControlling ? OpalICEAgent::Controlling : OpalICEAgent::Controlled;
+      if (m_agent.GetRole() != agentRole) {
+        m_agent.SetRole(agentRole);
+        m_owner.m_client.AdoptIceRole(serverRole, m_owner.m_server.GetIceTieBreak());
+        PTRACE(3, m_owner << "role conflict resolved, now " << (agentRole == OpalICEAgent::Controlling ? "controlling" : "controlled"));
+      }
+    }
+
+    unsigned priority = 0;
+    if (PSTUNIcePriority * pri = PSTUNIcePriority::Find(message))
+      priority = pri->m_priority;
+    bool useCandidate = message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) != NULL;
+    OpalICEAgent::InboundResult inbound = m_agent.OnInboundRequest(from, priority, useCandidate);
+    if (inbound.nominated)
+      m_owner.ApplyNominated(m_subchannel, inbound.local, inbound.remote);
+    return false;
+  }
+
+  SubChannels txnChannel;
+  int pairIndex = -1;
+  bool gather = false;
+  bool consent = false;
+  if (!m_owner.TakeTransaction(message.GetTransactionID(), txnChannel, pairIndex, gather, consent) || txnChannel != m_subchannel) {
+    PTRACE(4, m_owner << m_subchannel << ", ignoring unmatched STUN response");
+    return false;
+  }
+
+  if (gather) {
+    if (!message.IsSuccessResponse())
+      return false;
+    PIPSocketAddressAndPort mapped;
+    if (!m_owner.m_client.GetFromBindingResponse(message, mapped) || !mapped.IsValid())
+      return false;
+    if (m_agent.LocalCandidates().empty())
+      return false;
+    const PNatCandidate & host = m_agent.LocalCandidates().front();
+    PNatCandidate srflx(PNatCandidate::ServerReflexiveType,
+                        (PNatMethod::Component)(m_subchannel + 1),
+                        OpalICEAgent::Foundation(PNatCandidate::ServerReflexiveType, host.m_baseTransportAddress.AsString(), "udp", from.AsString()),
+                        OpalICEAgent::CandidatePriority(PNatCandidate::ServerReflexiveType, 65535, m_subchannel + 1),
+                        "udp");
+    srflx.m_baseTransportAddress = mapped;
+    srflx.m_localTransportAddress = host.m_baseTransportAddress;
+    m_agent.AddLocalCandidate(srflx);
+    if (!m_owner.m_remoteUsername.IsEmpty())
+      m_agent.FormChecklist();
+    PTRACE(3, m_owner << "server-reflexive candidate " << mapped);
+    return false;
+  }
+
+  if (message.IsSuccessResponse() && !m_owner.m_client.IntegrityMatches(message)) {
+    PTRACE(2, m_owner << m_subchannel << ", STUN response failed integrity");
+    return false;
+  }
+
+  if (consent) {
+    if (message.IsSuccessResponse())
+      m_agent.NoteConsent(PTime());
+    return false;
+  }
+
+  unsigned errorCode = 0;
+  if (message.IsErrorResponse()) {
+    if (PSTUNErrorCode * error = message.FindAttributeAs<PSTUNErrorCode>(PSTUNAttribute::ERROR_CODE))
+      errorCode = (unsigned)error->GetErrorCode();
+    if (errorCode == 487)
+      PTRACE(3, m_owner << "role conflict (487) on " << m_subchannel);
+  }
+
+  PIPSocketAddressAndPort mapped;
+  if (message.IsSuccessResponse())
+    m_owner.m_client.GetFromBindingResponse(message, mapped);
+
+  OpalICEAgent::CheckResult result = m_agent.OnCheckResult(message.GetTransactionID(),
+                                                           message.IsSuccessResponse(),
+                                                           errorCode,
+                                                           mapped,
+                                                           PTime());
+
+  if (result.roleConflict) {
+    PSTUN::IceRole role = m_agent.IsControlling() ? PSTUN::IceControlling : PSTUN::IceControlled;
+    m_owner.m_server.AdoptIceRole(role, m_owner.m_server.GetIceTieBreak());
+    m_owner.m_client.AdoptIceRole(role, m_owner.m_server.GetIceTieBreak());
+    PTRACE(3, m_owner << "switched ICE role after 487 to " << (m_agent.IsControlling() ? "controlling" : "controlled"));
+  }
+
+  if (consent)
+    m_agent.NoteConsent(PTime());
+
+  if (result.nominated)
+    m_owner.ApplyNominated(m_subchannel, result.local, result.remote);
+
+  if (result.checklistFailed) {
+    m_owner.m_checklistFailed = true;
+    m_owner.m_checkTimer.Stop(false);
+    PTRACE(2, m_owner << "ICE failed: " << m_agent.GetFailureReason());
+  }
+  else if (result.addedPeerReflexive)
+    PTRACE(3, m_owner << "peer-reflexive candidate discovered");
+
   return false;
 }
 

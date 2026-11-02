@@ -663,9 +663,9 @@ class OpalTCPMediaTransport : public OpalMediaTransport
   public:
     OpalTCPMediaTransport(OpalConnection & connection, const PString & name);
 
-    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
+    virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress) override;
     virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, SubChannels subchannel = e_Media) override;
-    virtual bool Write(const void * data, PINDEX length, SubChannels = e_Media, const PIPSocketAddressAndPort * = NULL, int * = NULL);
+    virtual bool Write(const void * data, PINDEX length, SubChannels = e_Media, const PIPSocketAddressAndPort * = NULL, int * = NULL) override;
 };
 
 
@@ -687,6 +687,12 @@ class OpalUDPMediaTransport : public OpalMediaTransport
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data) override;
     virtual bool InternalSetRemoteAddress(const PIPSocket::AddressAndPort & ap, SubChannels subchannel, RemoteAddressSources source);
     virtual bool InternalOpenPinHole(PUDPSocket & socket);
+
+    /**Create STUN/TURN sockets in Open().
+       Full ICE gathers reflexive and relay candidates itself and must keep a
+       host-bound UDP socket, so it returns false.
+      */
+    virtual bool UseNatTraversal() const;
 
     bool m_localHasRestrictedNAT;
     vector<PUDPSocket *> m_socketCache;

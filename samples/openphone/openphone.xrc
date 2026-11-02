@@ -3023,6 +3023,51 @@
 												</object>
 											</object>
 										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
+											<border>12</border>
+											<object class="wxStaticBoxSizer">
+												<orient>wxVERTICAL</orient>
+												<label>ICE</label>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP</flag>
+													<border>8</border>
+													<object class="wxCheckBox" name="OfferICE">
+														<label>Offer ICE in SDP</label>
+														<checked>0</checked>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP</flag>
+													<border>8</border>
+													<object class="wxCheckBox" name="FullICE">
+														<label>Full ICE agent</label>
+														<checked>0</checked>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxBOTTOM</flag>
+													<border>8</border>
+													<object class="wxCheckBox" name="TrickleICE">
+														<label>Trickle ICE</label>
+														<checked>1</checked>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxRIGHT|wxBOTTOM</flag>
+													<border>8</border>
+													<object class="wxStaticText" name="ICENatHint">
+														<label>Use STUN/TURN from the list on the left.</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+											</object>
+										</object>
 									</object>
 								</object>
 								<object class="sizeritem">
