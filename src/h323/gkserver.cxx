@@ -49,6 +49,7 @@ const char OriginateCallStr[] = "-Originate";
 
 
 #define new PNEW
+#define PTraceModule() "RAS"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -94,7 +95,7 @@ bool H323GatekeeperRequest::CheckGatekeeperIdentifier()
     return true;
 
   SetRejectReason(GetGatekeeperRejectTag());
-  PTRACE(2, "RAS\t" << GetName() << " rejected, has different identifier,"
+  PTRACE(2, GetName() << " rejected, has different identifier,"
             " got \"" << pduGkid << "\", should be \"" << rasGkid << '"');
   return false;
 }
@@ -103,20 +104,20 @@ bool H323GatekeeperRequest::CheckGatekeeperIdentifier()
 bool H323GatekeeperRequest::GetRegisteredEndPoint()
 {
   if (m_endpoint != NULL) {
-    PTRACE(4, "RAS\tAlready located endpoint: " << *m_endpoint);
+    PTRACE(4, "Already located endpoint: " << *m_endpoint);
     return true;
   }
 
   PString id = GetEndpointIdentifier();
   m_endpoint = m_rasChannel.GetGatekeeper().FindEndPointByIdentifier(id);
   if (m_endpoint != NULL) {
-    PTRACE(4, "RAS\tLocated endpoint: " << *m_endpoint);
+    PTRACE(4, "Located endpoint: " << *m_endpoint);
     m_canSendRIP = m_endpoint->CanReceiveRIP();
     return true;
   }
 
   SetRejectReason(GetRegisteredEndPointRejectTag());
-  PTRACE(2, "RAS\t" << GetName() << " rejected,"
+  PTRACE(2, GetName() << " rejected,"
             " \"" << id << "\" not registered");
   return false;
 }
@@ -153,12 +154,12 @@ H323GatekeeperGRQ::H323GatekeeperGRQ(H323GatekeeperListener & rasChannel,
        (!m_replyAddresses[0].GetIpAddress(senderIP) ||
         !rasAddress.GetIpAddress(rasIP) ||
         manager.IsLocalAddress(senderIP) == manager.IsLocalAddress(rasIP))) {
-    PTRACE(4, "RAS\tFound suitable RAS address in GRQ: " << rasAddress);
+    PTRACE(4, "Found suitable RAS address in GRQ: " << rasAddress);
     m_replyAddresses[0] = rasAddress;
   }
   else {
     m_isBehindNAT = true;
-    PTRACE(2, "RAS\tUnsuitable RAS address in GRQ, using " << m_replyAddresses[0]);
+    PTRACE(2, "Unsuitable RAS address in GRQ, using " << m_replyAddresses[0]);
   }
 }
 
@@ -253,7 +254,7 @@ H323GatekeeperRRQ::H323GatekeeperRRQ(H323GatekeeperListener & rasChannel,
       if (!senderIsIP |
           !rasAddress.GetIpAddress(rasIP) ||
           senderIsLocal == manager.IsLocalAddress(rasIP)) {
-        PTRACE(4, "RAS\tFound suitable RAS address in RRQ: " << rasAddress);
+        PTRACE(4, "Found suitable RAS address in RRQ: " << rasAddress);
         if (first)
           m_replyAddresses[0] = rasAddress;
         else
@@ -266,7 +267,7 @@ H323GatekeeperRRQ::H323GatekeeperRRQ(H323GatekeeperListener & rasChannel,
   }
 
   m_isBehindNAT = first;
-  PTRACE_IF(3, m_isBehindNAT, "RAS\tCould not find suitable RAS address in RRQ, using " << m_replyAddresses[0]);
+  PTRACE_IF(3, m_isBehindNAT, "Could not find suitable RAS address in RRQ, using " << m_replyAddresses[0]);
 
   for (i = 0; i < unsuitable.GetSize(); i++)
     m_replyAddresses.AppendAddress(unsuitable[i]);
@@ -836,18 +837,18 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 
   if (m_endpoint != NULL) {
     info.SetRejectReason(H225_AdmissionRejectReason::e_resourceUnavailable);
-    PTRACE(2, "RAS\tARQ rejected, multiple use of same call id.");
+    PTRACE(2, "ARQ rejected, multiple use of same call id.");
     return H323GatekeeperRequest::Reject;
   }
 
   PINDEX i;
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tARQ rejected, lock failed on call " << *this);
+    PTRACE(1, "ARQ rejected, lock failed on call " << *this);
     return H323GatekeeperRequest::Reject;
   }
 
-  PTRACE(3, "RAS\tProcessing OnAdmission for " << *this);
+  PTRACE(3, "Processing OnAdmission for " << *this);
 
   m_endpoint = info.m_endpoint;
   m_rasChannel = &info.GetRasChannel();
@@ -903,7 +904,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 
     if (denied) {
       info.SetRejectReason(H225_AdmissionRejectReason::e_securityDenial);
-      PTRACE(2, "RAS\tARQ rejected, not allowed to answer call");
+      PTRACE(2, "ARQ rejected, not allowed to answer call");
       return H323GatekeeperRequest::Reject;
     }
   }
@@ -929,7 +930,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 
           destEP = m_gatekeeper.FindEndPointByAliasAddress(transportAlias);
           if (!LockReadWrite()) {
-            PTRACE(1, "RAS\tARQ rejected, lock failed on call " << *this);
+            PTRACE(1, "ARQ rejected, lock failed on call " << *this);
             return H323GatekeeperRequest::Reject;
           }
           m_dstHost = destAddr;
@@ -954,7 +955,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 
             destEP = m_gatekeeper.FindEndPointByAliasAddress(info.arq.m_destinationInfo[i]);
             if (!LockReadWrite()) {
-              PTRACE(1, "RAS\tARQ rejected, lock failed on call " << *this);
+              PTRACE(1, "ARQ rejected, lock failed on call " << *this);
               return H323GatekeeperRequest::Reject;
             }
             m_dstHost = destAddr;
@@ -967,20 +968,20 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 
       if (denied) {
         info.SetRejectReason(H225_AdmissionRejectReason::e_securityDenial);
-        PTRACE(2, "RAS\tARQ rejected, not allowed to make call");
+        PTRACE(2, "ARQ rejected, not allowed to make call");
         return H323GatekeeperRequest::Reject;
       }
 
       if (noAddress) {
         info.SetRejectReason(H225_AdmissionRejectReason::e_calledPartyNotRegistered);
-        PTRACE(2, "RAS\tARQ rejected, destination alias not registered");
+        PTRACE(2, "ARQ rejected, destination alias not registered");
         return H323GatekeeperRequest::Reject;
       }
 
       if (destEP != NULL) {
         destEP.SetSafetyMode(PSafeReadOnly);
         if (!LockReadWrite()) {
-          PTRACE(1, "RAS\tARQ rejected, lock failed on call " << *this);
+          PTRACE(1, "ARQ rejected, lock failed on call " << *this);
           return H323GatekeeperRequest::Reject;
         }
         m_dstAliases.RemoveAll();
@@ -1000,7 +1001,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
         // Note nested if's used because some compilers (Tornado 2) cannot handle it
         if (m_gatekeeper.FindEndPointBySignalAddress(info.arq.m_destCallSignalAddress) != destEP) {
           info.SetRejectReason(H225_AdmissionRejectReason::e_aliasesInconsistent);
-          PTRACE(2, "RAS\tARQ rejected, destination address not for specified alias");
+          PTRACE(2, "ARQ rejected, destination address not for specified alias");
           return H323GatekeeperRequest::Reject;
         }
       }
@@ -1009,14 +1010,14 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
     // Have no address from anywhere
     if (m_dstHost.IsEmpty()) {
       info.SetRejectReason(H225_AdmissionRejectReason::e_incompleteAddress);
-      PTRACE(2, "RAS\tARQ rejected, must have destination address or alias");
+      PTRACE(2, "ARQ rejected, must have destination address or alias");
       return H323GatekeeperRequest::Reject;
     }
 
     // Now see if security policy allows connection to that address
     if (!m_gatekeeper.CheckSignalAddressPolicy(*m_endpoint, info.arq, m_dstHost)) {
       info.SetRejectReason(H225_AdmissionRejectReason::e_securityDenial);
-      PTRACE(2, "RAS\tARQ rejected, not allowed to make call");
+      PTRACE(2, "ARQ rejected, not allowed to make call");
       return H323GatekeeperRequest::Reject;
     }
   }
@@ -1029,7 +1030,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
   unsigned bandwidthAllocated = m_gatekeeper.AllocateBandwidth(requestedBandwidth);
   if (bandwidthAllocated == 0) {
     info.SetRejectReason(H225_AdmissionRejectReason::e_requestDenied);
-    PTRACE(2, "RAS\tARQ rejected, not enough bandwidth");
+    PTRACE(2, "ARQ rejected, not enough bandwidth");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1061,19 +1062,19 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 PBoolean H323GatekeeperCall::Disengage(int reason)
 {
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tDRQ not sent, lock failed on call " << *this);
+    PTRACE(1, "DRQ not sent, lock failed on call " << *this);
     return false;
   }
 
   if (m_drqReceived) {
     UnlockReadWrite();
-    PTRACE(2, "RAS\tAlready disengaged call " << *this);
+    PTRACE(2, "Already disengaged call " << *this);
     return false;
   }
 
   m_drqReceived = true;
 
-  PTRACE(3, "RAS\tDisengage of call " << *this);
+  PTRACE(3, "Disengage of call " << *this);
 
   UnlockReadWrite();
 
@@ -1101,14 +1102,14 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnDisengage(H323GatekeeperDR
   PTRACE_BLOCK("H323GatekeeperCall::OnDisengage");
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tDRQ rejected, lock failed on call " << *this);
+    PTRACE(1, "DRQ rejected, lock failed on call " << *this);
     return H323GatekeeperRequest::Reject;
   }
 
   if (m_drqReceived) {
     UnlockReadWrite();
     info.SetRejectReason(H225_DisengageRejectReason::e_requestToDropOther);
-    PTRACE(2, "RAS\tDRQ rejected, already disengaged call " << *this);
+    PTRACE(2, "DRQ rejected, already disengaged call " << *this);
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1140,7 +1141,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnBandwidth(H323GatekeeperBR
 
   if (m_endpoint != info.m_endpoint) {
     info.SetRejectReason(H225_BandRejectReason::e_invalidPermission);
-    PTRACE(2, "RAS\tBRQ rejected, call is not owned by endpoint");
+    PTRACE(2, "BRQ rejected, call is not owned by endpoint");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1148,7 +1149,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnBandwidth(H323GatekeeperBR
   if (m_bandwidthUsed < info.brq.m_bandWidth) {
     info.SetRejectReason(H225_BandRejectReason::e_insufficientResources);
     info.brj.m_allowedBandWidth = m_bandwidthUsed;
-    PTRACE(2, "RAS\tBRQ rejected, no bandwidth");
+    PTRACE(2, "BRQ rejected, no bandwidth");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1166,10 +1167,10 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnInfoResponse(H323Gatekeepe
 {
   PTRACE_BLOCK("H323GatekeeperCall::OnInfoResponse");
 
-  PTRACE(3, "RAS\tIRR received for call " << *this);
+  PTRACE(3, "IRR received for call " << *this);
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tIRR rejected, lock failed on call " << *this);
+    PTRACE(1, "IRR rejected, lock failed on call " << *this);
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1230,7 +1231,7 @@ static bool CheckTimeSince(PTime & lastTime, unsigned threshold)
 PBoolean H323GatekeeperCall::OnHeartbeat()
 {
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tOnHeartbeat lock failed on call " << *this);
+    PTRACE(1, "OnHeartbeat lock failed on call " << *this);
     return true;
   }
 
@@ -1249,12 +1250,12 @@ PBoolean H323GatekeeperCall::OnHeartbeat()
   UnlockReadOnly();
 
   // Do IRQ and wait for IRR on call
-  PTRACE(3, "RAS\tTimeout on heartbeat, doing IRQ for call "<< *this);
+  PTRACE(3, "Timeout on heartbeat, doing IRQ for call "<< *this);
   if (!m_rasChannel->InfoRequest(*m_endpoint, this))
     return false;
 
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tOnHeartbeat lock failed on call " << *this);
+    PTRACE(1, "OnHeartbeat lock failed on call " << *this);
     return true;
   }
 
@@ -1373,7 +1374,7 @@ static PString MakeAddress(const PString & number,
 PString H323GatekeeperCall::GetSourceAddress() const
 {
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tGetSourceAddress lock failed on call " << *this);
+    PTRACE(1, "GetSourceAddress lock failed on call " << *this);
     return PString::Empty();
   }
   PString addr = MakeAddress(m_srcNumber, m_srcAliases, m_srcHost);
@@ -1385,7 +1386,7 @@ PString H323GatekeeperCall::GetSourceAddress() const
 PString H323GatekeeperCall::GetDestinationAddress() const
 {
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tGetDestinationAddress lock failed on call " << *this);
+    PTRACE(1, "GetDestinationAddress lock failed on call " << *this);
     return PString::Empty();
   }
   PString addr = MakeAddress(m_dstNumber, m_dstAliases, m_dstHost);
@@ -1458,7 +1459,7 @@ H323RegisteredEndPoint::H323RegisteredEndPoint(H323GatekeeperServer & gk, const 
 {
   m_activeCalls.DisallowDeleteObjects();
 
-  PTRACE(4, "RAS\tCreated registered endpoint: " << id);
+  PTRACE(4, "Created registered endpoint: " << id);
 }
 
 
@@ -1484,12 +1485,12 @@ void H323RegisteredEndPoint::PrintOn(ostream & strm) const
 void H323RegisteredEndPoint::AddCall(H323GatekeeperCall * call)
 {
   if (call == NULL) {
-    PTRACE(1, "RAS\tCould not add NULL call to endpoint " << *this);
+    PTRACE(1, "Could not add NULL call to endpoint " << *this);
     return; 
   }
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tCould not add call " << *call << ", lock failed on endpoint " << *this);
+    PTRACE(1, "Could not add call " << *call << ", lock failed on endpoint " << *this);
     return; 
   }
 
@@ -1503,12 +1504,12 @@ void H323RegisteredEndPoint::AddCall(H323GatekeeperCall * call)
 PBoolean H323RegisteredEndPoint::RemoveCall(H323GatekeeperCall * call)
 {
   if (call == NULL) {
-    PTRACE(1, "RAS\tCould not remove NULL call to endpoint " << *this);
+    PTRACE(1, "Could not remove NULL call to endpoint " << *this);
     return false;
   }
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tCould not remove call " << *call << ", lock failed on endpoint " << *this);
+    PTRACE(1, "Could not remove call " << *call << ", lock failed on endpoint " << *this);
     return false; 
   }
 
@@ -1522,7 +1523,7 @@ PBoolean H323RegisteredEndPoint::RemoveCall(H323GatekeeperCall * call)
 void H323RegisteredEndPoint::RemoveAlias(const PString & alias)
 { 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tCould not remove alias \"" << alias << "\", lock failed on endpoint " << *this);
+    PTRACE(1, "Could not remove alias \"" << alias << "\", lock failed on endpoint " << *this);
     return;
   }
 
@@ -1584,7 +1585,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnRegistration(H323Gatek
   PTRACE_BLOCK("H323RegisteredEndPoint::OnRegistration");
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tRRQ rejected, lock failed on endpoint " << *this);
+    PTRACE(1, "RRQ rejected, lock failed on endpoint " << *this);
     return H323GatekeeperRequest::Reject; 
   }
 
@@ -1616,10 +1617,10 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnRegistration(H323Gatek
         (info.rrq.HasOptionalField(H225_RegistrationRequest::e_terminalAlias) &&
          !IsAliasAddressSuperset(info.rrq.m_terminalAlias, m_aliases))) {
       info.SetRejectReason(H225_RegistrationRejectReason::e_discoveryRequired);
-      PTRACE(2, "RAS\tRRQ rejected, not superset of existing registration.");
+      PTRACE(2, "RRQ rejected, not superset of existing registration.");
       return H323GatekeeperRequest::Reject;
     }
-    PTRACE(3, "RAS\tFull RRQ received for already registered endpoint");
+    PTRACE(3, "Full RRQ received for already registered endpoint");
   }
 
   H323GatekeeperRequest::Response response = OnFullRegistration(info);
@@ -1681,7 +1682,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnRegistration(H323Gatek
 H323GatekeeperRequest::Response H323RegisteredEndPoint::OnFullRegistration(H323GatekeeperRRQ & info)
 {
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tRRQ rejected, lock failed on endpoint " << *this);
+    PTRACE(1, "RRQ rejected, lock failed on endpoint " << *this);
     return H323GatekeeperRequest::Reject;
   }
 
@@ -1790,7 +1791,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnSecureRegistration(H32
   for (PINDEX i = 0; i < m_aliases.GetSize(); i++) {
     PString password;
     if (m_gatekeeper.GetUsersPassword(m_aliases[i], password, *this)) {
-      PTRACE(3, "RAS\tFound user " << m_aliases[i] << " for H.235 security.");
+      PTRACE(3, "Found user " << m_aliases[i] << " for H.235 security.");
       if (!password.IsEmpty())
         SetPassword(password, m_aliases[i]);
       return H323GatekeeperRequest::Confirm;
@@ -1798,7 +1799,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnSecureRegistration(H32
   }
 
   if (m_gatekeeper.IsRequiredH235()) {
-    PTRACE(2, "RAS\tRejecting RRQ, no aliases have a password.");
+    PTRACE(2, "Rejecting RRQ, no aliases have a password.");
     info.SetRejectReason(H225_RegistrationRejectReason::e_securityDenial);
     return H323GatekeeperRequest::Reject;
   }
@@ -1813,7 +1814,7 @@ PBoolean H323RegisteredEndPoint::SetPassword(const PString & password,
   if (m_authenticators.IsEmpty() || password.IsEmpty())
     return false;
 
-  PTRACE(3, "RAS\tSetting password and enabling H.235 security for " << *this);
+  PTRACE(3, "Setting password and enabling H.235 security for " << *this);
   for (H235Authenticators::iterator iterAuth = m_authenticators.begin(); iterAuth != m_authenticators.end(); ++iterAuth) {
     iterAuth->SetPassword(password);
     if (!username.IsEmpty() && !iterAuth->UseGkAndEpIdentifiers())
@@ -1864,7 +1865,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
   PTRACE_BLOCK("H323RegisteredEndPoint::OnInfoResponse");
 
   if (!LockReadWrite()) {
-    PTRACE(1, "RAS\tIRR rejected, lock failed on endpoint " << *this);
+    PTRACE(1, "IRR rejected, lock failed on endpoint " << *this);
     return H323GatekeeperRequest::Reject; 
   }
 
@@ -1873,7 +1874,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
 
   if (info.irr.HasOptionalField(H225_InfoRequestResponse::e_irrStatus) &&
       info.irr.m_irrStatus.GetTag() == H225_InfoRequestResponseStatus::e_invalidCall) {
-    PTRACE(2, "RAS\tIRR for call-id endpoint does not know about");
+    PTRACE(2, "IRR for call-id endpoint does not know about");
     return H323GatekeeperRequest::Confirm;
   }
     
@@ -1884,7 +1885,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
     if (m_protocolVersion < 5 && GetApplicationInfo().Find("innovaphone") != P_MAX_INDEX) {
       H225_InfoRequestResponse_perCallInfo_subtype fakeCallInfo;
       if (!LockReadOnly()) {
-        PTRACE(1, "RAS\tIRR rejected, lock failed on endpoint " << *this);
+        PTRACE(1, "IRR rejected, lock failed on endpoint " << *this);
         return H323GatekeeperRequest::Reject; 
       }
       for (PINDEX i = 0; i < m_activeCalls.GetSize(); i++)
@@ -1892,12 +1893,12 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
       UnlockReadOnly();
     }
 
-    PTRACE(2, "RAS\tIRR for call-id endpoint does not know about");
+    PTRACE(2, "IRR for call-id endpoint does not know about");
     return H323GatekeeperRequest::Confirm;
   }
 
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tIRR rejected, lock failed on endpoint " << *this);
+    PTRACE(1, "IRR rejected, lock failed on endpoint " << *this);
     return H323GatekeeperRequest::Reject; 
   }
 
@@ -1929,7 +1930,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
       }
     }
     else {
-      PTRACE(2, "RAS\tEndpoint has call-id gatekeeper does not know about: " << search);
+      PTRACE(2, "Endpoint has call-id gatekeeper does not know about: " << search);
     }
   }
 
@@ -1942,7 +1943,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
 PBoolean H323RegisteredEndPoint::OnTimeToLive()
 {
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tOnTimeToLive lock failed on endpoint " << *this);
+    PTRACE(1, "OnTimeToLive lock failed on endpoint " << *this);
     return false;
   }
 
@@ -1962,12 +1963,12 @@ PBoolean H323RegisteredEndPoint::OnTimeToLive()
   UnlockReadOnly();
 
   // Do IRQ and wait for IRR on call
-  PTRACE(2, "RAS\tTime to live, doing IRQ for endpoint "<< *this);
+  PTRACE(2, "Time to live, doing IRQ for endpoint "<< *this);
   if (!m_rasChannel->InfoRequest(*this))
     return false;
 
   if (!LockReadOnly()) {
-    PTRACE(1, "RAS\tOnTimeToLive lock failed on endpoint " << *this);
+    PTRACE(1, "OnTimeToLive lock failed on endpoint " << *this);
     return false;
   }
 
@@ -2102,7 +2103,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnDiscovery(H323Gatekeep
 
   if (info.grq.m_protocolIdentifier.GetSize() != 6 || info.grq.m_protocolIdentifier[5] < 2) {
     info.SetRejectReason(H225_GatekeeperRejectReason::e_invalidRevision);
-    PTRACE(2, "RAS\tGRQ rejected, version 1 not supported");
+    PTRACE(2, "GRQ rejected, version 1 not supported");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -2148,7 +2149,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnRegistration(H323Gatek
 
   if (info.rrq.m_protocolIdentifier.GetSize() != 6 || info.rrq.m_protocolIdentifier[5] < 2) {
     info.SetRejectReason(H225_RegistrationRejectReason::e_invalidRevision);
-    PTRACE(2, "RAS\tRRQ rejected, version 1 not supported");
+    PTRACE(2, "RRQ rejected, version 1 not supported");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -2196,7 +2197,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnUnregistration(H323Gat
 
   if (info.m_endpoint == NULL) {
     info.SetRejectReason(H225_UnregRejectReason::e_notCurrentlyRegistered);
-    PTRACE(2, "RAS\tURQ rejected, not registered");
+    PTRACE(2, "URQ rejected, not registered");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -2254,11 +2255,11 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnAdmission(H323Gatekeep
     if (!m_gatekeeper.GetAdmissionRequestAuthentication(info, adjustedAuthenticators))
       return H323GatekeeperRequest::Reject;
 
-    PTRACE(3, "RAS\tARQ received with separate credentials: "
+    PTRACE(3, "ARQ received with separate credentials: "
            << setfill(',') << adjustedAuthenticators << setfill(' '));
     info.SetAuthenticators(adjustedAuthenticators);
     if (!info.H323Transaction::CheckCryptoTokens()) {
-      PTRACE(2, "RAS\tARQ rejected, alternate security tokens invalid.");
+      PTRACE(2, "ARQ rejected, alternate security tokens invalid.");
 
       return H323GatekeeperRequest::Reject;
     }
@@ -2297,7 +2298,7 @@ PBoolean H323GatekeeperListener::OnReceiveAdmissionRequest(const H323RasPDU & pd
 PBoolean H323GatekeeperListener::UnregistrationRequest(const H323RegisteredEndPoint & ep,
                                                    unsigned reason)
 {
-  PTRACE(3, "RAS\tUnregistration request to endpoint " << ep);
+  PTRACE(3, "Unregistration request to endpoint " << ep);
 
   H323RasPDU pdu(ep.GetAuthenticators());
   H225_UnregistrationRequest & urq = pdu.BuildUnregistrationRequest(GetNextSequenceNumber());
@@ -2323,7 +2324,7 @@ PBoolean H323GatekeeperListener::DisengageRequest(const H323GatekeeperCall & cal
 {
   H323RegisteredEndPoint & ep = call.GetEndPoint();
 
-  PTRACE(3, "RAS\tDisengage request to endpoint " << ep << " call " << call);
+  PTRACE(3, "Disengage request to endpoint " << ep << " call " << call);
 
   H323RasPDU pdu(ep.GetAuthenticators());
   H225_DisengageRequest & drq = pdu.BuildDisengageRequest(GetNextSequenceNumber());
@@ -2487,7 +2488,7 @@ PBoolean H323GatekeeperListener::OnReceiveLocationRequest(const H323RasPDU & pdu
 PBoolean H323GatekeeperListener::InfoRequest(H323RegisteredEndPoint & ep,
                                          H323GatekeeperCall * call)
 {
-  PTRACE(3, "RAS\tInfo request to endpoint " << ep);
+  PTRACE(3, "Info request to endpoint " << ep);
 
   unsigned callReference = 0;
   const OpalGloballyUniqueID * callIdentifier = NULL;
@@ -2514,7 +2515,7 @@ PBoolean H323GatekeeperListener::ServiceControlIndication(H323RegisteredEndPoint
                                                       const H323ServiceControlSession & session,
                                                       H323GatekeeperCall * call)
 {
-  PTRACE(3, "RAS\tService control request to endpoint " << ep);
+  PTRACE(3, "Service control request to endpoint " << ep);
 
   OpalGloballyUniqueID id = NULL;
   if (call != NULL)
@@ -2677,7 +2678,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnDiscovery(H323Gatekeeper
          RRQ for an endpoint will have exactly the same list, so one is enough. */
       m_discoveredEndpoints.SetAt(info.grq.m_endpointAlias[0], ep);
       authenticators = ep->GetAuthenticators();
-      PTRACE(4, "RAS\tRemembering possible EP from GRQ on " << info.grq.m_endpointAlias[0]);
+      PTRACE(4, "Remembering possible EP from GRQ on " << info.grq.m_endpointAlias[0]);
     }
   }
 
@@ -2690,7 +2691,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnDiscovery(H323Gatekeeper
     for (PINDEX cap = 0; cap < info.grq.m_authenticationCapability.GetSize(); cap++) {
       for (PINDEX alg = 0; alg < info.grq.m_algorithmOIDs.GetSize(); alg++) {
         if (iterAuth->IsCapability(info.grq.m_authenticationCapability[cap], info.grq.m_algorithmOIDs[alg])) {
-          PTRACE(3, "RAS\tGRQ accepted on " << H323TransportAddress(info.gcf.m_rasAddress, OpalTransportAddress::UdpPrefix())
+          PTRACE(3, "GRQ accepted on " << H323TransportAddress(info.gcf.m_rasAddress, OpalTransportAddress::UdpPrefix())
                  << " using authenticator " << *iterAuth);
           iterAuth->SetLocalId(m_gatekeeperIdentifier);
 
@@ -2715,7 +2716,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnDiscovery(H323Gatekeeper
     return H323GatekeeperRequest::Reject;
   }
   else {
-    PTRACE(3, "RAS\tGRQ accepted on " << H323TransportAddress(info.gcf.m_rasAddress, OpalTransportAddress::UdpPrefix()));
+    PTRACE(3, "GRQ accepted on " << H323TransportAddress(info.gcf.m_rasAddress, OpalTransportAddress::UdpPrefix()));
     return H323GatekeeperRequest::Confirm;
   }
 }
@@ -2745,7 +2746,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
       return info.m_endpoint->OnRegistration(info);
 
     info.SetRejectReason(H225_RegistrationRejectReason::e_fullRegistrationRequired);
-    PTRACE(2, "RAS\tRRQ keep alive rejected, not registered");
+    PTRACE(2, "RRQ keep alive rejected, not registered");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -2762,17 +2763,17 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
       H323SetAliasAddresses(ep2->GetAliases(), info.rrq.m_terminalAlias);
       info.rrq.IncludeOptionalField(H225_RegistrationRequest::e_terminalAlias);
 
-      PTRACE(2, "RAS\tRRQ missing aliases, keeping saved ones: " << ep2->GetAliases());
+      PTRACE(2, "RRQ missing aliases, keeping saved ones: " << ep2->GetAliases());
     }
 
     if (ep2 != info.m_endpoint) {
       if (m_overwriteOnSameSignalAddress) {
-        PTRACE(2, "RAS\tOverwriting existing endpoint " << *ep2);
+        PTRACE(2, "Overwriting existing endpoint " << *ep2);
         RemoveEndPoint(ep2);
       }
       else {
         info.SetRejectReason(H225_RegistrationRejectReason::e_invalidCallSignalAddress);
-        PTRACE(2, "RAS\tRRQ rejected, duplicate callSignalAddress");
+        PTRACE(2, "RRQ rejected, duplicate callSignalAddress");
         return H323GatekeeperRequest::Reject;
       }
     }
@@ -2783,7 +2784,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
     if (alias.IsEmpty()) {
       // reject if new registration comes with no aliases.
       info.SetRejectReason(H225_RegistrationRejectReason::e_invalidTerminalAliases);
-      PTRACE(2, "RAS\tRRQ rejected, no aliases");
+      PTRACE(2, "RRQ rejected, no aliases");
       return H323GatekeeperRequest::Reject;
     }
 
@@ -2807,7 +2808,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
       info.SetRejectReason(H225_RegistrationRejectReason::e_duplicateAlias);
       H225_ArrayOf_AliasAddress & reasonAliases = info.rrj.m_rejectReason;
       reasonAliases = duplicateAliases;
-      PTRACE(2, "RAS\tRRQ rejected, duplicate alias");
+      PTRACE(2, "RRQ rejected, duplicate alias");
       return H323GatekeeperRequest::Reject;
     }
   }
@@ -2834,7 +2835,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
                     H225_ArrayOf_AliasAddress & aliases = info.rrj.m_rejectReason;
                     aliases.SetSize(1);
                     aliases[0] = prefixes[j].m_prefix;
-                    PTRACE(2, "RAS\tRRQ rejected, duplicate prefix");
+                    PTRACE(2, "RRQ rejected, duplicate prefix");
                     return H323GatekeeperRequest::Reject;
                   }
                 }
@@ -2865,7 +2866,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
     for (i = 0; i < info.rrq.m_terminalAlias.GetSize(); i++) {
       info.m_endpoint = m_discoveredEndpoints.Find(info.rrq.m_terminalAlias[i]);
       if (info.m_endpoint != NULL) {
-        PTRACE(1, "RAS\tFound endpoint from previous GRQ: " << *info.m_endpoint);
+        PTRACE(1, "Found endpoint from previous GRQ: " << *info.m_endpoint);
         m_discoveredEndpoints.DisallowDeleteObjects();
         m_discoveredEndpoints.RemoveAt(info.rrq.m_terminalAlias[i]);
         m_discoveredEndpoints.AllowDeleteObjects();
@@ -2879,7 +2880,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
     info.m_endpoint = CreateRegisteredEndPoint(static_cast<H323GatekeeperRequest&>(info));
 
   if (info.m_endpoint == NULL) {
-    PTRACE(1, "RAS\tRRQ rejected, CreateRegisteredEndPoint() returned NULL");
+    PTRACE(1, "RRQ rejected, CreateRegisteredEndPoint() returned NULL");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -2893,7 +2894,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnRegistration(H323Gatekee
   // Have successfully registered, save it
   AddEndPoint(info.m_endpoint);
 
-  PTRACE(3, "RAS\tRRQ accepted: \"" << *info.m_endpoint << '"');
+  PTRACE(3, "RRQ accepted: \"" << *info.m_endpoint << '"');
   return H323GatekeeperRequest::Confirm;
 }
 
@@ -2919,7 +2920,7 @@ PString H323GatekeeperServer::AllocateAlias(H225_RegistrationRequest &)
       return alias;
   } while (m_aliasToAllocate != startAlias);
 
-  PTRACE(3, "RAS\tAll aliases from " << m_minAliasToAllocate << " to " << m_maxAliasToAllocate << " are allocated.");
+  PTRACE(3, "All aliases from " << m_minAliasToAllocate << " to " << m_maxAliasToAllocate << " are allocated.");
   return PString::Empty();
 }
 
@@ -2938,7 +2939,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnUnregistration(H323Gatek
     for (i = 0; i < info.urq.m_endpointAlias.GetSize(); i++) {
       if (FindEndPointByAliasAddress(info.urq.m_endpointAlias[i]) != info.m_endpoint) {
         info.SetRejectReason(H225_UnregRejectReason::e_permissionDenied);
-        PTRACE(2, "RAS\tURQ rejected, alias " << info.urq.m_endpointAlias[i]
+        PTRACE(2, "URQ rejected, alias " << info.urq.m_endpointAlias[i]
                << " not owned by registration");
         return H323GatekeeperRequest::Reject;
       }
@@ -2957,7 +2958,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnUnregistration(H323Gatek
                                    info.m_endpoint->GetSignalAddresses());
 #endif
     } else {
-      PTRACE(3, "RAS\tRemoving endpoint " << *info.m_endpoint << " with no aliases");
+      PTRACE(3, "Removing endpoint " << *info.m_endpoint << " with no aliases");
       RemoveEndPoint(info.m_endpoint);  // will also remove descriptor if required
     }
   }
@@ -2978,7 +2979,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnInfoResponse(H323Gatekee
 
 void H323GatekeeperServer::AddEndPoint(H323RegisteredEndPoint * ep)
 {
-  PTRACE(3, "RAS\tAdding registered endpoint: " << *ep);
+  PTRACE(3, "Adding registered endpoint: " << *ep);
 
   PINDEX i;
 
@@ -3009,7 +3010,7 @@ void H323GatekeeperServer::AddEndPoint(H323RegisteredEndPoint * ep)
 
 PBoolean H323GatekeeperServer::RemoveEndPoint(H323RegisteredEndPoint * ep)
 {
-  PTRACE(3, "RAS\tRemoving registered endpoint: " << *ep);
+  PTRACE(3, "Removing registered endpoint: " << *ep);
 
   // clear all calls in the endpoint
   while (ep->GetCallCount() > 0)
@@ -3059,7 +3060,7 @@ PBoolean H323GatekeeperServer::RemoveEndPoint(H323RegisteredEndPoint * ep)
 void H323GatekeeperServer::RemoveAlias(H323RegisteredEndPoint & ep,
                                                 const PString & alias)
 {
-  PTRACE(3, "RAS\tRemoving registered endpoint alias: " << alias);
+  PTRACE(3, "Removing registered endpoint alias: " << alias);
 
   m_mutex.Wait();
 
@@ -3166,13 +3167,13 @@ PSafePtr<H323RegisteredEndPoint> H323GatekeeperServer::FindEndPointByPartialAlia
   if (pos != P_MAX_INDEX) {
     StringMap & possible = (StringMap &)m_byAlias[pos];
     if (possible.NumCompare(alias) == EqualTo) {
-      PTRACE(4, "RAS\tPartial endpoint search for "
+      PTRACE(4, "Partial endpoint search for "
                 "\"" << alias << "\" found \"" << possible << '"');
       return FindEndPointByIdentifier(possible.identifier, mode);
     }
   }
 
-  PTRACE(4, "RAS\tPartial endpoint search for \"" << alias << "\" failed");
+  PTRACE(4, "Partial endpoint search for \"" << alias << "\" failed");
   return (H323RegisteredEndPoint *)NULL;
 }
 
@@ -3222,7 +3223,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnAdmission(H323Gatekeeper
 
   OpalGloballyUniqueID id = info.arq.m_callIdentifier.m_guid;
   if (id == NULL) {
-    PTRACE(2, "RAS\tNo call identifier provided in ARQ!");
+    PTRACE(2, "No call identifier provided in ARQ!");
     info.SetRejectReason(H225_AdmissionRejectReason::e_undefinedReason);
     return H323GatekeeperRequest::Reject;
   }
@@ -3236,7 +3237,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnAdmission(H323Gatekeeper
     // If on restarted in thread, then don't create new call, should already
     // have had one created on the last pass through.
     if (!info.IsFastResponseRequired() && info.CanSendRIP()) {
-      PTRACE(2, "RAS\tCall object disappeared after starting slow PDU handler thread!");
+      PTRACE(2, "Call object disappeared after starting slow PDU handler thread!");
       info.SetRejectReason(H225_AdmissionRejectReason::e_undefinedReason);
       return H323GatekeeperRequest::Reject;
     }
@@ -3244,7 +3245,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnAdmission(H323Gatekeeper
     H323GatekeeperCall * newCall = CreateCall(id,
                             info.arq.m_answerCall ? H323GatekeeperCall::AnsweringCall
                                                   : H323GatekeeperCall::OriginatingCall);
-    PTRACE(3, "RAS\tCall created: " << *newCall);
+    PTRACE(3, "Call created: " << *newCall);
 
     response = newCall->OnAdmission(info);
 
@@ -3260,7 +3261,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnAdmission(H323Gatekeeper
         m_peakCalls = m_activeCalls.GetSize();
       m_totalCalls++;
 
-      PTRACE(3, "RAS\tAdded new call (total=" << m_activeCalls.GetSize() << ") " << *newCall);
+      PTRACE(3, "Added new call (total=" << m_activeCalls.GetSize() << ") " << *newCall);
       m_mutex.Signal();
 
       AddCall(oldCall);
@@ -3294,7 +3295,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnDisengage(H323Gatekeeper
   PSafePtr<H323GatekeeperCall> call = FindCall(callIdentifier, info.drq.m_answeredCall);
   if (call == NULL) {
     info.SetRejectReason(H225_DisengageRejectReason::e_requestToDropOther);
-    PTRACE(2, "RAS\tDRQ rejected, no call with ID " << callIdentifier);
+    PTRACE(2, "DRQ rejected, no call with ID " << callIdentifier);
     return H323GatekeeperRequest::Reject;
   }
 
@@ -3314,7 +3315,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnBandwidth(H323Gatekeeper
   PSafePtr<H323GatekeeperCall> call = FindCall(info.brq.m_callIdentifier.m_guid, info.brq.m_answeredCall);
   if (call == NULL) {
     info.SetRejectReason(H225_BandRejectReason::e_invalidConferenceID);
-    PTRACE(2, "RAS\tBRQ rejected, no call with ID");
+    PTRACE(2, "BRQ rejected, no call with ID");
     return H323GatekeeperRequest::Reject;
   }
 
@@ -3374,7 +3375,7 @@ unsigned H323GatekeeperServer::AllocateBandwidth(unsigned newBandwidth,
   // Finally have adjusted new bandwidth, allocate it!
   m_usedBandwidth += (newBandwidth - oldBandwidth);
 
-  PTRACE(3, "RAS\tBandwidth allocation: +" << newBandwidth << " -" << oldBandwidth
+  PTRACE(3, "Bandwidth allocation: +" << newBandwidth << " -" << oldBandwidth
          << " used=" << m_usedBandwidth << " left=" << (m_totalBandwidth - m_usedBandwidth));
   return newBandwidth;
 }
@@ -3388,7 +3389,7 @@ void H323GatekeeperServer::RemoveCall(H323GatekeeperCall * call)
   call->SetBandwidthUsed(0);
   PAssert(call->GetEndPoint().RemoveCall(call), PLogicError);
 
-  PTRACE(3, "RAS\tRemoved call (total=" << (m_activeCalls.GetSize()-1) << ") id=" << *call);
+  PTRACE(3, "Removed call (total=" << (m_activeCalls.GetSize()-1) << ") id=" << *call);
   PAssert(m_activeCalls.Remove(call), PLogicError);
 }
 
@@ -3447,7 +3448,7 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnLocation(H323GatekeeperL
     if (ep != NULL) {
       ep->GetSignalAddress(0).SetPDU(info.lcf.m_callSignalAddress);
       ep->GetRASAddress(0).SetPDU(info.lcf.m_rasAddress);
-      PTRACE(3, "RAS\tLocation of " << H323GetAliasAddressString(info.lrq.m_destinationInfo[i])
+      PTRACE(3, "Location of " << H323GetAliasAddressString(info.lrq.m_destinationInfo[i])
              << " is endpoint " << *ep);
       return H323GatekeeperRequest::Confirm;
     }
@@ -3466,14 +3467,14 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnLocation(H323GatekeeperL
       if (info.lcf.m_destinationInfo.GetSize() > 0)
         info.lcf.IncludeOptionalField(H225_LocationConfirm::e_destinationInfo);
 
-      PTRACE(3, "RAS\tLocation of " << H323GetAliasAddressString(info.lrq.m_destinationInfo[i])
+      PTRACE(3, "Location of " << H323GetAliasAddressString(info.lrq.m_destinationInfo[i])
              << " is " << address);
       return H323GatekeeperRequest::Confirm;
     }
   }
 
   info.SetRejectReason(H225_LocationRejectReason::e_requestDenied);
-  PTRACE(2, "RAS\tLRQ rejected, location not found");
+  PTRACE(2, "LRQ rejected, location not found");
   return H323GatekeeperRequest::Reject;
 }
 
@@ -3491,7 +3492,7 @@ PBoolean H323GatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & a
       // if AccessRequest returns OK, but no aliases, then all of the aliases
       // must have been wildcards. In this case, add the original aliase back into the list
       if (aliases.GetSize() == 0) {
-        PTRACE(3, "RAS\tAdding original alias to the top of the alias list");
+        PTRACE(3, "Adding original alias to the top of the alias list");
         aliases.SetSize(1);
         aliases[0] = alias;
       }
@@ -3520,14 +3521,14 @@ PBoolean H323GatekeeperServer::TranslateAliasAddressToSignalAddress(const H225_A
   if (m_isGatekeeperRouted) {
     const H323ListenerList & listeners = m_ownerEndPoint.GetListeners();
     address = listeners.front().GetLocalAddress();
-    PTRACE(3, "RAS\tTranslating alias " << aliasString << " to " << address << ", gatekeeper routed");
+    PTRACE(3, "Translating alias " << aliasString << " to " << address << ", gatekeeper routed");
     return true;
   }
 
   PSafePtr<H323RegisteredEndPoint> ep = FindEndPointByAliasAddress(alias, PSafeReadOnly);
   if (ep != NULL) {
     address = ep->GetSignalAddress(0);
-    PTRACE(3, "RAS\tTranslating alias " << aliasString << " to " << address << ", registered endpoint");
+    PTRACE(3, "Translating alias " << aliasString << " to " << address << ", registered endpoint");
     return true;
   }
 
@@ -3542,12 +3543,12 @@ PBoolean H323GatekeeperServer::TranslateAliasAddressToSignalAddress(const H225_A
   PIPSocket::Address ip;
   WORD port = H323EndPoint::DefaultTcpSignalPort;
   if (!aliasAsTransport.GetIpAndPort(ip, port)) {
-    PTRACE(4, "RAS\tCould not translate " << aliasString << " as host name.");
+    PTRACE(4, "Could not translate " << aliasString << " as host name.");
     return false;
   }
 
   address = H323TransportAddress(ip, port);
-  PTRACE(3, "RAS\tTranslating alias " << aliasString << " to " << address << ", host name");
+  PTRACE(3, "Translating alias " << aliasString << " to " << address << ", host name");
   return true;
 }
 
@@ -3641,26 +3642,26 @@ bool H323GatekeeperServer::OpenPeerElement(const H323TransportAddress & remotePe
 void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
 {
   while (!m_monitorExit.Wait(1000)) {
-    PTRACE(6, "RAS\tAging registered endpoints");
+    PTRACE(6, "Aging registered endpoints");
 
     PTime now;
     static PTimeInterval const DiscoveredEndpointTimeout(0, 10); // RRQ must come in with this time of GRQ
     for (PSafeDictionary<H225_AliasAddress, H323RegisteredEndPoint>::iterator it = m_discoveredEndpoints.begin(); it != m_discoveredEndpoints.end(); ) {
-      if (now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
+      if (it->second->GetLastRegistrationTime().IsValid() || now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
         ++it;
       else {
-        PTRACE(2, "RAS\tRemoving discovery endpoint " << *it->second);
+        PTRACE(2, "Removing discovery endpointi that never registered " << *it->second);
         m_discoveredEndpoints.erase(it++);
       }
     }
 
     for (PSafePtr<H323RegisteredEndPoint> ep = GetFirstEndPoint(PSafeReference); ep != NULL; ++ep) {
       if (!ep->OnTimeToLive()) {
-        PTRACE(2, "RAS\tRemoving expired endpoint " << *ep);
+        PTRACE(2, "Removing expired endpoint " << *ep);
         RemoveEndPoint(ep);
       }
       if (ep->GetAliasCount() == 0) {
-        PTRACE(2, "RAS\tRemoving endpoint " << *ep << " with no aliases");
+        PTRACE(2, "Removing endpoint " << *ep << " with no aliases");
         RemoveEndPoint(ep);
       }
     }
