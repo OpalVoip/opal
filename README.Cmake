@@ -215,18 +215,34 @@ still need a library CMake can find with pkg-config.
 macOS
 -----
 
-Install Xcode or the Xcode command line tools, then CMake. Homebrew is the
-usual source of Opus, Speex, FFmpeg, Theora, libvpx, x264, libsrtp, and
-wxWidgets. Build PTLib, then from the OPAL tree:
+Install Xcode or the Xcode command line tools, then CMake. Build PTLib
+first (see README.Cmake in the PTLib tree for its Homebrew packages).
+Homebrew supplies the OPAL codec and sample dependencies:
 
-  cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> -DOPAL_BUILD_SAMPLES=ON
+  brew install cmake pkgconf opus speex speexdsp ffmpeg theora libvpx \
+    x264 srtp openh264
+
+  srtp              libsrtp2 (SRTP; pkg-config name libsrtp2)
+  opus              Opus audio plugin
+  speex             Speex audio plugin
+  speexdsp          acoustic echo cancellation
+  ffmpeg            H.263 and related video plugins
+  theora            Theora video plugin
+  libvpx            VP8 video plugin
+  x264              H.264 via libx264
+  openh264          OpenH264 video plugin
+  spandsp           T.38 / fax plugin (optional)
+  wxwidgets         OpenPhone (-DOPAL_BUILD_SAMPLES=ON)
+
+CELT is not packaged in Homebrew; that plugin stays off unless libcelt is
+available another way. Use the same -DCMAKE_PREFIX_PATH PTLib was
+configured with so both builds see the same libraries, for example
+/opt/homebrew on Apple silicon or /usr/local on Intel.
+
+  cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> \
+    -DCMAKE_PREFIX_PATH=/opt/homebrew -DOPAL_BUILD_SAMPLES=ON
   cmake --build build
   cmake --install build --prefix "$HOME/opal"
-
-Pass -DCMAKE_PREFIX_PATH if the codec libraries are installed outside the
-default search path, for example /opt/homebrew on Apple silicon. Use the
-same prefix PTLib was configured with so both builds see the same
-libraries.
 
 
 Windows
