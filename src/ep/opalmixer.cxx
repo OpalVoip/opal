@@ -2225,8 +2225,11 @@ void OpalVideoStreamMixer::OnMixedPosition(const PString & id, const MixPosition
   }
 
   auto mediaFormat = it->second->GetMediaFormat();
-  if (pos.w == (unsigned)mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameWidthOption()) &&
-      pos.h == (unsigned)mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameHeightOption()))
+  unsigned requestedWidth = mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameWidthOption());
+  unsigned requestedHeight = mediaFormat.GetOptionInteger(OpalVideoFormat::RequestedRxFrameHeightOption());
+  PTRACE(5, "OnMixedPosition:" << id << " new=" << pos.w << 'x' << pos.h << " prev=" << requestedWidth << 'x' << requestedHeight);
+
+  if (pos.w == requestedWidth && pos.h == requestedHeight)
     return;
 
   mediaFormat.SetOptionInteger(OpalVideoFormat::RequestedRxFrameWidthOption(), pos.w);
