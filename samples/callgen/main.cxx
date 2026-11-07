@@ -159,8 +159,12 @@ bool MyManager::Initialise(PArgList & args, bool, const PString &)
       params.m_tmin_wait == 0 ||
       params.m_tmin_call > params.m_tmax_call ||
       params.m_tmin_wait > params.m_tmax_wait) {
-    cerr << "Invalid times entered!\n";
-    return false;
+    cerr <<
+      "Invalid times entered!\n"
+      "Maximum time between calls: " << params.m_tmin_wait << '-' << params.m_tmax_wait << "\n"
+      "Maximum total call duration: " << params.m_tmin_call << '-' << params.m_tmax_call << "\n"
+      "Maximum wait for establish: " << params.m_tmax_est << endl;
+      return false;
   }
 
   cout << setprecision(0) <<
@@ -663,6 +667,7 @@ MyLocalConnection::MyLocalConnection(OpalCall & call, MyLocalEndPoint & ep, void
   , m_endpoint(ep)
   , m_toneOffset(0)
 {
+  SetLocalPartyName(PSTRSTRM("CallGen " << dynamic_cast<MyCall &>(call).m_index));
 }
 
 
@@ -689,7 +694,7 @@ bool MyLocalConnection::OnReadMediaData(OpalMediaStream & mediaStream, void * da
 {
   if (!m_endpoint.m_audioFilePath.empty()) {
     // WAV or RAW file
-    PAutoPtr<PFile>& audioFile = m_audioFiles[mediaStream.GetSessionID()];
+    auto & audioFile = m_audioFiles[mediaStream.GetSessionID()];
     if (!audioFile || !audioFile->Read(data, size)) {
       audioFile.reset(m_endpoint.OpenAudioFile());
       if (!audioFile || !audioFile->Read(data, size)) {
@@ -723,11 +728,9 @@ bool MyLocalConnection::OnReadMediaData(OpalMediaStream & mediaStream, void * da
 bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame)
 {
   OpalPCAPFile * pcapFile;
-  if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Audio())
-    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFiles[mediaStream.GetSessionID()].get());
 
 #if OPAL_VIDEO
-  else {
+  if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
     PVideoFile * videoFile = dynamic_cast<PVideoFile *>(m_videoFile.get());
     if (videoFile != NULL) {
       frame.SetPayloadSize(videoFile->GetFrameBytes() + sizeof(OpalVideoTranscoder::FrameHeader));
@@ -739,11 +742,28 @@ bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RT
     }
 
     pcapFile = dynamic_cast<OpalPCAPFile *>(m_videoFile.get());
-  }
-#endif
+    if (pcapFile == NULL) {
+      if (!m_videoDevice) {
+        m_videoDevice.reset(PVideoInputDevice::CreateOpenedDevice(P_FAKE_VIDEO_TEXT "=" + GetLocalPartyName()));
+        m_videoDevice->SetFrameSize(640, 360);
+        m_videoDevice->SetFrameRate(10);
+      }
 
-  if (pcapFile == NULL)
-    return OpalLocalConnection::OnReadMediaFrame(mediaStream, frame);
+      frame.SetPayloadSize(m_videoDevice->GetMaxFrameBytes() + sizeof(OpalVideoTranscoder::FrameHeader));
+      OpalVideoTranscoder::FrameHeader * hdr = (OpalVideoTranscoder::FrameHeader *)frame.GetPayloadPtr();
+      hdr->x = hdr->y = 0;
+      m_videoDevice->GetFrameSize(hdr->width, hdr->height);
+      m_videoDevice->GetFrameData(OpalVideoFrameDataPtr(hdr));
+      return true;
+    }
+  }
+  else
+#endif
+  {
+    pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFiles[mediaStream.GetSessionID()].get());
+    if (pcapFile == NULL)
+      return false;
+  }
 
   if (pcapFile->GetRTP(frame) < 0) {
     PTRACE(3, "Could not get RTP from PCAP file.");
