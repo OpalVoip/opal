@@ -2065,6 +2065,8 @@ OpalVideoFormatInternal::OpalVideoFormatInternal(const char * fullName,
   AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::MinRxFrameHeightOption(),         false, OpalMediaOption::MaxMerge,    PVideoFrameInfo::SQCIFHeight,16,  32767));
   AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::MaxRxFrameWidthOption(),          false, OpalMediaOption::MinMerge,    maxFrameWidth,               16,  32767));
   AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::MaxRxFrameHeightOption(),         false, OpalMediaOption::MinMerge,    maxFrameHeight,              16,  32767));
+  AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::RequestedRxFrameWidthOption(),    false, OpalMediaOption::AlwaysMerge, 0,                           16,  32767));
+  AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::RequestedRxFrameHeightOption(),   false, OpalMediaOption::AlwaysMerge, 0,                           16,  32767));
   if (rtpPayloadType < RTP_DataFrame::LastKnownPayloadType || encodingName != NULL) {
     AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::TemporalSpatialTradeOffOption(),false, OpalMediaOption::AlwaysMerge, 50,                          1,     100));
     AddOption(new OpalMediaOptionUnsigned(OpalVideoFormat::TxKeyFramePeriodOption(),       false, OpalMediaOption::AlwaysMerge, 125,                         0, INT_MAX));
