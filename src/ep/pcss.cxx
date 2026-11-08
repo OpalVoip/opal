@@ -267,11 +267,7 @@ PSoundChannel * OpalPCSSEndPoint::CreateSoundChannel(const OpalPCSSConnection & 
   params.m_device.Replace("%token%", connection.GetCall().GetToken(), true);
   params.m_device.Replace("%session%", sessionID, true);
 
-  PString opening(PString::Printf, "CreateSoundChannel: opening %s %s",
-                  isSource ? "record" : "play", params.m_device.GetPointer());
-  PProcess::CrashMark(opening);
   PSoundChannel * soundChannel = PSoundChannel::CreateOpenedChannel(params);
-  PProcess::CrashMark(soundChannel != NULL ? "CreateSoundChannel: opened" : "CreateSoundChannel: failed");
   if (soundChannel == NULL)
     return NULL;
 

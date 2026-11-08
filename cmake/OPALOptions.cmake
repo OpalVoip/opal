@@ -247,7 +247,9 @@ if(OPAL_HAVE_PTLIB_FFMPEG)
     endif()
     set(OPAL_FFMPEG_LINK OPAL_ffmpeg)
   elseif(PKG_CONFIG_FOUND)
-    pkg_check_modules(OPAL_PC_SWR IMPORTED_TARGET libswresample)
+    # resample.cpp calls swresample and may use libavutil channel-layout helpers.
+    # On macOS, avutil is not pulled in transitively for undefined symbols.
+    pkg_check_modules(OPAL_PC_SWR IMPORTED_TARGET libswresample libavutil)
     if(OPAL_PC_SWR_FOUND)
       set(OPAL_FFMPEG_LINK PkgConfig::OPAL_PC_SWR)
     endif()

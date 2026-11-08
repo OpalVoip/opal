@@ -734,9 +734,11 @@ class OptionsDialog : public wxDialog
     bool      m_EchoCancellation;
 #endif
     PwxString m_LocalRingbackTone;
+#if OPAL_LID
     PwxString m_LineInterfaceDevice;
     int       m_AEC;
     PwxString m_Country;
+#endif
     int       m_MinJitter;
     int       m_MaxJitter;
     int       m_SilenceSuppression;
@@ -751,9 +753,11 @@ class OptionsDialog : public wxDialog
     wxComboBox * m_soundRecorderCombo;
     wxComboBox * m_musicOnHoldCombo;
     wxComboBox * m_audioOnRingCombo;
+#if OPAL_LID
     wxComboBox * m_selectedLID;
     wxChoice   * m_selectedAEC;
     wxComboBox * m_selectedCountry;
+#endif
 
     void ChangedSoundPlayer(wxCommandEvent & /*event*/);
     void ChangedSoundRecorder(wxCommandEvent & /*event*/);
