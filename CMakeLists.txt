@@ -2,12 +2,14 @@
 # PTLib CMake build directory:
 #   cmake -B build -DOPAL_PTLIB_DIR=<ptlib-prefix-or-build>
 #
-# Optional codec libraries can come from vcpkg. Point CMake at a vcpkg checkout:
+# Optional codec libraries can come from vcpkg. On Windows the toolchain is
+# selected automatically when a checkout can be found. Elsewhere, point
+# CMake at one:
 #   cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
 # Use the same toolchain (and leave VCPKG_MANIFEST_MODE on) as PTLib. The
 # manifest always installs openssl/expat/sdl2 so find_dependency from
 # PTLibConfig.cmake succeeds. Default features are libsrtp, speexdsp, and
-# ffmpeg; other features are listed in vcpkg.json.
+# ffmpeg. On Windows, opus, speex, vpx, theora, x264, and openh264 are added.
 #
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug
@@ -19,6 +21,8 @@ if(POLICY CMP0174)
   cmake_policy(SET CMP0174 NEW)
 endif()
 set(CMAKE_POLICY_DEFAULT_CMP0174 NEW)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/OPALVcpkg.cmake")
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.h" _opal_version_h)
 string(REGEX MATCH "#define MAJOR_VERSION ([0-9]+)" _ "${_opal_version_h}")
@@ -40,6 +44,7 @@ elseif(_opal_build_type STREQUAL "BetaCode")
 endif()
 
 # vcpkg installs manifest dependencies when its toolchain loads inside project().
+opal_vcpkg_windows_features()
 # OpenPhone needs the wxwidgets feature; enable it before that install runs.
 if(OPAL_BUILD_SAMPLES)
   set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
@@ -54,8 +59,9 @@ if(OPAL_BUILD_SAMPLES)
   unset(_opal_vcpkg_features)
 endif()
 
-# Speex and Theora are optional features, not defaults. Echo cancellation
-# uses the separate speexdsp feature, which stays installed.
+# Speex and Theora are not default features. On Windows they are added with
+# the other codec ports, then removed again when obsolete codecs are off.
+# Echo cancellation uses the separate speexdsp feature, which stays installed.
 if((DEFINED OPAL_OBSOLETE_CODECS AND NOT OPAL_OBSOLETE_CODECS) OR OPAL_OPALMIN)
   set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
   if(NOT _opal_vcpkg_features AND DEFINED ENV{VCPKG_MANIFEST_FEATURES})

@@ -262,18 +262,21 @@ vcpkg
 -----
 
 vcpkg.json lists the optional libraries. PTLib has its own manifest in
-the PTLib tree; use the same toolchain file for both configures and leave
+the PTLib tree; use the same vcpkg checkout for both configures and leave
 manifest mode on (do not pass -DVCPKG_MANIFEST_MODE=OFF). Each tree gets
 its own build/vcpkg_installed. OPAL's manifest always installs openssl,
 expat, and sdl2 so PTLibConfig.cmake's find_dependency calls succeed.
-The default features are libsrtp, speexdsp, and ffmpeg. Point CMake at
-a vcpkg checkout:
+The default features are libsrtp, speexdsp, and ffmpeg.
+
+On Windows, CMake loads the vcpkg toolchain the same way PTLib does
+(see that tree's README.Cmake) unless one was already given or
+-DOPAL_USE_VCPKG=OFF is set. It also installs the codec ports vcpkg
+can build for Visual Studio: Opus, Speex, libvpx, Theora, x264, and
+OpenH264. An explicit -DVCPKG_MANIFEST_FEATURES list replaces that
+automatic set. The default features are still installed. On other
+systems, pass the toolchain file yourself:
 
   cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> "-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake"
-
-Extra features, comma separated:
-
-  -DVCPKG_MANIFEST_FEATURES=opus,speex,vpx,theora,x264,openh264
 
 -DOPAL_BUILD_SAMPLES=ON also enables the wxwidgets feature, which supplies
 wxWidgets and wxrc for OpenPhone. Reconfigure after changing features so
@@ -331,6 +334,7 @@ otherwise:
   configure_vs.bat C:\ptlib\build
 
 If VCPKG_ROOT is set, the script passes that vcpkg toolchain to CMake.
+Otherwise CMake looks for a checkout itself. See the vcpkg section.
 The same configure for Visual Studio 2022 from a command prompt:
 
   cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DOPAL_PTLIB_DIR=<ptlib>
@@ -341,8 +345,9 @@ The same configure for Visual Studio 2022 from a command prompt:
 Multi-config builds pass --config Release or --config Debug on both the
 build and the install command.
 
-Optional libraries are easiest through vcpkg. Add the toolchain file to
-the first command. See the vcpkg section for the codec features.
+Optional libraries come from vcpkg when that toolchain is found. See the
+vcpkg section. Pass the toolchain file only when CMake should use a
+checkout it would not find on its own:
 
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
