@@ -12,6 +12,18 @@
     {
       "name": "cyrus-sasl",
       "platform": "windows & !uwp"
+    },
+    {
+      "name": "libpcap",
+      "platform": "windows & !uwp"
+    },
+    {
+      "name": "lua",
+      "platform": "windows"
+    },
+    {
+      "name": "gstreamer",
+      "platform": "windows & !uwp"
     }
   ],
   "default-features": [

@@ -266,9 +266,11 @@ the PTLib tree; use the same vcpkg checkout for both configures and leave
 manifest mode on (do not pass -DVCPKG_MANIFEST_MODE=OFF). Each tree gets
 its own build/vcpkg_installed. OPAL's manifest always installs openssl,
 expat, and sdl2 so PTLibConfig.cmake's find_dependency calls succeed.
-On Windows it also installs cyrus-sasl. PTLib links that library when
-SASL is enabled, and the exported config then requires the libsasl2
-pkg-config module. The port installs libsasl.dll and libsasl.lib.
+On Windows it also installs cyrus-sasl, libpcap, lua, and gstreamer.
+PTLib links those when the probes succeed, and the exported config then
+requires their pkg-config modules (libsasl2, libpcap, and the GStreamer
+modules) or the Lua CMake package. cyrus-sasl installs libsasl.dll and
+libsasl.lib.
 The default features are libsrtp, speexdsp, and ffmpeg.
 
 On Windows, CMake loads the vcpkg toolchain the same way PTLib does
