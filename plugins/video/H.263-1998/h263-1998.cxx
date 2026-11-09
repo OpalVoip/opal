@@ -476,7 +476,8 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
         return SetOptionsInt("aiv", value, m_optionsSame);
 #endif
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+      // rtp_payload_size was removed in lavc 59; use the mb_info private option.
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 0, 0)
       m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
 #else
       av_dict_set_int(&m_options, "mb_info", m_fullFrame->GetMaxPayloadSize(), 0);

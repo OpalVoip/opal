@@ -48,8 +48,8 @@
 #include "plugin_config.h"
 #endif
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
-  #error Must have libavcodec version 60.x or later
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 0, 0)
+  #error Must have libavcodec version 59.x or later
 #endif
 
 static CriticalSection g_avcodec_mutex;

@@ -89,6 +89,14 @@ extern "C" {
   #define AV_CODEC_FLAG2_CHUNKS                CODEC_FLAG2_CHUNKS
 #endif
 
+// AV_PROFILE_* replaced FF_PROFILE_* in lavc 60; keep building on Debian's 59.x
+#ifndef AV_PROFILE_H264_CONSTRAINED
+  #define AV_PROFILE_H264_CONSTRAINED FF_PROFILE_H264_CONSTRAINED
+#endif
+#ifndef AV_PROFILE_H264_INTRA
+  #define AV_PROFILE_H264_INTRA FF_PROFILE_H264_INTRA
+#endif
+
 
 /////////////////////////////////////////////////////////////////
 

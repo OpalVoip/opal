@@ -111,7 +111,7 @@ OpalSkinnyEndPoint::SkinnyMsg::SkinnyMsg(uint32_t id, PINDEX sizeofClass, PINDEX
   , m_headerVersion(0)
 {
   m_length = sizeofClass - ((char *)&m_messageId - (char *)this);
-  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memset(&m_messageId, 0, m_length));
+  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memset((void *)&m_messageId, 0, m_length));
   m_messageId = id;
 }
 
@@ -119,7 +119,7 @@ OpalSkinnyEndPoint::SkinnyMsg::SkinnyMsg(uint32_t id, PINDEX sizeofClass, PINDEX
 void OpalSkinnyEndPoint::SkinnyMsg::Construct(const PBYTEArray & pdu)
 {
   PINDEX len = m_length + sizeof(m_headerVersion);
-  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memcpy(&m_headerVersion, pdu, std::min(len, pdu.GetSize())));
+  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memcpy((void *)&m_headerVersion, pdu, std::min(len, pdu.GetSize())));
   PTRACE_IF(2, pdu.GetSize() < len - m_extraSpace, &pdu, PTraceModule(), "Received message size error: "
             "id=0x" << hex << GetID() << dec << ", expected = " << len << ", received = " << pdu.GetSize());
 }
