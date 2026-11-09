@@ -358,6 +358,7 @@ add_custom_target(uninstall
   VERBATIM)
 
 include(cmake/OPALBuildVariants.cmake)
+include(cmake/OPALVisualStudio.cmake)
 
 # Optional binary .deb. Build it with "cmake --build <build> --target package"
 # or "cpack -G DEB" from the build directory. Configure with
