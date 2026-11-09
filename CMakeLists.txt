@@ -95,11 +95,26 @@ if(CMAKE_GENERATOR STREQUAL "Ninja Multi-Config" AND NOT CMAKE_DEFAULT_BUILD_TYP
     "Configuration built by default for the Ninja Multi-Config generator." FORCE)
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
+if(NOT DEFINED OPAL_CXX_STANDARD AND DEFINED CMAKE_CXX_STANDARD)
+  set(_opal_cxx_default "${CMAKE_CXX_STANDARD}")
+else()
+  set(_opal_cxx_default 20)
+endif()
+set(OPAL_CXX_STANDARD "${_opal_cxx_default}" CACHE STRING
+  "C++ standard for OPAL and for code that includes its headers")
+set_property(CACHE OPAL_CXX_STANDARD PROPERTY STRINGS 17 20 23)
+if(NOT OPAL_CXX_STANDARD MATCHES "^(17|20|23)$")
+  message(FATAL_ERROR "OPAL_CXX_STANDARD must be 17, 20, or 23")
+endif()
+if(OPAL_CXX_STANDARD EQUAL 23 AND CMAKE_VERSION VERSION_LESS 3.20)
+  message(FATAL_ERROR "OPAL_CXX_STANDARD=23 requires CMake 3.20 or newer")
+endif()
+unset(_opal_cxx_default)
+set(CMAKE_CXX_STANDARD "${OPAL_CXX_STANDARD}")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Keep __cplusplus accurate so PTLib's atomic.h does not redefine
-# std::atomic<std::shared_ptr> already provided by the MSVC STL.
+# Keep __cplusplus accurate. ptlib/atomic.h follows P_CXX_STANDARD from
+# ptlib_config.h and falls back to __cplusplus when that macro is absent.
 # /FS serialises writes to a shared vc*.pdb under parallel Debug compiles.
 if(MSVC)
   add_compile_options(/Zc:__cplusplus /FS)
@@ -117,8 +132,8 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # MSVC leaves __cplusplus defined as 199711L unless this switch is set. The
-# generated solution needs it so C++20 checks in the PTLib headers see the
-# language version selected above.
+# generated solution needs it so the PTLib headers see the language version
+# selected above when P_CXX_STANDARD is not defined.
 if(MSVC)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
 endif()
@@ -174,6 +189,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/include/revision.h"
 ")
 
 opal_define(OPAL_MAJOR ${OPAL_VERSION_MAJOR})
+opal_define(OPAL_CXX_STANDARD ${OPAL_CXX_STANDARD})
 opal_define(OPAL_MINOR ${OPAL_VERSION_MINOR})
 opal_define(OPAL_PATCH ${OPAL_VERSION_PATCH})
 opal_define(OPAL_OEM ${OPAL_VERSION_OEM})
@@ -221,7 +237,10 @@ set_target_properties(opal PROPERTIES
   OUTPUT_NAME "${_opal_output}"
   OUTPUT_NAME_DEBUG "${_opal_output_debug}"
   VERSION "${PROJECT_VERSION}"
-  SOVERSION "${PROJECT_VERSION_MAJOR}")
+  SOVERSION "${PROJECT_VERSION_MAJOR}"
+  CXX_STANDARD "${OPAL_CXX_STANDARD}"
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF)
 target_include_directories(opal
   PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
@@ -232,6 +251,7 @@ target_include_directories(opal
     "${OPAL_SOURCE_DIR}/src/sdp/BFCP/libbfcp"
     "${OPAL_SOURCE_DIR}/src/codec/speex/libspeex")
 target_compile_definitions(opal PRIVATE "OPAL_PLUGIN_DIR=\"${OPAL_PLUGIN_DIR}\"")
+target_compile_features(opal PUBLIC cxx_std_${OPAL_CXX_STANDARD})
 target_link_libraries(opal PUBLIC PTLib::ptlib)
 if(OPAL_SRTP_LINK)
   target_link_libraries(opal PUBLIC ${OPAL_SRTP_LINK})

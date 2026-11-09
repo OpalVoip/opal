@@ -30,6 +30,8 @@
 
 #include <ptlib_config.h>
 
+#undef OPAL_CXX_STANDARD
+
 /////////////////////////////////////////////////
 //
 // OPAL Version 

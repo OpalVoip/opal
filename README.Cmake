@@ -11,8 +11,8 @@ PTLib::ptlib, so build PTLib with CMake first. See README.Cmake in the
 PTLib tree.
 
 Requirements:
-  CMake 3.16 or newer
-  a C++20 compiler
+  CMake 3.16 or newer (3.20 or newer for C++23)
+  a compiler for the selected C++ standard, which defaults to C++20
   a C11 compiler
   a PTLib CMake build or install
 
@@ -64,6 +64,11 @@ Useful options, passed on the first cmake command:
                                 G.722, G.722.1, G.722.2, G.726, G.728,
                                 GSM 06.10, Theora, G.723.1, and
                                 VoiceAge G.729. These are off by default
+  -DOPAL_CXX_STANDARD=17        C++ standard 17, 20, or 23 (default 20).
+                                Written to opal_config.h as
+                                OPAL_CXX_STANDARD, and required of projects
+                                that link OPAL::opal. Use the same value as
+                                PTLIB_CXX_STANDARD. 23 needs CMake 3.20
   -DCMAKE_BUILD_TYPE=Debug      single-config generators (Ninja, Makefiles)
 
 Single-config generators also accept:
@@ -120,7 +125,10 @@ Configure it against a build tree or an install prefix:
     -DOPAL_DIR=<opal-build-or-prefix>
 
 For an install under /usr/local, CMAKE_PREFIX_PATH=/usr/local is enough and
-PTLib_DIR and OPAL_DIR can be omitted. Compile as C++20.
+PTLib_DIR and OPAL_DIR can be omitted. Linking OPAL::opal requires the C++
+standard this OPAL was built with. That value is OPAL_CXX_STANDARD in
+opal_config.h. The default is 20. PTLib headers follow P_CXX_STANDARD from
+the PTLib build.
 
 A Linux application can also build a binary .deb of itself. install()
 names the files CPack puts in the package, and include(CPack) adds the
@@ -177,8 +185,9 @@ opal.pc requires ptlib, so that command follows the requirement and prints
 both libraries, such as -lopal and -lpt. Its Cflags line is empty. The -I
 comes from ptlib.pc, which means both libraries are installed under the
 same prefix. The C++ standard is recorded in ptlib.pc as the cxxflags and
-cplusplus_std variables. pkg-config --cflags leaves -std=c++20 out, so the
-program still compiles as C++20. Libs.private in ptlib.pc is empty, so
+cplusplus_std variables, as -std=c++NN for the standard selected when
+PTLib was built. pkg-config --cflags leaves that flag out, so the program
+still needs to compile as that standard. Libs.private in ptlib.pc is empty, so
 pkg-config --static does not add OpenSSL, libdl, or the other libraries a
 static link needs.
 
@@ -376,7 +385,8 @@ section of README.Cmake in the PTLib tree.
 Linux
 -----
 
-Install CMake, a C++20 compiler, pkg-config, and the development packages
+Install CMake, a compiler for the selected C++ standard (C++20 by default),
+pkg-config, and the development packages
 for the codecs you want. On Debian and Ubuntu that is typically
 build-essential, cmake, pkg-config, libopus-dev, libspeex-dev,
 libspeexdsp-dev, libavcodec-dev, libtheora-dev, libvpx-dev,
