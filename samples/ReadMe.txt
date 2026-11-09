@@ -16,10 +16,6 @@ note: ./codectest --list will not work, but ./codectest --list test will list
 plugins. also see: opalcodecinfo
 
 
-dotnet
-Simple reference to OpalDotNet.dll.
-
-
 externrtp
 External RTP demonstration for OPAL
 
