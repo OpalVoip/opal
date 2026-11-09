@@ -245,11 +245,10 @@ cmake again to pick it up.
   mpeg4_ffmpeg  pkg-config libavcodec
   theora        pkg-config theoraenc theoradec ogg
   vp8_webm      pkg-config vpx
-  h264_x264     pkg-config x264 and libavcodec
   openh264      pkg-config openh264
 
 The H.264 FFmpeg plugin uses whatever H.264 encoder libavcodec provides,
-including libx264 built into FFmpeg. h264_x264 links libx264 directly.
+including libx264 built into FFmpeg.
 openh264 uses the headers under plugins/video/openh264/inc_* and the
 installed libopenh264.
 
@@ -276,7 +275,7 @@ The default features are libsrtp, speexdsp, and ffmpeg.
 On Windows, CMake loads the vcpkg toolchain the same way PTLib does
 (see that tree's README.Cmake) unless one was already given or
 -DOPAL_USE_VCPKG=OFF is set. It also installs the codec ports vcpkg
-can build for Visual Studio: Opus, Speex, libvpx, Theora, x264, and
+can build for Visual Studio: Opus, Speex, libvpx, Theora, and
 OpenH264. An explicit -DVCPKG_MANIFEST_FEATURES list replaces that
 automatic set. The default features are still installed. On other
 systems, pass the toolchain file yourself:
@@ -300,7 +299,7 @@ first (see README.Cmake in the PTLib tree for its Homebrew packages).
 Homebrew supplies the OPAL codec and sample dependencies:
 
   brew install cmake pkgconf opus speex speexdsp ffmpeg theora libvpx \
-    x264 srtp openh264
+    srtp openh264
 
   srtp              libsrtp2 (SRTP; pkg-config name libsrtp2)
   opus              Opus audio plugin
@@ -309,7 +308,6 @@ Homebrew supplies the OPAL codec and sample dependencies:
   ffmpeg            H.263 and related video plugins
   theora            Theora video plugin
   libvpx            VP8 video plugin
-  x264              H.264 via libx264
   openh264          OpenH264 video plugin
   spandsp           T.38 / fax plugin (optional)
   wxwidgets         OpenPhone (-DOPAL_BUILD_SAMPLES=ON)
@@ -363,7 +361,7 @@ Linux
 Install CMake, a C++20 compiler, pkg-config, and the development packages
 for the codecs you want. On Debian and Ubuntu that is typically
 build-essential, cmake, pkg-config, libopus-dev, libspeex-dev,
-libspeexdsp-dev, libavcodec-dev, libtheora-dev, libvpx-dev, libx264-dev,
+libspeexdsp-dev, libavcodec-dev, libtheora-dev, libvpx-dev,
 and libsrtp2-dev. wxWidgets is needed for OpenPhone.
 
   cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib>

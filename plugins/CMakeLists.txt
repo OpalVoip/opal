@@ -226,7 +226,6 @@ opal_try_pkg(OPAL_PC_SPEEX speex)
 opal_try_pkg(OPAL_PC_AVCODEC libavcodec libavutil)
 opal_try_pkg(OPAL_PC_THEORA theoraenc theoradec ogg)
 opal_try_pkg(OPAL_PC_VPX vpx)
-opal_try_pkg(OPAL_PC_X264 x264)
 opal_try_pkg(OPAL_PC_CELT celt)
 opal_try_pkg(OPAL_PC_SPANDSP spandsp)
 opal_try_pkg(OPAL_PC_OPENH264 openh264)
@@ -404,26 +403,6 @@ if(OPAL_PC_VPX_FOUND)
   opal_link_pkg(vp8_webm_ptplugin OPAL_PC_VPX)
 else()
   message(STATUS "OPAL video plugin vp8_webm skipped; libvpx was not found")
-endif()
-
-if(OPAL_PC_X264_FOUND AND OPAL_PC_AVCODEC_FOUND)
-  opal_add_plugin(h264_x264 video
-    video/x264/h264-x264.cxx
-    video/x264/x264wrap.cxx
-    video/common/h264frame.cxx
-    video/common/encframe.cxx
-    video/common/ffmpeg.cxx)
-  target_include_directories(h264_x264_ptplugin PRIVATE video/common video/x264)
-  target_compile_definitions(h264_x264_ptplugin PRIVATE
-    X264_LICENSED
-    "VID_PLUGIN_DIR=\"${CMAKE_BINARY_DIR}/plugins/video\"")
-  if(NOT WIN32)
-    target_compile_definitions(h264_x264_ptplugin PRIVATE HAVE_UNISTD_H)
-  endif()
-  opal_link_pkg(h264_x264_ptplugin OPAL_PC_X264)
-  opal_link_pkg(h264_x264_ptplugin OPAL_PC_AVCODEC)
-else()
-  message(STATUS "OPAL video plugin h264_x264 skipped; libx264 or libavcodec was not found")
 endif()
 
 if(OPAL_PC_OPENH264_FOUND)

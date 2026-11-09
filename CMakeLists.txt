@@ -11,7 +11,7 @@
 # PTLibConfig.cmake succeeds. On Windows it also installs cyrus-sasl,
 # libpcap, lua, and gstreamer, which that config requires when PTLib
 # was built with them. Default features are libsrtp, speexdsp, and
-# ffmpeg. On Windows, opus, speex, vpx, theora, x264, and openh264 are added.
+# ffmpeg. On Windows, opus, speex, vpx, theora, and openh264 are added.
 #
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug

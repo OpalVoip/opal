@@ -65,10 +65,6 @@
       "description": "Theora video plugin",
       "dependencies": ["libtheora"]
     },
-    "x264": {
-      "description": "H.264 plugin via libx264 and libavcodec",
-      "dependencies": ["x264", "ffmpeg"]
-    },
     "openh264": {
       "description": "H.264 plugin via OpenH264",
       "dependencies": ["openh264"]

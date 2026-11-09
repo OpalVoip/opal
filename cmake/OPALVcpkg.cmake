@@ -89,6 +89,6 @@ function(opal_vcpkg_windows_features)
     return()
   endif()
   # CELT and SpanDSP are not in the vcpkg registry.
-  set(VCPKG_MANIFEST_FEATURES opus speex vpx theora x264 openh264 PARENT_SCOPE)
-  message(STATUS "OPAL: vcpkg features opus, speex, vpx, theora, x264, openh264")
+  set(VCPKG_MANIFEST_FEATURES opus speex vpx theora openh264 PARENT_SCOPE)
+  message(STATUS "OPAL: vcpkg features opus, speex, vpx, theora, openh264")
 endfunction()
