@@ -106,7 +106,7 @@ PLUGINCODEC_LICENSE(
   "Michael Smith, Josh Mahonin, Robert Jongbloed",              // authors
   "1.0",                                                        // source code version
   "openh323@openh323.org",                                      // source code email
-  "http://sourceforge.net/projects/openh323",                   // source code URL
+  "https://github.com/OpalVoip/opal",                           // source code URL
   "Copyright (C) 2007 Canadian Bank Note, Limited., "           // source code copyright
   ", Copyright (C) 2006 by Post Increment"           
   ", Copyright (C) 2005 Salyens"
@@ -120,7 +120,7 @@ PLUGINCODEC_LICENSE(
   "Michael Niedermayer, Fabrice Bellard",                       // codec author
   "4.7.1",                                                      // codec version
   "ffmpeg-devel-request@ mplayerhq.hu",                         // codec email
-  "http://sourceforge.net/projects/ffmpeg/",                    // codec URL
+  "https://ffmpeg.org/",                                        // codec URL
   "Copyright (c) 2000-2001 Fabrice Bellard"                     // codec copyright information
   ", Copyright (c) 2002-2003 Michael Niedermayer",
   "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999", // codec license

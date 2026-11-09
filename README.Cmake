@@ -321,7 +321,17 @@ Windows
 -------
 
 Use Visual Studio 2022 or later, with the C++ desktop workload, and CMake.
-Build PTLib with the same generator, then generate an x64 solution:
+Build PTLib with the same generator, then from this directory run
+configure_vs.bat. It writes build\OPAL.sln plus the vcxproj files. With no
+argument it uses ..\ptlib\build when that directory contains
+PTLibConfig.cmake. Pass a PTLib build directory or install prefix
+otherwise:
+
+  configure_vs.bat
+  configure_vs.bat C:\ptlib\build
+
+If VCPKG_ROOT is set, the script passes that vcpkg toolchain to CMake.
+The same configure for Visual Studio 2022 from a command prompt:
 
   cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DOPAL_PTLIB_DIR=<ptlib>
   cmake --build build --config Release

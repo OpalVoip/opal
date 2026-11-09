@@ -74,7 +74,7 @@ PLUGINCODEC_LICENSE(
   "Guilhem Tardy, Derek Smithies",
   "1.0",                                                        // source code version
   "openh323@openh323.org",                                      // source code email
-  "http://sourceforge.net/projects/openh323",                   // source code URL
+  "https://github.com/OpalVoip/opal",                           // source code URL
   "Copyright (C) 2007 Matthias Schneider"                       // source code copyright
   ", Copyright (C) 2006 by Post Increment"
   ", Copyright (C) 2005 Salyens"

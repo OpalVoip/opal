@@ -1172,7 +1172,7 @@ XML_PROGRAMLISTING     = YES
 #---------------------------------------------------------------------------
 
 # If the GENERATE_AUTOGEN_DEF tag is set to YES Doxygen will
-# generate an AutoGen Definitions (see autogen.sf.net) file
+# generate an AutoGen Definitions (see https://www.gnu.org/software/autogen/) file
 # that captures the structure of the code including all
 # documentation. Note that this feature is still experimental
 # and incomplete at the moment.
