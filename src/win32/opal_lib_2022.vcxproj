@@ -404,14 +404,6 @@
     <ClCompile Include="..\sdp\sdphttpep.cxx" />
     <ClCompile Include="..\rtp\rtp_stream.cxx" />
     <ClCompile Include="..\rtp\rtp_fec.cxx" />
-    <ClCompile Include="..\csharp\csharp_msvc_wrapper.cxx">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\csharp\csharp_swig_wrapper.cxx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\ep\skinnyep.cxx" />
     <ClCompile Include="..\h323\h235dh.cxx" />
     <ClCompile Include="..\codec\h261mf.cxx" />
@@ -419,14 +411,6 @@
     <ClCompile Include="..\codec\h264mf.cxx" />
     <ClCompile Include="..\codec\mpeg4mf.cxx" />
     <ClCompile Include="..\ep\GstEndPoint.cxx" />
-    <ClCompile Include="..\java\java_msvc_wrapper.cxx">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\java\java_swig_wrapper.cxx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\rtp\dtls_srtp_session.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\rtp\libsrtp\win32;..\rtp\libsrtp\include;..\rtp\libsrtp\crypto\include;..\..\include;..\..\..\ptlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\rtp\libsrtp\win32;..\rtp\libsrtp\include;..\rtp\libsrtp\crypto\include;..\..\include;..\..\..\ptlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -915,11 +899,6 @@
     <ClCompile Include="..\im\rfc4103.cxx" />
     <ClCompile Include="..\im\sipim.cxx" />
     <ClCompile Include="..\im\t140.cxx" />
-    <ClCompile Include="..\lids\capi_ep.cxx" />
-    <ClCompile Include="..\lids\ixjunix.cxx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\lids\lid.cxx" />
     <ClCompile Include="..\lids\lidep.cxx" />
     <ClCompile Include="..\lids\lidpluginmgr.cxx" />
@@ -1081,7 +1060,6 @@
     <ClInclude Include="..\..\include\im\rfc4103.h" />
     <ClInclude Include="..\..\include\im\sipim.h" />
     <ClInclude Include="..\..\include\im\t140.h" />
-    <ClInclude Include="..\..\include\lids\capi_ep.h" />
     <ClInclude Include="..\..\include\lids\lid.h" />
     <ClInclude Include="..\..\include\lids\lidep.h" />
     <ClInclude Include="..\..\include\lids\lidplugin.h" />
@@ -1132,8 +1110,6 @@
     <ClInclude Include="..\..\lib\x64\include\opal_config.h" />
     <ClInclude Include="..\..\revision.h" />
     <ClInclude Include="..\..\version.h" />
-    <ClInclude Include="..\lids\capi_linux.h" />
-    <ClInclude Include="..\lids\capi_win32.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_cbc.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_gcm.h" />
@@ -1186,82 +1162,7 @@ configure "-Dac_top_build_prefix=$(ProjectDir)../../Lib/$(Platform)/" --no-searc
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\csharp\opal.i">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">path $(ProjectDir)..\..\..\external\swigwin;$(ProjectDir)..\..\..\swigwin;C:\swigwin;%PATH%
-swig -c++ -csharp -w451 "-I$(ProjectDir)..\..\include" -o "%(RootDir)%(Directory)csharp_swig_wrapper.cxx" "%(FullPath)"
-if errorlevel 2 goto missing
-if errorlevel 1 exit 1
-goto done
-:missing
-echo Ignoring missing SWIG and using pre-compiled version "%(RootDir)%(Directory)\csharp_swig_wrapper.cxx".
-:done
-copy "%(RootDir)%(Directory)\csharp_swig_wrapper.cxx"+nul "%(RootDir)%(Directory)\csharp_swig_wrapper.inc" &gt; nul
-</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating C# files</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RootDir)%(Directory)csharp_swig_wrapper.inc</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../include/opal.h;%(RootDir)%(Directory)csharp_swig_wrapper.cxx</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">path $(ProjectDir)..\..\..\external\swigwin;$(ProjectDir)..\..\..\swigwin;C:\swigwin;%PATH%
-swig -c++ -csharp -w451 "-I$(ProjectDir)..\..\include" -o "%(RootDir)%(Directory)csharp_swig_wrapper.cxx" "%(FullPath)"
-if errorlevel 2 goto missing
-if errorlevel 1 exit 1
-goto done
-:missing
-echo Ignoring missing SWIG and using pre-compiled version "%(RootDir)%(Directory)\csharp_swig_wrapper.cxx".
-:done
-copy "%(RootDir)%(Directory)\csharp_swig_wrapper.cxx"+nul "%(RootDir)%(Directory)\csharp_swig_wrapper.inc" &gt; nul
-</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating C# files</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(RootDir)%(Directory)csharp_swig_wrapper.inc</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../include/opal.h;%(RootDir)%(Directory)csharp_swig_wrapper.cxx</AdditionalInputs>
-    </CustomBuild>
     <None Include="..\..\plugins\configure.ac" />
-    <None Include="..\csharp\csharp_swig_wrapper.inc" />
-    <None Include="..\csharp\OPAL.cs" />
-    <None Include="..\csharp\OpalCallEndReason.cs" />
-    <None Include="..\csharp\OpalContext.cs" />
-    <None Include="..\csharp\OpalEchoCancelMode.cs" />
-    <None Include="..\csharp\OpalInstantMessage.cs" />
-    <None Include="..\csharp\OpalLineAppearanceStates.cs" />
-    <None Include="..\csharp\OpalMediaDataType.cs" />
-    <None Include="..\csharp\OpalMediaStates.cs" />
-    <None Include="..\csharp\OpalMediaTiming.cs" />
-    <None Include="..\csharp\OpalMessage.cs" />
-    <None Include="..\csharp\OpalMessageParam.cs" />
-    <None Include="..\csharp\OpalMessagePtr.cs" />
-    <None Include="..\csharp\OpalMessageType.cs" />
-    <None Include="..\csharp\OpalParamAnswerCall.cs" />
-    <None Include="..\csharp\OpalParamCallCleared.cs" />
-    <None Include="..\csharp\OpalParamGeneral.cs" />
-    <None Include="..\csharp\OpalParamProtocol.cs" />
-    <None Include="..\csharp\OpalParamRecording.cs" />
-    <None Include="..\csharp\OpalParamRegistration.cs" />
-    <None Include="..\csharp\OpalParamSetUpCall.cs" />
-    <None Include="..\csharp\OpalParamSetUserData.cs" />
-    <None Include="..\csharp\OPALPINVOKE.cs" />
-    <None Include="..\csharp\OpalPresenceStates.cs" />
-    <None Include="..\csharp\OpalPresenceStatus.cs" />
-    <None Include="..\csharp\OpalProductDescription.cs" />
-    <None Include="..\csharp\OpalRegistrationStates.cs" />
-    <None Include="..\csharp\OpalSilenceDetectMode.cs" />
-    <None Include="..\csharp\OpalStatusCallCleared.cs" />
-    <None Include="..\csharp\OpalStatusIncomingCall.cs" />
-    <None Include="..\csharp\OpalStatusIVR.cs" />
-    <None Include="..\csharp\OpalStatusLineAppearance.cs" />
-    <None Include="..\csharp\OpalStatusMediaStream.cs" />
-    <None Include="..\csharp\OpalStatusMessageWaiting.cs" />
-    <None Include="..\csharp\OpalStatusRegistration.cs" />
-    <None Include="..\csharp\OpalStatusTransferCall.cs" />
-    <None Include="..\csharp\OpalStatusUserInput.cs" />
-    <None Include="..\csharp\OpalUserInputModes.cs" />
-    <None Include="..\csharp\OpalVideoRecordMixMode.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_f_p_q_const__char_p_q_const__char_p_q_const__char_p_void_p_void_int__int.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_f_p_q_const__OpalMessage__int.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_OpalHandleStruct.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_OpalMessage.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_p_char.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_unsigned_int.cs" />
-    <None Include="..\csharp\SWIGTYPE_p_void.cs" />
     <None Include="..\..\configure.ac" />
     <CustomBuild Include="..\..\revision.h.in">
       <FileType>Document</FileType>
@@ -1314,77 +1215,6 @@ if errorlevel 1 copy "%(FullPath)"+nul "%(RootDir)%(Directory)%(FileName)"</Comm
     <None Include="..\asn\mcs.asn" />
     <None Include="..\asn\t38.asn" />
     <None Include="..\asn\x880.asn" />
-    <CustomBuild Include="..\java\opal.i">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../include/opal.h;%(RootDir)%(Directory)java_swig_wrapper.cxx</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../include/opal.h;%(RootDir)%(Directory)java_swig_wrapper.cxx</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RootDir)%(Directory)java_swig_wrapper.inc</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(RootDir)%(Directory)java_swig_wrapper.inc</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating Java JNI files</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating Java JNI files</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">path $(ProjectDir)..\..\..\external\swigwin;$(ProjectDir)..\..\..\swigwin;C:\swigwin;%PATH%
-swig -c++ -java -package org.opalvoip.opal -w451 "-I$(ProjectDir)..\..\include" -o "%(RootDir)%(Directory)java_swig_wrapper.cxx" "%(FullPath)"
-if errorlevel 2 goto missing
-if errorlevel 1 exit 1
-goto done
-:missing
-echo Ignoring missing SWIG and using pre-compiled version "%(RootDir)%(Directory)java_swig_wrapper.cxx".
-:done
-copy "%(RootDir)%(Directory)java_swig_wrapper.cxx"+nul "%(RootDir)%(Directory)java_swig_wrapper.inc" &gt; nul
-</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">path $(ProjectDir)..\..\..\external\swigwin;$(ProjectDir)..\..\..\swigwin;C:\swigwin;%PATH%
-swig -c++ -java -package org.opalvoip.opal -w451 "-I$(ProjectDir)..\..\include" -o "%(RootDir)%(Directory)java_swig_wrapper.cxx" "%(FullPath)"
-if errorlevel 2 goto missing
-if errorlevel 1 exit 1
-goto done
-:missing
-echo Ignoring missing SWIG and using pre-compiled version "%(RootDir)%(Directory)java_swig_wrapper.cxx".
-:done
-copy "%(RootDir)%(Directory)java_swig_wrapper.cxx"+nul "%(RootDir)%(Directory)java_swig_wrapper.inc" &gt; nul
-</Command>
-    </CustomBuild>
-    <None Include="..\java\java_swig_wrapper.inc" />
-    <None Include="..\java\OPAL.java" />
-    <None Include="..\java\OpalCallEndReason.java" />
-    <None Include="..\java\OPALConstants.java" />
-    <None Include="..\java\OpalContext.java" />
-    <None Include="..\java\OpalEchoCancelMode.java" />
-    <None Include="..\java\OPALJNI.java" />
-    <None Include="..\java\OpalLineAppearanceStates.java" />
-    <None Include="..\java\OpalMediaDataType.java" />
-    <None Include="..\java\OpalMediaStates.java" />
-    <None Include="..\java\OpalMediaTiming.java" />
-    <None Include="..\java\OpalMessage.java" />
-    <None Include="..\java\OpalMessageParam.java" />
-    <None Include="..\java\OpalMessagePtr.java" />
-    <None Include="..\java\OpalMessageType.java" />
-    <None Include="..\java\OpalParamAnswerCall.java" />
-    <None Include="..\java\OpalParamCallCleared.java" />
-    <None Include="..\java\OpalParamGeneral.java" />
-    <None Include="..\java\OpalParamProtocol.java" />
-    <None Include="..\java\OpalParamRecording.java" />
-    <None Include="..\java\OpalParamRegistration.java" />
-    <None Include="..\java\OpalParamSetUpCall.java" />
-    <None Include="..\java\OpalParamSetUserData.java" />
-    <None Include="..\java\OpalProductDescription.java" />
-    <None Include="..\java\OpalRegistrationStates.java" />
-    <None Include="..\java\OpalSilenceDetectMode.java" />
-    <None Include="..\java\OpalStatusCallCleared.java" />
-    <None Include="..\java\OpalStatusIncomingCall.java" />
-    <None Include="..\java\OpalStatusIVR.java" />
-    <None Include="..\java\OpalStatusLineAppearance.java" />
-    <None Include="..\java\OpalStatusMediaStream.java" />
-    <None Include="..\java\OpalStatusMessageWaiting.java" />
-    <None Include="..\java\OpalStatusRegistration.java" />
-    <None Include="..\java\OpalStatusTransferCall.java" />
-    <None Include="..\java\OpalStatusUserInput.java" />
-    <None Include="..\java\OpalUserInputModes.java" />
-    <None Include="..\java\OpalVideoRecordMixMode.java" />
-    <None Include="..\java\SWIGTYPE_p_f_p_q_const__char_p_q_const__char_p_q_const__char_p_void_p_void_int__int.java" />
-    <None Include="..\java\SWIGTYPE_p_f_p_q_const__OpalMessage__int.java" />
-    <None Include="..\java\SWIGTYPE_p_OpalHandleStruct.java" />
-    <None Include="..\java\SWIGTYPE_p_OpalMessage.java" />
-    <None Include="..\java\SWIGTYPE_p_void.java" />
     <CustomBuild Include="..\rtp\libsrtp\config.hw">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy /Y %(FullPath) $(ProjectDir)..\rtp\libsrtp\include\config.h &gt; NUL</Command>

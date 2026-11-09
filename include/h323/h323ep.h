@@ -925,16 +925,6 @@ class H323EndPoint : public OpalRTPEndPoint
       const PString & alias
     ) const;
 
-    /**Get the default ILS server to use for user lookup.
-      */
-    const PString & GetDefaultILSServer() const { return m_manager.GetDefaultILSServer(); }
-
-    /**Set the default ILS server to use for user lookup.
-      */
-    void SetDefaultILSServer(
-      const PString & server
-    ) { m_manager.SetDefaultILSServer(server); }
-
     /**Get the default fast start mode.
       */
     PBoolean IsFastStartDisabled() const

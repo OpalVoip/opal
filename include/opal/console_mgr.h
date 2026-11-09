@@ -37,7 +37,6 @@
 #include <sip/sipep.h>
 #include <sdp/sdphttpep.h>
 #include <lids/lidep.h>
-#include <lids/capi_ep.h>
 #include <ep/pcss.h>
 #include <ep/ivr.h>
 #include <ep/opalmixer.h>
@@ -56,8 +55,7 @@ class OpalH281Client;
                               OPAL_PREFIX_SDP   " " \
                               OPAL_PREFIX_SKINNY" " \
                               OPAL_PREFIX_LYNC" " \
-                              OPAL_PREFIX_PSTN  " " \
-                              OPAL_PREFIX_CAPI  " "
+                              OPAL_PREFIX_PSTN  " "
 
 
 /**This class allows for each end point class, e.g. SIPEndPoint, to add it's
@@ -238,23 +236,6 @@ public:
 #endif // P_CLI
 };
 #endif // OPAL_LID
-
-
-#if OPAL_CAPI
-class OpalConsoleCapiEndPoint : public OpalCapiEndPoint, public OpalConsoleEndPoint
-{
-  PCLASSINFO(OpalConsoleCapiEndPoint, OpalCapiEndPoint)
-public:
-  OpalConsoleCapiEndPoint(OpalManagerConsole & manager);
-
-  virtual void GetArgumentSpec(ostream & strm) const;
-  virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute);
-
-#if P_CLI
-  virtual void AddCommands(PCLI & cli);
-#endif // P_CLI
-};
-#endif // OPAL_CAPI
 
 
 #if OPAL_HAS_PCSS
@@ -464,9 +445,6 @@ class OpalManagerConsole : public OpalManager
 #endif
 #if OPAL_LID
     virtual OpalConsoleLineEndPoint * CreateLineEndPoint();
-#endif
-#if OPAL_CAPI
-    virtual OpalConsoleCapiEndPoint * CreateCapiEndPoint();
 #endif
 
 #if OPAL_HAS_PCSS

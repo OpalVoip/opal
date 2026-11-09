@@ -38,6 +38,11 @@ if(NOT WIN32)
   file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/plugin_config.h" "#define HAVE_UNISTD_H 1\n")
 endif()
 
+if(OPAL_LID)
+  opal_add_plugin(sample_lid lid LID/sample_lid.cxx)
+  target_compile_definitions(sample_lid_ptplugin PRIVATE PLUGIN_DLL_EXPORTS)
+endif()
+
 if(OPAL_OBSOLETE_CODECS)
   opal_add_plugin(g726 audio
     audio/G726/g726codec.c

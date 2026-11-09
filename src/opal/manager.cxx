@@ -1792,7 +1792,7 @@ PString OpalManager::ApplyRouteTable(const PString & a_party, const PString & b_
           Call from UI       pc:USB Audio Device\USB Audio Device      sip:fred@boggs.com
           pc:USB Audio Device\USB Audio Device      h323:fred@boggs.com
           pc:USB Audio Device\USB Audio Device      fred
-          Call from handset  pots:TigerJet:USB Audio Device            123
+          Call from handset  pots:sample:sample                        123
           Call from SIP      sip:me@here.net                           sip:you@there.com
           sip:me@here.net:5061                      sip:you@there.com
           Call from H.323    h323:me@here.net                          h323:there.com

@@ -88,7 +88,13 @@ function(opal_vcpkg_windows_features)
   if(VCPKG_MANIFEST_FEATURES)
     return()
   endif()
-  # CELT and SpanDSP are not in the vcpkg registry.
-  set(VCPKG_MANIFEST_FEATURES opus speex vpx theora openh264 PARENT_SCOPE)
-  message(STATUS "OPAL: vcpkg features opus, speex, vpx, theora, openh264")
+  # CELT and SpanDSP are not in the vcpkg registry. Speex and Theora are
+  # obsolete codecs and are installed only when that flag is on.
+  set(_features opus vpx openh264)
+  if(DEFINED OPAL_OBSOLETE_CODECS AND OPAL_OBSOLETE_CODECS AND NOT OPAL_OPALMIN)
+    list(APPEND _features speex theora)
+  endif()
+  set(VCPKG_MANIFEST_FEATURES ${_features} PARENT_SCOPE)
+  string(REPLACE ";" ", " _features "${_features}")
+  message(STATUS "OPAL: vcpkg features ${_features}")
 endfunction()

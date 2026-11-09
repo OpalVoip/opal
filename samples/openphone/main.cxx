@@ -63,7 +63,6 @@
 #if OPAL_LID
 #include <lids/lidep.h>
 #endif
-#include <lids/capi_ep.h>
 #include <codec/vidcodec.h>
 #include <rtp/srtp_session.h>
 
@@ -804,9 +803,6 @@ MyManager::MyManager()
 #if OPAL_SIP
   , sipEP(NULL)
 #endif
-#if OPAL_CAPI
-  , capiEP(NULL)
-#endif
 #if OPAL_IVR
   , ivrEP(NULL)
 #endif
@@ -1028,10 +1024,6 @@ bool MyManager::Initialise(bool startMinimised)
 
 #if OPAL_SKINNY
   new OpalSkinnyEndPoint(*this);
-#endif
-
-#if OPAL_CAPI
-  capiEP = new OpalCapiEndPoint(*this);
 #endif
 
 #if OPAL_IVR
@@ -1603,16 +1595,6 @@ bool MyManager::Initialise(bool startMinimised)
 #endif // OPAL_HAS_PRESENCE
 #endif // OPAL_SIP
 
-
-#if OPAL_CAPI
-  unsigned capiCount = capiEP->OpenControllers();
-  if (capiCount > 0) {
-    LogWindow << "ISDN (CAPI) detected " << capiCount << " controller";
-    if (capiCount > 1)
-      LogWindow << 's';
-    LogWindow << endl;
-  }
-#endif
 
   ////////////////////////////////////////
   // Routing fields

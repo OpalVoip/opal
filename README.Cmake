@@ -24,8 +24,7 @@ missing PTLib feature a configure error.
 
 SRTP uses libsrtp2 when PTLib has OpenSSL. Acoustic echo cancellation
 uses speexdsp when it is present, and the bundled Speex code otherwise.
-CAPI is left out when capi20.h is absent. Codec plugins are described
-below.
+Codec plugins are described below.
 
 "cmake -LH build" lists the OPAL_* options.
 
@@ -58,13 +57,13 @@ Useful options, passed on the first cmake command:
   -DOPAL_PLUGINS=OFF            library only, no codec plugins
   -DOPAL_T38_CAPABILITY=OFF     omit T.38 and fax, including the
                                 SpanDSP plugin and the fax sample
-  -DOPAL_OPALMIN=ON             omit obsolete codecs, T.38, fax,
-                                RFC 4175, T.120, Skinny, and line
-                                interface devices (LID, CAPI, DAHDI)
-  -DOPAL_OBSOLETE_CODECS=OFF    omit Speex, iLBC, LPC-10, H.261,
+  -DOPAL_OPALMIN=ON             omit T.38, fax, RFC 4175, T.120,
+                                Skinny, and line interface devices.
+                                Also turns obsolete codecs off
+  -DOPAL_OBSOLETE_CODECS=ON     enable Speex, iLBC, LPC-10, H.261,
                                 G.722, G.722.1, G.722.2, G.726, G.728,
                                 GSM 06.10, Theora, G.723.1, and
-                                VoiceAge G.729
+                                VoiceAge G.729. These are off by default
   -DCMAKE_BUILD_TYPE=Debug      single-config generators (Ninja, Makefiles)
 
 Single-config generators also accept:
@@ -206,31 +205,41 @@ Build-tree layout:
   build/plugins/audio/<codec>_ptplugin.<suffix>
   build/plugins/video/<codec>_ptplugin.<suffix>
   build/plugins/fax/<codec>_ptplugin.<suffix>
+  build/plugins/lid/<name>_ptplugin.<suffix>
 
-Install copies that tree to lib/opal-<version>/{audio,video,fax}. MinGW
-and Cygwin use plugins/{audio,video,fax} under the install prefix. The
+Install copies that tree to lib/opal-<version>/{audio,video,fax,lid}. MinGW
+and Cygwin use plugins/{audio,video,fax,lid} under the install prefix. The
 directory compiled into libopal is the install path. A program run from
 the build tree loads plugins when PTLIBPLUGINDIR points at build/plugins:
 
   export PTLIBPLUGINDIR="$PWD/build/plugins"
 
 On Windows set PTLIBPLUGINDIR to the same plugins directory. OPAL walks
-those audio, video, and fax subdirectories and loads files whose name
+those audio, video, fax, and lid subdirectories and loads files whose name
 ends in _ptplugin and whose suffix matches the platform.
 
 These plugins are built from sources in the tree:
 
-  audio: g722, g7221, g7222, g726, gsm0610, gsmamrcodec, iLBC, iSAC,
-         ima_adpcm, lpc10, silk
+  audio: gsmamrcodec, iSAC, ima_adpcm, silk
+  lid:   sample_lid
+
+-DOPAL_OBSOLETE_CODECS=ON also builds these from sources in the tree:
+
+  audio: g722, g7221, g7222, g726, gsm0610, iLBC, lpc10
   video: h261_vic
 
-Speex is built from the system library when pkg-config finds speex, and
-from plugins/audio/Speex/libspeex otherwise. The target is speex_ptplugin
-in either case. -DOPAL_OBSOLETE_CODECS=OFF omits Speex, iLBC, LPC-10, H.261,
-G.722, G.722.1, G.722.2, G.726, G.728, GSM 06.10, Theora, G.723.1, and VoiceAge G.729.
-SpeexDSP acoustic echo cancellation stays. On Windows, G.723.1 ACM is built
-with that switch left on, and VoiceAge G.729 is built when va_g729/va_g729a.h
-has been unpacked beside the plugin.
+sample_lid is the example line-interface plugin in plugins/LID/sample_lid.cxx.
+It is built when line interface devices are enabled. The plugin reports one
+device named sample and does not drive hardware. Copy that file to start a
+plugin for a real device. A NULL function pointer in the definition means
+that call is unimplemented.
+
+Obsolete codecs stay out of the build until -DOPAL_OBSOLETE_CODECS=ON.
+That flag also builds Speex, from the system library when pkg-config finds
+speex and from plugins/audio/Speex/libspeex otherwise. The target is
+speex_ptplugin in either case. SpeexDSP acoustic echo cancellation stays
+in the default build. On Windows, the same flag builds G.723.1 ACM, and
+VoiceAge G.729 when va_g729/va_g729a.h has been unpacked beside the plugin.
 
 These plugins are added when pkg-config finds the named module. Configure
 prints a skip line when the module is absent. Install the library and run
@@ -275,10 +284,11 @@ The default features are libsrtp, speexdsp, and ffmpeg.
 On Windows, CMake loads the vcpkg toolchain the same way PTLib does
 (see that tree's README.Cmake) unless one was already given or
 -DOPAL_USE_VCPKG=OFF is set. It also installs the codec ports vcpkg
-can build for Visual Studio: Opus, Speex, libvpx, Theora, and
-OpenH264. An explicit -DVCPKG_MANIFEST_FEATURES list replaces that
-automatic set. The default features are still installed. On other
-systems, pass the toolchain file yourself:
+can build for Visual Studio: Opus, libvpx, and OpenH264.
+-DOPAL_OBSOLETE_CODECS=ON adds Speex and Theora. An explicit
+-DVCPKG_MANIFEST_FEATURES list replaces that automatic set. The
+default features are still installed. On other systems, pass the
+toolchain file yourself:
 
   cmake -S . -B build -DOPAL_PTLIB_DIR=<ptlib> "-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake"
 
