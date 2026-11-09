@@ -168,3 +168,4 @@ nbproject/private/
 /samples/opalshark/__pycache__
 *.bak
 ptlib-crash.log
+build_deb

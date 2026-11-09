@@ -535,7 +535,9 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   m_picture->pts = AV_NOPTS_VALUE;
 
   m_picture->pict_type = forceIFrame ? AV_PICTURE_TYPE_I : AV_PICTURE_TYPE_NONE;
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 0, 0)
+#ifdef AV_FRAME_FLAG_KEY
+  m_picture->flags &= ~AV_FRAME_FLAG_KEY;
+#else
   m_picture->key_frame = 0;
 #endif
 
@@ -543,7 +545,9 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
     return false;
 
   if (m_fullFrame->IsIntraFrame()
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 0, 0)
+#ifdef AV_FRAME_FLAG_KEY
+      || (m_picture->flags & AV_FRAME_FLAG_KEY)
+#else
       || m_picture->key_frame
 #endif
   )
