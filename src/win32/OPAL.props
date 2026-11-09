@@ -39,7 +39,7 @@
     <SPANDSPDIR Condition="'$(SPANDSPDIR)' == ''">$(ProjectDir)..\..\..\external\spandsp-0.0.6</SPANDSPDIR>
     <LIB32PATH>$(VCPKG32DIR)\bin;$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\build\$(Configuration);$(ProjectDir)..\..\build\$(Configuration)</LIB32PATH>
     <LIB64PATH>$(VCPKG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\build\$(Configuration);$(ProjectDir)..\..\build\$(Configuration)</LIB64PATH>
-    <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\$(Platform)\$(Configuration)
+    <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\build\plugins
 PATH=$(WXDIR)\lib\vc14x_x64_dll;$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup>
