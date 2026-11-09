@@ -123,6 +123,37 @@ Configure it against a build tree or an install prefix:
 For an install under /usr/local, CMAKE_PREFIX_PATH=/usr/local is enough and
 PTLib_DIR and OPAL_DIR can be omitted. Compile as C++20.
 
+A Linux application can also build a binary .deb of itself. install()
+names the files CPack puts in the package, and include(CPack) adds the
+package target. Put this after the executable is defined. Add VERSION to
+the project() call, as in project(myapp VERSION 1.0.0), to set the package
+version.
+
+  include(GNUInstallDirs)
+  install(TARGETS myapp
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_PACKAGE_NAME "myapp")
+    set(CPACK_PACKAGE_CONTACT "Name <email@example.com>")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "My OPAL application")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "comm")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+    include(CPack)
+  endif()
+
+CPACK_DEBIAN_PACKAGE_SHLIBDEPS records a dependency on the installed ptlib
+and opal packages. Install dpkg-dev so cpack can run dpkg-shlibdeps, and
+install those .deb packages first so the SONAMEs map to package names.
+Configure with -DCMAKE_INSTALL_PREFIX=/usr, then:
+
+  cmake --build build --target package
+
+The .deb is written in the build directory.
+
 Plugins in the build tree land in build/plugins/{audio,video,fax}. The
 path compiled into libopal is the install directory. To load the plugins
 from a build tree, point PTLIBPLUGINDIR at that plugins directory:
