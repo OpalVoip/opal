@@ -92,15 +92,36 @@ Install produces:
 MinGW and Cygwin install plugins into a plugins directory under the
 prefix. A program looks there when it is started with that layout.
 
-The build directory is also a CMake package, so a downstream project can
-use it without an install step:
 
+Using OPAL from another project
+-------------------------------
+
+A CMake application uses the CMake package. OPALConfig.cmake defines the
+imported target OPAL::opal and loads PTLib. A program links both imported
+targets. The build directory is a CMake package too, so a consumer can use
+OPAL before it is installed. Set OPAL_DIR to the build directory or to an
+install prefix, and set PTLib_DIR the same way when PTLib is outside the
+default search path. A prefix already on CMAKE_PREFIX_PATH is found with
+no extra variable.
+
+  cmake_minimum_required(VERSION 3.20)
+  project(myapp LANGUAGES CXX)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+  find_package(PTLib CONFIG REQUIRED)
   find_package(OPAL CONFIG REQUIRED)
-  target_link_libraries(myapp PRIVATE OPAL::opal)
+  add_executable(myapp main.cxx)
+  target_link_libraries(myapp PRIVATE OPAL::opal PTLib::ptlib)
 
-Point OPAL_DIR at that build directory, or pass it as a prefix. OPALConfig.cmake
-loads PTLib, so the PTLib package has to be findable too. Set PTLib_DIR when
-PTLib was not installed.
+Configure it against a build tree or an install prefix:
+
+  cmake -S . -B build \
+    -DPTLib_DIR=<ptlib-build-or-prefix> \
+    -DOPAL_DIR=<opal-build-or-prefix>
+
+For an install under /usr/local, CMAKE_PREFIX_PATH=/usr/local is enough and
+PTLib_DIR and OPAL_DIR can be omitted. Compile as C++20.
 
 Plugins in the build tree land in build/plugins/{audio,video,fax}. The
 path compiled into libopal is the install directory. To load the plugins
@@ -110,6 +131,26 @@ from a build tree, point PTLIBPLUGINDIR at that plugins directory:
 
 OpenPhone is part of the sample build when wxWidgets supplies both
 wx-config and wxrc. Homebrew's wxWidgets package provides both.
+
+
+pkg-config
+----------
+
+pkg-config reads opal.pc after install. The copy written into the build
+directory already contains the install prefix, so it describes the
+installed tree. If that prefix is outside the default search path:
+
+  export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+  pkg-config --cflags --libs opal
+
+opal.pc requires ptlib, so that command follows the requirement and prints
+both libraries, such as -lopal and -lpt. Its Cflags line is empty. The -I
+comes from ptlib.pc, which means both libraries are installed under the
+same prefix. The C++ standard is recorded in ptlib.pc as the cxxflags and
+cplusplus_std variables. pkg-config --cflags leaves -std=c++20 out, so the
+program still compiles as C++20. Libs.private in ptlib.pc is empty, so
+pkg-config --static does not add OpenSSL, libdl, or the other libraries a
+static link needs.
 
 
 Codec plugins
