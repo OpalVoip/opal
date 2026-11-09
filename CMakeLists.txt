@@ -8,7 +8,9 @@
 #   cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
 # Use the same toolchain (and leave VCPKG_MANIFEST_MODE on) as PTLib. The
 # manifest always installs openssl/expat/sdl2 so find_dependency from
-# PTLibConfig.cmake succeeds. Default features are libsrtp, speexdsp, and
+# PTLibConfig.cmake succeeds. On Windows it also installs cyrus-sasl,
+# which provides the libsasl2 pkg-config module that config requires
+# when PTLib was built with SASL. Default features are libsrtp, speexdsp, and
 # ffmpeg. On Windows, opus, speex, vpx, theora, x264, and openh264 are added.
 #
 # The default target is Release. Other targets:

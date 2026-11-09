@@ -8,7 +8,11 @@
   "dependencies": [
     "openssl",
     "expat",
-    "sdl2"
+    "sdl2",
+    {
+      "name": "cyrus-sasl",
+      "platform": "windows & !uwp"
+    }
   ],
   "default-features": [
     "libsrtp",
