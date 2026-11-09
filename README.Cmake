@@ -356,6 +356,14 @@ checkout it would not find on its own:
 
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 
+V8 JavaScript comes from PTLib. OPAL does not look for a V8 library of
+its own. On Windows, PTLib leaves V8 out of a default configure. Pass
+-DPTLIB_V8=ON on the PTLib configure to search the same directories as
+configure.exe, or -DPTLIB_V8_DIR when the build is somewhere else. If
+that search finds nothing and no directory was given, PTLib is built
+without V8 and OPAL has no JavaScript interpreter. See the Windows
+section of README.Cmake in the PTLib tree.
+
 
 Linux
 -----
