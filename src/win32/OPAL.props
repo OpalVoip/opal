@@ -37,14 +37,14 @@
     <OPENH264VER Condition="'$(OPENH264VER)' == ''">2.3.1</OPENH264VER>
     <VPXDIR Condition="'$(VPXDIR)' == ''">$(ProjectDir)..\..\..\external\vpx-vp8</VPXDIR>
     <SPANDSPDIR Condition="'$(SPANDSPDIR)' == ''">$(ProjectDir)..\..\..\external\spandsp-0.0.6</SPANDSPDIR>
-    <LIB32PATH>$(VCPKG32DIR)\bin;$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB32PATH>
-    <LIB64PATH>$(VCPKG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\Lib;$(ProjectDir)..\..\Lib</LIB64PATH>
+    <LIB32PATH>$(VCPKG32DIR)\bin;$(LUA32DIR);$(OPENSSL32DIR)\bin;$(FFMPEG32DIR)\bin;$(AWS32DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\build\$(Configuration);$(ProjectDir)..\..\build\$(Configuration)</LIB32PATH>
+    <LIB64PATH>$(VCPKG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(FFMPEG64DIR)\bin;$(AWS64DBGDIR);$(wxLibOrDllDir);$(PTLIBDIR)\build\$(Configuration);$(ProjectDir)..\..\build\$(Configuration)</LIB64PATH>
     <LocalDebuggerEnvironment>PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\$(Platform)\$(Configuration)
 PATH=$(WXDIR)\lib\vc14x_x64_dll;$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup>
-    <IncludePath>$(OPALDIR)\lib\$(Platform)\include;$(OPALDIR)\include;$(PTLIBDIR)\lib\$(Platform)\include;$(PTLIBDIR)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OPALDIR)\lib;$(PTLIBDIR)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(OPALDIR)\build\include;$(OPALDIR)\include;$(PTLIBDIR)\build\include;$(PTLIBDIR)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OPALDIR)\build\$(Configuration);$(PTLIBDIR)\build\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
