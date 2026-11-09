@@ -45,7 +45,6 @@ OPAL_H235_8=yes
 OPAL_H501=yes
 OPAL_T120DATA=no
 OPAL_LID=yes
-OPAL_CAPI=yes
 OPAL_STATISTICS=yes
 OPAL_RTP_FEC=no
 OPAL_RTCP_XR=yes
@@ -57,9 +56,6 @@ OPAL_G711PLC=yes
 OPAL_PLUGINS=yes
 OPAL_SAMPLES=no
 OPAL_ZRTP=no
-OPAL_JAVA=yes
-OPAL_CSHARP=yes
-OPAL_RUBY=yes
 OPAL_SCRIPT=yes
 OPAL_HAS_MSRP=yes
 OPAL_HAS_SIPIM=yes
@@ -68,9 +64,6 @@ OPAL_HAS_MIXER=yes
 OPAL_HAS_PCSS=yes
 OPAL_HAS_PRESENCE=yes
 OPAL_PERFORMANCE_CHECK_HACK=yes
-
-# experimental options
-OPAL_DAHDI=no
 
 
 dnl ########################################################################
@@ -269,81 +262,6 @@ OPAL_SIMPLE_OPTION(aec,OPAL_AEC, [accoustic echo cancellation support], [SPEEXDS
 
 
 dnl ########################################################################
-dnl CAPI ISDN
-
-dnl MSWIN_DISPLAY capi,CAPI (isdn) Line Interface Device
-dnl MSWIN_DEFINE  capi,OPAL_CAPI
-
-OPAL_MODULE_OPTION(
-   [CAPI],
-   [capi],
-   [CAPI ISDN support],
-   [capi20],
-   [],
-   [-lcapi],
-   [#include <capi20.h>],
-   [capi20_release(0)]
-)
-
-
-dnl ########################################################################
-dnl We should use SWIG if it is there
-AC_PATH_PROGS(SWIG, [swig4.0 swig3.0 swig])
-AS_VAR_IF(SWIG,[],[AC_SUBST(OPAL_SWIG,no)],[AC_SUBST(OPAL_SWIG,["yes ($SWIG)"])])
-
-
-dnl ########################################################################
-dnl Java JNI Support
-dnl MSWIN_DISPLAY     java,Java interface
-dnl MSWIN_CHECK_FILE  java,include\jni.h,OPAL_JAVA=1
-dnl MSWIN_DIR_SYMBOL  java,JAVA_DIR
-dnl MSWIN_CHECK_DIR   java,%JAVA_HOME%\
-dnl MSWIN_CHECK_DIR   java,%ProgramFiles%\java\jdk*
-dnl MSWIN_CHECK_DIR   java,%ProgramW6432%\java\jdk*
-
-OPAL_MODULE_OPTION(
-   [JAVA],
-   [java],
-   [Java JNI support],
-   [openjdk],
-   [],
-   [-ljdk],
-   [#include <jni.h>],
-   [JNIEnv * env]
-)
-
-
-dnl ########################################################################
-dnl C# Support
-dnl MSWIN_DISPLAY  csharp,C# interface
-dnl MSWIN_DEFINE   csharp,OPAL_CSHARP
-OPAL_SIMPLE_OPTION(csharp,OPAL_CSHARP, [C-sharp interface])
-
-
-dnl ########################################################################
-dnl Ruby Support
-dnl MSWIN_DISPLAY    ruby,Ruby interface
-dnl MSWIN_DEFAULT    ruby,Disabled
-dnl MSWIN_CHECK_FILE ruby,ruby.h,OPAL_RUBY=1
-dnl MSWIN_DIR_SYMBOL ruby,RUBY_DIR
-dnl MSWIN_CHECK_DIR  ruby,%ProgramFiles%\Ruby\include\*
-dnl MSWIN_CHECK_DIR  ruby,%ProgramW6432%\Ruby\include\*
-dnl MSWIN_CHECK_DIR  ruby,c:\Ruby\include\*
-dnl MSWIN_CHECK_DIR  ruby,c:\tools\Ruby\include\*
-
-OPAL_MODULE_OPTION(
-   [RUBY],
-   [ruby],
-   [Ruby support],
-   [ruby],
-   [`ruby -e 'puts $:.join(" -I")'`],
-   [-lruby],
-   [#include <ruby.h>],
-   [JNIEnv * env]
-)
-
-
-dnl ########################################################################
 dnl Check for optional features
 
 dnl MSWIN_DISPLAY  video,Video
@@ -466,26 +384,6 @@ OPAL_SIMPLE_OPTION(   t120,OPAL_T120DATA, [T.120], [OPAL_H323])
 dnl MSWIN_DISPLAY  lid,Line Interface Device
 dnl MSWIN_DEFINE   lid,OPAL_LID
 OPAL_SIMPLE_OPTION(lid,OPAL_LID, [LID support])
-
-dnl ########################################################################
-dnl See if DAHDI interface is available
-
-if test "x$OPAL_LID" != "xno"; then
-   OPAL_MODULE_OPTION(
-      [DAHDI],
-      [dahdi],
-      [DAHDI E1 support],
-      [dahdi],
-      [],
-      [-ltonezone],
-      [#include <dahdi/user.h>],
-      [;],
-      [],
-      [],
-      [],
-      [OPAL_PTLIB_DTMF]
-   )
-fi
 
 
 dnl MSWIN_DISPLAY  ivr,IVR support
@@ -636,8 +534,6 @@ MY_OUTPUT_SUMMARY(
    [                     IAX2 support], OPAL_IAX2,
    [      Cisco SCCP (skinny) support], OPAL_SKINNY,
    [            Line Interface Device], OPAL_LID,
-   [                      CAPI (ISDN)], OPAL_CAPI,
-   [                     DAHDI (PSTN)], OPAL_DAHDI,
    [], [],
    [                  T.38 capability], OPAL_T38_CAPABILITY,
    [                T.38 FAX protocol], OPAL_FAX,
@@ -657,9 +553,5 @@ MY_OUTPUT_SUMMARY(
    [       Media mixing (conferences)], OPAL_HAS_MIXER,
    [                         Presence], OPAL_HAS_PRESENCE,
    [     Statistics gathering support], OPAL_STATISTICS,
-   [        Script language interface], OPAL_SCRIPT,
-   [                     SWIG support], OPAL_SWIG,
-   [                     Java support], OPAL_JAVA,
-   [                  C-sharp support], OPAL_CSHARP,
-   [                     Ruby support], [OPAL_RUBY]dnl
+   [        Script language interface], [OPAL_SCRIPT]dnl
 )

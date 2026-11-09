@@ -1,6 +1,5 @@
 include(CMakeDependentOption)
 include(CheckCXXSourceCompiles)
-include(CheckIncludeFiles)
 include(CheckSymbolExists)
 
 # Ask the compiler which macros ptlib_config.h actually defines. The header
@@ -149,7 +148,7 @@ option(OPAL_BUILD_SAMPLES "Build the sample programs" OFF)
 option(OPAL_PLUGINS "Build codec plugins" ON)
 option(OPAL_OPALMIN "Omit obsolete codecs, T.38, fax, RFC 4175, T.120, Skinny, and line interface devices" OFF)
 # An existing build keeps cached options, so turning opalmin on replaces them.
-# T.120 and DAHDI already default to off. CAPI is included with the LID devices.
+# T.120 already defaults to off.
 # Fax follows T.38. RFC 4175 follows this default while video support stays on.
 if(OPAL_OPALMIN)
   set(_opal_keep OFF)
@@ -159,11 +158,11 @@ else()
   set(_opal_lid ON)
 endif()
 if(OPAL_OPALMIN AND NOT OPAL_OPALMIN_PREV AND DEFINED CACHE{OPAL_LID})
-  foreach(name IN ITEMS OBSOLETE_CODECS T38_CAPABILITY RFC4175 T120DATA SKINNY LID CAPI DAHDI)
+  foreach(name IN ITEMS OBSOLETE_CODECS T38_CAPABILITY RFC4175 T120DATA SKINNY LID)
     set(OPAL_${name} OFF CACHE BOOL "Disabled by OPAL_OPALMIN" FORCE)
   endforeach()
 elseif(NOT OPAL_OPALMIN AND OPAL_OPALMIN_PREV)
-  foreach(name IN ITEMS OBSOLETE_CODECS T38_CAPABILITY RFC4175 SKINNY LID CAPI)
+  foreach(name IN ITEMS T38_CAPABILITY RFC4175 SKINNY LID)
     set(OPAL_${name} ON CACHE BOOL "Restored when OPAL_OPALMIN was turned off" FORCE)
   endforeach()
 endif()
@@ -172,7 +171,7 @@ set(OPAL_OPALMIN_PREV "${OPAL_OPALMIN}" CACHE INTERNAL
 if(OPAL_OPALMIN)
   message(STATUS "OPAL_OPALMIN: obsolete codecs, T.38, fax, RFC 4175, T.120, Skinny, and line interface devices are omitted")
 endif()
-option(OPAL_OBSOLETE_CODECS "Build obsolete codecs: Speex, iLBC, LPC-10, H.261, G.722, G.722.1, G.722.2, G.726, G.728, GSM 06.10, Theora, G.723.1, and VoiceAge G.729" ${_opal_keep})
+option(OPAL_OBSOLETE_CODECS "Enable obsolete codecs: Speex, iLBC, LPC-10, H.261, G.722, G.722.1, G.722.2, G.726, G.728, GSM 06.10, Theora, G.723.1, and VoiceAge G.729" OFF)
 
 option(OPAL_SDP "SDP protocol support" ON)
 cmake_dependent_option(OPAL_SIP "SIP protocol support" ON "OPAL_SDP" OFF)
@@ -196,8 +195,6 @@ endif()
 cmake_dependent_option(OPAL_H501 "H.501" ON "OPAL_H323" OFF)
 option(OPAL_T120DATA "T.120 data" OFF)
 option(OPAL_LID "Line interface device support" ${_opal_lid})
-option(OPAL_CAPI "CAPI ISDN support" ${_opal_lid})
-option(OPAL_DAHDI "DAHDI telephony support" OFF)
 option(OPAL_RTCP_XR "RTCP extended reports" ON)
 option(OPAL_RTP_FEC "RTP forward error correction" OFF)
 option(OPAL_AEC "Acoustic echo cancellation" ON)
@@ -212,23 +209,12 @@ option(OPAL_HAS_MIXER "Media mixing" ON)
 cmake_dependent_option(OPAL_HAS_PCSS "PC sound system endpoint" ON "OPAL_HAVE_PTLIB_AUDIO" OFF)
 cmake_dependent_option(OPAL_HAS_PRESENCE "Presence" ON "OPAL_HAVE_PTLIB_EXPAT" OFF)
 option(OPAL_SCRIPT "Script language support" ON)
-option(OPAL_JAVA "Java JNI wrapper" OFF)
-option(OPAL_CSHARP "C# wrapper" OFF)
-option(OPAL_RUBY "Ruby wrapper" OFF)
 
 opal_require_ptlib(H323 P_ASN)
 opal_require_ptlib(VIDEO P_VIDEO)
 opal_require_ptlib(HAS_H224 P_ASN)
 if(OPAL_FAX AND NOT OPAL_HAVE_PTLIB_ASN)
   message(FATAL_ERROR "OPAL_FAX is ON but PTLib was built without P_ASN")
-endif()
-
-if(OPAL_CAPI)
-  check_include_files("capi20.h" OPAL_HAVE_CAPI20_H)
-  if(NOT OPAL_HAVE_CAPI20_H)
-    message(STATUS "OPAL_CAPI disabled; capi20.h was not found")
-    set(OPAL_CAPI OFF)
-  endif()
 endif()
 
 find_package(PkgConfig QUIET)
@@ -305,7 +291,7 @@ endif()
 set(_opal_simple
   SDP SIP BFCP H323 VIDEO SKINNY T38_CAPABILITY STATISTICS FAX
   HAS_H224 HAS_H281 H450 H460 H460_NAT H239 H235_6 H235_8 H501
-  T120DATA LID CAPI DAHDI RTCP_XR RTP_FEC IVR RFC4175 RFC2435
+  T120DATA LID RTCP_XR RTP_FEC IVR RFC4175 RFC2435
   G711PLC HAS_MSRP HAS_SIPIM HAS_RFC4103 HAS_MIXER HAS_PCSS
   HAS_PRESENCE SCRIPT OBSOLETE_CODECS)
 foreach(feature IN LISTS _opal_simple)
@@ -319,7 +305,7 @@ if(NOT OPAL_T38_CAPABILITY)
 endif()
 
 if(NOT OPAL_OBSOLETE_CODECS)
-  message(STATUS "OPAL_OBSOLETE_CODECS is OFF; Speex, iLBC, H.261, G.722, GSM 06.10, Theora, G.726, G.723.1, and VoiceAge G.729 are omitted")
+  message(STATUS "OPAL_OBSOLETE_CODECS is OFF; Speex, iLBC, LPC-10, H.261, G.722, G.722.1, G.722.2, G.726, G.728, GSM 06.10, Theora, G.723.1, and VoiceAge G.729 are omitted")
 endif()
 
 if(OPAL_PLUGINS)

@@ -94,12 +94,6 @@
     <Filter Include="Header Files\Endpoints">
       <UniqueIdentifier>{e5ff36ca-f78c-42fa-b87d-03387fd6d751}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\SWIG">
-      <UniqueIdentifier>{1ddf6222-3ca5-4665-a093-554b67281c82}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\SWIG\Java Files">
-      <UniqueIdentifier>{f5b9cb75-61b3-4f16-86b9-b171460a4bd8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Config">
       <UniqueIdentifier>{530100f5-343e-4e8b-a233-cff99c242ca0}</UniqueIdentifier>
     </Filter>
@@ -111,9 +105,6 @@
     </Filter>
     <Filter Include="Header Files\Config\Android">
       <UniqueIdentifier>{eef1cb49-cb0b-41b8-99cc-a06e880e2434}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\SWIG\C#">
-      <UniqueIdentifier>{2c2965e8-baa1-4ba4-8e81-53750c9b9c27}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\SDP">
       <UniqueIdentifier>{2c87d927-5f99-43a8-850e-0df889bd00c6}</UniqueIdentifier>
@@ -378,12 +369,6 @@
     <ClCompile Include="..\im\t140.cxx">
       <Filter>Source Files\IM</Filter>
     </ClCompile>
-    <ClCompile Include="..\lids\capi_ep.cxx">
-      <Filter>Source Files\LIDs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lids\ixjunix.cxx">
-      <Filter>Source Files\LIDs</Filter>
-    </ClCompile>
     <ClCompile Include="..\lids\lid.cxx">
       <Filter>Source Files\LIDs</Filter>
     </ClCompile>
@@ -575,18 +560,6 @@
     </ClCompile>
     <ClCompile Include="..\ep\skinnyep.cxx">
       <Filter>Source Files\Endpoints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\java\java_msvc_wrapper.cxx">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\java\java_swig_wrapper.cxx">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\csharp\csharp_swig_wrapper.cxx">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </ClCompile>
-    <ClCompile Include="..\csharp\csharp_msvc_wrapper.cxx">
-      <Filter>Source Files\SWIG\C#</Filter>
     </ClCompile>
     <ClCompile Include="..\codec\speexmf.cxx">
       <Filter>Source Files\Codec</Filter>
@@ -914,9 +887,6 @@
     <ClInclude Include="..\..\include\im\t140.h">
       <Filter>Header Files\IM</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\lids\capi_ep.h">
-      <Filter>Header Files\LIDs</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\lids\lid.h">
       <Filter>Header Files\LIDs</Filter>
     </ClInclude>
@@ -1087,12 +1057,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\asn\x880.h">
       <Filter>ASN Files\H Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lids\capi_linux.h">
-      <Filter>Source Files\LIDs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lids\capi_win32.h">
-      <Filter>Source Files\LIDs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\opal\mediasession.h">
       <Filter>Header Files\OPAL</Filter>
@@ -1303,12 +1267,6 @@
     <CustomBuild Include="..\..\revision.h.in">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\java\opal.i">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\csharp\opal.i">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\rtp\libsrtp\config.hw">
       <Filter>Source Files\RTP\libSRTP</Filter>
     </CustomBuild>
@@ -1381,270 +1339,6 @@
       <Filter>ASN Files</Filter>
     </None>
     <None Include="..\..\configure.ac" />
-    <None Include="..\java\SWIGTYPE_p_OpalMessage.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\SWIGTYPE_p_void.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OPAL.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalCallEndReason.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OPALConstants.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalContext.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalEchoCancelMode.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OPALJNI.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalLineAppearanceStates.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMediaDataType.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMediaStates.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMediaTiming.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMessage.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMessageParam.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMessagePtr.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalMessageType.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamAnswerCall.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamCallCleared.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamGeneral.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamProtocol.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamRecording.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamRegistration.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamSetUpCall.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalParamSetUserData.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalProductDescription.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalRegistrationStates.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalSilenceDetectMode.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusCallCleared.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusIncomingCall.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusIVR.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusLineAppearance.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusMediaStream.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusMessageWaiting.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusRegistration.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusTransferCall.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalStatusUserInput.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalUserInputModes.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\OpalVideoRecordMixMode.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\SWIGTYPE_p_f_p_q_const__char_p_q_const__char_p_q_const__char_p_void_p_void_int__int.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\SWIGTYPE_p_f_p_q_const__OpalMessage__int.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\java\SWIGTYPE_p_OpalHandleStruct.java">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
-    <None Include="..\csharp\OPAL.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalCallEndReason.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalContext.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalEchoCancelMode.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalInstantMessage.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalLineAppearanceStates.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMediaDataType.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMediaStates.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMediaTiming.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMessage.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMessageParam.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMessagePtr.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalMessageType.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamAnswerCall.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamCallCleared.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamGeneral.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamProtocol.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamRecording.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamRegistration.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamSetUpCall.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalParamSetUserData.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OPALPINVOKE.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalPresenceStates.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalPresenceStatus.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalProductDescription.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalRegistrationStates.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalSilenceDetectMode.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusCallCleared.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusIncomingCall.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusIVR.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusLineAppearance.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusMediaStream.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusMessageWaiting.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusRegistration.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusTransferCall.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalStatusUserInput.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalUserInputModes.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\OpalVideoRecordMixMode.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_f_p_q_const__char_p_q_const__char_p_q_const__char_p_void_p_void_int__int.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_f_p_q_const__OpalMessage__int.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_OpalHandleStruct.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_OpalMessage.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_p_char.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_unsigned_int.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\SWIGTYPE_p_void.cs">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\csharp\csharp_swig_wrapper.inc">
-      <Filter>Source Files\SWIG\C#</Filter>
-    </None>
-    <None Include="..\java\java_swig_wrapper.inc">
-      <Filter>Source Files\SWIG\Java Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="opal.natvis" />

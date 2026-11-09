@@ -11,7 +11,8 @@
 # PTLibConfig.cmake succeeds. On Windows it also installs cyrus-sasl,
 # libpcap, lua, and gstreamer, which that config requires when PTLib
 # was built with them. Default features are libsrtp, speexdsp, and
-# ffmpeg. On Windows, opus, speex, vpx, theora, x264, and openh264 are added.
+# ffmpeg. On Windows, opus, vpx, and openh264 are added.
+# Speex and Theora are added only when -DOPAL_OBSOLETE_CODECS=ON.
 #
 # The default target is Release. Other targets:
 #   cmake --build build --target debug   # Debug tree in build/debug
@@ -61,10 +62,10 @@ if(OPAL_BUILD_SAMPLES)
   unset(_opal_vcpkg_features)
 endif()
 
-# Speex and Theora are not default features. On Windows they are added with
-# the other codec ports, then removed again when obsolete codecs are off.
-# Echo cancellation uses the separate speexdsp feature, which stays installed.
-if((DEFINED OPAL_OBSOLETE_CODECS AND NOT OPAL_OBSOLETE_CODECS) OR OPAL_OPALMIN)
+# Speex and Theora are obsolete codecs. On Windows they are installed only
+# when -DOPAL_OBSOLETE_CODECS=ON. Echo cancellation uses the separate
+# speexdsp feature, which stays installed.
+if(NOT (DEFINED OPAL_OBSOLETE_CODECS AND OPAL_OBSOLETE_CODECS) OR OPAL_OPALMIN)
   set(_opal_vcpkg_features "${VCPKG_MANIFEST_FEATURES}")
   if(NOT _opal_vcpkg_features AND DEFINED ENV{VCPKG_MANIFEST_FEATURES})
     set(_opal_vcpkg_features "$ENV{VCPKG_MANIFEST_FEATURES}")
@@ -310,8 +311,6 @@ opal_pc_set(OPAL_AEC OPAL_AEC)
 opal_pc_set(OPAL_G711PLC OPAL_G711PLC)
 opal_pc_set(OPAL_T38_CAPABILITY OPAL_T38_CAPABILITY)
 opal_pc_set(OPAL_FAX OPAL_FAX)
-opal_pc_set(OPAL_JAVA OPAL_JAVA)
-opal_pc_set(OPAL_CSHARP OPAL_CSHARP)
 opal_pc_set(OPAL_HAS_MSRP OPAL_HAS_MSRP)
 opal_pc_set(OPAL_HAS_SIPIM OPAL_HAS_SIPIM)
 opal_pc_set(OPAL_HAS_RFC4103 OPAL_HAS_RFC4103)

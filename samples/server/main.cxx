@@ -104,10 +104,6 @@ static const PConstString LyncCompleteTransferDelayKey("Lync Complete Transfer D
 static const PConstString LIDKey("Line Interface Devices");
 #endif
 
-#if OPAL_CAPI
-static const PConstString EnableCAPIKey("CAPI ISDN");
-#endif
-
 #if OPAL_IVR
 static const PConstString VXMLKey("VXML Script");
 static const PConstString IVRCacheKey("TTS Cache Directory");
@@ -160,9 +156,6 @@ static const char * const DefaultRoutes[] = {
 #if OPAL_LID
   "pots:\\+*[0-9]+ = tel:<dn>",
   "pstn:\\+*[0-9]+ = tel:<dn>",
-#endif
-#if OPAL_CAPI
-  "capi:\\+*[0-9]+ = tel:<dn>",
 #endif
 #if OPAL_H323
   "h323:\\+*[0-9]+ = tel:<dn>",
@@ -487,9 +480,6 @@ MyManager::MyManager()
   , m_maxCalls(9999)
   , m_mediaTransferMode(MediaTransferForward)
   , m_savedProductInfo(GetProductInfo())
-#if OPAL_CAPI
-  , m_enableCAPI(true)
-#endif
   , m_cdrListMax(100)
 {
   OpalLocalEndPoint * ep = new OpalLocalEndPoint(*this, LoopbackPrefix);
@@ -824,15 +814,6 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
   }
 #endif // OPAL_LID
 
-
-#if OPAL_CAPI
-  rsrc->Add(new PHTTPDividerField());
-  PSYSTEMLOG(Info, "Configuring CAPI");
-  m_enableCAPI = rsrc->AddBooleanField(EnableCAPIKey, m_enableCAPI, "Enable CAPI ISDN controller(s), if available");
-  if (m_enableCAPI && FindEndPointAs<OpalCapiEndPoint>(OPAL_PREFIX_CAPI)->OpenControllers() == 0) {
-    PSYSTEMLOG(Error, "No CAPI controllers!");
-  }
-#endif
 
 #if OPAL_HAS_MIXER
   rsrc->Add(new PHTTPDividerField());

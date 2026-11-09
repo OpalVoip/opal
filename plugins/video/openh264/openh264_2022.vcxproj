@@ -82,7 +82,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>.\..\Release/h264-x264.tlb</TypeLibraryName>
+      <TypeLibraryName>.\..\Release/openh264.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>
@@ -120,7 +120,7 @@ ren $(OutDir)openh264-$(OPENH264VER)-win$(PlatformArchitecture).dll openh264_$(P
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>.\..\Debug/h264-x264.tlb</TypeLibraryName>
+      <TypeLibraryName>.\..\Debug/openh264.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>

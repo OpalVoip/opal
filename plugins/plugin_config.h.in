@@ -27,9 +27,6 @@
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
-/* Define to 1 if you have the <capi20.h> header file. */
-#undef HAVE_CAPI20_H
-
 /* celt */
 #undef HAVE_CELT
 

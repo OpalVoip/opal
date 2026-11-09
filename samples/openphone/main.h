@@ -67,7 +67,6 @@ class MyManager;
 #if OPAL_LID
 class OpalLineEndPoint;
 #endif
-class OpalCapiEndPoint;
 class OpalIVREndPoint;
 class OpalMixerEndPoint;
 class OpalFaxEndPoint;
@@ -1285,10 +1284,6 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
 
     void StartRegistrations();
     void ReplaceRegistrations(const RegistrationList & newRegistrations);
-#endif
-
-#if OPAL_CAPI
-    OpalCapiEndPoint  * capiEP;
 #endif
 
 #if OPAL_IVR

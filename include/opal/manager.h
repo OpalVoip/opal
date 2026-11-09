@@ -594,10 +594,10 @@ class OpalManager : public PObject, public OpalCertificateInfo
           
                           "sip:fred@nurk.com\\tsip:fred@nurk.com"
 
-       3) Using line 0 of a PhoneJACK handset with a serial # of 01AB3F4 to dial
+       3) Using line 0 of the sample line device to dial
           the digits 2, 6 and # would generate:
 
-                          "pots:Quicknet:01AB3F4:0\\t26"
+                          "pots:sample:sample:0\\t26"
 
 
        Destination meta-strings:
@@ -1967,16 +1967,6 @@ class OpalManager : public PObject, public OpalCertificateInfo
     ) { m_dtlsTimeout = newInterval; }
 #endif // OPAL_SRTP
 
-    /**Get the default ILS server to use for user lookup.
-      */
-    const PString & GetDefaultILSServer() const { return m_ilsServer; }
-
-    /**Set the default ILS server to use for user lookup.
-      */
-    void SetDefaultILSServer(
-      const PString & server
-    ) { m_ilsServer = server; }
-
 #if OPAL_SCRIPT
     /**Get the script interpreter interface for application.
        The script can contain functions which OPAL will call, and can
@@ -2071,7 +2061,6 @@ class OpalManager : public PObject, public OpalCertificateInfo
 #if OPAL_SRTP
     PTimeInterval m_dtlsTimeout;
 #endif
-    PString       m_ilsServer;
 
     OpalSilenceDetector::Params m_silenceDetectParams;
 #if OPAL_AEC

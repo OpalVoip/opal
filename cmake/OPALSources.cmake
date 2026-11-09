@@ -185,12 +185,6 @@ if(OPAL_LID)
     src/lids/lidep.cxx
     src/lids/lidpluginmgr.cxx)
 endif()
-if(OPAL_CAPI)
-  list(APPEND OPAL_SOURCES src/lids/capi_ep.cxx)
-endif()
-if(OPAL_DAHDI)
-  list(APPEND OPAL_SOURCES src/lids/dahdi_ep.cxx)
-endif()
 
 if(OPAL_SRTP_ENABLED)
   list(APPEND OPAL_SOURCES
