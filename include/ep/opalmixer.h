@@ -1099,7 +1099,7 @@ class OpalMediaStreamMixer
   public:
     OpalMediaStreamMixer(OpalMixerNode & node);
     void AddOutputStream(const PSafePtr<OpalMixerMediaStream> & stream);
-    void RemoveOutputStream(const PSafePtr<OpalMixerMediaStream> & stream) { m_outputStreams.RemoveAt(stream->GetID()); }
+    bool RemoveOutputStream(const PSafePtr<OpalMixerMediaStream> & stream) { return m_outputStreams.RemoveAt(stream->GetID()); }
     void CloseOutputStream(const PSafePtr<OpalMixerMediaStream> & stream);
 
   protected:
@@ -1173,7 +1173,7 @@ class OpalVideoStreamMixer : public OpalVideoMixer, public OpalMediaStreamMixer
     virtual void OnMixedPosition(const PString & id, const MixPosition & pos) override;
 
     bool AddInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream);
-    void RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream);
+    bool RemoveInputVideoStream(const PSafePtr<OpalMixerMediaStream> & stream);
 
 protected:
     StreamDict m_inputVideoStreams;

@@ -137,12 +137,13 @@ public:
 
 protected:
   MyLocalEndPoint & m_endpoint;
-  std::map<unsigned, PAutoPtr<PFile>> m_audioFiles;
+  std::unordered_map<unsigned, std::unique_ptr<PFile>> m_audioFiles;
   PTones            m_tone;
   PINDEX            m_toneOffset;
 #if OPAL_VIDEO
-  PAutoPtr<PFile>   m_videoFile;
-  vector<off_t>     m_frameOffsets;
+  std::unique_ptr<PFile>             m_videoFile;
+  vector<off_t>                      m_frameOffsets;
+  std::unique_ptr<PVideoInputDevice> m_videoDevice;
 #endif
 
   OpalPCAPFile      m_savedMedia;

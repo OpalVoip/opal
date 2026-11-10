@@ -3657,10 +3657,10 @@ void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
     PTime now;
     static PTimeInterval const DiscoveredEndpointTimeout(0, 10); // RRQ must come in with this time of GRQ
     for (EndPointByAlias::iterator it = m_discoveredEndpoints.begin(); it != m_discoveredEndpoints.end(); ) {
-      if (now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
+      if (it->second->GetLastRegistrationTime().IsValid() || now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
         ++it;
       else {
-        PTRACE(2, "Removing discovery endpointi that never registered " << *it->second);
+        PTRACE(2, "Removing discovery endpoint that never registered " << *it->second);
         m_discoveredEndpoints.erase(it++);
       }
     }
