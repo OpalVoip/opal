@@ -508,6 +508,7 @@ struct OpalPCAPFile::DiscoveryInfo
         { OPAL_H263plus },
         { OPAL_MPEG4    },
         { OPAL_H264     },
+        { OPAL_VP9      },
         { OPAL_VP8      },
       };
 

@@ -94,6 +94,8 @@
 #define OPAL_OPUS24S        "Opus-24S"
 #define OPAL_OPUS48         "Opus-48"
 #define OPAL_OPUS48S        "Opus-48S"
+#define OPAL_AAC48S         "AAC-48S"
+#define OPAL_AAC48S         "AAC-48S"
 
 #define OPAL_RGB24          "RGB24"
 #define OPAL_RGB32          "RGB32"
@@ -111,6 +113,7 @@
 #define OPAL_H265           "H.265"
 #define OPAL_MPEG4          "MPEG4"
 #define OPAL_VP8            "VP8-WebM"
+#define OPAL_VP9            "VP9-WebM"
 
 #define OPAL_RFC2833        "UserInput/RFC2833"
 #define OPAL_CISCONSE       "NamedSignalEvent"

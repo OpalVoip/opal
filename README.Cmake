@@ -263,6 +263,7 @@ cmake again to pick it up.
   mpeg4_ffmpeg  pkg-config libavcodec
   theora        pkg-config theoraenc theoradec ogg
   vp8_webm      pkg-config vpx
+  vp9_webm      pkg-config vpx
   openh264      pkg-config openh264
 
 The H.264 FFmpeg plugin uses whatever H.264 encoder libavcodec provides,
@@ -326,7 +327,7 @@ Homebrew supplies the OPAL codec and sample dependencies:
   speexdsp          acoustic echo cancellation
   ffmpeg            H.263 and related video plugins
   theora            Theora video plugin
-  libvpx            VP8 video plugin
+  libvpx            VP8 and VP9 video plugins
   openh264          OpenH264 video plugin
   spandsp           T.38 / fax plugin (optional)
   wxwidgets         OpenPhone (-DOPAL_BUILD_SAMPLES=ON)

@@ -58,7 +58,7 @@
       "dependencies": ["ffmpeg"]
     },
     "vpx": {
-      "description": "VP8 plugin via libvpx",
+      "description": "VP8 and VP9 plugins via libvpx",
       "dependencies": ["libvpx"]
     },
     "theora": {

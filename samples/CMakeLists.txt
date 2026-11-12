@@ -40,6 +40,17 @@ if(OPAL_HAVE_PTLIB_GSTREAMER)
   opal_sample(gstreamer gstreamer/main.cxx)
 endif()
 
+# The tone check drives the AAC plugin sources directly. It is built only
+# when that plugin exists, and it needs plugin_config.h from the plugins build.
+if(TARGET aac_ptplugin)
+  opal_sample(aac_tone_check
+    aac/aac_tone_check.cxx
+    ../plugins/audio/AAC/AACCodec.cxx)
+  target_include_directories(aac_tone_check PRIVATE "${CMAKE_BINARY_DIR}/plugins")
+  target_link_libraries(aac_tone_check PRIVATE PkgConfig::OPAL_PC_AVCODEC)
+  add_test(NAME aac_tone_check COMMAND aac_tone_check)
+endif()
+
 # OpenPhone needs wxWidgets and the wxrc compiler for openphone.xrc.
 # Unix installs expose both through wx-config. A Windows source tree is the
 # directory in WXDIR, which is the same variable the Visual Studio projects use.

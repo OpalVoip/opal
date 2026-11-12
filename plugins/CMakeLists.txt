@@ -335,6 +335,16 @@ else()
   message(STATUS "OPAL audio plugin opus skipped; libopus was not found")
 endif()
 
+if(OPAL_PC_AVCODEC_FOUND)
+  # The imported pkg-config target is otherwise visible only in this directory.
+  # The AAC tone check sample links the same libraries.
+  set_target_properties(PkgConfig::OPAL_PC_AVCODEC PROPERTIES IMPORTED_GLOBAL TRUE)
+  opal_add_plugin(aac audio audio/AAC/AACCodec.cxx)
+  opal_link_pkg(aac_ptplugin OPAL_PC_AVCODEC)
+else()
+  message(STATUS "OPAL audio plugin aac skipped; libavcodec was not found")
+endif()
+
 if(OPAL_PC_CELT_FOUND)
   opal_add_plugin(celt audio audio/celt/celtcodec.c)
   opal_link_pkg(celt_ptplugin OPAL_PC_CELT)
@@ -406,8 +416,10 @@ endif()
 if(OPAL_PC_VPX_FOUND)
   opal_add_plugin(vp8_webm video video/VP8-WebM/vp8_webm.cxx)
   opal_link_pkg(vp8_webm_ptplugin OPAL_PC_VPX)
+  opal_add_plugin(vp9_webm video video/VP9-WebM/vp9_webm.cxx)
+  opal_link_pkg(vp9_webm_ptplugin OPAL_PC_VPX)
 else()
-  message(STATUS "OPAL video plugin vp8_webm skipped; libvpx was not found")
+  message(STATUS "OPAL video plugins vp8_webm and vp9_webm skipped; libvpx was not found")
 endif()
 
 if(OPAL_PC_OPENH264_FOUND)

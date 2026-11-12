@@ -1230,6 +1230,7 @@ bool OpalMediaFormat::RegisterKnownMediaFormats(const PString & name)
     KNOWN(H264_MODE1),
     KNOWN(MPEG4),
     KNOWN(VP8),
+    KNOWN(VP9),
 #endif
 #if OPAL_T38_CAPABILITY
     KNOWN(T38),

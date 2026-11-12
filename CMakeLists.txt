@@ -267,6 +267,7 @@ if(CMAKE_DL_LIBS)
 endif()
 
 if(OPAL_PLUGINS)
+  enable_testing()
   add_subdirectory(plugins)
 endif()
 if(OPAL_BUILD_SAMPLES)

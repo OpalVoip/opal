@@ -206,6 +206,7 @@ if(OPAL_VIDEO)
     src/codec/h264mf.cxx
     src/codec/h265mf.cxx
     src/codec/vp8mf.cxx
+    src/codec/vp9mf.cxx
     src/codec/mpeg4mf.cxx)
   if(OPAL_OBSOLETE_CODECS)
     list(APPEND OPAL_SOURCES src/codec/h261mf.cxx)
