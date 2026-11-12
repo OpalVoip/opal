@@ -256,6 +256,15 @@ class SIPEndPoint : public OpalSDPEndPoint
       SIP_PDU & response
     );
 
+    /**Called with the SIP message about to be written to the transport.
+       @p message is the PDU produced by SIP_PDU::Build, including a compact
+       form when one was required.
+      */
+    virtual void OnSendingPDU(
+      SIP_PDU & pdu,
+      const PString & message
+    );
+
     /**Handle an incoming INVITE request.
        @return true if ownership of \p pdu is taken, false will delete it.
       */

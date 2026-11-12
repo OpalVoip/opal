@@ -396,7 +396,7 @@ class H323Connection : public OpalRTPConnection
 
     /**Write a PDU to the signalling channel.
       */
-    PBoolean WriteSignalPDU(
+    virtual PBoolean WriteSignalPDU(
       H323SignalPDU & pdu       ///<  PDU to write.
     );
 

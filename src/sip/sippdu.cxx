@@ -2769,6 +2769,8 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
   }
 #endif
 
+  endpoint.OnSendingPDU(*this, pduStr);
+
   if (m_transport->Write((const char *)pduStr, pduLen))
     return Successful_OK;
 

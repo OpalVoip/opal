@@ -2176,6 +2176,11 @@ void SIPEndPoint::OnStartTransaction(SIPConnection & /*conn*/, SIPTransaction & 
 {
 }
 
+
+void SIPEndPoint::OnSendingPDU(SIP_PDU &, const PString &)
+{
+}
+
 unsigned SIPEndPoint::GetAllowedMethods() const
 {
   return (1<<SIP_PDU::Method_INVITE   )|
