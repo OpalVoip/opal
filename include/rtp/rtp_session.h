@@ -600,6 +600,13 @@ class OpalRTPSession : public OpalMediaSession
       */
     unsigned GetPacketsReceived(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_packets; }
 
+    /**Count packets in one direction.
+       Retransmission sources are left out. payloadType is unused: each media
+       type has its own session, and the last packet's payload type is not a
+       reliable filter for the packets that source has sent.
+      */
+    unsigned GetPackets(Direction dir, RTP_DataFrame::PayloadTypes payloadType) const;
+
     /**Get total number of octets received in session.
       */
     uint64_t GetOctetsReceived(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_octets; }

@@ -258,7 +258,7 @@ cmake again to pick it up.
   celt          pkg-config celt
   spandsp       pkg-config spandsp          (fax/spandsp_ptplugin)
   h263_ffmpeg   pkg-config libavcodec
-  h264_ffmpeg   pkg-config libavcodec
+  h264_ffmpeg   pkg-config libavcodec libswscale
   h265_ffmpeg   pkg-config libavcodec
   mpeg4_ffmpeg  pkg-config libavcodec
   theora        pkg-config theoraenc theoradec ogg

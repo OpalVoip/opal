@@ -229,6 +229,7 @@ endfunction()
 opal_try_pkg(OPAL_PC_OPUS opus)
 opal_try_pkg(OPAL_PC_SPEEX speex)
 opal_try_pkg(OPAL_PC_AVCODEC libavcodec libavutil)
+opal_try_pkg(OPAL_PC_SWSCALE libswscale)
 opal_try_pkg(OPAL_PC_THEORA theoraenc theoradec ogg)
 opal_try_pkg(OPAL_PC_VPX vpx)
 opal_try_pkg(OPAL_PC_CELT celt)
@@ -369,12 +370,17 @@ if(OPAL_PC_AVCODEC_FOUND)
   target_include_directories(h263_ffmpeg_ptplugin PRIVATE video/common)
   opal_link_pkg(h263_ffmpeg_ptplugin OPAL_PC_AVCODEC)
 
-  opal_add_plugin(h264_ffmpeg video
-    video/H.264-FFMPEG/h264-FFMPEG.cxx
-    ${_opal_ffmpeg_common}
-    video/common/h264frame.cxx)
-  target_include_directories(h264_ffmpeg_ptplugin PRIVATE video/common)
-  opal_link_pkg(h264_ffmpeg_ptplugin OPAL_PC_AVCODEC)
+  if(OPAL_PC_SWSCALE_FOUND)
+    opal_add_plugin(h264_ffmpeg video
+      video/H.264-FFMPEG/h264-FFMPEG.cxx
+      ${_opal_ffmpeg_common}
+      video/common/h264frame.cxx)
+    target_include_directories(h264_ffmpeg_ptplugin PRIVATE video/common)
+    opal_link_pkg(h264_ffmpeg_ptplugin OPAL_PC_AVCODEC)
+    opal_link_pkg(h264_ffmpeg_ptplugin OPAL_PC_SWSCALE)
+  else()
+    message(STATUS "OPAL video plugin h264_ffmpeg skipped; libswscale was not found")
+  endif()
 
   opal_add_plugin(h265_ffmpeg video
     video/H.265-FFMPEG/h265-FFMPEG.cxx

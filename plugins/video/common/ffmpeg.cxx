@@ -553,7 +553,10 @@ bool FFMPEGCodec::EncodeVideoPacket(const PluginCodec_RTP & in, PluginCodec_RTP 
   )
     flags |= PluginCodec_ReturnCoderIFrame;
 
-  m_fullFrame->GetPacket(out, flags);
+  // A mode-0 packetiser refuses a NAL larger than the payload and leaves the
+  // frame unconsumed. Without the last-frame flag the caller encodes forever.
+  if (!m_fullFrame->GetPacket(out, flags))
+    flags |= PluginCodec_ReturnCoderLastFrame;
   return true;
 }
 

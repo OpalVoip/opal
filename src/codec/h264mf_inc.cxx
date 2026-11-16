@@ -589,6 +589,8 @@ protected:
   unsigned m_maxNALUSize;
   unsigned m_packetisationModeSDP;
   unsigned m_packetisationModeH323;
+  unsigned m_h241MaxFS;
+  unsigned m_sdpMaxFS;
   bool     m_isH323;
 
 public:
@@ -602,6 +604,8 @@ public:
     , m_maxNALUSize(H241_MAX_NALU_SIZE)
     , m_packetisationModeSDP(1)
     , m_packetisationModeH323(1)
+    , m_h241MaxFS(MAX_FS_H241)
+    , m_sdpMaxFS(MAX_FS_SDP)
     , m_isH323(false)
   {
     PTRACE(4, MY_CODEC_LOG, "Created encoder");
@@ -618,6 +622,12 @@ public:
 
     if (strcasecmp(optionName, MaxMBPS_SDP.m_name) == 0)
       return SetOptionUnsigned(m_sdpMBPS, optionValue, 0);
+
+    if (strcasecmp(optionName, MaxFS_H241.m_name) == 0)
+      return SetOptionUnsigned(m_h241MaxFS, optionValue, 0, MAX_FS_H241);
+
+    if (strcasecmp(optionName, MaxFS_SDP.m_name) == 0)
+      return SetOptionUnsigned(m_sdpMaxFS, optionValue, 0, MAX_FS_SDP);
 
     if (strcasecmp(optionName, Profile.m_name) == 0) {
       for (size_t i = 0; i < sizeof(ProfileInfo)/sizeof(ProfileInfo[0]); ++i) {

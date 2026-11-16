@@ -34,6 +34,7 @@
 #include <opal_config.h>
 
 #include <opal/mediastrm.h>
+#include <ptlib/notifier_ext.h>
 
 
 class OpalRTPSession;
@@ -44,7 +45,7 @@ class OpalMediaStatistics;
 /**This class describes a media stream that transfers data to/from a RTP
    session.
   */
-class OpalRTPMediaStream : public OpalMediaStream
+class OpalRTPMediaStream : public OpalMediaStream, public PValidatedNotifierTarget
 {
     PCLASSINFO(OpalRTPMediaStream, OpalMediaStream);
   public:
@@ -64,6 +65,10 @@ class OpalRTPMediaStream : public OpalMediaStream
        This will release the reference to the rtpSession passed into the constructor.
       */
     ~OpalRTPMediaStream();
+
+    /**Remove the RTP receive notifier before the stream object can disappear.
+      */
+    void DetachFromSession();
   //@}
 
   /**@name Overrides of OpalMediaStream class */
@@ -215,7 +220,9 @@ protected:
     PTimeInterval m_pictureLossThrottleTime;
 #endif
 
-    PDECLARE_RTPDataNotifier(OpalRTPMediaStream, OnReceivedPacket);
+    // Validated so a packet that arrives after the stream is destroyed does not
+    // call into the freed object. The session can still hold the notifier.
+    PDECLARE_VALIDATED_NOTIFIER2(OpalRTPSession, OpalRTPMediaStream, OnReceivedPacket, OpalRTPSession::Data &);
     OpalRTPSession::DataNotifier m_receiveNotifier;
 
 #if OPAL_JITTER_BUFFER_LATENCY_CHECK

@@ -97,6 +97,16 @@ bool RTP_DataFrame::SetPacketSize(PINDEX sz)
   m_headerSize = MinHeaderSize + 4*GetContribSrcCount();
 
   if (HasExtensions()) {
+    // The extension header is four bytes. GetAs asserts when they are absent,
+    // and that assert aborts the process. A short packet with the extension
+    // bit set is not RTP we can parse.
+    if (sz < m_headerSize + 4 || GetSize() < m_headerSize + 4) {
+      PTRACE(2, "RTP\tInvalid RTP packet, truncated header extension, "
+                "size=" << sz << ", header=" << m_headerSize << ": "
+             << PHexDump(GetPointer(), std::min(sz, (PINDEX)16)));
+      m_payloadSize = m_paddingSize = 0;
+      return false;
+    }
     PINDEX dwordsSansHeader = GetAs<PUInt16b>(m_headerSize + 2);
     m_headerSize += (dwordsSansHeader + 1)*4;
   }
@@ -237,15 +247,31 @@ bool RTP_DataFrame::SetExtensionSizeBytes(PINDEX count)
 }
 
 
+static bool ExtensionBytes(const RTP_DataFrame & frame, const BYTE * ptr, PINDEX bytes)
+{
+  const BYTE * base = frame.GetPointer();
+  const PINDEX size = frame.GetSize();
+  if (ptr < base || bytes < 0)
+    return false;
+  const PINDEX offset = static_cast<PINDEX>(ptr - base);
+  return offset <= size && bytes <= size - offset;
+}
+
 BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx) const
 {
   if (!HasExtensions())
     return NULL;
 
   BYTE * ptr = const_cast<BYTE *>(GetPointer() + MinHeaderSize + 4*GetContribSrcCount());
+  // The extension bit can be set on a packet that does not contain the
+  // extension header. Reading it used to walk off the end of the buffer.
+  if (!ExtensionBytes(*this, ptr, 4))
+    return NULL;
   id = *(PUInt16b *)ptr;
   int extensionSize = *(PUInt16b *)(ptr += 2) * 4;
   ptr += 2;
+  if (extensionSize < 0 || !ExtensionBytes(*this, ptr, extensionSize))
+    return NULL;
 
   if (idx < 0) {
     // RFC 3550 format
@@ -256,6 +282,8 @@ BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx
   if (id == 0xbede) {
     // RFC 5285 one byte format
     while (idx-- > 0) {
+      if (!ExtensionBytes(*this, ptr, 1))
+        return NULL;
       int len;
       switch (*ptr >> 4) {
         case 0 :
@@ -272,25 +300,37 @@ BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx
       ptr += len;
     }
 
+    if (!ExtensionBytes(*this, ptr, 1))
+      return NULL;
     id = *ptr >> 4;
     length = (*ptr & 0xf)+1;
+    if (!ExtensionBytes(*this, ptr + 1, length))
+      return NULL;
     return ptr+1;
   }
 
   if ((id&0xfff0) == 0x1000) {
     // RFC 5285 two byte format
     while (idx-- > 0) {
+      if (!ExtensionBytes(*this, ptr, 1))
+        return NULL;
       if (*ptr++ != 0) {
+        if (!ExtensionBytes(*this, ptr, 1))
+          return NULL;
         int len = *ptr + 1;
-        if (extensionSize <= len)
+        if (extensionSize <= len || !ExtensionBytes(*this, ptr, len))
           return NULL;
         ptr += len;
         extensionSize -= len;
       }
     }
 
+    if (!ExtensionBytes(*this, ptr, 2))
+      return NULL;
     id = *ptr++;
     length = *ptr++;
+    if (!ExtensionBytes(*this, ptr, length))
+      return NULL;
     return ptr;
   }
 
@@ -316,9 +356,13 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
   }
 
   BYTE * ptr = const_cast<BYTE *>(GetPointer() + MinHeaderSize + 4*GetContribSrcCount());
+  if (!ExtensionBytes(*this, ptr, 4))
+    return NULL;
   unsigned idPresent = *(PUInt16b *)ptr;
   PINDEX extensionSize = *(PUInt16b *)(ptr += 2) * 4;
   ptr += 2;
+  if (extensionSize < 0 || !ExtensionBytes(*this, ptr, extensionSize))
+    return NULL;
 
   switch (type) {
     case RFC3550 :
@@ -332,10 +376,15 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
         return NULL;
 
       for (;;) {
+        if (!ExtensionBytes(*this, ptr, 1))
+          return NULL;
         idPresent = *ptr >> 4;
         length = (*ptr & 0xf)+1;
-        if (idPresent == idToFind)
+        if (idPresent == idToFind) {
+          if (!ExtensionBytes(*this, ptr + 1, length))
+            return NULL;
           return ptr+1;
+        }
 
         switch (idPresent) {
           case 0 :
@@ -357,6 +406,8 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
         return NULL;
 
       for (;;) {
+        if (!ExtensionBytes(*this, ptr, 1))
+          return NULL;
         idPresent = *ptr++;
         --extensionSize;
 
@@ -366,11 +417,16 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
           return NULL;
         }
 
+        if (!ExtensionBytes(*this, ptr, 1))
+          return NULL;
         length = *ptr++;
         --extensionSize;
 
-        if (idPresent == idToFind)
+        if (idPresent == idToFind) {
+          if (!ExtensionBytes(*this, ptr, length))
+            return NULL;
           return ptr;
+        }
 
         if (extensionSize <= length)
           return NULL;

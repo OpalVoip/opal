@@ -2557,6 +2557,21 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ss
 }
 
 
+unsigned OpalRTPSession::GetPackets(Direction dir, RTP_DataFrame::PayloadTypes) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+
+  unsigned total = 0;
+  for (SyncSourceMap::const_iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+    const SyncSource & source = *it->second;
+    if (source.m_direction != dir || source.IsRtx())
+      continue;
+    total += source.m_packets;
+  }
+  return total;
+}
+
+
 #if OPAL_STATISTICS
 static void AddSpecial(int & left, int right)
 {
@@ -3439,9 +3454,13 @@ void OpalRTPSession::NotifierMap::Add(unsigned priority, const DataNotifier & no
 
 void OpalRTPSession::NotifierMap::Remove(const DataNotifier & notifier)
 {
+  // Identity is the stream the notifier calls. A memory compare of the
+  // wrapper can miss the copy stored in the map, and the session then
+  // delivers packets to a stream that has been destroyed.
+  void * target = notifier.GetTarget();
   NotifierMap::iterator it = begin();
   while (it != end()) {
-    if (it->second != notifier)
+    if (it->second != notifier && (target == NULL || it->second.GetTarget() != target))
       ++it;
     else
       erase(it++);

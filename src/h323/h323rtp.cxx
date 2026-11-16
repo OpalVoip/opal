@@ -189,38 +189,39 @@ PBoolean H323_RTPChannel::OnReceivedPDU(const H245_H2250LogicalChannelParameters
   bool explicitMedia = false;
   bool explicitControl = false;
 
-  if (param.HasOptionalField(H245_H2250LogicalChannelParameters::e_mediaControlChannel)) {
-    explicitControl = ExtractTransport(param.m_mediaControlChannel, false, errorCode);
-    PTRACE_IF(1, !explicitControl, "RTP_UDP\tFailed to extract mediaControl transport for " << *this);
-  }
+  // A fast-start proposal for the channel we receive on carries our own
+  // address. Applying it sets the transmit target to this process, and the
+  // sound card then plays that loop. Only the transmitter learns the remote.
+  if (GetDirection() != H323Channel::IsReceiver) {
+    if (param.HasOptionalField(H245_H2250LogicalChannelParameters::e_mediaControlChannel)) {
+      explicitControl = ExtractTransport(param.m_mediaControlChannel, false, errorCode);
+      PTRACE_IF(1, !explicitControl, "RTP_UDP\tFailed to extract mediaControl transport for " << *this);
+    }
 
-  if (param.HasOptionalField(H245_H2250LogicalChannelParameters::e_mediaChannel)) {
-    if (GetDirection() == H323Channel::IsReceiver)
-      PTRACE(2, "RTP_UDP\tIgnoring media transport for " << *this);
-    else {
+    if (param.HasOptionalField(H245_H2250LogicalChannelParameters::e_mediaChannel)) {
       explicitMedia = ExtractTransport(param.m_mediaChannel, true, errorCode);
       PTRACE_IF(1, !explicitMedia, "RTP_UDP\tFailed to extract media transport for " << *this);
     }
-  }
 
-  if (!explicitMedia && !explicitControl) {
-    PTRACE(2, "RTP_UDP\tNo mediaChannel or mediaControlChannel specified for " << *this);
+    if (!explicitMedia && !explicitControl) {
+      PTRACE(2, "RTP_UDP\tNo mediaChannel or mediaControlChannel specified for " << *this);
 
-    if (GetSessionID() < H323Capability::DefaultDataSessionID) {
-      // Audio/video session must have it
-      errorCode = H245_OpenLogicalChannelReject_cause::e_unspecified;
-      return false;
+      if (GetSessionID() < H323Capability::DefaultDataSessionID) {
+        // Audio/video session must have it
+        errorCode = H245_OpenLogicalChannelReject_cause::e_unspecified;
+        return false;
+      }
     }
-  }
 
-  if (!explicitMedia && explicitControl) {
-    OpalTransportAddress controlAddress = m_session->GetRemoteAddress(false);
-    PIPSocket::AddressAndPort ap;
-    if (controlAddress.GetIpAndPort(ap)) {
-      ap.SetPort(ap.GetPort() & 0xfffe);
-      OpalTransportAddress mediaAddress(ap, controlAddress.GetProto());
-      m_session->SetRemoteAddress(mediaAddress);
-      PTRACE(3, "RTP_UDP\tNo mediaChannel in PDU, using " << mediaAddress << " for " << *this);
+    if (!explicitMedia && explicitControl) {
+      OpalTransportAddress controlAddress = m_session->GetRemoteAddress(false);
+      PIPSocket::AddressAndPort ap;
+      if (controlAddress.GetIpAndPort(ap)) {
+        ap.SetPort(ap.GetPort() & 0xfffe);
+        OpalTransportAddress mediaAddress(ap, controlAddress.GetProto());
+        m_session->SetRemoteAddress(mediaAddress);
+        PTRACE(3, "RTP_UDP\tNo mediaChannel in PDU, using " << mediaAddress << " for " << *this);
+      }
     }
   }
 

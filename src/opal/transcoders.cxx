@@ -263,6 +263,25 @@ OpalTranscoder * OpalTranscoder::Create(const OpalMediaFormat & srcFormat,
 }
 
 
+// A transcoder has a codec on each side of the raw intermediate format.
+// Packetization mode and profile are EqualMerge, so a mode 0 H.323 channel
+// refuses to merge with the mode 1 codec offered to the browser and the
+// video patch never starts. Each codec keeps those options. Frame size and
+// bit rate still merge. Passthrough keeps the equality check.
+static void IgnoreEqualConflicts(OpalMediaFormat & format)
+{
+  format.MakeUnique();
+  PStringArray names;
+  const PINDEX count = format.GetOptionCount();
+  for (PINDEX index = 0; index < count; ++index)
+    names.AppendString(format.GetOption(index).GetName());
+  for (PINDEX index = 0; index < names.GetSize(); ++index) {
+    OpalMediaOption * option = format.FindOption(names[index]);
+    if (option != NULL && option->GetMerge() == OpalMediaOption::EqualMerge)
+      option->SetMerge(OpalMediaOption::NoMerge);
+  }
+}
+
 static bool MergeFormats(const OpalMediaFormatList & masterFormats,
                          const OpalMediaFormat & srcCapability,
                          const OpalMediaFormat & dstCapability,
@@ -327,6 +346,8 @@ static bool MergeFormats(const OpalMediaFormatList & masterFormats,
          dstFormat = YUV420P[QCIF]          <-- No change, srcFormat is superset
    */
 
+  const bool transcoding = srcCapability.GetName() != dstCapability.GetName();
+
   OpalMediaFormatList::const_iterator masterFormat = masterFormats.FindFormat(srcCapability);
   if (masterFormat == masterFormats.end()) {
     srcFormat = srcCapability;
@@ -336,6 +357,8 @@ static bool MergeFormats(const OpalMediaFormatList & masterFormats,
     srcFormat = *masterFormat;
     PTRACE(5, "Initial source format from master:\n" << setw(-1) << srcFormat
                             << "Merging with capability\n" << setw(-1) << srcCapability);
+    if (transcoding)
+      IgnoreEqualConflicts(srcFormat);
     if (!srcFormat.Merge(srcCapability, true)) // Include the PayloadType.
       return false;
   }
@@ -350,8 +373,15 @@ static bool MergeFormats(const OpalMediaFormatList & masterFormats,
     PTRACE(5, "Initial destination format from master:\n" << setw(-1) << dstFormat
                                  << "Merging with capability\n" << setw(-1) << dstCapability);
 
+    if (transcoding)
+      IgnoreEqualConflicts(dstFormat);
     if (!dstFormat.Merge(dstCapability, true)) // Include the PayloadType.
       return false;
+  }
+
+  if (transcoding) {
+    IgnoreEqualConflicts(srcFormat);
+    IgnoreEqualConflicts(dstFormat);
   }
 
   if (!srcFormat.Merge(dstFormat))

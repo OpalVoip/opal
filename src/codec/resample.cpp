@@ -149,8 +149,11 @@ PINDEX OpalResample::GetOptimalDataFrameSize(PBoolean input) const
 PBoolean OpalResample::ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output)
 {
   PINDEX inputBytes = input.GetPayloadSize();
-  int inSamples = inputBytes / m_inSampleSize;
-  PINDEX outputBytes = inputBytes * m_outSampleRate / m_inSampleRate;
+  int inSamples = m_inSampleSize > 0 ? inputBytes / m_inSampleSize : 0;
+  // Rate alone keeps a mono frame the same size as a stereo frame.
+  PINDEX outputBytes = inSamples > 0
+    ? (PINDEX)inSamples * m_outSampleRate / m_inSampleRate * m_outSampleSize
+    : 0;
 
 #if P_FFMPEG
   if (m_swrContext) {

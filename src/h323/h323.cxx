@@ -2628,7 +2628,22 @@ PBoolean H323Connection::HandleFastStartAcknowledge(const H225_ArrayOf_PASN_Octe
       param = &(const H245_H2250LogicalChannelParameters &)open.m_forwardLogicalChannelParameters.m_multiplexParameters;
 
     if (param != NULL) {
-      H323Channel * channel = FindChannel(param->m_sessionID, !transmitter, true);
+      // The offer puts the channel we receive on into reverse parameters and
+      // the channel we transmit on into forward parameters. The acknowledgement
+      // has the same shape. Reverse is our receiver; forward is our transmitter,
+      // which is where the remote media address has to be applied.
+      H323Channel * channel = FindChannel(param->m_sessionID, transmitter, true);
+      // FindChannel returns the first channel on the session. The
+      // acknowledgement names one capability, and the fast start list below
+      // opens that channel. Resume this one only when it is that capability.
+      if (channel != NULL && dataType.GetTag() != H245_DataType::e_nullData) {
+        H323Capability * selected = m_localCapabilities.FindCapability(dataType);
+        if (selected != NULL && channel->GetCapability() != *selected) {
+          PTRACE(3, "H225\tFast start session " << (unsigned)param->m_sessionID
+                 << " has " << channel->GetCapability() << ", acknowledgement selected " << *selected);
+          channel = NULL;
+        }
+      }
       if (channel != NULL) {
         OpalMediaStreamPtr mediaStream = channel->GetMediaStream();
         if (mediaStream == NULL) {
@@ -2671,7 +2686,7 @@ PBoolean H323Connection::HandleFastStartAcknowledge(const H225_ArrayOf_PASN_Octe
     for (H323LogicalChannelList::iterator iterChannel = m_fastStartChannels.begin(); iterChannel != m_fastStartChannels.end(); ++iterChannel) {
       H323Channel & channelToStart = *iterChannel;
       H323Channel::Directions dir = channelToStart.GetDirection();
-      if ((dir == H323Channel::IsTransmitter) != transmitter || channelToStart.GetCapability() != *replyCapability)
+      if ((dir == H323Channel::IsReceiver) != transmitter || channelToStart.GetCapability() != *replyCapability)
         continue;
 
       unsigned error = 1000;

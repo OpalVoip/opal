@@ -85,11 +85,25 @@ OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
 
 OpalRTPMediaStream::~OpalRTPMediaStream()
 {
+  // Close() can time out on the stream lock after it has already cleared
+  // m_isOpen. The destructor then skips InternalClose(), the RTP session keeps
+  // the receive notifier, and the next packet calls into this deleted stream.
+  DetachFromSession();
   Close();
 
   delete m_jitterBuffer;
 
   m_rtpSession.SafeDereference();
+}
+
+
+void OpalRTPMediaStream::DetachFromSession()
+{
+  if (!IsSource())
+    return;
+  m_rtpSession.RemoveDataNotifier(m_receiveNotifier);
+  if (m_jitterBuffer != NULL)
+    m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
 }
 
 
@@ -248,9 +262,8 @@ void OpalRTPMediaStream::InternalClose()
 {
   // Break any I/O blocks and wait for the thread that uses this object to
   // terminate before we allow it to be deleted.
+  DetachFromSession();
   if (m_jitterBuffer != NULL) {
-    m_rtpSession.RemoveDataNotifier(m_receiveNotifier);
-    m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
     m_jitterBuffer->Close();
     // Don't delete m_jitterBuffer as read thread may still be running
   }
