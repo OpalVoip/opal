@@ -37,7 +37,15 @@ cmake -S . -B build -G "%GENERATOR%" -A x64 -DOPAL_PTLIB_DIR="%PTLIB_DIR%" %TOOL
 if errorlevel 1 exit /b 1
 
 echo.
-echo Created %CD%\build\OPAL.sln
+if exist "%CD%\build\OPAL.slnx" (
+  echo Created %CD%\build\OPAL.slnx
+  echo Visual Studio 2026 opens this .slnx file. Visual Studio 2022 does not.
+) else if exist "%CD%\build\OPAL.sln" (
+  echo Created %CD%\build\OPAL.sln
+) else (
+  echo CMake finished but did not write build\OPAL.sln or build\OPAL.slnx.
+  exit /b 1
+)
 exit /b 0
 
 :generator

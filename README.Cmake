@@ -381,7 +381,9 @@ Windows
 
 Use Visual Studio 2022 or later, with the C++ desktop workload, and CMake.
 Build PTLib with the same generator, then from this directory run
-configure_vs.bat. It writes build\OPAL.sln plus the vcxproj files. With no
+configure_vs.bat. It writes build\OPAL.sln plus the vcxproj files.
+Visual Studio 2026 writes build\OPAL.slnx instead of build\OPAL.sln.
+With no
 argument it uses ..\ptlib\build when that directory contains
 PTLibConfig.cmake. Pass a PTLib build directory or install prefix
 otherwise:
