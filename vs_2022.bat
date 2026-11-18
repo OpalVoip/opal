@@ -1,4 +1,8 @@
 @echo off
+
+set "BUILD_DIR=build_2022"
+set "VCPKG_DIR=C:\src\vcpkg"
+
 setlocal EnableExtensions
 cd /d "%~dp0"
 
@@ -27,7 +31,6 @@ exit /b 1
 rem The vcpkg shipped with Visual Studio 2022 does not implement
 rem REMOVE_DUPLICATES. Prefer VCPKG_ROOT when that checkout is current,
 rem and otherwise use C:\src\vcpkg.
-set "VCPKG_DIR=C:\src\vcpkg"
 if not defined VCPKG_ROOT goto have_vcpkg_dir
 if not exist "%VCPKG_ROOT%\scripts\cmake\vcpkg_host_path_list.cmake" goto have_vcpkg_dir
 findstr /C:"REMOVE_DUPLICATES" "%VCPKG_ROOT%\scripts\cmake\vcpkg_host_path_list.cmake" >nul
@@ -54,7 +57,6 @@ call "%VCPKG_DIR%\bootstrap-vcpkg.bat" -disableMetrics
 if errorlevel 1 exit /b 1
 :vcpkg_bootstrapped
 
-set "BUILD_DIR=build_2022"
 if not exist "%BUILD_DIR%\CMakeCache.txt" goto configure
 findstr /I /C:"%VCPKG_DIR:\=/%/scripts/buildsystems/vcpkg.cmake" "%BUILD_DIR%\CMakeCache.txt" >nul
 if not errorlevel 1 goto configure
