@@ -25,56 +25,86 @@ if(CMAKE_HOST_WIN32
   unset(_opal_triplet)
 endif()
 
+# The manifest baseline's ports call vcpkg_host_path_list(REMOVE_DUPLICATES).
+# Visual Studio 2022's bundled scripts do not implement that operation, so
+# expat fails with "Operation REMOVE_DUPLICATES not recognized."
+function(opal_vcpkg_root_current root out)
+  set(${out} FALSE PARENT_SCOPE)
+  set(_list "${root}/scripts/cmake/vcpkg_host_path_list.cmake")
+  if(NOT EXISTS "${_list}")
+    return()
+  endif()
+  file(READ "${_list}" _text)
+  if(_text MATCHES "REMOVE_DUPLICATES")
+    set(${out} TRUE PARENT_SCOPE)
+  endif()
+endfunction()
+
 function(opal_find_vcpkg out)
-  set(_found "")
-  foreach(_root IN ITEMS "$ENV{VCPKG_ROOT}" "$ENV{VCPKG_INSTALLATION_ROOT}")
-    if(_root AND EXISTS "${_root}/scripts/buildsystems/vcpkg.cmake")
-      set(_found "${_root}/scripts/buildsystems/vcpkg.cmake")
-      break()
-    endif()
-  endforeach()
-  if(NOT _found)
-    find_program(OPAL_VCPKG_EXECUTABLE NAMES vcpkg vcpkg.exe)
-    if(OPAL_VCPKG_EXECUTABLE)
-      get_filename_component(_root "${OPAL_VCPKG_EXECUTABLE}" DIRECTORY)
-      if(EXISTS "${_root}/scripts/buildsystems/vcpkg.cmake")
-        set(_found "${_root}/scripts/buildsystems/vcpkg.cmake")
-      endif()
-    endif()
+  set(_roots "")
+  if(NOT "$ENV{VCPKG_ROOT}" STREQUAL "")
+    list(APPEND _roots "$ENV{VCPKG_ROOT}")
   endif()
-  if(NOT _found)
-    set(_vswhere "$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/Installer/vswhere.exe")
-    if(NOT EXISTS "${_vswhere}")
-      set(_vswhere "$ENV{ProgramFiles}/Microsoft Visual Studio/Installer/vswhere.exe")
-    endif()
-    if(EXISTS "${_vswhere}")
-      execute_process(
-        COMMAND "${_vswhere}" -latest -products * -requires Microsoft.VisualStudio.Component.Vcpkg
-                -property installationPath
-        OUTPUT_VARIABLE _vs
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET)
+  if(NOT "$ENV{VCPKG_INSTALLATION_ROOT}" STREQUAL "")
+    list(APPEND _roots "$ENV{VCPKG_INSTALLATION_ROOT}")
+  endif()
+  find_program(OPAL_VCPKG_EXECUTABLE NAMES vcpkg vcpkg.exe)
+  if(OPAL_VCPKG_EXECUTABLE)
+    get_filename_component(_root "${OPAL_VCPKG_EXECUTABLE}" DIRECTORY)
+    list(APPEND _roots "${_root}")
+  endif()
+  set(_vswhere "$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/Installer/vswhere.exe")
+  if(NOT EXISTS "${_vswhere}")
+    set(_vswhere "$ENV{ProgramFiles}/Microsoft Visual Studio/Installer/vswhere.exe")
+  endif()
+  if(EXISTS "${_vswhere}")
+    # Newest Visual Studio first. Require the C++ tools, not the Vcpkg
+    # component: the 2022 component is older than the manifest baseline.
+    execute_process(
+      COMMAND "${_vswhere}" -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+              -sort -property installationPath
+      OUTPUT_VARIABLE _vs_list
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET)
+    string(REGEX REPLACE "\r?\n" ";" _vs_list "${_vs_list}")
+    foreach(_vs IN LISTS _vs_list)
       string(STRIP "${_vs}" _vs)
-      if(_vs AND EXISTS "${_vs}/VC/vcpkg/scripts/buildsystems/vcpkg.cmake")
-        set(_found "${_vs}/VC/vcpkg/scripts/buildsystems/vcpkg.cmake")
-      endif()
-    endif()
-  endif()
-  if(NOT _found)
-    foreach(_root IN ITEMS
-        "$ENV{USERPROFILE}/vcpkg"
-        "$ENV{USERPROFILE}/source/vcpkg"
-        "$ENV{LOCALAPPDATA}/vcpkg"
-        "C:/vcpkg"
-        "C:/src/vcpkg")
-      if(_root AND EXISTS "${_root}/scripts/buildsystems/vcpkg.cmake")
-        set(_found "${_root}/scripts/buildsystems/vcpkg.cmake")
-        break()
+      if(_vs)
+        list(APPEND _roots "${_vs}/VC/vcpkg")
       endif()
     endforeach()
   endif()
-  if(_found)
-    file(TO_CMAKE_PATH "${_found}" _found)
+  list(APPEND _roots
+    "$ENV{USERPROFILE}/vcpkg"
+    "$ENV{USERPROFILE}/source/vcpkg"
+    "$ENV{LOCALAPPDATA}/vcpkg"
+    "C:/vcpkg"
+    "C:/src/vcpkg")
+
+  set(_found "")
+  set(_stale "")
+  foreach(_root IN LISTS _roots)
+    if(NOT _root OR NOT EXISTS "${_root}/scripts/buildsystems/vcpkg.cmake")
+      continue()
+    endif()
+    file(TO_CMAKE_PATH "${_root}" _root)
+    opal_vcpkg_root_current("${_root}" _current)
+    if(_current)
+      set(_found "${_root}/scripts/buildsystems/vcpkg.cmake")
+      break()
+    elseif(NOT _stale)
+      set(_stale "${_root}")
+    endif()
+  endforeach()
+  if(_found AND _stale)
+    message(STATUS "OPAL: skipping vcpkg at ${_stale}; its scripts are older than the manifest baseline")
+  elseif(NOT _found AND _stale)
+    message(FATAL_ERROR
+      "vcpkg at ${_stale} is older than the manifest baseline in vcpkg.json.\n"
+      "Its scripts do not implement REMOVE_DUPLICATES, so building expat stops with "
+      "\"Operation REMOVE_DUPLICATES not recognized.\"\n"
+      "Install the vcpkg component in Visual Studio 2026, or clone "
+      "https://github.com/microsoft/vcpkg and set VCPKG_ROOT to that directory.")
   endif()
   set(${out} "${_found}" PARENT_SCOPE)
 endfunction()
