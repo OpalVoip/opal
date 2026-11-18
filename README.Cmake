@@ -405,6 +405,14 @@ C:\src\vcpkg when VCPKG_ROOT is unset or too old to build the ports.
   vs_2022.bat
   vs_2022.bat C:\ptlib\build_2022
   cmake --build build_2022 --config Release
+
+Visual Studio 2026 is configured with vs_2026.bat. Build PTLib with
+ptlib\vs_2026.bat first. With no argument, OPAL uses ..\ptlib\build_2026.
+The script writes build_2026\OPAL.slnx.
+
+  vs_2026.bat
+  vs_2026.bat C:\ptlib\build_2026
+  cmake --build build_2026 --config Release
   cmake --install build_2022 --config Release --prefix C:\opal
 
 "cmake --help" lists the generator name for a newer Visual Studio.
