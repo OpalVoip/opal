@@ -103,8 +103,9 @@ function(opal_find_vcpkg out)
       "vcpkg at ${_stale} is older than the manifest baseline in vcpkg.json.\n"
       "Its scripts do not implement REMOVE_DUPLICATES, so building expat stops with "
       "\"Operation REMOVE_DUPLICATES not recognized.\"\n"
-      "Install the vcpkg component in Visual Studio 2026, or clone "
-      "https://github.com/microsoft/vcpkg and set VCPKG_ROOT to that directory.")
+      "Clone https://github.com/microsoft/vcpkg, bootstrap it, and pass "
+      "-DCMAKE_TOOLCHAIN_FILE=<clone>/scripts/buildsystems/vcpkg.cmake. "
+      "The Visual Studio 2022 generator can stay; its bundled vcpkg cannot.")
   endif()
   set(${out} "${_found}" PARENT_SCOPE)
 endfunction()

@@ -396,11 +396,16 @@ otherwise:
 
 If VCPKG_ROOT is set, the script passes that vcpkg toolchain to CMake.
 Otherwise CMake looks for a checkout itself. See the vcpkg section.
-The same configure for Visual Studio 2022 from a command prompt:
+Visual Studio 2022 is configured with vs_2022.bat. Build PTLib with
+ptlib\vs_2022.bat first. With no argument, OPAL uses ..\ptlib\build_2022
+when that directory contains PTLibConfig.cmake. The script writes
+build_2022\OPAL.sln and uses a current vcpkg, cloning one into
+C:\src\vcpkg when VCPKG_ROOT is unset or too old to build the ports.
 
-  cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DOPAL_PTLIB_DIR=<ptlib>
-  cmake --build build --config Release
-  cmake --install build --config Release --prefix C:\opal
+  vs_2022.bat
+  vs_2022.bat C:\ptlib\build_2022
+  cmake --build build_2022 --config Release
+  cmake --install build_2022 --config Release --prefix C:\opal
 
 "cmake --help" lists the generator name for a newer Visual Studio.
 Multi-config builds pass --config Release or --config Debug on both the
