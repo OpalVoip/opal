@@ -171,6 +171,40 @@ OpenPhone is part of the sample build when wxWidgets supplies both
 wx-config and wxrc. Homebrew's wxWidgets package provides both.
 
 
+Creating a new application
+--------------------------
+
+cmake/OPALNewApp.cmake writes a CMakeLists.txt for a program that uses
+PTLib and OPAL. Run it from the application directory, which is where
+the file is written. CMake is the only requirement. The script does not
+prompt. The project name is that directory's name. With no source list,
+the .c, .cxx, .cpp, and header files beside the new CMakeLists.txt are
+used. OPAL_NEW_APP_SOURCES names subdirectories to search recursively,
+separated by semicolons, such as App or src;include. OPAL is the tree
+that contains the script, and PTLib is the sibling ptlib directory when
+that checkout exists.
+
+  cmake -P /path/to/opal/cmake/OPALNewApp.cmake
+
+  cmake -DOPAL_NEW_APP_SOURCES=App \
+    -P /path/to/opal/cmake/OPALNewApp.cmake
+
+The generated file accepts a source tree, a build directory, or an
+install prefix for each library. Build PTLib and OPAL first, then from
+the new program's directory:
+
+  cmake -S . -B build
+  cmake --build build
+
+An existing CMakeLists.txt is left unchanged. Replace it by passing
+-DOPAL_NEW_APP_FORCE=ON before -P. Other overrides, also before -P:
+
+  cmake -DOPAL_NEW_APP_NAME=<project> \
+    -DOPAL_NEW_APP_SOURCES=<dir>[;<dir>...] \
+    -DOPAL_NEW_APP_PTLIB=<ptlib-checkout-or-prefix> \
+    -P /path/to/opal/cmake/OPALNewApp.cmake
+
+
 pkg-config
 ----------
 

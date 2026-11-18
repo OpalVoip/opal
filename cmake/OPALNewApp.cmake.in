@@ -1,0 +1,125 @@
+# Application using PTLib and OPAL.
+#
+# Written by opal/cmake/OPALNewApp.cmake. Edit this file as the program grows.
+# Build PTLib and OPAL in their own trees first, then from this directory:
+#   cmake -S . -B build
+#   cmake --build build
+cmake_minimum_required(VERSION 3.16)
+
+project(@APP_NAME@ LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# MSVC leaves __cplusplus defined as 199711L unless this switch is set.
+# /FS serialises writes to a shared vc*.pdb under parallel compiles.
+if(MSVC)
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> /FS)
+endif()
+
+# Imported includes must be searched before /usr/local/include. As system
+# includes they lose to an older installed OPAL or PTLib.
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED TRUE)
+
+# A source checkout, a CMake build directory, or an install prefix.
+set(APP_PTLIB_DIR "@PTLIB_HINT@" CACHE PATH
+  "PTLib source directory, CMake build directory, or install prefix")
+set(APP_OPAL_DIR "@OPAL_HINT@" CACHE PATH
+  "OPAL source directory, CMake build directory, or install prefix")
+
+if(APP_PTLIB_DIR)
+  get_filename_component(APP_PTLIB_DIR "${APP_PTLIB_DIR}" ABSOLUTE)
+endif()
+if(APP_OPAL_DIR)
+  get_filename_component(APP_OPAL_DIR "${APP_OPAL_DIR}" ABSOLUTE)
+endif()
+
+# Resolve hint to the directory that contains <Package>Config.cmake.
+function(app_resolve_package package config hint out_dir)
+  if(NOT hint)
+    set(${out_dir} "" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/${config}")
+    set(${out_dir} "${hint}" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/build/${config}")
+    set(${out_dir} "${hint}/build" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/lib/cmake/${package}/${config}")
+    set(${out_dir} "${hint}/lib/cmake/${package}" PARENT_SCOPE)
+    return()
+  endif()
+
+  set(_extra "")
+  if(EXISTS "${hint}/CMakeLists.txt")
+    if(package STREQUAL "OPAL")
+      set(_extra
+        "\nBuild OPAL in that tree against PTLib, without installing:\n  cmake -S \"${hint}\" -B \"${hint}/build\" -DOPAL_PTLIB_DIR=\"${APP_PTLIB_DIR}\"\n  cmake --build \"${hint}/build\"")
+    else()
+      set(_extra
+        "\nBuild it in that tree, without installing:\n  cmake -S \"${hint}\" -B \"${hint}/build\"\n  cmake --build \"${hint}/build\"")
+    endif()
+  endif()
+  message(FATAL_ERROR
+    "${package} was not found at:\n  ${hint}${_extra}")
+endfunction()
+
+app_resolve_package(PTLib PTLibConfig.cmake "${APP_PTLIB_DIR}" _app_ptlib_dir)
+if(_app_ptlib_dir)
+  set(PTLib_DIR "${_app_ptlib_dir}" CACHE PATH
+    "Directory containing PTLibConfig.cmake" FORCE)
+endif()
+
+app_resolve_package(OPAL OPALConfig.cmake "${APP_OPAL_DIR}" _app_opal_dir)
+if(_app_opal_dir)
+  set(OPAL_DIR "${_app_opal_dir}" CACHE PATH
+    "Directory containing OPALConfig.cmake" FORCE)
+endif()
+
+find_package(PTLib CONFIG REQUIRED)
+find_package(OPAL CONFIG REQUIRED)
+
+add_executable(@APP_NAME@
+@APP_SOURCES@)
+target_link_libraries(@APP_NAME@ PRIVATE OPAL::opal PTLib::ptlib)
+
+# The executable finds the shared libraries in a build tree on macOS and Linux.
+function(app_imported_libdir target out_var)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" _cfg)
+  get_target_property(_loc "${target}" "IMPORTED_LOCATION_${_cfg}")
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION_RELEASE)
+  endif()
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION_DEBUG)
+  endif()
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION)
+  endif()
+  if(NOT _loc)
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+  get_filename_component(_dir "${_loc}" DIRECTORY)
+  set(${out_var} "${_dir}" PARENT_SCOPE)
+endfunction()
+
+app_imported_libdir(OPAL::opal _app_opal_libdir)
+app_imported_libdir(PTLib::ptlib _app_ptlib_libdir)
+set(_app_rpath "")
+if(_app_opal_libdir)
+  list(APPEND _app_rpath "${_app_opal_libdir}")
+endif()
+if(_app_ptlib_libdir)
+  list(APPEND _app_rpath "${_app_ptlib_libdir}")
+endif()
+if(_app_rpath)
+  set_target_properties(@APP_NAME@ PROPERTIES BUILD_RPATH "${_app_rpath}")
+endif()
+
+message(STATUS "@APP_NAME@ PTLib: ${_app_ptlib_dir}")
+message(STATUS "@APP_NAME@ OPAL: ${_app_opal_dir}")
