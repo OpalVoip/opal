@@ -6,6 +6,28 @@
 #   cmake --build build
 cmake_minimum_required(VERSION 3.16)
 
+set(APP_PTLIB_DIR "@PTLIB_HINT@" CACHE PATH
+  "PTLib source directory, CMake build directory, or install prefix")
+set(APP_OPAL_DIR "@OPAL_HINT@" CACHE PATH
+  "OPAL source directory, CMake build directory, or install prefix")
+
+# vcpkg installs ports into the library build tree. This project has no
+# manifest, so the toolchain would search the classic install and miss
+# OpenSSL. Set the prefix before project(), which loads the toolchain.
+if(CMAKE_HOST_WIN32 AND NOT VCPKG_INSTALLED_DIR)
+  if(EXISTS "${APP_OPAL_DIR}/build/vcpkg_installed")
+    set(VCPKG_INSTALLED_DIR "${APP_OPAL_DIR}/build/vcpkg_installed" CACHE PATH
+      "vcpkg install prefix used by OPAL" FORCE)
+  elseif(EXISTS "${APP_PTLIB_DIR}/build/vcpkg_installed")
+    set(VCPKG_INSTALLED_DIR "${APP_PTLIB_DIR}/build/vcpkg_installed" CACHE PATH
+      "vcpkg install prefix used by PTLib" FORCE)
+  endif()
+  if(VCPKG_INSTALLED_DIR AND NOT VCPKG_TARGET_TRIPLET)
+    set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING
+      "vcpkg triplet used by the PTLib and OPAL builds" FORCE)
+  endif()
+endif()
+
 project(@APP_NAME@ LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -21,12 +43,6 @@ endif()
 # Imported includes must be searched before /usr/local/include. As system
 # includes they lose to an older installed OPAL or PTLib.
 set(CMAKE_NO_SYSTEM_FROM_IMPORTED TRUE)
-
-# A source checkout, a CMake build directory, or an install prefix.
-set(APP_PTLIB_DIR "@PTLIB_HINT@" CACHE PATH
-  "PTLib source directory, CMake build directory, or install prefix")
-set(APP_OPAL_DIR "@OPAL_HINT@" CACHE PATH
-  "OPAL source directory, CMake build directory, or install prefix")
 
 if(APP_PTLIB_DIR)
   get_filename_component(APP_PTLIB_DIR "${APP_PTLIB_DIR}" ABSOLUTE)
