@@ -8,6 +8,11 @@ if errorlevel 1 (
   exit /b 1
 )
 
+set "VS_CHOICE="
+if /I "%~1"=="2017" set "VS_CHOICE=%~1" & shift
+if /I "%~1"=="2019" set "VS_CHOICE=%~1" & shift
+if /I "%~1"=="2022" set "VS_CHOICE=%~1" & shift
+if /I "%~1"=="2026" set "VS_CHOICE=%~1" & shift
 set "PTLIB_DIR=%~1"
 if not "%PTLIB_DIR%"=="" goto have_ptlib
 set "PTLIB_DIR=%~dp0..\ptlib\build"
@@ -18,11 +23,11 @@ echo   configure_vs.bat C:\ptlib\build
 exit /b 1
 
 :have_ptlib
-call :generator
+call :generator "%VS_CHOICE%"
 
 set "TOOLCHAIN="
 if defined VCPKG_ROOT if exist "%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" (
-  set "TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
+  set TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
 )
 if not defined TOOLCHAIN echo VCPKG_ROOT is not set. CMake will look for vcpkg.
 
@@ -36,14 +41,21 @@ echo Created %CD%\build\OPAL.sln
 exit /b 0
 
 :generator
+if /I "%~1"=="2017" set "GENERATOR=Visual Studio 15 2017" & exit /b 0
+if /I "%~1"=="2019" set "GENERATOR=Visual Studio 16 2019" & exit /b 0
+if /I "%~1"=="2022" set "GENERATOR=Visual Studio 17 2022" & exit /b 0
+if /I "%~1"=="2026" set "GENERATOR=Visual Studio 18 2026" & exit /b 0
+if not "%~1"=="" set "GENERATOR=%~1" & exit /b 0
+
+rem installationVersion and catalog_productLineVersion are both 18 for the
+rem newest Visual Studio. CMake's generator name is "Visual Studio 18 2026".
 set "GENERATOR=Visual Studio 17 2022"
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 if not exist "%VSWHERE%" exit /b 0
-set "VS_MAJOR="
-set "VS_YEAR="
-for /f "usebackq tokens=1 delims=." %%V in (`"%VSWHERE%" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion`) do set "VS_MAJOR=%%V"
-for /f "usebackq delims=" %%Y in (`"%VSWHERE%" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property catalog_productLineVersion`) do set "VS_YEAR=%%Y"
-if not defined VS_MAJOR exit /b 0
-if not defined VS_YEAR exit /b 0
-set "GENERATOR=Visual Studio %VS_MAJOR% %VS_YEAR%"
+set "VS_LINE="
+for /f "usebackq tokens=1 delims=." %%V in (`"%VSWHERE%" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property catalog_productLineVersion`) do set "VS_LINE=%%V"
+if "%VS_LINE%"=="15" set "GENERATOR=Visual Studio 15 2017"
+if "%VS_LINE%"=="16" set "GENERATOR=Visual Studio 16 2019"
+if "%VS_LINE%"=="17" set "GENERATOR=Visual Studio 17 2022"
+if "%VS_LINE%"=="18" set "GENERATOR=Visual Studio 18 2026"
 exit /b 0
