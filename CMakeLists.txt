@@ -405,6 +405,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/mpl-1.0.htm")
   set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  # The package ships headers, opal.pc and OPALConfig.cmake, so consumers
+  # also need PTLib, the build tools and the -dev package of each PUBLIC
+  # library. These are added to the dpkg-shlibdeps runtime dependencies.
+  set(_opal_deb_depends "ptlib" "cmake" "pkg-config")
+  if(OPAL_PC_SRTP_FOUND)
+    list(APPEND _opal_deb_depends libsrtp2-dev)
+  endif()
+  if(OPAL_PC_SPEEXDSP_FOUND)
+    list(APPEND _opal_deb_depends libspeexdsp-dev)
+  endif()
+  list(JOIN _opal_deb_depends ", " CPACK_DEBIAN_PACKAGE_DEPENDS)
   set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
   include(CPack)
 endif()
