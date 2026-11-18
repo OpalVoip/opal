@@ -7,6 +7,24 @@ if(CMAKE_HOST_WIN32 AND NOT DEFINED OPAL_USE_VCPKG)
     "On Windows, use vcpkg for dependencies when a checkout is found")
 endif()
 
+# An unset Visual Studio platform is filled in after the toolchain loads.
+# vcpkg then guesses x86-windows, and ports such as krb5 refuse that triplet.
+# -A Win32 and an explicit triplet are left alone.
+if(CMAKE_HOST_WIN32
+    AND CMAKE_GENERATOR MATCHES "^Visual Studio"
+    AND NOT VCPKG_TARGET_TRIPLET
+    AND NOT DEFINED ENV{VCPKG_TARGET_TRIPLET}
+    AND NOT CMAKE_GENERATOR_PLATFORM MATCHES "^[Ww][Ii][Nn]32$")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
+    set(_opal_triplet arm64-windows)
+  else()
+    set(_opal_triplet x64-windows)
+  endif()
+  set(VCPKG_TARGET_TRIPLET "${_opal_triplet}" CACHE STRING "vcpkg triplet")
+  message(STATUS "OPAL: vcpkg triplet ${VCPKG_TARGET_TRIPLET}")
+  unset(_opal_triplet)
+endif()
+
 function(opal_find_vcpkg out)
   set(_found "")
   foreach(_root IN ITEMS "$ENV{VCPKG_ROOT}" "$ENV{VCPKG_INSTALLATION_ROOT}")
