@@ -219,5 +219,30 @@ if(_app_rpath)
   set_target_properties(@APP_NAME@ PROPERTIES BUILD_RPATH "${_app_rpath}")
 endif()
 
+# Visual Studio loads DLLs from PATH when debugging. BUILD_RPATH does not
+# apply on Windows, so put the OPAL and PTLib output directories (and the
+# vcpkg bins those libraries need) into LocalDebuggerEnvironment.
+if(WIN32)
+  set(_app_dbg_path
+    "$<TARGET_FILE_DIR:OPAL::opal>;$<TARGET_FILE_DIR:PTLib::ptlib>")
+  if(VCPKG_INSTALLED_DIR)
+    set(_app_vcpkg_triplet "${VCPKG_TARGET_TRIPLET}")
+    if(NOT _app_vcpkg_triplet)
+      set(_app_vcpkg_triplet "x64-windows")
+    endif()
+    set(_app_vcpkg_root "${VCPKG_INSTALLED_DIR}/${_app_vcpkg_triplet}")
+    file(TO_CMAKE_PATH "${_app_vcpkg_root}" _app_vcpkg_root)
+    string(APPEND _app_dbg_path
+      ";${_app_vcpkg_root}/bin;${_app_vcpkg_root}/debug/bin")
+  endif()
+  set(_app_dbg_env "PATH=${_app_dbg_path};%PATH%")
+  if(EXISTS "${_app_opal_dir}/plugins")
+    file(TO_CMAKE_PATH "${_app_opal_dir}/plugins" _app_plugin_dir)
+    set(_app_dbg_env "PTLIBPLUGINDIR=${_app_plugin_dir}\n${_app_dbg_env}")
+  endif()
+  set_target_properties(@APP_NAME@ PROPERTIES
+    VS_DEBUGGER_ENVIRONMENT "${_app_dbg_env}")
+endif()
+
 message(STATUS "@APP_NAME@ PTLib: ${_app_ptlib_dir}")
 message(STATUS "@APP_NAME@ OPAL: ${_app_opal_dir}")
