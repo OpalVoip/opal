@@ -137,6 +137,10 @@ add_executable(@APP_NAME@
 @APP_SOURCES@)
 target_link_libraries(@APP_NAME@ PRIVATE OPAL::opal PTLib::ptlib)
 
+# Optional extra settings for this application, e.g. more sources, libraries
+# or definitions for the @APP_NAME@ target.
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMakePackage.txt" OPTIONAL)
+
 # Put the PTLib and OPAL Visual Studio projects in this solution. They keep
 # building in their own directories. A nested build, such as build/debug, is
 # skipped so the same project is not listed twice.
