@@ -34,7 +34,7 @@ if not defined TOOLCHAIN echo VCPKG_ROOT is not set. CMake will look for vcpkg.
 echo Configuring OPAL with "%GENERATOR%"
 echo PTLib: %PTLIB_DIR%
 rem OPAL_INCLUDE_PTLIB_PROJECTS lists that build's vcxproj files in this solution.
-cmake -S . -B build -G "%GENERATOR%" -A x64 -DOPAL_PTLIB_DIR="%PTLIB_DIR%" -DOPAL_INCLUDE_PTLIB_PROJECTS=ON %TOOLCHAIN%
+cmake -S . -B %CD%\build -G "%GENERATOR%" -A x64 -DOPAL_PTLIB_DIR="%PTLIB_DIR%" -DOPAL_INCLUDE_PTLIB_PROJECTS=ON -DOPAL_BUILD_SAMPLES=ON %TOOLCHAIN%
 if errorlevel 1 exit /b 1
 
 echo.

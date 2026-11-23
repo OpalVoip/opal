@@ -169,3 +169,4 @@ nbproject/private/
 *.bak
 ptlib-crash.log
 build_deb
+/Configure.log

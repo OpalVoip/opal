@@ -1,0 +1,227 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="MinSizeRel" />
+    <BuildType Name="RelWithDebInfo" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/OPAL/">
+    <Project Path="build/ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d94cb871-4eeb-3868-aca2-0cbbc0928549" DefaultStartup="true">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/asntest.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/audio.vcxproj" />
+      <BuildDependency Project="build/samples/c_api.vcxproj" />
+      <BuildDependency Project="build/samples/codectest.vcxproj" />
+      <BuildDependency Project="build/samples/console.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/dnstest.vcxproj" />
+      <BuildDependency Project="build/samples/fax.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/find_ip.vcxproj" />
+      <BuildDependency Project="build/plugins/gsmamrcodec_ptplugin.vcxproj" />
+      <BuildDependency Project="build/plugins/h263_ffmpeg_ptplugin.vcxproj" />
+      <BuildDependency Project="build/plugins/h264_ffmpeg_ptplugin.vcxproj" />
+      <BuildDependency Project="build/plugins/h265_ffmpeg_ptplugin.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/hello.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/httptest.vcxproj" />
+      <BuildDependency Project="build/plugins/iSAC_ptplugin.vcxproj" />
+      <BuildDependency Project="build/plugins/ima_adpcm_ptplugin.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/ipv6test.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/jsontest.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/map_dict.vcxproj" />
+      <BuildDependency Project="build/plugins/mpeg4_ffmpeg_ptplugin.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/netif.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/odbc.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+      <BuildDependency Project="build/samples/opalsrv.vcxproj" />
+      <BuildDependency Project="build/plugins/openh264_ptplugin.vcxproj" />
+      <BuildDependency Project="build/samples/openphone.vcxproj" />
+      <BuildDependency Project="build/plugins/opus_ptplugin.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+      <BuildDependency Project="build/plugins/sample_lid_ptplugin.vcxproj" />
+      <BuildDependency Project="build/plugins/silk_ptplugin.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/sockbundle.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/strtest.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/stunclient.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/thread.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/timing.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/url.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/vcard.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/samples/vidtest.vcxproj" />
+      <BuildDependency Project="build/plugins/vp8_webm_ptplugin.vcxproj" />
+    </Project>
+    <Project Path="build/INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="af36f97b-fccf-3cf1-9a07-6452bc7d7108">
+      <BuildDependency Project="build/ALL_BUILD.vcxproj" />
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <Build Solution="Debug|*" Project="false" />
+      <Build Solution="Release|*" Project="false" />
+      <Build Solution="MinSizeRel|*" Project="false" />
+      <Build Solution="RelWithDebInfo|*" Project="false" />
+    </Project>
+    <Project Path="build/ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3a3fb3eb-8e6b-3b2a-9bb2-64f4c1774f73" />
+    <Project Path="build/both.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="73e59f92-af86-3c62-80b9-7c8e219faa3d">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <Build Solution="Debug|*" Project="false" />
+      <Build Solution="Release|*" Project="false" />
+      <Build Solution="MinSizeRel|*" Project="false" />
+      <Build Solution="RelWithDebInfo|*" Project="false" />
+    </Project>
+    <Project Path="build/debug.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="abc782e1-75eb-30c2-9ea0-8b9179919cfd">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <Build Solution="Debug|*" Project="false" />
+      <Build Solution="Release|*" Project="false" />
+      <Build Solution="MinSizeRel|*" Project="false" />
+      <Build Solution="RelWithDebInfo|*" Project="false" />
+    </Project>
+    <Project Path="build/plugins/gsmamrcodec_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e31769f9-306d-3bf7-b26d-eb976038a4e9">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/h263_ffmpeg_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6ef9bbe5-929a-3cc9-b6a1-11b0a5f7504b">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/h264_ffmpeg_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d961e42f-6bff-3965-8051-ffeab71f13dd">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/h265_ffmpeg_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bd80859c-09d1-3059-b537-7c07bf507c20">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/iSAC_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9e7e3551-995d-3594-90ff-a7e07e2b5891">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/ima_adpcm_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b26105df-3ed3-3d22-93ce-14a034d5d606">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/mpeg4_ffmpeg_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ee6f891e-d99d-3b7f-a5de-fef04ef6a99f">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/opal.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c9abbd43-b589-30b2-bc9f-d8d43b0940d5">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/openh264_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ed48ee75-19cd-3d36-b7e4-e2ecd16ca5f8">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/opus_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2f316a24-637c-3154-a11d-6d214f2ec49f">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/sample_lid_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4fd076de-c995-3a7f-990d-b453fb2f3757">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/plugins/silk_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9e96b297-76d0-3177-b979-6193ccdd38e4">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+    <Project Path="build/uninstall.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7858a750-e658-363f-8566-90ec502d31f6">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <Build Solution="Debug|*" Project="false" />
+      <Build Solution="Release|*" Project="false" />
+      <Build Solution="MinSizeRel|*" Project="false" />
+      <Build Solution="RelWithDebInfo|*" Project="false" />
+    </Project>
+    <Project Path="build/plugins/vp8_webm_ptplugin.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5a51d592-f22c-31b1-869d-b4af476dd706">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" />
+    </Project>
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="build/samples/c_api.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="70c2773d-b43f-3c7c-9b96-b4d9225d889d">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+    <Project Path="build/samples/codectest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="af7b7dcc-574d-326a-bd58-fab0e43a8490">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+    <Project Path="build/samples/console.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0432acce-082d-3234-90cf-73d0ec5eb4bc">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+    <Project Path="build/samples/fax.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b858d649-1406-35bc-8b45-b68b89789dca">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+    <Project Path="build/samples/opalsrv.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="517c4b1b-f178-3000-9755-3a8a66c3c0a0">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+    <Project Path="build/samples/openphone.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="23d348dc-9a1b-369b-9edd-ed5f0113e6a7">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+      <BuildDependency Project="build/opal.vcxproj" />
+    </Project>
+  </Folder>
+  <Folder Name="/PTLib/">
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/asntest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8e0febd4-1225-36ab-ae6e-9bf0a5edf828">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/audio.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="59854f8d-9be8-3a9a-accd-362bd83442a3">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/dnstest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4ef0f4bf-d5f1-3de1-914c-12b277a96446">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/find_ip.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="11aa54d1-1bcd-3128-9f00-fa3a8119c0b9">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/hello.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="08fcfcb3-3132-32f1-bbe6-a17ba5886614">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/httptest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6ca34bf1-a5c1-328e-b49e-90d08dd3b228">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/ipv6test.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5b290f9d-87f6-3d8e-abc8-dcd2b85f88c9">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/jsontest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="87fc2624-c878-308b-85d9-3ca1f32ee53a">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/map_dict.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d32c4141-c55d-3475-9254-1bd8f24e3df2">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/netif.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6f648981-7de5-32e9-a1b4-a5eabaeba484">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/odbc.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f226942b-e583-3a8a-b585-44a12f3f2c6b">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/ptlib.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9a664fa9-e672-3998-a0db-37ac8b83eff1">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/sockbundle.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="14c48db4-2858-314a-a319-de98eb475b63">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/strtest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9b408664-2bbc-304b-b2fa-5b40038a4281">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/stunclient.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d36f36a4-91a5-3a78-99da-8ac6d709091a">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/thread.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d05ff1be-ae2c-3def-823b-dbe06e4f48da">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/timing.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b4178467-346e-32d9-a571-e8d8e748d858">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/url.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="726fe050-045e-3143-94bd-3aea89a824a1">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/vcard.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8d059019-f19e-3aa1-b4f9-5e611ee391eb">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+    <Project Path="D:/Work/Companies/Tacodi/ptlib/build/samples/vidtest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="45618c6a-ff05-35bc-91c3-c1dfd2f63bd6">
+      <BuildDependency Project="build/ZERO_CHECK.vcxproj" />
+    </Project>
+  </Folder>
+  <Project Path="Configure.vcxproj" Id="642ce41d-be3f-8f67-0eba-5b76893a7ff7">
+    <Build Solution="Debug|x64" Project="false" />
+  </Project>
+</Solution>
