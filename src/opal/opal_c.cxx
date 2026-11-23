@@ -1910,8 +1910,10 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
     SetTransportIdleTime(command.m_param.m_general.m_transportIdleTimeout);
   if (command.m_param.m_general.m_natKeepAliveTimeout > 0)
     SetNatKeepAliveTime(command.m_param.m_general.m_natKeepAliveTimeout);
+#if OPAL_ICE
   if (command.m_param.m_general.m_iceTimeout > 0)
     SetICETimeout(command.m_param.m_general.m_iceTimeout);
+#endif
   if (command.m_param.m_general.m_staleRTPTimeout > 0)
     SetStaleRTPTimeout(command.m_param.m_general.m_staleRTPTimeout);
 }

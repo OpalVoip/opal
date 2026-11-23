@@ -27,6 +27,8 @@
  */
 
 #include <ptlib.h>
+
+#include <opal_config.h>
 #include <ep/skinnyep.h>
 
 #if OPAL_SKINNY
@@ -68,6 +70,7 @@ static PString CreateToken(const OpalSkinnyEndPoint::PhoneDevice & phone, unsign
 static POrdinalToString::Initialiser const CodecCodes[] = {
   {   2, OPAL_G711_ALAW_64K  },
   {   4, OPAL_G711_ULAW_64K  },
+#if OPAL_OBSOLETE_CODECS
   {   6, OPAL_G722           },
   {   9, OPAL_G7231          },
   {  10, OPAL_G728           },
@@ -75,14 +78,19 @@ static POrdinalToString::Initialiser const CodecCodes[] = {
   {  12, OPAL_G729A          },
   {  15, OPAL_G729B          },
   {  16, OPAL_G729AB         },
+#endif
+#if OPAL_OBSOLETE_CODECS
   {  40, OPAL_G7221_32K      },
   {  41, OPAL_G7221_24K      },
   {  80, OPAL_GSM0610        },
   {  82, OPAL_G726_32K       },
   {  83, OPAL_G726_24K       },
   {  84, OPAL_G726_16K       },
+#endif
 #if OPAL_VIDEO
+#if OPAL_OBSOLETE_CODECS
   { 100, OPAL_H261 },
+#endif
   { 101, OPAL_H263           },
   { 103, OPAL_H264           },
   { 106, OPAL_FECC_RTP       },
@@ -103,7 +111,7 @@ OpalSkinnyEndPoint::SkinnyMsg::SkinnyMsg(uint32_t id, PINDEX sizeofClass, PINDEX
   , m_headerVersion(0)
 {
   m_length = sizeofClass - ((char *)&m_messageId - (char *)this);
-  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memset(&m_messageId, 0, m_length));
+  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memset((void *)&m_messageId, 0, m_length));
   m_messageId = id;
 }
 
@@ -111,7 +119,7 @@ OpalSkinnyEndPoint::SkinnyMsg::SkinnyMsg(uint32_t id, PINDEX sizeofClass, PINDEX
 void OpalSkinnyEndPoint::SkinnyMsg::Construct(const PBYTEArray & pdu)
 {
   PINDEX len = m_length + sizeof(m_headerVersion);
-  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memcpy(&m_headerVersion, pdu, std::min(len, pdu.GetSize())));
+  P_DISABLE_GCC_WARNING("-Wclass-memaccess", memcpy((void *)&m_headerVersion, pdu, std::min(len, pdu.GetSize())));
   PTRACE_IF(2, pdu.GetSize() < len - m_extraSpace, &pdu, PTraceModule(), "Received message size error: "
             "id=0x" << hex << GetID() << dec << ", expected = " << len << ", received = " << pdu.GetSize());
 }

@@ -9,7 +9,7 @@ OpenPhone is the fully featured example of everything that OPAL does
 (SIP, H.323, H.239, Send FAX , GateKeeper, Start IM, Presence, Recording
 and Send Audio File, etc)
 
-A precompiled Windows installer for OpenPhone is available on Source Forge.
+OpenPhone is part of the OPAL source at https://github.com/OpalVoip/opal.
 
 OpenPhone is based on wxWidgets, so as well as all the usual PTLib and
 OPAL stuff, you also have to get wxWidgets installed before you can get
@@ -66,17 +66,16 @@ FAQ Open Phone
 ==============
 
 Disclaimer:
-   The follow is edit version of email from opalvoip-devel@lists.sourceforge.net
-   mailing list. Since Opal is always being improved some of this information
-   might be out of date.
+   The following is an edited message from the project mailing list. Since
+   Opal is always being improved some of this information might be out of date.
 
 
 Q. What OS does Open Phone run on?
 
 A. OpenPhone does run on Linux, OS X, and Windows XP, Vista, 7 and 8.
    
-   Only a Windows installer on Source Forge. But that is only because doing
-   binary distros for Linux is a huge job, there are so many!
+   A binary package is published for Windows only. Binary packages for Linux
+   are a large job, because there are so many distributions.
 
    An installer for OS-X is in the pipeline, just as soon as we figure out how!
 

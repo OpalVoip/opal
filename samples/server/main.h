@@ -616,10 +616,6 @@ class MyManager : public MyManagerParent
     OpalRecordManager::Options m_recordingOptions;
 #endif
 
-#if OPAL_CAPI
-    bool m_enableCAPI;
-#endif
-
 #if OPAL_IVR
     PFilePath m_signLanguageAnalyserDLL;
 #endif

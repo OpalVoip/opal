@@ -66,7 +66,9 @@ OpalResample::OpalResample(const OpalMediaFormat & inputMediaFormat,
 
   int error = 1;
 
-#if LIBSWRESAMPLE_VERSION_MAJOR > 4
+  // swr_alloc_set_opts2 arrived in libswresample 4.5; major stayed 4 until
+  // FFmpeg 6, so Debian 5.1 still warns on the old API if gated on major only.
+#if LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 5, 100)
   AVChannelLayout out_layout, in_layout;
   switch (outChannels) {
     case 1: out_layout = AV_CHANNEL_LAYOUT_MONO; break;

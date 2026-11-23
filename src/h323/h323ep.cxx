@@ -46,7 +46,6 @@
 #include <h323/h323rtp.h>
 #include <ptclib/url.h>
 #include <ptclib/enum.h>
-#include <ptclib/pils.h>
 #include <opal.h>
 
 
@@ -1175,51 +1174,9 @@ PBoolean H323EndPoint::ParsePartyName(const PString & remoteParty,
   PCaselessString type = url.GetParamVars()("type");
 
   if (url.GetScheme() == "callto") {
-    // Do not yet support ILS
     if (type == "directory") {
-#if OPAL_PTLIB_LDAP
-      PString server = url.GetHostName();
-      if (server.IsEmpty())
-        server = GetDefaultILSServer();
-      if (server.IsEmpty())
-        return false;
-
-      PILSSession ils;
-      if (!ils.Open(server, url.GetPort())) {
-        PTRACE(1, "H323\tCould not open ILS server at \"" << server
-               << "\" - " << ils.GetErrorText());
-        return false;
-      }
-
-      PILSSession::RTPerson person;
-      if (!ils.SearchPerson(alias, person)) {
-        PTRACE(1, "H323\tCould not find "
-               << server << '/' << alias << ": " << ils.GetErrorText());
-        return false;
-      }
-
-      if (!person.sipAddress.IsValid()) {
-        PTRACE(1, "H323\tILS user " << server << '/' << alias
-               << " does not have a valid IP address");
-        return false;
-      }
-
-      // Get the IP address
-      address = OpalTransportAddress(person.sipAddress);
-
-      // Get the port if provided
-      for (PINDEX i = 0; i < person.sport.GetSize(); i++) {
-        if (person.sport[i] != 1503) { // Dont use the T.120 port
-          address = H323TransportAddress(person.sipAddress, person.sport[i]);
-          break;
-        }
-      }
-
-      alias = PString::Empty(); // No alias for ILS lookup, only host
-      return true;
-#else
+      PTRACE(1, "H323\tDirectory lookup is not supported");
       return false;
-#endif
     }
 
     if (url.GetParamVars().Contains("gateway"))

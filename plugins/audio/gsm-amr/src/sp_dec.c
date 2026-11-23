@@ -976,7 +976,7 @@ static void A_Refl( Word32 a[], Word32 refl[] )
 
    /* backward Levinson recursion */
    for ( i = M - 1; i >= 0; i-- ) {
-      if ( labs( aState[i] ) >= 4096 ) {
+      if ( llabs( aState[i] ) >= 4096 ) {
          goto ExitRefl;
       }
       refl[i] = aState[i] << 3;
@@ -1021,7 +1021,7 @@ static void A_Refl( Word32 a[], Word32 refl[] )
          else
             temp = ( temp >> scale );
 
-         if ( labs( temp ) > 32767 ) {
+         if ( llabs( temp ) > 32767 ) {
             goto ExitRefl;
          }
          bState[j] = temp;
@@ -1344,7 +1344,7 @@ static Word32 Syn_filt( Word32 a[], Word32 x[], Word32 y[], Word32 lg, Word32 me
       s -= yy[-8] * a[8];
       s -= yy[-9] * a[9];
       s -= yy[-10] * a[10];
-      if ( labs( s ) < 0x7ffffff )
+      if ( llabs( s ) < 0x7ffffff )
          *yy = ( s + 0x800L ) >> 12;
       else if ( s > 0 ) {
          *yy = 32767;
@@ -1410,7 +1410,7 @@ static void Syn_filt_overflow( Word32 a[], Word32 x[], Word32 y[], Word32 lg, Wo
          }
       }
 
-      if ( labs( s ) < 0x7FFE800 )
+      if ( llabs( s ) < 0x7FFE800 )
          *yy = ( s + 0x800L ) >> 12;
       else if ( s > 0 ) {
          *yy = 32767;
@@ -1545,7 +1545,7 @@ static void dtx_dec( dtx_decState *st, Word32 *mem_syn, D_plsfState *lsfState,
             else {
                negative = 0;
             }
-            st->lsf_hist_mean[i + j * M] = labs( st->lsf_hist_mean[i + j * M] );
+            st->lsf_hist_mean[i + j * M] = llabs( st->lsf_hist_mean[i + j * M] );
 
             /* apply soft limit */
             if ( st->lsf_hist_mean[i + j * M] > 655 ) {
@@ -3700,7 +3700,7 @@ static Word32 Cb_gain_average( Cb_gain_averageState *st, enum Mode mode, Word32
 
    /* compute lsp difference */
    for ( i = 0; i < M; i++ ) {
-      tmp1 = labs( lspAver[i]- lsp[i] );
+      tmp1 = llabs( lspAver[i]- lsp[i] );
       shift1 = 0;
       if (tmp1 != 0){
          while (!(tmp1 & 0x2000))
@@ -4006,7 +4006,7 @@ static void ph_disp( ph_dispState *state, enum Mode mode, Word32 x[],
       temp1 = x[i] * pitch_fac + inno[i] * cbGain;
       temp2 = temp1 << tmp_shift;
       x[i] = ( temp2 + 0x4000 ) >> 15;
-      if (labs(x[i]) > 32767)
+      if (llabs(x[i]) > 32767)
       {
          if ((temp1 ^ temp2) & 0x80000000) {
             x[i] = (temp1 & 0x80000000) ? -32768: 32767;
@@ -5212,7 +5212,7 @@ static void Decoder_amr( Decoder_amrState *st, enum Mode mode, Word16 parm[],
       if ( pit_sharp > 16384 ) {
          for ( i = 0; i < L_SUBFR; i++ ) {
             excp[i] = excp[i] + exc_enhanced[i];
-            if (labs(excp[i]) > 32767)
+            if (llabs(excp[i]) > 32767)
                excp[i] = (excp[i] & 0x80000000) ? -32768 : 32767;
          }
          agc2( exc_enhanced, excp );
@@ -5303,7 +5303,7 @@ static void Residu40( Word32 a[], Word32 x[], Word32 y[] )
          ;
       s += a[8] * x[i - 8] + a[9] * x[i - 9] + a[10] * x[i - 10];
       y[i] = ( s + 0x800 ) >> 12;
-      if (abs(y[i]) > 32767){
+      if (labs(y[i]) > 32767){
          /* go to safe mode */
          for (i = 0; i < 40; i++) {
             s = a[0] * x[i];
@@ -5317,7 +5317,7 @@ static void Residu40( Word32 a[], Word32 x[], Word32 y[] )
                }
             }
             y[i] = ( s + 0x800 ) >> 12;
-            if (abs(y[i]) > 32767)
+            if (labs(y[i]) > 32767)
                y[i] = (y[i] & 0x80000000) ? -32768 : 32767;
          }
          return;
@@ -5435,7 +5435,7 @@ static void agc( agcState *st, Word32 *sig_in, Word32 *sig_out, Word16 agc_fac )
       gain = ( gain * agc_fac ) >> 15;
       gain = gain + g0;
       sig_out[i] = ( sig_out[i] * gain ) >> 12;
-      if (labs(sig_out[i]) > 32767)
+      if (llabs(sig_out[i]) > 32767)
          sig_out[i] = (sig_out[i] & 0x8000000) ? -32768 : 32767;
    }
    st->past_gain = gain;
@@ -5520,7 +5520,7 @@ static void Post_Filter( Post_FilterState *st, enum Mode mode, Word32 *syn,
 
       for ( i = 1; i < 21; i++ ) {
          tmp += h[i] * h[i + 1];
-         if (abs(tmp) > 1073741823)
+         if (labs(tmp) > 1073741823)
             tmp = 1073741823;
       }
       temp2 = tmp >> 15;
@@ -5540,23 +5540,23 @@ static void Post_Filter( Post_FilterState *st, enum Mode mode, Word32 *syn,
 
       do {
          *p1 = *p1 - ( ( temp2 * *p2-- ) >> 15 );
-         if (abs(*p1) > 32767) {
+         if (labs(*p1) > 32767) {
             *p1 = (*p1 & 0x80000000) ? -32768 : 32767;
          }
          p1--;
          *p1 = *p1 - ( ( temp2 * *p2-- ) >> 15 );
-         if (abs(*p1) > 32767) {
+         if (labs(*p1) > 32767) {
             *p1 = (*p1 & 0x80000000) ? -32768 : 32767;
          }
          p1--;
          *p1 = *p1 - ( ( temp2 * *p2-- ) >> 15 );
-         if (abs(*p1) > 32767) {
+         if (labs(*p1) > 32767) {
             *p1 = (*p1 & 0x80000000) ? -32768 : 32767;
          }
          p1--;
       } while( p1 > st->res2 );
       *p1 = *p1 - ( ( temp2 * st->preemph_state_mem_pre ) >> 15 );
-      if (abs(*p1) > 32767) {
+      if (labs(*p1) > 32767) {
          *p1 = (*p1 & 0x80000000) ? -32768 : 32767;
       }
       st->preemph_state_mem_pre = tmp;
@@ -5633,7 +5633,7 @@ static void Post_Filter( Post_FilterState *st, enum Mode mode, Word32 *syn,
        if ( ( (tmp >> 1) ^ tmp ) & mask)
           tmp = (tmp & 0x80000000) ? -1073741824 : 1073741823;
 
-       if ( labs( tmp ) < 536862720 ) {
+       if ( llabs( tmp ) < 536862720 ) {
           signal[i++] = ( tmp + 0x00002000L ) >> 14;
        }
        else if ( tmp > 0 ) {

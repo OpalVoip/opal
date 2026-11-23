@@ -441,7 +441,8 @@ public:
     av_dict_set(&m_options, "preset", "ultrafast", 0);
     av_dict_set(&m_options, "tune", "zerolatency", 0);
     //av_dict_set(&m_options, "x265-params", "pass=1", 0);
-    av_dict_set(&m_options, "crf", "35", 0);
+    // SetEncoderOptions applies a target bit rate. The encoder refuses to
+    // open when CRF is set as well, so a non-default frame size never starts.
 
     return SetEncoderOptions(m_width, m_height, m_frameTime, m_maxBitRate, m_maxRTPSize, m_tsto*51/100, m_keyFramePeriod);
   }

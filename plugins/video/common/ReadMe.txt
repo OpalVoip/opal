@@ -78,19 +78,8 @@ Copy these wherever you are putting the plug ins, typically C:\PTLib_Plugins.
 
 
 
-Then, get x264 from http://www.videolan.org/developers/x264.html, un-tar it
-to either .../external/x264 where ... is the directory opal is in, or put
-it into .../opal/plugins/video/H.264/gpl/x264. Then use the configure line:
-
-   ./configure --host=i686-pc-mingw32 --cross-prefix=i686-pc-mingw32- \
-               --enable-win32thread --enable-shared --disable-cli
-
-and make. There should now be a libx264-XXX.dll in the top directory. Copy
-that to wherever you are putting the plug ins, typically C:\PTLib_Plugins.
-
 After that, the H.263, H.264 and MPEG4 plug ins should build using the Visual
-Studio solution. Make sure you also build the "H.264 (x264)) Helper" project
-and copy the x264plugin_helper.exe as well.
+Studio solution.
 
 
 Good luck!

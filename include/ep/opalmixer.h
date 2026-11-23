@@ -828,7 +828,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
     virtual void OnNodeStatusChanged(
       const OpalMixerNode & node,            ///< Node that has changed state
       OpalConferenceState::ChangeType change ///< Change that occurred
-    );
+    ) override;
   //@}
 
   protected:
@@ -1045,7 +1045,7 @@ class OpalMixerMediaStream : public OpalMediaStream
       */
     virtual bool PushPacket(
       RTP_DataFrame & packet
-    );
+    ) override;
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
@@ -1081,7 +1081,7 @@ class OpalMixerMediaStream : public OpalMediaStream
   protected:
     virtual void InternalClose() override;
     virtual bool InternalSetJitterBuffer(const OpalJitterBuffer::Init & init) override;
-    virtual bool InternalExecuteCommand(const OpalMediaCommand & command);
+    virtual bool InternalExecuteCommand(const OpalMediaCommand & command) override;
 
     PSafePtr<OpalMixerNode> m_node;
     bool m_listenOnly;

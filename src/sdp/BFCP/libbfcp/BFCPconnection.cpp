@@ -744,7 +744,7 @@ void * BFCPConnection::ManageRetransmission(void* pParam)
     }
     bfcp_mutex_unlock(c->m_SessionMutex);
     c->Log(INF, "<< BFCPConnection: retransmission thread stopping.");
-    return NULL;
+    return 0;
 }
 
 
@@ -775,7 +775,7 @@ void* BFCPConnection::EntryPoint(void* pParam)
 	    {
                 bfcpConnection->Log(ERR, "BFCPConnection: failed to create socket transport [%d]",
 				    bfcpConnection->m_remoteClient.GetTransport() );
-		return NULL;
+		return 0;
             }
 
 	    if (bfcpConnection->m_remoteClient.GetRole() == BFCPConnectionRole::PASSIVE 

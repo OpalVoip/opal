@@ -27,7 +27,7 @@
 #include <winver.h>
 #include "version.h"
 
-AppIcon  ICON "OpenPhone.ico"
+AppIcon  ICON "openphone.ico"
 
 unknown16    ICON "unknown16.ico"
 unknown48    ICON "unknown48.ico"

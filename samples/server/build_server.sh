@@ -135,9 +135,7 @@ if $USAGE; then
 	          update         Do git update and rebuild
 	          buildonly      Only do build, do not do git update
 	
-	if the environment variable SOURCEFORGE_USERNAME is set, it will be used as the
-	SourceForge account, and ssh used instead of https. Note, certificates must be
-	set up for your local account to access SourceForge for this to work.
+	ptlib and opal are cloned from https://github.com/OpalVoip.
 	EOM
     exit 1
 fi
@@ -227,11 +225,7 @@ if $BOOTSTRAP; then
         exit 1
     fi
 
-    if [ -n "$SOURCEFORGE_USERNAME" ]; then
-        GIT_PATH=ssh://$SOURCEFORGE_USERNAME@git.code.sf.net/p/opalvoip
-    else
-        GIT_PATH=git://git.code.sf.net/p/opalvoip
-    fi
+    GIT_PATH=https://github.com/OpalVoip
 
     clone ptlib ${BRANCH:-v2_$MINOR_VERSION}
     clone opal ${BRANCH:-v3_$MINOR_VERSION}

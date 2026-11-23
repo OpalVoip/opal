@@ -28,7 +28,7 @@ typedef pthread_mutex_t bfcp_mutex_t;
 #define BFCP_CURRENT_THREAD() pthread_self()
 
 #else // WIN32
-#if !defined(_MT)
+#if !defined(_MT) && !defined(__MINGW32__)
 #error _beginthreadex requires a multithreaded C run-time library.
 #endif
 #ifndef PATH_MAX

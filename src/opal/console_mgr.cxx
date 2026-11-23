@@ -1162,55 +1162,6 @@ void OpalConsoleLineEndPoint::AddCommands(PCLI & cli)
 
 /////////////////////////////////////////////////////////////////////////////
 
-#if OPAL_CAPI
-OpalConsoleCapiEndPoint::OpalConsoleCapiEndPoint(OpalManagerConsole & manager)
-  : OpalCapiEndPoint(manager)
-  , OpalConsoleEndPoint(manager)
-{
-}
-
-
-void OpalConsoleCapiEndPoint::GetArgumentSpec(ostream & strm) const
-{
-  strm << "[ISDN (CAPI) options:]"
-          "-no-capi.          Disable ISDN via CAPI\n";
-}
-
-
-bool OpalConsoleCapiEndPoint::Initialise(PArgList & args, bool verbose, const PString & defaultRoute)
-{
-  OpalManagerConsole::LockedStream lockedOutput(m_console);
-  ostream & output = lockedOutput;
-
-  if (args.HasOption("no-capi")) {
-    if (verbose)
-      output << "CAPI ISDN disabled.\n";
-    return true;
-  }
-
-  unsigned controllers = OpenControllers();
-  if (verbose) {
-    if (controllers == 0)
-      output << "No CAPI controllers available.\n";
-    else
-      output << "Found " << controllers << " CAPI controllers.\n";
-  }
-
-  AddRoutesFor(this, defaultRoute);
-  return true;
-}
-
-
-#if P_CLI
-void OpalConsoleCapiEndPoint::AddCommands(PCLI &)
-{
-}
-#endif // P_CLI
-#endif // OPAL_CAPI
-
-
-/////////////////////////////////////////////////////////////////////////////
-
 #if OPAL_HAS_PCSS
 
 static void OutputSoundDeviceError(ostream & output,
@@ -2029,7 +1980,7 @@ PString OpalManagerConsole::GetArgumentSpec() const
          ;
 
   // Unavailable components due to compile time configuration
-#if !OPAL_H323 || !OPAL_SIP || !OPAL_SDP_HTTP || !OPAL_SKINNY || !OPAL_LYNC || !OPAL_LID || !OPAL_CAPI || !OPAL_IVR || !OPAL_HAS_MIXER
+#if !OPAL_H323 || !OPAL_SIP || !OPAL_SDP_HTTP || !OPAL_SKINNY || !OPAL_LYNC || !OPAL_LID || !OPAL_IVR || !OPAL_HAS_MIXER
   str << "[Unavailable subsystems:]";
 #endif
 #if !OPAL_H323
@@ -2049,9 +2000,6 @@ PString OpalManagerConsole::GetArgumentSpec() const
 #endif
 #if !OPAL_LID
   str << "-no-lid.";
-#endif
-#if !OPAL_CAPI
-  str << "-no-capi.";
 #endif
 #if !OPAL_IVR
   str << "-no-ivr.";
@@ -2540,11 +2488,6 @@ OpalConsoleEndPoint * OpalManagerConsole::GetConsoleEndPoint(const PString & pre
       ep = CreateLineEndPoint();
     else
 #endif // OPAL_LID
-#if OPAL_CAPI
-    if (prefix == OPAL_PREFIX_CAPI)
-      ep = CreateCapiEndPoint();
-    else
-#endif // OPAL_LID
 #if OPAL_HAS_PCSS
     if (prefix == OPAL_PREFIX_PCSS)
       ep = CreatePCSSEndPoint();
@@ -2614,14 +2557,6 @@ OpalConsoleLyncEndPoint * OpalManagerConsole::CreateLyncEndPoint()
 OpalConsoleLineEndPoint * OpalManagerConsole::CreateLineEndPoint()
 {
   return new OpalConsoleLineEndPoint(*this);
-}
-#endif // OPAL_LID
-
-
-#if OPAL_CAPI
-OpalConsoleCapiEndPoint * OpalManagerConsole::CreateCapiEndPoint()
-{
-  return new OpalConsoleCapiEndPoint(*this);
 }
 #endif // OPAL_LID
 

@@ -64,8 +64,9 @@
 
 class MyManager;
 
+#if OPAL_LID
 class OpalLineEndPoint;
-class OpalCapiEndPoint;
+#endif
 class OpalIVREndPoint;
 class OpalMixerEndPoint;
 class OpalFaxEndPoint;
@@ -727,9 +728,11 @@ class OptionsDialog : public wxDialog
     bool      m_EchoCancellation;
 #endif
     PwxString m_LocalRingbackTone;
+#if OPAL_LID
     PwxString m_LineInterfaceDevice;
     int       m_AEC;
     PwxString m_Country;
+#endif
     int       m_MinJitter;
     int       m_MaxJitter;
     int       m_SilenceSuppression;
@@ -744,15 +747,19 @@ class OptionsDialog : public wxDialog
     wxComboBox * m_soundRecorderCombo;
     wxComboBox * m_musicOnHoldCombo;
     wxComboBox * m_audioOnRingCombo;
+#if OPAL_LID
     wxComboBox * m_selectedLID;
     wxChoice   * m_selectedAEC;
     wxComboBox * m_selectedCountry;
+#endif
 
     void ChangedSoundPlayer(wxCommandEvent & /*event*/);
     void ChangedSoundRecorder(wxCommandEvent & /*event*/);
     void TestPlayer(wxCommandEvent & /*event*/);
     void TestRecorder(wxCommandEvent & /*event*/);
+#if OPAL_LID
     void SelectedLID(wxCommandEvent & /*event*/);
+#endif
     void ChangedMusicOnHold(wxCommandEvent & /*event*/);
     void ChangedAudioOnRing(wxCommandEvent & /*event*/);
 
@@ -1249,8 +1256,10 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     SpeedDialInfo * GetSelectedSpeedDial() const;
 
     MyPCSSEndPoint   * pcssEP;
+#if OPAL_LID
     OpalLineEndPoint * potsEP;
     void StartLID();
+#endif
 
     void SetNAT(const PwxString & method, bool active, const PwxString & server, int priority);
 
@@ -1275,10 +1284,6 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
 
     void StartRegistrations();
     void ReplaceRegistrations(const RegistrationList & newRegistrations);
-#endif
-
-#if OPAL_CAPI
-    OpalCapiEndPoint  * capiEP;
 #endif
 
 #if OPAL_IVR

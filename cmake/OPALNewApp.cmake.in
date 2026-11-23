@@ -1,0 +1,282 @@
+# Application using PTLib and OPAL.
+#
+# Written by opal/cmake/OPALNewApp.cmake. Edit this file as the program grows.
+# Build PTLib and OPAL in their own trees first, then from this directory:
+#   cmake -S . -B build
+#   cmake --build build
+cmake_minimum_required(VERSION 3.16)
+
+set(APP_PTLIB_DIR "@PTLIB_HINT@" CACHE PATH
+  "PTLib source directory, CMake build directory, or install prefix")
+set(APP_OPAL_DIR "@OPAL_HINT@" CACHE PATH
+  "OPAL source directory, CMake build directory, or install prefix")
+
+# vcpkg installs ports into the library build tree. This project has no
+# manifest, so FindOpenSSL would miss them unless that tree is on the
+# search path before project().
+function(app_find_vcpkg_installed hint out_var)
+  set(${out_var} "" PARENT_SCOPE)
+  if(NOT hint)
+    return()
+  endif()
+  foreach(_cand
+      "${hint}/vcpkg_installed"
+      "${hint}/build/vcpkg_installed"
+      "${hint}/build_2022/vcpkg_installed"
+      "${hint}/build_2026/vcpkg_installed")
+    if(EXISTS "${_cand}")
+      set(${out_var} "${_cand}" PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+endfunction()
+
+if(CMAKE_HOST_WIN32)
+  if(NOT VCPKG_INSTALLED_DIR)
+    app_find_vcpkg_installed("${APP_OPAL_DIR}" _app_vcpkg_installed)
+    if(NOT _app_vcpkg_installed)
+      app_find_vcpkg_installed("${APP_PTLIB_DIR}" _app_vcpkg_installed)
+    endif()
+    if(_app_vcpkg_installed)
+      set(VCPKG_INSTALLED_DIR "${_app_vcpkg_installed}" CACHE PATH
+        "vcpkg install prefix used by OPAL or PTLib" FORCE)
+    endif()
+    unset(_app_vcpkg_installed)
+  endif()
+  if(VCPKG_INSTALLED_DIR AND NOT VCPKG_TARGET_TRIPLET)
+    set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING
+      "vcpkg triplet used by the PTLib and OPAL builds" FORCE)
+  endif()
+  # find_dependency(OpenSSL) inside PTLibConfig needs this even when the
+  # caller did not pass a vcpkg toolchain file.
+  if(VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+    set(_app_vcpkg_prefix "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    if(EXISTS "${_app_vcpkg_prefix}")
+      list(PREPEND CMAKE_PREFIX_PATH "${_app_vcpkg_prefix}")
+      if(NOT OPENSSL_ROOT_DIR AND EXISTS "${_app_vcpkg_prefix}/include/openssl")
+        set(OPENSSL_ROOT_DIR "${_app_vcpkg_prefix}" CACHE PATH
+          "OpenSSL from the OPAL or PTLib vcpkg install" FORCE)
+      endif()
+    endif()
+    unset(_app_vcpkg_prefix)
+  endif()
+endif()
+
+project(@APP_NAME@ LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# MSVC leaves __cplusplus defined as 199711L unless this switch is set.
+# /FS serialises writes to a shared vc*.pdb under parallel compiles.
+if(MSVC)
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus> /FS)
+endif()
+
+# Imported includes must be searched before /usr/local/include. As system
+# includes they lose to an older installed OPAL or PTLib.
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED TRUE)
+
+if(APP_PTLIB_DIR)
+  get_filename_component(APP_PTLIB_DIR "${APP_PTLIB_DIR}" ABSOLUTE)
+endif()
+if(APP_OPAL_DIR)
+  get_filename_component(APP_OPAL_DIR "${APP_OPAL_DIR}" ABSOLUTE)
+endif()
+
+# Resolve hint to the directory that contains <Package>Config.cmake.
+function(app_resolve_package package config hint out_dir)
+  if(NOT hint)
+    set(${out_dir} "" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/${config}")
+    set(${out_dir} "${hint}" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/build/${config}")
+    set(${out_dir} "${hint}/build" PARENT_SCOPE)
+    return()
+  endif()
+  if(EXISTS "${hint}/lib/cmake/${package}/${config}")
+    set(${out_dir} "${hint}/lib/cmake/${package}" PARENT_SCOPE)
+    return()
+  endif()
+
+  set(_extra "")
+  if(EXISTS "${hint}/CMakeLists.txt")
+    if(package STREQUAL "OPAL")
+      set(_extra
+        "\nBuild OPAL in that tree against PTLib, without installing:\n  cmake -S \"${hint}\" -B \"${hint}/build\" -DOPAL_PTLIB_DIR=\"${APP_PTLIB_DIR}\"\n  cmake --build \"${hint}/build\"")
+    else()
+      set(_extra
+        "\nBuild it in that tree, without installing:\n  cmake -S \"${hint}\" -B \"${hint}/build\"\n  cmake --build \"${hint}/build\"")
+    endif()
+  endif()
+  message(FATAL_ERROR
+    "${package} was not found at:\n  ${hint}${_extra}")
+endfunction()
+
+app_resolve_package(PTLib PTLibConfig.cmake "${APP_PTLIB_DIR}" _app_ptlib_dir)
+if(_app_ptlib_dir)
+  set(PTLib_DIR "${_app_ptlib_dir}" CACHE PATH
+    "Directory containing PTLibConfig.cmake" FORCE)
+endif()
+
+app_resolve_package(OPAL OPALConfig.cmake "${APP_OPAL_DIR}" _app_opal_dir)
+if(_app_opal_dir)
+  set(OPAL_DIR "${_app_opal_dir}" CACHE PATH
+    "Directory containing OPALConfig.cmake" FORCE)
+endif()
+
+find_package(PTLib CONFIG REQUIRED)
+find_package(OPAL CONFIG REQUIRED)
+
+add_executable(@APP_NAME@
+@APP_SOURCES@)
+target_link_libraries(@APP_NAME@ PRIVATE OPAL::opal PTLib::ptlib)
+
+# Put the PTLib and OPAL Visual Studio projects in this solution. They keep
+# building in their own directories. A nested build, such as build/debug, is
+# skipped so the same project is not listed twice.
+function(app_add_vs_projects build_dir folder)
+  if(NOT CMAKE_GENERATOR MATCHES "^Visual Studio" OR NOT build_dir)
+    return()
+  endif()
+  get_filename_component(build_dir "${build_dir}" ABSOLUTE)
+  file(TO_CMAKE_PATH "${build_dir}" build_dir)
+  file(GLOB_RECURSE _projs "${build_dir}/*.vcxproj")
+  set(_skip ALL_BUILD ZERO_CHECK INSTALL RUN_TESTS PACKAGE
+    Nightly Experimental Continuous debug both uninstall)
+  set(_added 0)
+  foreach(_proj IN LISTS _projs)
+    file(TO_CMAKE_PATH "${_proj}" _proj)
+    if(_proj MATCHES "/CMakeFiles/")
+      continue()
+    endif()
+    get_filename_component(_walk "${_proj}" DIRECTORY)
+    set(_nested FALSE)
+    while(NOT _walk STREQUAL "${build_dir}")
+      if(EXISTS "${_walk}/CMakeCache.txt")
+        set(_nested TRUE)
+        break()
+      endif()
+      get_filename_component(_next "${_walk}" DIRECTORY)
+      if(_next STREQUAL "${_walk}")
+        break()
+      endif()
+      set(_walk "${_next}")
+    endwhile()
+    if(_nested)
+      continue()
+    endif()
+    get_filename_component(_name "${_proj}" NAME_WE)
+    if(_name IN_LIST _skip)
+      continue()
+    endif()
+    file(READ "${_proj}" _xml)
+    string(REGEX MATCH "<ProjectGuid>[{]([0-9A-Fa-f-]+)[}]</ProjectGuid>" _guid "${_xml}")
+    if(_guid)
+      set(_guid "{${CMAKE_MATCH_1}}")
+      get_property(_seen GLOBAL PROPERTY APP_VS_PROJECT_GUIDS)
+      if(_guid IN_LIST _seen)
+        continue()
+      endif()
+      list(APPEND _seen "${_guid}")
+      set_property(GLOBAL PROPERTY APP_VS_PROJECT_GUIDS "${_seen}")
+    else()
+      set(_guid "")
+    endif()
+    set(_target "${_name}")
+    if(TARGET "${_target}")
+      set(_target "${folder}_${_name}")
+    endif()
+    if(TARGET "${_target}")
+      continue()
+    endif()
+    set(_guid_args "")
+    if(_guid)
+      set(_guid_args GUID "${_guid}")
+    endif()
+    set(_platform_args "")
+    if(CMAKE_GENERATOR_PLATFORM)
+      set(_platform_args PLATFORM "${CMAKE_GENERATOR_PLATFORM}")
+    endif()
+    include_external_msproject(${_target} "${_proj}"
+      ${_guid_args} ${_platform_args})
+    set_target_properties(${_target} PROPERTIES FOLDER "${folder}")
+    if(_name STREQUAL "ptlib" OR _name STREQUAL "opal")
+      add_dependencies(@APP_NAME@ ${_target})
+    endif()
+    math(EXPR _added "${_added} + 1")
+  endforeach()
+  if(_added GREATER 0)
+    message(STATUS "@APP_NAME@ added ${_added} ${folder} projects from ${build_dir}")
+  endif()
+endfunction()
+
+app_add_vs_projects("${_app_ptlib_dir}" "PTLib")
+app_add_vs_projects("${_app_opal_dir}" "OPAL")
+
+# The executable finds the shared libraries in a build tree on macOS and Linux.
+function(app_imported_libdir target out_var)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" _cfg)
+  get_target_property(_loc "${target}" "IMPORTED_LOCATION_${_cfg}")
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION_RELEASE)
+  endif()
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION_DEBUG)
+  endif()
+  if(NOT _loc)
+    get_target_property(_loc "${target}" IMPORTED_LOCATION)
+  endif()
+  if(NOT _loc)
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+  get_filename_component(_dir "${_loc}" DIRECTORY)
+  set(${out_var} "${_dir}" PARENT_SCOPE)
+endfunction()
+
+app_imported_libdir(OPAL::opal _app_opal_libdir)
+app_imported_libdir(PTLib::ptlib _app_ptlib_libdir)
+set(_app_rpath "")
+if(_app_opal_libdir)
+  list(APPEND _app_rpath "${_app_opal_libdir}")
+endif()
+if(_app_ptlib_libdir)
+  list(APPEND _app_rpath "${_app_ptlib_libdir}")
+endif()
+if(_app_rpath)
+  set_target_properties(@APP_NAME@ PROPERTIES BUILD_RPATH "${_app_rpath}")
+endif()
+
+# Visual Studio loads DLLs from PATH when debugging. BUILD_RPATH does not
+# apply on Windows, so put the OPAL and PTLib output directories (and the
+# vcpkg bins those libraries need) into LocalDebuggerEnvironment.
+if(WIN32)
+  set(_app_dbg_path
+    "$<TARGET_FILE_DIR:OPAL::opal>;$<TARGET_FILE_DIR:PTLib::ptlib>")
+  if(VCPKG_INSTALLED_DIR)
+    set(_app_vcpkg_triplet "${VCPKG_TARGET_TRIPLET}")
+    if(NOT _app_vcpkg_triplet)
+      set(_app_vcpkg_triplet "x64-windows")
+    endif()
+    set(_app_vcpkg_root "${VCPKG_INSTALLED_DIR}/${_app_vcpkg_triplet}")
+    file(TO_CMAKE_PATH "${_app_vcpkg_root}" _app_vcpkg_root)
+    string(APPEND _app_dbg_path
+      ";${_app_vcpkg_root}/bin;${_app_vcpkg_root}/debug/bin")
+  endif()
+  set(_app_dbg_env "PATH=${_app_dbg_path};%PATH%")
+  if(EXISTS "${_app_opal_dir}/plugins")
+    file(TO_CMAKE_PATH "${_app_opal_dir}/plugins" _app_plugin_dir)
+    set(_app_dbg_env "PTLIBPLUGINDIR=${_app_plugin_dir}\n${_app_dbg_env}")
+  endif()
+  set_target_properties(@APP_NAME@ PROPERTIES
+    VS_DEBUGGER_ENVIRONMENT "${_app_dbg_env}")
+endif()
+
+message(STATUS "@APP_NAME@ PTLib: ${_app_ptlib_dir}")
+message(STATUS "@APP_NAME@ OPAL: ${_app_opal_dir}")

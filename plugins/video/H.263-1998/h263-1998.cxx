@@ -74,7 +74,7 @@ PLUGINCODEC_LICENSE(
   "Guilhem Tardy, Derek Smithies",
   "1.0",                                                        // source code version
   "openh323@openh323.org",                                      // source code email
-  "http://sourceforge.net/projects/openh323",                   // source code URL
+  "https://github.com/OpalVoip/opal",                           // source code URL
   "Copyright (C) 2007 Matthias Schneider"                       // source code copyright
   ", Copyright (C) 2006 by Post Increment"
   ", Copyright (C) 2005 Salyens"
@@ -256,12 +256,12 @@ static struct PluginCodec_Option const TemporalSpatialTradeOff =
   PLUGINCODEC_OPTION_TEMPORAL_SPATIAL_TRADE_OFF, // User visible name
   false,                              // User Read/Only flag
   PluginCodec_AlwaysMerge,            // Merge mode
-  "31",                               // Initial value
+  "50",                               // Initial value
   NULL,                               // FMTP option name
   NULL,                               // FMTP default value
   0,                                  // H.245 generic capability code and bit mask
   "1",                                // Minimum value
-  "31"                                // Maximum value
+  "100"                               // Maximum value
 };
 
 static struct PluginCodec_Option const * const OptionTable_RFC22429[] = {
@@ -476,7 +476,8 @@ class H263_Base_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCode
         return SetOptionsInt("aiv", value, m_optionsSame);
 #endif
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 0, 0)
+      // rtp_payload_size was removed in lavc 59; use the mb_info private option.
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 0, 0)
       m_context->rtp_payload_size = (int)m_fullFrame->GetMaxPayloadSize(); // Might be adjusted to smaller value
 #else
       av_dict_set_int(&m_options, "mb_info", m_fullFrame->GetMaxPayloadSize(), 0);

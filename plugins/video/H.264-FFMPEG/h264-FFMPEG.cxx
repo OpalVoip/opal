@@ -212,7 +212,9 @@ public:
 
     av_dict_set(&m_options, "preset", "ultrafast", 0);
     av_dict_set(&m_options, "tune", "zerolatency", 0);
-    av_dict_set(&m_options, "crf", "35", 0);
+    // SetEncoderOptions applies a target bit rate. libx264 refuses to open
+    // when CRF is set as well, which drops the video stream whenever the
+    // frame size is not CIF and the codec has to be reopened.
 
     m_context->profile = m_profile;
     m_context->level = m_level;

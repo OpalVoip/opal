@@ -598,7 +598,8 @@ void speex_echo_cancel(SpeexEchoState *st, short *ref, short *echo, short *out, 
       /* Remove the "if" to make this an MDF filter */
       if (j==M-1 || st->cancel_count%(M-1) == j)
       {
-#ifdef _WIN32
+#ifdef _MSC_VER
+         /* MSVC has no variable-length arrays. _alloca is its stack allocator. */
          spx_word16_t * w = (spx_word16_t *)_alloca(N * sizeof(spx_word16_t));
 #else
          spx_word16_t w[N];

@@ -1182,6 +1182,7 @@ bool OpalMediaFormat::RegisterKnownMediaFormats(const PString & name)
     #define KNOWN2(name, func) { OPAL_##name, (MediaFormatFunction)GetOpal##func }
     #define KNOWN(codec) KNOWN2(codec, codec)
   } const known[] = {
+#if OPAL_OBSOLETE_CODECS
     KNOWN(G722),
     KNOWN(G7221_24K),
     KNOWN(G7221_32K),
@@ -1202,10 +1203,13 @@ bool OpalMediaFormat::RegisterKnownMediaFormats(const PString & name)
     KNOWN(G7231_Cisco_A),
     KNOWN(G7231_Cisco_AR),
     KNOWN(GSM0610),
+#endif
     KNOWN(GSMAMR),
+#if OPAL_OBSOLETE_CODECS
     KNOWN(iLBC),
     KNOWN2(SPEEX_NB, SpeexNB),
     KNOWN2(SPEEX_WB, SpeexWB),
+#endif
     KNOWN2(OPUS8,   Opus8),
     KNOWN2(OPUS8S,  Opus8S),
     KNOWN2(OPUS12,  Opus12),
@@ -1217,7 +1221,9 @@ bool OpalMediaFormat::RegisterKnownMediaFormats(const PString & name)
     KNOWN2(OPUS48,  Opus48),
     KNOWN2(OPUS48S, Opus48S),
 #if OPAL_VIDEO
+#if OPAL_OBSOLETE_CODECS
     KNOWN(H261),
+#endif
     KNOWN(H263),
     KNOWN(H263plus),
     KNOWN(H264_MODE0),

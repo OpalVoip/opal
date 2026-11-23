@@ -25,6 +25,8 @@
 
 #include <ptlib.h>
 
+#include <opal_config.h>
+
 #ifdef P_USE_PRAGMA
 #pragma implementation "opalwavfile.h"
 #endif
@@ -378,8 +380,10 @@ static struct PWAVFilePluginValidFormat {
   { OPAL_G711_ULAW_64K, PWAVFile::fmt_uLaw },
   { OPAL_G711_ALAW_64K, PWAVFile::fmt_ALaw },
   { "MS-GSM",           PWAVFile::fmt_GSM,  MSGSM_ExtendedHeader, sizeof(MSGSM_ExtendedHeader) },
+#if OPAL_OBSOLETE_CODECS
   { OPAL_G728,          PWAVFile::fmt_G728 },
   { OPAL_G729,          PWAVFile::fmt_G729 },
+#endif
   { }
 };
 

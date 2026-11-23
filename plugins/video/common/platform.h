@@ -67,6 +67,14 @@
   #pragma include_alias(<inttypes.h>, <stdint.h>)
 #elif defined(_WIN32)
   #include "stdint.h"
+  /* MinGW defines _WIN32 but does not pull in the Win32 API by itself.
+     NOMINMAX keeps the min/max macros out of C++ translation units. */
+  #ifndef NOMINMAX
+  #define NOMINMAX
+  #endif
+  #include <windows.h>
+  #undef min
+  #undef max
 #else
   #include "plugin_config.h"
 
