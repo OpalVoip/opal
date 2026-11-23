@@ -229,7 +229,7 @@ class OpalRTPConnection : public OpalConnection
 
        @returns a list of the media types for which sessions where created.
       */
-    vector<bool> CreateAllMediaSessions();
+    set<unsigned> CreateAllMediaSessions();
 
     /**Create an RTP session for the specified ID.
        The type of RTP session that is created will be compatible with the

@@ -136,7 +136,7 @@ OpalMediaCryptoSuite::KeyExchangeModes OpalRTPConnection::GetMediaCryptoKeyExcha
 }
 
 
-vector<bool> OpalRTPConnection::CreateAllMediaSessions()
+set<unsigned> OpalRTPConnection::CreateAllMediaSessions()
 {
   OpalMediaTypeList allMediaTypes = GetLocalMediaFormats().GetMediaTypes();
   allMediaTypes.PrioritiseAudioVideo();
@@ -150,7 +150,7 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
   const PStringArray cryptoSuites = GetMediaCryptoSuites();
   PTRACE(4, "Creating media sessions: media=" << setfill(',') << allMediaTypes << " - crypto=" << cryptoSuites);
 
-  vector<bool> openedMediaSessions(allMediaTypes.size()*cryptoSuites.GetSize()+1);
+  set<unsigned> openedMediaSessions;
 
   for (OpalMediaTypeList::iterator iterMediaType = allMediaTypes.begin(); iterMediaType != allMediaTypes.end(); ++iterMediaType) {
     const OpalMediaType & mediaType = *iterMediaType;
@@ -163,6 +163,24 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
     }
 
     OpalMediaSession* session = NULL;
+
+    /* Re-use an existing session of this media type, e.g. on a re-INVITE without SDP,
+       so the offer keeps its port, its keys and its m= line. A session already used
+       in this pass is skipped, so dual audio still gets its second session. */
+    bool existingSession = false;
+    bool offerCryptoSuites = true;
+    for (SessionMap::const_iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
+      unsigned sessionId = it->first;
+      if (it->second->GetMediaType() == mediaType && openedMediaSessions.find(sessionId) == openedMediaSessions.end()) {
+        session = it->second;
+        existingSession = true;
+        // A session with keys re-offers the ones it has, see OnSendOfferSDPStream()
+        offerCryptoSuites = session->IsCryptoSecured(false) == NULL && session->GetOfferedCryptoKeys().IsEmpty();
+        PTRACE(4, "Session " << sessionId << " for " << mediaType << " and " << session->GetSessionType() << " already created.");
+        openedMediaSessions.insert(sessionId);
+        break;
+      }
+    }
 
     for (PINDEX csIdx = 0; csIdx < cryptoSuites.GetSize(); ++csIdx) {
       PCaselessString cryptoSuiteName = cryptoSuites[csIdx];
@@ -187,6 +205,10 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
         continue;
       }
 
+      // An existing session keeps its session type
+      if (existingSession && (!offerCryptoSuites || session->GetSessionType() != sessionType))
+        continue;
+
       unsigned nextSessionId = 1;
       for (SessionMap::const_iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
         if (nextSessionId <= it->first)
@@ -201,7 +223,7 @@ vector<bool> OpalRTPConnection::CreateAllMediaSessions()
 
       session->OfferCryptoSuite(cryptoSuiteName);
 
-      openedMediaSessions[session->GetSessionID()] = true;
+      openedMediaSessions.insert(session->GetSessionID());
     }
   }
 

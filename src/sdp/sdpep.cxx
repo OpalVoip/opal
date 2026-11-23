@@ -618,7 +618,7 @@ bool OpalSDPConnection::OnSendOfferSDP(SDPSessionDescription & sdpOut, bool offe
     PTRACE(3, "Offering all configured media:\n    " << setfill(',') << m_activeFormatList << setfill(' '));
 
     // Create media sessions based on available media types and make sure audio and video are first two sessions
-    vector<bool> sessions = CreateAllMediaSessions();
+    set<unsigned> createdSessions = CreateAllMediaSessions();
 
 #if OPAL_VIDEO
     SetUpLipSyncMediaStreams();
@@ -626,40 +626,36 @@ bool OpalSDPConnection::OnSendOfferSDP(SDPSessionDescription & sdpOut, bool offe
 
 #if OPAL_BFCP
     // If a presentation video session was opened, then we need a BFCP session
-    for (vector<bool>::size_type sessionId = 1; sessionId < sessions.size(); ++sessionId) {
-      if (sessions[sessionId]) {
-        OpalMediaSession * session = GetMediaSession(sessionId);
-        if (session->GetMediaType() == OpalPresentationVideoMediaDefinition::Name()) {
-          unsigned nextSessionId = m_sessions.GetSize() + 1;
-          OpalMediaSession::Init init(*this, nextSessionId, BFCPMediaDefinition::Name(), false);
-          m_sessions.SetAt(nextSessionId, new BFCPSession(init, this));
-          if (sessions.size() < nextSessionId)
-            sessions.resize(nextSessionId + 1);
-          sessions[nextSessionId] = true;
-          break;
-        }
+    for (set<unsigned>::const_iterator it = createdSessions.begin(); it != createdSessions.end(); ++it) {
+      unsigned sessionId = *it;
+      OpalMediaSession * session = GetMediaSession(sessionId);
+      if (session->GetMediaType() == OpalPresentationVideoMediaDefinition::Name()) {
+        unsigned nextSessionId = m_sessions.GetSize() + 1;
+        OpalMediaSession::Init init(*this, nextSessionId, BFCPMediaDefinition::Name(), false);
+        m_sessions.SetAt(nextSessionId, new BFCPSession(init, this));
+        createdSessions.insert(nextSessionId + 1);
+        break;
       }
     }
 #endif // OPAL_BFCP
 
     OpalMediaTransportPtr bundledTransport;
-    for (vector<bool>::size_type sessionId = 1; sessionId < sessions.size(); ++sessionId) {
-      if (sessions[sessionId]) {
-        OpalMediaSession * session = GetMediaSession(sessionId);
+    for (set<unsigned>::const_iterator it = createdSessions.begin(); it != createdSessions.end(); ++it) {
+      unsigned sessionId = *it;
+      OpalMediaSession * session = GetMediaSession(sessionId);
 
-        bool bundled = m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE) || session->IsGroupMember(OpalMediaSession::GetBundleGroupId());
-        if (bundled && bundledTransport != NULL)
-          session->AttachTransport(bundledTransport);
+      bool bundled = m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE) || session->IsGroupMember(OpalMediaSession::GetBundleGroupId());
+      if (bundled && bundledTransport != NULL)
+        session->AttachTransport(bundledTransport);
 
-        if (OnSendOfferSDPSession(sessionId, sdpOut, false, bundled)) {
-          sdpOK = true;
+      if (OnSendOfferSDPSession(sessionId, sdpOut, false, bundled)) {
+        sdpOK = true;
 
-          if (bundled && bundledTransport == NULL)
-            bundledTransport = session->GetTransport();
-        }
-        else
-          ReleaseMediaSession(sessionId);
+        if (bundled && bundledTransport == NULL)
+          bundledTransport = session->GetTransport();
       }
+      else
+        ReleaseMediaSession(sessionId);
     }
   }
 
