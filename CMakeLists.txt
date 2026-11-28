@@ -388,11 +388,18 @@ include(cmake/OPALBuildVariants.cmake)
 include(cmake/OPALVisualStudio.cmake)
 
 # Optional binary .deb. Build it with "cmake --build <build> --target package"
-# or "cpack -G DEB" from the build directory. Configure with
-# -DCMAKE_INSTALL_PREFIX=/usr so the package installs under /usr.
-# dpkg-shlibdeps records the dependency on libpt when the PTLib .deb is
-# already installed.
+# or "cpack -G DEB" from the build directory. The package installs under
+# CMAKE_INSTALL_PREFIX, the prefix compiled into OPAL_PLUGIN_DIR, opal.pc
+# and the CMake package files. dpkg-shlibdeps records the dependency on
+# libpt when the PTLib .deb is already installed.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # CPack packages under /usr unless told otherwise.
+  set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+  # CPack only runs ldconfig for libraries directly in /lib or /usr/lib. The
+  # ldconfig trigger refreshes the cache for any directory in ld.so.conf,
+  # such as /usr/local/lib or /usr/lib/<multiarch>.
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/debian/triggers" "activate-noawait ldconfig\n")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/debian/triggers")
   # A hyphen is the Debian revision separator. ~alpha sorts before the release.
   string(REPLACE "-alpha" "~alpha" CPACK_DEBIAN_PACKAGE_VERSION "${OPAL_VERSION}")
   string(REPLACE "-beta" "~beta" CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_DEBIAN_PACKAGE_VERSION}")

@@ -491,15 +491,22 @@ files as `cmake --install`: the shared library, codec plugins, headers,
 package and no source package.
 
 Install the PTLib `.deb` first, and install `dpkg-dev` so cpack can run
-`dpkg-shlibdeps`. Configure with a `/usr` prefix so the package installs
-libraries where Debian's ldconfig trigger sees them, and so shlibdeps
-can record the dependency on the installed ptlib package.
+`dpkg-shlibdeps`, which then records the dependency on the installed ptlib
+package. The package installs under `CMAKE_INSTALL_PREFIX`, the same prefix
+that is compiled into the codec plugin directory, `opal.pc` and the CMake
+package files. The default is `/usr/local`; configure with
+`-DCMAKE_INSTALL_PREFIX=/usr` for a package that installs under `/usr`:
 
 ```sh
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr -DOPAL_PTLIB_DIR=/usr
 cmake --build build
 cmake --build build --target package
 ```
+
+Installing or removing the package runs `ldconfig` through dpkg's trigger. The
+library directory must be one `ldconfig` searches: `/usr/lib`,
+`/usr/local/lib` and the multiarch directories are; a prefix such as
+`/opt/opal` also needs an `/etc/ld.so.conf.d` entry.
 
 The `package` target writes `opal_<version>_<arch>.deb` in the build
 directory. `cpack -G DEB` from that directory does the same thing. The
